@@ -1,0 +1,10 @@
+version: '3'
+services:
+
+  pipeline-service:
+    build:
+      context: ./PipelineService
+      dockerfile: ./Dockerfile
+    ports:
+      - "5000:80"
+    
