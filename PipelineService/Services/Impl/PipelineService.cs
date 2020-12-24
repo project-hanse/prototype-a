@@ -2,16 +2,19 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using PipelineService.Models;
 
 namespace PipelineService.Services.Impl
 {
     public class PipelineService : IPipelineService
     {
+        private readonly ILogger<IPipelineService> _logger;
         private readonly IDictionary<Guid, Pipeline> _store;
 
-        public PipelineService()
+        public PipelineService(ILogger<IPipelineService> logger)
         {
+            _logger = logger;
             _store = new ConcurrentDictionary<Guid, Pipeline>();
         }
 
@@ -33,7 +36,19 @@ namespace PipelineService.Services.Impl
         {
             var pipeline = await GetPipeline(pipelineId);
 
+            await EnqueueBlocks(pipeline.Root);
+
             return pipeline;
+        }
+
+        private async Task EnqueueBlocks(Block block)
+        {
+            _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
+
+            foreach (var blockSuccessor in block.Successors)
+            {
+                await EnqueueBlocks(blockSuccessor);
+            }
         }
 
         private static Pipeline NewPipeline(Guid pipelineId)
@@ -53,7 +68,25 @@ namespace PipelineService.Services.Impl
                             {
                                 new()
                                 {
-                                    Operation = "Cluster"
+                                    Operation = "Cluster",
+                                    Successors = new List<Block>
+                                    {
+                                        new()
+                                        {
+                                            Operation = "Visualize"
+                                        }
+                                    }
+                                },
+                                new()
+                                {
+                                    Operation = "Filter",
+                                    Successors = new List<Block>
+                                    {
+                                        new()
+                                        {
+                                            Operation = "Visualize"
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -6,6 +6,6 @@ namespace PipelineService.Models
     {
         public string Operation { get; set; }
 
-        public IList<Block> Successors { get; set; }
+        public IList<Block> Successors { get; set; } = new List<Block>();
     }
 }
