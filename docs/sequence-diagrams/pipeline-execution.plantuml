@@ -1,0 +1,33 @@
+@startuml pipeline-execution
+
+'Name Definitions'
+!$ps = "Pipeline Service"
+!$es = "Execution Service"
+!$mb = "Message Broker"
+!$bw = "Block Worker"
+!$ds = "Dataset Storage"
+
+title Pipeline execution
+
+-> "$ps" : execute(pipelineId: Guid)
+"$ps" -> "$es": startExecution(pipelineId: Guid)
+"$es" --> "$ps": executionId: Guid
+
+loop non executed blocks exist && last block execution was successful
+    "$es" -> "$es" : selectBlock(pipelineId: Guid)
+    "$es" -> "$mb" : run(block: Block)
+    "$es" -> "$mb" : subscribe(executionId: Guid)
+    ...
+    "$mb" -> "$bw" : run(block: Block)
+    "$bw" -> "$ds" : load(datasetId: Guid)
+    "$bw" -> "$bw" : executeOperation()
+    "$bw" -> "$ds" : store(dataset: Dataset)
+    "$bw" -> "$mb" : complete(executionId: Guid, block: BlockExecution)
+    ...
+    "$mb" --> "$es" : complete(executionId: Guid, block: BlockExecution)
+    "$es" -> "$es" : updatePipeline(executionId: Guid, block: BlockExecution)
+end
+-> "$ps" : pipelineStatus(pipelineId: Guid)
+"$ps" -> "$es" : getStatus(executionId: Guid)
+
+@enduml
