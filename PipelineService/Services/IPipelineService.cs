@@ -6,8 +6,17 @@ namespace PipelineService.Services
 {
     public interface IPipelineService
     {
-        public Task<Pipeline> GetPipeline(Guid pipelineId);
+        /// <summary>
+        /// Creates a default pipeline and stores it.
+        /// </summary>
+        /// <returns>The default pipeline.</returns>
+        public Task<Pipeline> CreateDefault();
 
-        public Task<Pipeline> ExecutePipeline(Guid pipelineId);
+        /// <summary>
+        /// Loads a pipeline from the store by it's id.
+        /// </summary>
+        /// <param name="pipelineId">The pipeline's id</param>
+        /// <returns>The pipeline</returns>
+        public Task<Pipeline> GetPipeline(Guid pipelineId);
     }
 }

@@ -11,30 +11,53 @@ namespace PipelineService.Controllers
     {
         private readonly ILogger<PipelineController> _logger;
         private readonly IPipelineService _pipelineService;
+        private readonly IPipelineExecutionService _pipelineExecutionService;
 
         public PipelineController(
             ILogger<PipelineController> logger,
-            IPipelineService pipelineService)
+            IPipelineService pipelineService,
+            IPipelineExecutionService pipelineExecutionService)
         {
             _logger = logger;
             _pipelineService = pipelineService;
+            _pipelineExecutionService = pipelineExecutionService;
+        }
+
+        [HttpGet("default")]
+        public async Task<Pipeline> GetDefault()
+        {
+            return await _pipelineService.CreateDefault();
         }
 
         [HttpGet("{id}")]
-        public async Task<Pipeline> GetPipeline(Guid id)
+        public async Task<IActionResult> GetPipeline(Guid id)
         {
-            return await _pipelineService.GetPipeline(id);
+            var pipeline = await _pipelineService.GetPipeline(id);
+
+            if (pipeline == null)
+            {
+                return NotFound($"No pipeline with id {id} exists");
+            }
+
+            return Ok(pipeline);
         }
 
-        [HttpGet("execute")]
-        public async Task<Guid> ExecutePipeline()
+        [HttpGet("execute/{pipelineId}")]
+        public async Task<IActionResult> ExecutePipeline(Guid pipelineId)
         {
-            var id = Guid.NewGuid();
-            _logger.LogInformation("Generating random id for pipeline {pipelineId}", id);
+            _logger.LogDebug("Executing pipeline {pipelineId}", pipelineId);
 
-            await _pipelineService.ExecutePipeline(id);
+            var executionId = await _pipelineExecutionService.ExecutePipeline(pipelineId);
 
-            return id;
+            _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
+                pipelineId, executionId);
+
+            if (executionId.HasValue)
+            {
+                return Ok(executionId.Value);
+            }
+
+            return NotFound($"No pipeline with id {pipelineId} exists");
         }
     }
 }

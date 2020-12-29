@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using PipelineService.Services;
+using PipelineService.Services.Impl;
 
 namespace PipelineService
 {
@@ -21,6 +22,7 @@ namespace PipelineService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient<IPipelineService, Services.Impl.PipelineService>();
+            services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -36,7 +38,12 @@ namespace PipelineService
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PipelineService v1"));
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PipelineService v1");
+                    // swagger UI at root
+                    c.RoutePrefix = string.Empty;
+                });
             }
 
             app.UseHttpsRedirection();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Models;
@@ -10,45 +11,36 @@ namespace PipelineService.Services.Impl
     public class PipelineService : IPipelineService
     {
         private readonly ILogger<IPipelineService> _logger;
-        private readonly IDictionary<Guid, Pipeline> _store;
+        private static readonly IDictionary<Guid, Pipeline> Store = new ConcurrentDictionary<Guid, Pipeline>();
 
         public PipelineService(ILogger<IPipelineService> logger)
         {
             _logger = logger;
-            _store = new ConcurrentDictionary<Guid, Pipeline>();
         }
 
-        public async Task<Pipeline> GetPipeline(Guid pipelineId)
+        public Task<Pipeline> CreateDefault()
         {
-            if (_store.TryGetValue(pipelineId, out var pipeline))
+            var pipelineId = Guid.NewGuid();
+
+            _logger.LogInformation("Creating new default pipeline with id {pipelineId}", pipelineId);
+
+            var defaultPipeline = NewPipeline(pipelineId);
+
+            Store.Add(pipelineId, defaultPipeline);
+
+            return Task.FromResult(defaultPipeline);
+        }
+
+        public Task<Pipeline> GetPipeline(Guid pipelineId)
+        {
+            if (Store.TryGetValue(pipelineId, out var pipeline))
             {
-                return pipeline;
+                _logger.LogInformation("Loading pipeline with id {pipelineId}", pipelineId);
+                return Task.FromResult(pipeline);
             }
 
-            pipeline = NewPipeline(pipelineId);
-
-            _store.Add(pipelineId, pipeline);
-
-            return pipeline;
-        }
-
-        public async Task<Pipeline> ExecutePipeline(Guid pipelineId)
-        {
-            var pipeline = await GetPipeline(pipelineId);
-
-            await EnqueueBlocks(pipeline.Root);
-
-            return pipeline;
-        }
-
-        private async Task EnqueueBlocks(Block block)
-        {
-            _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
-
-            foreach (var blockSuccessor in block.Successors)
-            {
-                await EnqueueBlocks(blockSuccessor);
-            }
+            _logger.LogInformation("No pipeline with id {pipelineId} found", pipelineId);
+            return Task.FromResult<Pipeline>(null);
         }
 
         private static Pipeline NewPipeline(Guid pipelineId)
