@@ -6,9 +6,12 @@ services:
     build:
       context: ./PipelineService
       dockerfile: ./Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MQTT_CLIENT_ID=pipeline-service-1
     ports:
       - "5000:80"
-  
+
   # Message Broker
   message-broker:
     image: eclipse-mosquitto

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Models;
@@ -24,7 +23,7 @@ namespace PipelineService.Services.Impl
 
             _logger.LogInformation("Creating new default pipeline with id {pipelineId}", pipelineId);
 
-            var defaultPipeline = NewPipeline(pipelineId);
+            var defaultPipeline = NewDefaultPipeline(pipelineId);
 
             Store.Add(pipelineId, defaultPipeline);
 
@@ -43,39 +42,45 @@ namespace PipelineService.Services.Impl
             return Task.FromResult<Pipeline>(null);
         }
 
-        private static Pipeline NewPipeline(Guid pipelineId)
+        private static Pipeline NewDefaultPipeline(Guid pipelineId)
         {
             var pipeline = new Pipeline
             {
                 Id = pipelineId,
                 Root = new Block
                 {
+                    PipelineId = pipelineId,
                     Operation = "LoadCSV",
                     Successors = new List<Block>
                     {
                         new()
                         {
+                            PipelineId = pipelineId,
                             Operation = "CleanUp",
                             Successors = new List<Block>
                             {
                                 new()
                                 {
+                                    PipelineId = pipelineId,
                                     Operation = "Cluster",
                                     Successors = new List<Block>
                                     {
                                         new()
                                         {
+                                            PipelineId = pipelineId,
                                             Operation = "Visualize"
                                         }
                                     }
                                 },
                                 new()
                                 {
+                                    PipelineId = pipelineId,
                                     Operation = "Filter",
                                     Successors = new List<Block>
                                     {
                                         new()
                                         {
+                                            PipelineId = pipelineId,
                                             Operation = "Visualize"
                                         }
                                     }

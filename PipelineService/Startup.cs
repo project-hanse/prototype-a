@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using MQTTnet.Client;
 using PipelineService.Services;
 using PipelineService.Services.Impl;
 
@@ -23,6 +24,7 @@ namespace PipelineService
         {
             services.AddTransient<IPipelineService, Services.Impl.PipelineService>();
             services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
+            services.AddSingleton<IMqttMessageService, MqttMessageService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

@@ -9,13 +9,16 @@ namespace PipelineService.Services.Impl
     {
         private readonly ILogger<PipelineExecutionService> _logger;
         private readonly IPipelineService _pipelineService;
+        private readonly IMqttMessageService _mqttMessageService;
 
         public PipelineExecutionService(
             ILogger<PipelineExecutionService> logger,
-            IPipelineService pipelineService)
+            IPipelineService pipelineService,
+            IMqttMessageService mqttMessageService)
         {
             _logger = logger;
             _pipelineService = pipelineService;
+            _mqttMessageService = mqttMessageService;
         }
 
         public async Task<Guid?> ExecutePipeline(Guid pipelineId)
@@ -42,6 +45,12 @@ namespace PipelineService.Services.Impl
         private async Task EnqueueBlocks(Block block)
         {
             _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
+
+            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", new MqttMessage
+            {
+                PipelineId = block.PipelineId,
+                Message = block.Operation
+            });
 
             foreach (var blockSuccessor in block.Successors)
             {
