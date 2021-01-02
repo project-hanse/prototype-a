@@ -1,33 +1,84 @@
 @startuml pipeline-execution
 
 'Name Definitions'
+!$pc = "Pipeline Controller"
 !$ps = "Pipeline Service"
 !$es = "Execution Service"
+!$hs = "Hangfire Service"
 !$mb = "Message Broker"
 !$bw = "Block Worker"
 !$ds = "Dataset Storage"
+!$u = "User"
 
 title Pipeline execution
+actor "$u"
+participant "$pc"
+participant "$es"
+participant "$ps"
+participant "$hs"
+participant "$mb"
+collections "$bw"
+database "$ds"
 
--> "$ps" : execute(pipelineId: Guid)
-"$ps" -> "$es": startExecution(pipelineId: Guid)
-"$es" --> "$ps": executionId: Guid
+== Initialization ==
 
-loop non executed blocks exist && last block execution was successful
-    "$es" -> "$es" : selectBlock(pipelineId: Guid)
-    "$es" -> "$mb" : run(block: Block)
-    "$es" -> "$mb" : subscribe(executionId: Guid)
+"$bw" -> "$mb" : subscribe("execute/+")
+
+== Invocation ==
+
+"$u" -> "$pc" : GET /api/v1/Pipeline/execute/{pipelineId}
+
+"$pc" -> "$ps": loadPipeline(pipelineId: Guid)
+"$pc" <-- "$ps": pipeline: Pipeline
+"$pc" -> "$es": createExecution(pipeline: Pipeline)
+"$es" -> "$hs": enqueue(deployNextBlocks(executionId: Guid))
+"$es" <-- "$hs"
+"$pc" <-- "$es": executionId
+"$u" <-- "$pc" : executionId: Guid
+
+== Execution ==
+"$hs" -> "$es": deployNextBlocks(executionId: Guid)
+"$hs" <-- "$es"
+alt all previous blocks have been executed
+    "$es" -> "$es" : selectNextBlocks(pipelineId: Guid, executionId: Guid)
+    "$es" -> "$mb" : publish(request: BlockExecutionRequest) 
+    "$es" <-- "$mb" 
+    "$es" -> "$mb" : subscribe("executed/{pipelineId}/{executionId}")
     ...
-    "$mb" -> "$bw" : run(block: Block)
-    "$bw" -> "$ds" : load(datasetId: Guid)
-    "$bw" -> "$bw" : executeOperation()
-    "$bw" -> "$ds" : store(dataset: Dataset)
-    "$bw" -> "$mb" : complete(executionId: Guid, block: BlockExecution)
+    
+    "$mb" --> "$bw" : newPublished(request: BlockExecutionRequest)
+    "$bw" -> "$bw" : creationHash(inputDataSetIds: Guid[], operation: string, operationConfig: OperationConfig)
+    "$bw" -> "$ds" : GET api/v1/datasets?creationHash={hash}
+    "$bw" <-- "$ds" 
+    
+    alt result already exists
+        "$bw" -> "$mb" : publish(response: BlockExecutionResponse)
+        "$bw" <-- "$mb"
+    else
+        "$bw" -> "$ds" : GET api/v1/datasets?id={datasetId};{datasetId};...
+        "$bw" <-- "$ds"
+        
+        "$bw" -> "$bw" : executeOperation(datatsets: Dataset[])
+           
+        alt successful
+            "$bw" -> "$ds" : POST api/v1/datasets/create/{datasetId} (dataset: Dataset, creationHash: Hash)
+            "$bw" <-- "$ds"
+            "$bw" -> "$mb" : publish(response: BlockExecutionResponse)
+            "$bw" <-- "$mb"
+        else error during execution
+            "$bw" -> "$mb" : publish(response: BlockExecutionResponse)
+            "$bw" <-- "$mb"
+        end
+    end
     ...
-    "$mb" --> "$es" : complete(executionId: Guid, block: BlockExecution)
-    "$es" -> "$es" : updatePipeline(executionId: Guid, block: BlockExecution)
+    "$mb" --> "$es" : newPublished(response: BlockExecutionResponse)
+    "$es" -> "$es": storeExecutedBlocks()
+    "$es" -> "$hs": enqueue(deployNextBlocks(executionId: Guid))
+    "$es" <-- "$hs"
 end
--> "$ps" : pipelineStatus(pipelineId: Guid)
-"$ps" -> "$es" : getStatus(executionId: Guid)
+
+== Checking Status ==
+
+"$u" -> "$pc" : GET /api/v1/Pipeline/executionStatus/{pipelineId}
 
 @enduml
