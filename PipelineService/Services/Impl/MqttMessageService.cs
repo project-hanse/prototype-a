@@ -19,7 +19,7 @@ namespace PipelineService.Services.Impl
 
         private string Hostname => _configuration.GetValue("MQTT_HOST", "message-broker");
         private int Port => _configuration.GetValue("MQTT_PORT", 1883);
-        private string ClientId => _configuration.GetValue("MQTT_CLIENT_ID", $"PipelineService_{Guid.NewGuid()}");
+        private string ClientId => _configuration.GetValue("MQTT_CLIENT_ID", $"PipelineService-{Guid.NewGuid()}");
         private string Username => _configuration.GetValue<string>("MQTT_USER", null);
         private string Password => _configuration.GetValue<string>("MQTT_PASSWORD", null);
 
