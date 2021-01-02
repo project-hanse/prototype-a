@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using PipelineService.Models;
+using PipelineService.Models.MqttMessages;
+using PipelineService.Models.Pipeline;
+using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Services.Impl
 {
@@ -32,7 +34,7 @@ namespace PipelineService.Services.Impl
                 return null;
             }
 
-            var execution = new PipelineExecution
+            var execution = new PipelineExecutionRecord
             {
                 PipelineId = pipeline.Id
             };
@@ -46,10 +48,12 @@ namespace PipelineService.Services.Impl
         {
             _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
 
-            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", new MqttMessage
+            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", new BlockExecutionRequest
             {
                 PipelineId = block.PipelineId,
-                Message = block.Operation
+                BlockId = block.Id,
+                ExecutionId = Guid.NewGuid(), // TODO: use actual execution id
+                OperationName = block.Operation
             });
 
             foreach (var blockSuccessor in block.Successors)

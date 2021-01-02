@@ -2,24 +2,37 @@ import signal
 import time
 import uuid
 import os
+import json
 
 import paho.mqtt.client as mqtt
 
 MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
 MQTT_PORT: int = os.getenv("MQTT_PORT", 1883)
 CLIENT_ID: str = os.getenv("MQTT_CLIENT_ID", ("BlockWorker-" + str(uuid.uuid4())))
-TOPIC_NAME: str = os.getenv("MQTT_TOPIC_SUB", "execute/+")
+TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+")
+TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "executed")
 
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code %s" % str(rc))
     # Subscribing in on_connect() means that if we lose the connection and reconnect then subscriptions will be renewed.
-    print("Subscribing to topic " + TOPIC_NAME)
-    client.subscribe(TOPIC_NAME)
+    print("Subscribing to topic " + TOPIC_NAME_SUB)
+    client.subscribe(TOPIC_NAME_SUB)
 
 
 def on_message(client, userdata, msg):
     print("Payload %s on topic client %s" % (str(msg.payload), str(msg.topic)))
+    payload = json.loads(msg.payload)
+    # TODO make this more robust (error handling,...)
+    response = {
+        'PipelineId': payload['PipelineId'],
+        'BlockId': payload['BlockId'],
+        'Successful': True,
+        'ExecutionTime': 0,
+        'ResultDatasetId': uuid.uuid4()
+    }
+    client.publish(("%s/%s/%s" % (TOPIC_NAME_PUB, payload['pipelineId'], payload['executionId'])),
+                   payload=json.dumps(response))
 
 
 class Program:

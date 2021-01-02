@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PipelineService.Models;
+using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers

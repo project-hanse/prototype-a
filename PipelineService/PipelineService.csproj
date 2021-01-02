@@ -5,15 +5,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.1" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="5.0.1" NoWarn="NU1605" />
-        <PackageReference Include="MQTTnet" Version="3.0.13" />
-        <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.13" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Models\MqttMessages" />
+        <PackageReference Include="MQTTnet" Version="3.0.13"/>
+        <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.13"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3"/>
     </ItemGroup>
 
 </Project>

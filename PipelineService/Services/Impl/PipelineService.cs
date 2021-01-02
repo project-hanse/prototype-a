@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Models;
+using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
 {

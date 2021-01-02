@@ -8,6 +8,7 @@ using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
 using PipelineService.Models;
+using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
 {
@@ -79,7 +80,7 @@ namespace PipelineService.Services.Impl
             await _client.StartAsync(managedMqttClientOptions);
         }
 
-        public async Task PublishMessage(string topic, MqttMessage payload)
+        public async Task PublishMessage<T>(string topic, T payload) where T : MqttBaseMessage
         {
             await ConnectAsync();
 

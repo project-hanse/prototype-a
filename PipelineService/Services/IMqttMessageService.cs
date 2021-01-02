@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using PipelineService.Models;
+using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services
 {
@@ -8,6 +9,6 @@ namespace PipelineService.Services
     /// </summary>
     public interface IMqttMessageService
     {
-        public Task PublishMessage(string topic, MqttMessage payload);
+        public Task PublishMessage<T>(string topic, T payload) where T : MqttBaseMessage;
     }
 }

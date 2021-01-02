@@ -1,4 +1,4 @@
-namespace PipelineService.Models
+namespace PipelineService.Models.Pipeline
 {
     public class Pipeline : BaseModel
     {
