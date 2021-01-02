@@ -1,13 +1,14 @@
 import signal
 import time
 import uuid
+import os
 
 import paho.mqtt.client as mqtt
 
-MQTT_HOST: str = "localhost"
-MQTT_PORT: int = 1883
-TOPIC_NAME: str = "execute/+"
-CLIENT_ID: str = "BlockWorker-" + str(uuid.uuid4())
+MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
+MQTT_PORT: int = os.getenv("MQTT_PORT", 1883)
+CLIENT_ID: str = os.getenv("MQTT_CLIENT_ID", ("BlockWorker-" + str(uuid.uuid4())))
+TOPIC_NAME: str = os.getenv("MQTT_TOPIC_SUB", "execute/+")
 
 
 def on_connect(client, userdata, flags, rc):
