@@ -1,0 +1,3 @@
+# Block Worker
+A block worker is a program that executes an operation (eg. [data frame concatenation](https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html), [data cleanup](https://pandas.pydata.org/pandas-docs/stable/user_guide/missing_data.html)) on one or more datasets and produces one ore more datasets.
+It is written in Python using the [Pandas](https://pandas.pydata.org/pandas-docs/stable/index.html) framework.
