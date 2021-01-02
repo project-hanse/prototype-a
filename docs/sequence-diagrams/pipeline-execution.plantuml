@@ -8,17 +8,17 @@
 !$mb = "Message Broker"
 !$bw = "Block Worker"
 !$ds = "Dataset Storage"
-!$u = "User"
 
-title Pipeline execution
-actor "$u"
-participant "$pc"
-participant "$es"
-participant "$ps"
-participant "$hs"
-participant "$mb"
-collections "$bw"
-database "$ds"
+title ** Pipeline execution **
+
+actor User
+participant "$pc" << (C,#ADD1B2) .NET Web API >>
+participant "$es" << (C,#ADD1B2) .NET Web API >>
+participant "$ps" << (C,#ADD1B2) .NET Web API >>
+participant "$hs" << (C,#ADD1B2) .NET Web API >>
+participant "$mb" << MQTT Broker >>
+collections "$bw" << Python Container >>
+database "$ds" << Unspecified Web API >>
 
 == Initialization ==
 
@@ -26,7 +26,7 @@ database "$ds"
 
 == Invocation ==
 
-"$u" -> "$pc" : GET /api/v1/Pipeline/execute/{pipelineId}
+"User" -> "$pc" : GET /api/v1/Pipeline/execute/{pipelineId}
 
 "$pc" -> "$ps": loadPipeline(pipelineId: Guid)
 "$pc" <-- "$ps": pipeline: Pipeline
@@ -34,8 +34,8 @@ database "$ds"
 "$es" -> "$hs": enqueue(deployNextBlocks(executionId: Guid))
 "$es" <-- "$hs"
 "$pc" <-- "$es": executionId
-"$u" <-- "$pc" : executionId: Guid
-
+"User" <-- "$pc" : executionId: Guid
+...
 == Execution ==
 "$hs" -> "$es": deployNextBlocks(executionId: Guid)
 "$hs" <-- "$es"
@@ -58,7 +58,7 @@ alt all previous blocks have been executed
         "$bw" -> "$ds" : GET api/v1/datasets?id={datasetId};{datasetId};...
         "$bw" <-- "$ds"
         
-        "$bw" -> "$bw" : executeOperation(datatsets: Dataset[])
+        "$bw" -> "$bw" : executeOperation(datasets: Dataset[])
            
         alt successful
             "$bw" -> "$ds" : POST api/v1/datasets/create/{datasetId} (dataset: Dataset, creationHash: Hash)
@@ -75,10 +75,11 @@ alt all previous blocks have been executed
     "$es" -> "$es": storeExecutedBlocks()
     "$es" -> "$hs": enqueue(deployNextBlocks(executionId: Guid))
     "$es" <-- "$hs"
+    ...
 end
 
 == Checking Status ==
-
-"$u" -> "$pc" : GET /api/v1/Pipeline/executionStatus/{pipelineId}
+    ...
+"User" -> "$pc" : GET /api/v1/Pipeline/executionStatus/{pipelineId}
 
 @enduml
