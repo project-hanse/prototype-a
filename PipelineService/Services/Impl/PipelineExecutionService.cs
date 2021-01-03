@@ -48,12 +48,13 @@ namespace PipelineService.Services.Impl
         {
             _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
 
-            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", new BlockExecutionRequest
+            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", new SimpleBlockExecutionRequest
             {
                 PipelineId = block.PipelineId,
                 BlockId = block.Id,
                 ExecutionId = Guid.NewGuid(), // TODO: use actual execution id
-                OperationName = block.Operation
+                OperationName = block.Operation,
+                OperationConfiguration = block.OperationConfiguration
             });
 
             foreach (var blockSuccessor in block.Successors)

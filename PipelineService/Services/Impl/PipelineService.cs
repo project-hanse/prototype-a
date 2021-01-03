@@ -43,55 +43,49 @@ namespace PipelineService.Services.Impl
             return Task.FromResult<Pipeline>(null);
         }
 
+        /// <summary>
+        /// Generates a default pipeline with hardcoded dataset ids for prototyping.
+        /// </summary>
         private static Pipeline NewDefaultPipeline(Guid pipelineId)
         {
-            var pipeline = new Pipeline
+            var cleanUp = new SimpleBlock
             {
-                Id = pipelineId,
-                Root = new Block
+                PipelineId = pipelineId,
+                InputDatasetId = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee"),
+                Operation = "dropna",
+                OperationConfiguration = new Dictionary<string, string>
                 {
-                    PipelineId = pipelineId,
-                    Operation = "LoadCSV",
-                    Successors = new List<Block>
-                    {
-                        new()
-                        {
-                            PipelineId = pipelineId,
-                            Operation = "CleanUp",
-                            Successors = new List<Block>
-                            {
-                                new()
-                                {
-                                    PipelineId = pipelineId,
-                                    Operation = "Cluster",
-                                    Successors = new List<Block>
-                                    {
-                                        new()
-                                        {
-                                            PipelineId = pipelineId,
-                                            Operation = "Visualize"
-                                        }
-                                    }
-                                },
-                                new()
-                                {
-                                    PipelineId = pipelineId,
-                                    Operation = "Filter",
-                                    Successors = new List<Block>
-                                    {
-                                        new()
-                                        {
-                                            PipelineId = pipelineId,
-                                            Operation = "Visualize"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    {"axis", "0"}
+                },
+            };
+
+            var select = new SimpleBlock
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = cleanUp.ComputeProducingHash(),
+                Operation = "select_columns",
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"0", "['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']"}
                 }
             };
-            return pipeline;
+
+            var describe = new SimpleBlock
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = select.ComputeProducingHash(),
+                Operation = "describe"
+            };
+
+            cleanUp.Successors.Add(select);
+            select.Successors.Add(describe);
+
+            return new Pipeline
+            {
+                Id = pipelineId,
+                Name = "Melbourne Housing Data",
+                Root = cleanUp
+            };
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public class BlockExecutionRequest : MqttBaseMessage
+    public class SimpleBlockExecutionRequest : MqttBaseMessage
     {
         public Guid PipelineId { get; set; }
 
@@ -14,5 +14,7 @@ namespace PipelineService.Models.MqttMessages
         public IList<Guid> InputDataSetIds { get; set; } = new List<Guid>();
 
         public string OperationName { get; set; }
+
+        public IDictionary<string, string> OperationConfiguration { get; set; }
     }
 }
