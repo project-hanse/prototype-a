@@ -5,7 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="MQTTnet" Version="3.0.13" />
         <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.13" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
         <PackageReference Include="Hangfire.AspNetCore" Version="1.7.18" />

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using PipelineService.Exceptions;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
@@ -12,7 +13,7 @@ namespace PipelineService.Services.Impl
     public class PipelineExecutionService : IPipelineExecutionService
     {
         // TODO change this to persistent storage.
-        private static IDictionary<Guid, PipelineExecutionRecord> _store =
+        private static readonly IDictionary<Guid, PipelineExecutionRecord> Store =
             new ConcurrentDictionary<Guid, PipelineExecutionRecord>();
 
         private readonly ILogger<PipelineExecutionService> _logger;
@@ -27,6 +28,18 @@ namespace PipelineService.Services.Impl
             _logger = logger;
             _pipelineService = pipelineService;
             _mqttMessageService = mqttMessageService;
+        }
+
+        private Task<PipelineExecutionRecord> GetById(Guid executionId)
+        {
+            if (Store.TryGetValue(executionId, out var pipelineExecutionRecord))
+            {
+                _logger.LogInformation("Loaded execution by id {executionId}", executionId);
+                return Task.FromResult(pipelineExecutionRecord);
+            }
+
+            _logger.LogDebug($"No execution with id {executionId} found");
+            return Task.FromResult<PipelineExecutionRecord>(null);
         }
 
         public async Task<Guid?> ExecutePipeline(Guid pipelineId)
@@ -84,10 +97,28 @@ namespace PipelineService.Services.Impl
             _logger.LogInformation("Starting execution ({executionId}) for pipeline {pipelineId}",
                 executionRecord.Id, pipeline.Id);
 
-
-            _store.Add(executionRecord.Id, executionRecord);
+            Store.Add(executionRecord.Id, executionRecord);
 
             return Task.FromResult(executionRecord.Id);
+        }
+
+        public async Task<IList<Block>> SelectNextBlocks(Guid executionId, Pipeline pipeline)
+        {
+            var blocks = new List<Block>();
+            var execution = await GetById(executionId);
+            if (execution == null)
+            {
+                throw new NotFoundException("Can not select blocks for non existent execution");
+            }
+
+            if (execution.PipelineId != pipeline.Id)
+            {
+                throw new InvalidIdException("Pipeline id in loaded execution does not match pipeline id");
+            }
+            
+            
+
+            return blocks;
         }
     }
 }

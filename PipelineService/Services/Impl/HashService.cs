@@ -10,6 +10,11 @@ namespace PipelineService.Services.Impl
     {
         public string ComputeHash(SimpleBlock block)
         {
+            return ComputeStaticHash(block);
+        }
+
+        public static string ComputeStaticHash(SimpleBlock block)
+        {
             if (block == null)
             {
                 throw new NullReferenceException();

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using PipelineService.Exceptions;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services
@@ -28,5 +30,16 @@ namespace PipelineService.Services
         /// <param name="pipeline">The pipeline a new execution will be started for.</param>
         /// <returns>The execution's id.</returns>
         Task<Guid> CreateExecution(Pipeline pipeline);
+
+        /// <summary>
+        /// Selects the next blocks to be executed for a given execution of a pipeline.
+        /// Might return empty list if no more blocks need to be executed.
+        /// </summary>
+        /// <exception cref="InvalidIdException">If the execution does not match the pipeline.</exception>
+        /// /// <exception cref="NotFoundException">If the execution does not match the pipeline.</exception>
+        /// <param name="executionId">The execution's id.</param>
+        /// <param name="pipeline">The pipeline that is being executed.</param>
+        /// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
+        Task<IList<Block>> SelectNextBlocks(Guid executionId, Pipeline pipeline);
     }
 }
