@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Models.MqttMessages;
@@ -9,6 +11,10 @@ namespace PipelineService.Services.Impl
 {
     public class PipelineExecutionService : IPipelineExecutionService
     {
+        // TODO change this to persistent storage.
+        private static IDictionary<Guid, PipelineExecutionRecord> _store =
+            new ConcurrentDictionary<Guid, PipelineExecutionRecord>();
+
         private readonly ILogger<PipelineExecutionService> _logger;
         private readonly IPipelineService _pipelineService;
         private readonly IMqttMessageService _mqttMessageService;
@@ -66,6 +72,22 @@ namespace PipelineService.Services.Impl
         public Task<string> GetExecutionStatus(Guid executionId)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<Guid> CreateExecution(Pipeline pipeline)
+        {
+            var executionRecord = new PipelineExecutionRecord
+            {
+                PipelineId = pipeline.Id
+            };
+
+            _logger.LogInformation("Starting execution ({executionId}) for pipeline {pipelineId}",
+                executionRecord.Id, pipeline.Id);
+
+
+            _store.Add(executionRecord.Id, executionRecord);
+
+            return Task.FromResult(executionRecord.Id);
         }
     }
 }

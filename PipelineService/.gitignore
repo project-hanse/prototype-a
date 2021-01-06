@@ -14,3 +14,5 @@ obj/
 
 /appsettings.Development.json
 /bin/
+
+hangfire.db

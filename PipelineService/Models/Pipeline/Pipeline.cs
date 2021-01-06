@@ -1,6 +1,6 @@
 namespace PipelineService.Models.Pipeline
 {
-    public class Pipeline : BaseModel
+    public record Pipeline : BasePersistentModel
     {
         /// <summary>
         /// The first (root) block in the pipeline.

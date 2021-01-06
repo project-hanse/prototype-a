@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services
 {
@@ -19,5 +20,13 @@ namespace PipelineService.Services
         /// <param name="executionId">The execution's id</param>
         /// <returns>The status as a string (RUNNING, ABORTED, COMPLETE)</returns>
         public Task<string> GetExecutionStatus(Guid executionId);
+
+        /// <summary>
+        /// Creates a new <code>PipelineExecutionRecord</code> for a given pipeline and enqueues the execution of the
+        /// first blocks of the given pipeline.
+        /// </summary>
+        /// <param name="pipeline">The pipeline a new execution will be started for.</param>
+        /// <returns>The execution's id.</returns>
+        Task<Guid> CreateExecution(Pipeline pipeline);
     }
 }

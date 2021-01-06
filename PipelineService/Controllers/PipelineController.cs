@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PipelineService.Models;
 using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
@@ -48,17 +47,18 @@ namespace PipelineService.Controllers
         {
             _logger.LogDebug("Executing pipeline {pipelineId}", pipelineId);
 
-            var executionId = await _pipelineExecutionService.ExecutePipeline(pipelineId);
+            var pipeline = await _pipelineService.GetPipeline(pipelineId);
+            if (pipeline == null)
+            {
+                return NotFound($"No pipeline with id {pipelineId} exists");
+            }
+
+            var executionId = await _pipelineExecutionService.CreateExecution(pipeline);
 
             _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
                 pipelineId, executionId);
 
-            if (executionId.HasValue)
-            {
-                return Ok(executionId.Value);
-            }
-
-            return NotFound($"No pipeline with id {pipelineId} exists");
+            return Ok(executionId);
         }
     }
 }

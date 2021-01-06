@@ -1,10 +1,12 @@
+using Hangfire;
+using Hangfire.SQLite;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using MQTTnet.Client;
+using PipelineService.Helper;
 using PipelineService.Services;
 using PipelineService.Services.Impl;
 
@@ -22,9 +24,24 @@ namespace PipelineService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configuring Hangfire services
+            services.AddHangfire(configuration =>
+            {
+                configuration
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings()
+                    .UseSQLiteStorage(
+                        DatabaseHelper.GetSqLiteConnectionString("Hangfire", Configuration, "DataSource=hangfire.db"));
+            });
+            services.AddHangfireServer();
+
+            // Registering singleton services
+            services.AddSingleton<IMqttMessageService, MqttMessageService>();
+
+            // Registering transient services
+            services.AddTransient<IHashService, HashService>();
             services.AddTransient<IPipelineService, Services.Impl.PipelineService>();
             services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
-            services.AddSingleton<IMqttMessageService, MqttMessageService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -46,6 +63,7 @@ namespace PipelineService
                     // swagger UI at root
                     c.RoutePrefix = string.Empty;
                 });
+                app.UseHangfireDashboard();
             }
 
             app.UseHttpsRedirection();

@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using PipelineService.Models;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
@@ -11,11 +10,15 @@ namespace PipelineService.Services.Impl
     public class PipelineService : IPipelineService
     {
         private readonly ILogger<IPipelineService> _logger;
+        private readonly IHashService _hashService;
         private static readonly IDictionary<Guid, Pipeline> Store = new ConcurrentDictionary<Guid, Pipeline>();
 
-        public PipelineService(ILogger<IPipelineService> logger)
+        public PipelineService(
+            ILogger<IPipelineService> logger,
+            IHashService hashService)
         {
             _logger = logger;
+            _hashService = hashService;
         }
 
         public Task<Pipeline> CreateDefault()
@@ -46,7 +49,7 @@ namespace PipelineService.Services.Impl
         /// <summary>
         /// Generates a default pipeline with hardcoded dataset ids for prototyping.
         /// </summary>
-        private static Pipeline NewDefaultPipeline(Guid pipelineId)
+        private Pipeline NewDefaultPipeline(Guid pipelineId)
         {
             var cleanUp = new SimpleBlock
             {
@@ -62,7 +65,7 @@ namespace PipelineService.Services.Impl
             var select = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = cleanUp.ComputeProducingHash(),
+                InputDatasetHash = _hashService.ComputeHash(cleanUp),
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
@@ -73,7 +76,7 @@ namespace PipelineService.Services.Impl
             var describe = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = select.ComputeProducingHash(),
+                InputDatasetHash = _hashService.ComputeHash(select),
                 Operation = "describe"
             };
 
