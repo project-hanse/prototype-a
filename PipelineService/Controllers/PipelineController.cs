@@ -53,12 +53,19 @@ namespace PipelineService.Controllers
                 return NotFound($"No pipeline with id {pipelineId} exists");
             }
 
-            var executionId = await _pipelineExecutionService.CreateExecution(pipeline);
+            var execution = await _pipelineExecutionService.CreateExecution(pipeline);
+
+            var toBeEnqueued = await _pipelineExecutionService.SelectNextBlocks(execution.Id, pipeline);
+
+            foreach (var block in toBeEnqueued)
+            {
+                await _pipelineExecutionService.EnqueueBlock(execution.Id, block);
+            }
 
             _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
-                pipelineId, executionId);
+                pipelineId, execution);
 
-            return Ok(executionId);
+            return Ok(execution);
         }
     }
 }

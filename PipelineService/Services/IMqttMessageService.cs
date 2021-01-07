@@ -10,5 +10,6 @@ namespace PipelineService.Services
     public interface IMqttMessageService
     {
         public Task PublishMessage<T>(string topic, T payload) where T : MqttBaseMessage;
+        Task Subscribe(string topic);
     }
 }

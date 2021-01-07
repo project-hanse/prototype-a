@@ -39,8 +39,10 @@ namespace PipelineService.Helper
 
             stack.Push(new BlockExecutionRecord
             {
+                PipelineId = block.PipelineId,
                 BlockId = block.Id,
-                Name = $"{block.Operation}: {JsonSerializer.Serialize(block.OperationConfiguration)}",
+                Block = block,
+                Name = $"{block.Operation}:{JsonSerializer.Serialize(block.OperationConfiguration)}",
                 Level = level
             });
         }

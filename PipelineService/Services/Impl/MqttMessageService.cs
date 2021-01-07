@@ -7,7 +7,6 @@ using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
-using PipelineService.Models;
 using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
@@ -94,6 +93,11 @@ namespace PipelineService.Services.Impl
                 .Build();
 
             await _client.PublishAsync(mqttMessage);
+        }
+
+        public Task Subscribe(string topic)
+        {
+            throw new NotImplementedException();
         }
     }
 }

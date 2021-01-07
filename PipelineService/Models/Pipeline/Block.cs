@@ -8,7 +8,7 @@ namespace PipelineService.Models.Pipeline
     /// A <code>Block</code> describes an operation performed on one or more input datasets and produces one dataset.
     /// A <code>Block</code> can have no, one or multiple successor Blocks.
     /// </summary>
-    public abstract record  Block : BasePersistentModel
+    public abstract record Block : BasePersistentModel
     {
         /// <summary>
         /// The pipeline's id this block belongs to.
@@ -26,5 +26,10 @@ namespace PipelineService.Models.Pipeline
         /// The configuration of the operation (usually corresponds to function parameters).
         /// </summary>
         public IDictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Any value returned here will be included in the hash value of this object.
+        /// </summary>
+        public abstract string IncludeInHash { get; }
     }
 }

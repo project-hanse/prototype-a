@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using PipelineService.Helper;
 using PipelineService.Models.Pipeline;
-using PipelineService.Services.Impl;
 
 namespace PipelineService.UnitTests.UnitTestHelpers
 {
@@ -28,7 +28,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
             var select1 = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = HashService.ComputeStaticHash(cleanUp),
+                InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
@@ -39,7 +39,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
             var select2 = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = HashService.ComputeStaticHash(cleanUp),
+                InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
@@ -50,14 +50,14 @@ namespace PipelineService.UnitTests.UnitTestHelpers
             var describe1 = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = HashService.ComputeStaticHash(select1),
+                InputDatasetHash = HashHelper.ComputeStaticHash(select1),
                 Operation = "describe"
             };
 
             var describe2 = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = HashService.ComputeStaticHash(select2),
+                InputDatasetHash = HashHelper.ComputeStaticHash(select2),
                 Operation = "describe"
             };
 

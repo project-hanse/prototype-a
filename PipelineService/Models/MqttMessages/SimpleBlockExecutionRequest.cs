@@ -16,5 +16,7 @@ namespace PipelineService.Models.MqttMessages
         public string OperationName { get; set; }
 
         public IDictionary<string, string> OperationConfiguration { get; set; }
+
+        public string ProducingHash { get; set; }
     }
 }

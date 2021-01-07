@@ -25,6 +25,13 @@ namespace PipelineService.Services
         public Task<string> GetExecutionStatus(Guid executionId);
 
         /// <summary>
+        /// Enqueues a block to be executed by the appropriate worker. 
+        /// </summary>
+        /// <param name="executionId">The execution this block belongs to.</param>
+        /// <param name="block">The block to be executed.</param>
+        public Task EnqueueBlock(Guid executionId, Block block);
+
+        /// <summary>
         /// Loads an execution by it's id or throws an exception if no execution for this id.
         /// </summary>
         /// <exception cref="NotFoundException">If no item with the execution id is found</exception>
@@ -50,5 +57,13 @@ namespace PipelineService.Services
         /// <param name="pipeline">The pipeline that is being executed.</param>
         /// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
         Task<IList<Block>> SelectNextBlocks(Guid executionId, Pipeline pipeline);
+
+        /// <summary>
+        /// Marks a block as executed in an execution.
+        /// </summary>
+        /// <param name="executionId">The execution's id a block has been executed in.</param>
+        /// <param name="blockId">The block that will be moved from status in execution to executed.</param>
+        /// <returns>True if there are still block in status in_execution.</returns>
+        Task<bool> MarkBlockAsExecuted(Guid executionId, Guid blockId);
     }
 }

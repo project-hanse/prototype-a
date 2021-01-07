@@ -17,5 +17,8 @@ namespace PipelineService.Models.Pipeline
         /// The producing hash of the input dataset. 
         /// </summary>
         public string InputDatasetHash { get; set; }
+
+        public override string IncludeInHash =>
+            InputDatasetId.HasValue ? InputDatasetId.Value.ToString() : InputDatasetHash;
     }
 }

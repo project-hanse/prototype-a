@@ -9,6 +9,6 @@ namespace PipelineService.Services
         /// </summary>
         /// <param name="block">The block a hash should be calculated for.</param>
         /// <returns>The computes hash as a string</returns>
-        public string ComputeHash(SimpleBlock block);
+        public string ComputeHash(Block block);
     }
 }

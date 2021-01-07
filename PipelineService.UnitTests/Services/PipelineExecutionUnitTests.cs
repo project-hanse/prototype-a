@@ -31,7 +31,8 @@ namespace PipelineService.UnitTests.Services
             _pipelineExecutionService = new PipelineExecutionService(
                 GeneralHelper.CreateLogger<PipelineExecutionService>(),
                 _pipelineService,
-                _mqttMessageService);
+                _mqttMessageService,
+                new HashService());
         }
 
         [Test]
