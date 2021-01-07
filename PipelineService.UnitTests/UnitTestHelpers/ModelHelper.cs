@@ -25,32 +25,55 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 },
             };
 
-            var select = new SimpleBlock
+            var select1 = new SimpleBlock
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashService.ComputeStaticHash(cleanUp),
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"0", "['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']"}
+                    {"0", "['Rooms', 'Bathroom', 'Landsize']"}
                 }
             };
 
-            var describe = new SimpleBlock
+            var select2 = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = HashService.ComputeStaticHash(select),
+                InputDatasetHash = HashService.ComputeStaticHash(cleanUp),
+                Operation = "select_columns",
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"0", "['Lattitude', 'Longtitude']"}
+                }
+            };
+
+            var describe1 = new SimpleBlock
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = HashService.ComputeStaticHash(select1),
                 Operation = "describe"
             };
 
-            cleanUp.Successors.Add(select);
-            select.Successors.Add(describe);
+            var describe2 = new SimpleBlock
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = HashService.ComputeStaticHash(select2),
+                Operation = "describe"
+            };
+
+            select1.Successors.Add(describe1);
+            select2.Successors.Add(describe2);
+            cleanUp.Successors.Add(select1);
+            cleanUp.Successors.Add(select2);
 
             return new Pipeline
             {
                 Id = pipelineId,
                 Name = "Melbourne Housing Data",
-                Root = cleanUp
+                Root = new List<Block>
+                {
+                    cleanUp
+                }
             };
         }
     }

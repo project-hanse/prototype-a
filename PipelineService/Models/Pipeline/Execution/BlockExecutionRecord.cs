@@ -7,5 +7,7 @@ namespace PipelineService.Models.Pipeline.Execution
         public Guid BlockId { get; set; }
 
         public string Name { get; set; }
+        
+        public int Level { get; set; }
     }
 }

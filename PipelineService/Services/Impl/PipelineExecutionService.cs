@@ -58,7 +58,6 @@ namespace PipelineService.Services.Impl
                 PipelineId = pipeline.Id
             };
 
-            await EnqueueBlocks(pipeline.Root);
 
             return execution.Id;
         }
@@ -122,8 +121,6 @@ namespace PipelineService.Services.Impl
                 throw new ArgumentException("Pipeline id in loaded execution does not match pipeline id",
                     nameof(executionId));
             }
-            
-            
 
 
             return blocks;

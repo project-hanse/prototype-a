@@ -14,29 +14,34 @@ namespace PipelineService.Helper
             var stack = new Stack<BlockExecutionRecord>();
             var visited = GetVisitedDictionary(pipeline);
 
-            TopologicalSortUtil(pipeline.Root, stack, visited);
+            foreach (var root in pipeline.Root)
+            {
+                TopologicalSortUtil(root, stack, visited);
+            }
 
             return stack.ToList();
         }
 
         private static void TopologicalSortUtil(Block block, Stack<BlockExecutionRecord> stack,
-            IDictionary<Guid, bool> visited)
+            IDictionary<Guid, bool> visited, int level = 0)
         {
             visited[block.Id] = true;
 
+            level++;
             foreach (var blockSuccessor in block.Successors)
             {
                 if (!visited[blockSuccessor.Id])
                 {
                     // only visit blocks that have not been visited before
-                    TopologicalSortUtil(blockSuccessor, stack, visited);
+                    TopologicalSortUtil(blockSuccessor, stack, visited, level);
                 }
             }
 
             stack.Push(new BlockExecutionRecord
             {
                 BlockId = block.Id,
-                Name = $"{block.Operation}: {JsonSerializer.Serialize(block.OperationConfiguration)}"
+                Name = $"{block.Operation}: {JsonSerializer.Serialize(block.OperationConfiguration)}",
+                Level = level
             });
         }
 
@@ -44,7 +49,10 @@ namespace PipelineService.Helper
         {
             var visited = new Dictionary<Guid, bool>();
 
-            AddToDict(pipeline.Root, visited);
+            foreach (var root in pipeline.Root)
+            {
+                AddToDict(root, visited);
+            }
 
             return visited;
         }

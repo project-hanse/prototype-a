@@ -47,7 +47,7 @@ namespace PipelineService.UnitTests.Services
             Assert.NotNull(result);
             Assert.AreEqual(pipeline.Id, result.PipelineId);
             Assert.NotNull(result.ToBeExecuted);
-            Assert.AreEqual(3, result.ToBeExecuted.Count);
+            Assert.AreEqual(5, result.ToBeExecuted.Count);
         }
 
         [Test]

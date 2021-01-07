@@ -87,7 +87,10 @@ namespace PipelineService.Services.Impl
             {
                 Id = pipelineId,
                 Name = "Melbourne Housing Data",
-                Root = cleanUp
+                Root = new List<Block>
+                {
+                    cleanUp
+                }
             };
         }
     }
