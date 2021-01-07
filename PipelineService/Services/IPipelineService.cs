@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using PipelineService.Models;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace PipelineService.Models.Pipeline.Execution
 {
@@ -8,5 +9,7 @@ namespace PipelineService.Models.Pipeline.Execution
     public record PipelineExecutionRecord : BasePersistentModel
     {
         public Guid PipelineId { get; set; }
+
+        public IList<BlockExecutionRecord> ToBeExecuted { get; set; }
     }
 }

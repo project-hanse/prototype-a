@@ -7,8 +7,13 @@ namespace PipelineService.UnitTests.UnitTestHelpers
 {
     public static class ModelHelper
     {
-        public static Pipeline NewDefaultPipeline(Guid pipelineId)
+        public static Pipeline NewDefaultPipeline(Guid pipelineId = default)
         {
+            if (pipelineId == default)
+            {
+                pipelineId = Guid.NewGuid();
+            }
+
             var cleanUp = new SimpleBlock
             {
                 PipelineId = pipelineId,

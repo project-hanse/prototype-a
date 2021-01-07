@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Exceptions;
 using PipelineService.Models.Pipeline;
+using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Services
 {
@@ -24,19 +25,27 @@ namespace PipelineService.Services
         public Task<string> GetExecutionStatus(Guid executionId);
 
         /// <summary>
-        /// Creates a new <code>PipelineExecutionRecord</code> for a given pipeline and enqueues the execution of the
-        /// first blocks of the given pipeline.
+        /// Loads an execution by it's id or throws an exception if no execution for this id.
+        /// </summary>
+        /// <exception cref="NotFoundException">If no item with the execution id is found</exception>
+        /// <param name="executionId">The execution's id</param>
+        /// <returns></returns>
+        Task<PipelineExecutionRecord> GetById(Guid executionId);
+
+        /// <summary>
+        /// Creates a new <code>PipelineExecutionRecord</code> for a given pipeline.
         /// </summary>
         /// <param name="pipeline">The pipeline a new execution will be started for.</param>
-        /// <returns>The execution's id.</returns>
-        Task<Guid> CreateExecution(Pipeline pipeline);
+        /// <returns>The execution record.</returns>
+        Task<PipelineExecutionRecord> CreateExecution(Pipeline pipeline);
 
         /// <summary>
         /// Selects the next blocks to be executed for a given execution of a pipeline.
-        /// Might return empty list if no more blocks need to be executed.
+        /// Might return empty list if no blocks need to be executed at the moment.
         /// </summary>
-        /// <exception cref="InvalidIdException">If the execution does not match the pipeline.</exception>
-        /// /// <exception cref="NotFoundException">If the execution does not match the pipeline.</exception>
+        /// 
+        /// <exception cref="InvalidOperationException">If no execution for a given execution id exists.</exception>
+        /// <exception cref="ArgumentException">If the execution does not match the pipeline.</exception>
         /// <param name="executionId">The execution's id.</param>
         /// <param name="pipeline">The pipeline that is being executed.</param>
         /// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
