@@ -1,12 +1,11 @@
 using Hangfire;
-using Hangfire.SQLite;
+using Hangfire.LiteDB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using PipelineService.Helper;
 using PipelineService.Services;
 using PipelineService.Services.Impl;
 
@@ -30,8 +29,7 @@ namespace PipelineService
                 configuration
                     .UseSimpleAssemblyNameTypeSerializer()
                     .UseRecommendedSerializerSettings()
-                    .UseSQLiteStorage(
-                        DatabaseHelper.GetSqLiteConnectionString("Hangfire", Configuration, "DataSource=hangfire.db"));
+                    .UseLiteDbStorage("hangfire.db");
             });
             services.AddHangfireServer();
 
@@ -73,6 +71,9 @@ namespace PipelineService
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+            // subscribing to executed blocks topic after startup
+            BackgroundJob.Enqueue<IMqttMessageService>(s => s.Subscribe("executed/+/+"));
         }
     }
 }

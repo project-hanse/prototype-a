@@ -63,7 +63,7 @@ namespace PipelineService.Controllers
             }
 
             _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
-                pipelineId, execution);
+                pipelineId, execution.Id);
 
             return Ok(execution);
         }

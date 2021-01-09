@@ -1,7 +1,9 @@
 using System;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Client;
@@ -95,9 +97,35 @@ namespace PipelineService.Services.Impl
             await _client.PublishAsync(mqttMessage);
         }
 
-        public Task Subscribe(string topic)
+        public async Task Subscribe(string topic)
         {
-            throw new NotImplementedException();
+            await ConnectAsync();
+
+            _logger.LogInformation($"Subscribing to MQTT topic {topic}");
+
+            var topicFilter = new MqttTopicFilterBuilder()
+                .WithTopic(topic)
+                .WithAtLeastOnceQoS()
+                .Build();
+
+            await _client.SubscribeAsync(topicFilter);
+
+            _client.UseApplicationMessageReceivedHandler(a =>
+            {
+                _logger.LogInformation("Received message {payload} from client {client}",
+                    Convert.FromBase64String(JsonSerializer.Serialize(a.ApplicationMessage.Payload)), a.ClientId);
+            });
+        }
+
+        private async Task Shutdown()
+        {
+            if (_client == null)
+            {
+                _logger.LogDebug("Nothing to shutdown");
+                return;
+            }
+
+            await _client.StopAsync();
         }
     }
 }

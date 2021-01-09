@@ -24,15 +24,20 @@ def on_message(client, userdata, msg):
     print("Payload %s on topic client %s" % (str(msg.payload), str(msg.topic)))
     payload = json.loads(msg.payload)
     # TODO make this more robust (error handling,...)
-    #response = {
-    #    'PipelineId': payload['PipelineId'],
-    #    'BlockId': payload['BlockId'],
-    #    'Successful': True,
-    #    'ExecutionTime': 0,
-    #    'ResultDatasetId': uuid.uuid4()
-    #}
-    #client.publish(("%s/%s/%s" % (TOPIC_NAME_PUB, payload['pipelineId'], payload['executionId'])),
-    #               payload=json.dumps(response))
+    response = {
+        'PipelineId': payload['PipelineId'],
+        'BlockId': payload['BlockId'],
+        'Successful': True,
+        'ExecutionTime': 0,
+        'ResultDatasetId': str(uuid.uuid4())
+    }
+
+    topic = ("%s/%s/%s" % (TOPIC_NAME_PUB, payload['PipelineId'], payload['ExecutionId']))
+    payload_serialized = json.dumps(response)
+
+    print("Publishing to topic %s with payload %s" % (topic, payload_serialized))
+
+    client.publish(topic, payload=payload_serialized)
 
 
 class Program:

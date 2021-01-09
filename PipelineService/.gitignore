@@ -16,3 +16,4 @@ obj/
 /bin/
 
 hangfire.db
+hangfire-log.db
