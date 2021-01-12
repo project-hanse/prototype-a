@@ -3,6 +3,7 @@ import time
 import uuid
 import os
 import json
+import random
 
 import paho.mqtt.client as mqtt
 
@@ -13,17 +14,22 @@ TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+")
 TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "executed")
 
 
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code %s" % str(rc))
+def connect_callback(client, userdata, flags, reasonCode, properties=None):
+    print("Connected with code %s" % str(reasonCode))
     # Subscribing in on_connect() means that if we lose the connection and reconnect then subscriptions will be renewed.
     print("Subscribing to topic " + TOPIC_NAME_SUB)
     client.subscribe(TOPIC_NAME_SUB)
 
 
-def on_message(client, userdata, msg):
-    print("Payload %s on topic client %s" % (str(msg.payload), str(msg.topic)))
-    payload = json.loads(msg.payload)
+def on_message_callback(client, userdata, message):
+    print("Payload %s on topic client %s" % (str(message.payload), str(message.topic)))
+    payload = json.loads(message.payload)
     # TODO make this more robust (error handling,...)
+
+    rand = random.randint(1, 6)
+    print("Simulating %s for %i seconds..." % (payload['OperationName'], rand))
+    time.sleep(rand)
+
     response = {
         'PipelineId': payload['PipelineId'],
         'BlockId': payload['BlockId'],
@@ -37,7 +43,11 @@ def on_message(client, userdata, msg):
 
     print("Publishing to topic %s with payload %s" % (topic, payload_serialized))
 
-    client.publish(topic, payload=payload_serialized)
+    client.publish(topic, payload=payload_serialized, qos=0)
+
+
+def on_publish_callback(client, userdata, mid):
+    print("Published message %i" % mid)
 
 
 class Program:
@@ -45,9 +55,10 @@ class Program:
     _mqtt_client = None
 
     def __init__(self):
-        self._mqtt_client = mqtt.Client(client_id=CLIENT_ID, clean_session=True)
-        self._mqtt_client.on_connect = on_connect
-        self._mqtt_client.on_message = on_message
+        self._mqtt_client = mqtt.Client(client_id=CLIENT_ID, clean_session=False)
+        self._mqtt_client.on_connect = connect_callback
+        self._mqtt_client.on_message = on_message_callback
+        self._mqtt_client.on_publish = on_publish_callback
 
     def run(self):
         print("Connecting to broker at %s:%s " % (MQTT_HOST, str(MQTT_PORT)))
