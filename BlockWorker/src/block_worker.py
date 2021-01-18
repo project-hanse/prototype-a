@@ -4,6 +4,7 @@ import uuid
 import os
 import json
 import random
+import datetime
 
 import paho.mqtt.client as mqtt
 
@@ -22,24 +23,31 @@ def connect_callback(client, userdata, flags, reasonCode, properties=None):
 
 
 def on_message_callback(client, userdata, message):
-    print("Payload %s on topic client %s" % (str(message.payload), str(message.topic)))
     payload = json.loads(message.payload)
+
+    print("Received message on topic %s:\n%s" % (
+        str(message.topic), json.dumps(payload, indent=2, sort_keys=True, default=str)))
+
     # TODO make this more robust (error handling,...)
+
+    response = {
+        'PipelineId': payload['PipelineId'],
+        'BlockId': payload['BlockId'],
+        'ExecutionId': payload['ExecutionId'],
+        'Successful': True,
+        'StartTime': datetime.datetime.now(datetime.timezone.utc),
+        'ResultDatasetId': str(uuid.uuid4())
+    }
 
     rand = random.randint(1, 6)
     print("Simulating %s for %i seconds..." % (payload['OperationName'], rand))
     time.sleep(rand)
 
-    response = {
-        'PipelineId': payload['PipelineId'],
-        'BlockId': payload['BlockId'],
-        'Successful': True,
-        'ExecutionTime': 0,
-        'ResultDatasetId': str(uuid.uuid4())
-    }
+    response['StopTime'] = datetime.datetime.now(datetime.timezone.utc)
+    response['ResultDatasetId'] = None
 
     topic = ("%s/%s/%s" % (TOPIC_NAME_PUB, payload['PipelineId'], payload['ExecutionId']))
-    payload_serialized = json.dumps(response)
+    payload_serialized = json.dumps(response, indent=2, sort_keys=True, default=str)
 
     print("Publishing to topic %s with payload %s" % (topic, payload_serialized))
 
@@ -48,6 +56,7 @@ def on_message_callback(client, userdata, message):
 
 def on_publish_callback(client, userdata, mid):
     print("Published message %i" % mid)
+    print()
 
 
 class Program:
