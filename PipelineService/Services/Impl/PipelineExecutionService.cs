@@ -77,15 +77,15 @@ namespace PipelineService.Services.Impl
                 ExecutionId = executionId,
                 OperationName = block.Operation,
                 OperationConfiguration = block.OperationConfiguration,
-                ProducingHash = _hashService.ComputeHash(block)
+                ProducingBlockHash = _hashService.ComputeHash(block)
             };
 
             // TODO this needs to change
             if (message.GetType() == typeof(SimpleBlock))
             {
-                var inputDatasetId = ((SimpleBlock) block).InputDatasetId;
-                if (inputDatasetId != null)
-                    message.InputDataSetIds = new List<Guid> {inputDatasetId.Value};
+                var simpleBlock = (SimpleBlock) block;
+                message.InputDataSetId = simpleBlock.InputDatasetId;
+                message.ProducingBlockHash = simpleBlock.InputDatasetHash;
             }
 
             await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", message);
@@ -199,6 +199,13 @@ namespace PipelineService.Services.Impl
             execution.Executed.Add(block);
 
             return execution.InExecution.Count > 0;
+        }
+
+        public Task BlockCompleted(BlockExecutionResponse response)
+        {
+            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} oof pipeline {pipelineId}",
+                response.BlockId, response.ExecutionId, response.PipelineId);
+            return Task.CompletedTask;
         }
     }
 }

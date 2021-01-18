@@ -41,6 +41,8 @@ namespace PipelineService
             services.AddTransient<IPipelineService, Services.Impl.PipelineService>();
             services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
 
+            services.AddHostedService<MqttMessageService>();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -71,9 +73,6 @@ namespace PipelineService
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-
-            // subscribing to executed blocks topic after startup
-            BackgroundJob.Enqueue<IMqttMessageService>(s => s.Subscribe("executed/+/+"));
         }
     }
 }

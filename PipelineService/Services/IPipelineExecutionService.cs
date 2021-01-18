@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Exceptions;
+using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
 
@@ -65,5 +66,7 @@ namespace PipelineService.Services
         /// <param name="blockId">The block that will be moved from status in execution to executed.</param>
         /// <returns>True if there are still block in status in_execution.</returns>
         Task<bool> MarkBlockAsExecuted(Guid executionId, Guid blockId);
+
+        Task BlockCompleted(BlockExecutionResponse response);
     }
 }

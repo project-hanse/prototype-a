@@ -1,7 +1,7 @@
 using System;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,11 +9,12 @@ using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
+using Newtonsoft.Json;
 using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
 {
-    public class MqttMessageService : IMqttMessageService
+    public class MqttMessageService : IMqttMessageService, IHostedService
     {
         private readonly ILogger<MqttClient> _logger;
         private readonly IConfiguration _configuration;
@@ -81,16 +82,17 @@ namespace PipelineService.Services.Impl
             await _client.StartAsync(managedMqttClientOptions);
         }
 
-        public async Task PublishMessage<T>(string topic, T payload) where T : MqttBaseMessage
+        public async Task PublishMessage<T>(string topic, T payload) where T : BaseMqttMessage
         {
             await ConnectAsync();
 
             _logger.LogInformation($"Publishing message to topic {topic}");
 
+            // TODO implement quality of service 2 (Exactly once) - requires acknowledgement from receiver
             var mqttMessage = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
-                .WithPayload(JsonSerializer.Serialize(payload))
-                .WithExactlyOnceQoS()
+                .WithPayload(JsonConvert.SerializeObject(payload))
+                .WithQualityOfServiceLevel(0)
                 .WithRetainFlag()
                 .Build();
 
@@ -105,19 +107,35 @@ namespace PipelineService.Services.Impl
 
             var topicFilter = new MqttTopicFilterBuilder()
                 .WithTopic(topic)
-                .WithAtLeastOnceQoS()
+                .WithQualityOfServiceLevel(0)
                 .Build();
 
             await _client.SubscribeAsync(topicFilter);
 
             _client.UseApplicationMessageReceivedHandler(a =>
             {
-                _logger.LogInformation("Received message {payload} from client {client}",
-                    Convert.FromBase64String(JsonSerializer.Serialize(a.ApplicationMessage.Payload)), a.ClientId);
+                BlockExecutionResponse message;
+                try
+                {
+                    message = JsonConvert.DeserializeObject<SimpleBlockExecutionResponse>(
+                        System.Text.Encoding.Default.GetString(a.ApplicationMessage.Payload));
+
+                    BackgroundJob.Enqueue<IPipelineExecutionService>(
+                        s => s.BlockCompleted(message));
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine(e);
+                }
             });
         }
 
-        private async Task Shutdown()
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await Subscribe("executed/+/+");
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             if (_client == null)
             {
@@ -126,6 +144,8 @@ namespace PipelineService.Services.Impl
             }
 
             await _client.StopAsync();
+
+            _logger.LogInformation("Unsubscribed from executed topic...");
         }
     }
 }

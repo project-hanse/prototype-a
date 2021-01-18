@@ -3,20 +3,27 @@ using System.Collections.Generic;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public class SimpleBlockExecutionRequest : MqttBaseMessage
+    public class SimpleBlockExecutionRequest : BlockExecutionRequest
     {
-        public Guid PipelineId { get; set; }
+        /// <summary>
+        /// The input dataset the operation will be performed on.
+        /// Might be null if the is using a producing hash for identifying the input dataset.
+        /// </summary>
+        public Guid? InputDataSetId { get; set; } = null;
 
-        public Guid BlockId { get; set; }
+        /// <summary>
+        /// The hash value of the block who's output is the input for this operation.
+        /// </summary>
+        public string ProducingBlockHash { get; set; }
 
-        public Guid ExecutionId { get; set; }
-
-        public IList<Guid> InputDataSetIds { get; set; } = new List<Guid>();
-
+        /// <summary>
+        /// The name of the operation that will be performed.
+        /// </summary>
         public string OperationName { get; set; }
 
+        /// <summary>
+        /// The configuration of the operation. 
+        /// </summary>
         public IDictionary<string, string> OperationConfiguration { get; set; }
-
-        public string ProducingHash { get; set; }
     }
 }

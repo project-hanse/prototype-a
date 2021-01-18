@@ -2,12 +2,17 @@ using System;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public class BlockExecutionResponse : MqttBaseMessage
+    public abstract class BlockExecutionResponse : BaseMqttMessage
     {
         /// <summary>
         /// The pipeline's id the block was executed for.
         /// </summary>
         public Guid PipelineId { get; set; }
+
+        /// <summary>
+        /// The pipeline execution this block belongs to. 
+        /// </summary>
+        public Guid ExecutionId { get; set; }
 
         /// <summary>
         /// The block's id that was executed.
@@ -20,13 +25,13 @@ namespace PipelineService.Models.MqttMessages
         public bool Successful { get; set; }
 
         /// <summary>
-        /// The number of milliseconds it took to execute the block.
+        /// The time (UTC) the execution of this block was started.  
         /// </summary>
-        public int ExecutionTime { get; set; }
+        public DateTime StartTime { get; set; }
 
         /// <summary>
-        /// The id of the resulting dataset stored ini the Dataset Storage.
+        /// The time (UTC) the execution of this block was stopped (either due to an error or completion).
         /// </summary>
-        public Guid ResultDatasetId { get; set; }
+        public DateTime StopTime { get; set; }
     }
 }

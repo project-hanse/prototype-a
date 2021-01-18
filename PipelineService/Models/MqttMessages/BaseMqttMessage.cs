@@ -5,7 +5,7 @@ namespace PipelineService.Models.MqttMessages
     /// <summary>
     /// A base class for all MQTT messages sent between services (eg. PipelineService, BlockWorker).
     /// </summary>
-    public abstract class MqttBaseMessage
+    public abstract class BaseMqttMessage
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
