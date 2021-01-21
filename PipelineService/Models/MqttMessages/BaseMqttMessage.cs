@@ -3,7 +3,7 @@ using System;
 namespace PipelineService.Models.MqttMessages
 {
     /// <summary>
-    /// A base class for all MQTT messages sent between services (eg. PipelineService, BlockWorker).
+    /// A base class for all MQTT messages sent between services (eg. PipelineDao, BlockWorker).
     /// </summary>
     public abstract class BaseMqttMessage
     {

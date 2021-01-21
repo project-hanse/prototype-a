@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using PipelineService.Dao;
 using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
@@ -10,29 +11,26 @@ namespace PipelineService.Controllers
     public class PipelineController : BaseController
     {
         private readonly ILogger<PipelineController> _logger;
-        private readonly IPipelineService _pipelineService;
         private readonly IPipelineExecutionService _pipelineExecutionService;
 
         public PipelineController(
             ILogger<PipelineController> logger,
-            IPipelineService pipelineService,
             IPipelineExecutionService pipelineExecutionService)
         {
             _logger = logger;
-            _pipelineService = pipelineService;
             _pipelineExecutionService = pipelineExecutionService;
         }
 
         [HttpGet("default")]
         public async Task<Pipeline> GetDefault()
         {
-            return await _pipelineService.CreateDefault();
+            return await _pipelineExecutionService.CreateDefaultPipeline();
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPipeline(Guid id)
         {
-            var pipeline = await _pipelineService.GetPipeline(id);
+            var pipeline = await _pipelineExecutionService.GetPipeline(id);
 
             if (pipeline == null)
             {
@@ -47,23 +45,10 @@ namespace PipelineService.Controllers
         {
             _logger.LogDebug("Executing pipeline {pipelineId}", pipelineId);
 
-            var pipeline = await _pipelineService.GetPipeline(pipelineId);
-            if (pipeline == null)
-            {
-                return NotFound($"No pipeline with id {pipelineId} exists");
-            }
-
-            var execution = await _pipelineExecutionService.CreateExecution(pipeline);
-
-            var toBeEnqueued = await _pipelineExecutionService.SelectNextBlocks(execution.Id, pipeline);
-
-            foreach (var block in toBeEnqueued)
-            {
-                await _pipelineExecutionService.EnqueueBlock(execution.Id, block);
-            }
-
+            var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId);
+            
             _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
-                pipelineId, execution.Id);
+                pipelineId, execution);
 
             return Ok(execution);
         }

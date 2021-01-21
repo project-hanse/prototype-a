@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Hangfire;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,20 +17,23 @@ namespace PipelineService.Services.Impl
     {
         private readonly ILogger<MqttClient> _logger;
         private readonly IConfiguration _configuration;
+        private readonly ITestService _testService;
         private IManagedMqttClient _client;
 
         private string Hostname => _configuration.GetValue("MQTT_HOST", "message-broker");
         private int Port => _configuration.GetValue("MQTT_PORT", 1883);
-        private string ClientId => _configuration.GetValue("MQTT_CLIENT_ID", $"PipelineService-{Guid.NewGuid()}");
+        private string ClientId => _configuration.GetValue("MQTT_CLIENT_ID", $"PipelineDao-{Guid.NewGuid()}");
         private string Username => _configuration.GetValue<string>("MQTT_USER", null);
         private string Password => _configuration.GetValue<string>("MQTT_PASSWORD", null);
 
         public MqttMessageService(
             ILogger<MqttClient> logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ITestService testService)
         {
             _logger = logger;
             _configuration = configuration;
+            _testService = testService;
         }
 
         private async Task ConnectAsync()
@@ -99,7 +101,8 @@ namespace PipelineService.Services.Impl
             await _client.PublishAsync(mqttMessage);
         }
 
-        public async Task Subscribe(string topic)
+        // TODO replace this with attribute routing based library https://github.com/Atlas-LiftTech/MQTTnet.AspNetCore.AttributeRouting
+        private async Task Subscribe(string topic)
         {
             await ConnectAsync();
 
@@ -112,19 +115,18 @@ namespace PipelineService.Services.Impl
 
             await _client.SubscribeAsync(topicFilter);
 
-            _client.UseApplicationMessageReceivedHandler(a =>
+            _client.UseApplicationMessageReceivedHandler(async a =>
             {
-                BlockExecutionResponse message;
                 try
                 {
-                    message = JsonConvert.DeserializeObject<SimpleBlockExecutionResponse>(
+                    BlockExecutionResponse message = JsonConvert.DeserializeObject<SimpleBlockExecutionResponse>(
                         System.Text.Encoding.Default.GetString(a.ApplicationMessage.Payload));
 
-                    BackgroundJob.Enqueue<IPipelineExecutionService>(
-                        s => s.BlockCompleted(message));
+                    await _testService.NewMessage(message);
                 }
                 catch (Exception e)
                 {
+                    // TODO: Do proper exception handling
                     Console.Error.WriteLine(e);
                 }
             });
@@ -132,11 +134,14 @@ namespace PipelineService.Services.Impl
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             await Subscribe("executed/+/+");
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (_client == null)
             {
                 _logger.LogDebug("Nothing to shutdown");

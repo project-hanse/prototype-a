@@ -3,25 +3,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using PipelineService.Exceptions;
+using PipelineService.Helper;
 using PipelineService.Models.Pipeline;
 
-namespace PipelineService.Services.Impl
+namespace PipelineService.Dao.Impl
 {
-    public class PipelineService : IPipelineService
+    public class InMemoryPipelineDao : IPipelineDao
     {
-        private readonly ILogger<IPipelineService> _logger;
-        private readonly IHashService _hashService;
+        private readonly ILogger<IPipelineDao> _logger;
         private static readonly IDictionary<Guid, Pipeline> Store = new ConcurrentDictionary<Guid, Pipeline>();
 
-        public PipelineService(
-            ILogger<IPipelineService> logger,
-            IHashService hashService)
+        public InMemoryPipelineDao(
+            ILogger<IPipelineDao> logger)
         {
             _logger = logger;
-            _hashService = hashService;
         }
 
-        public Task<Pipeline> CreateDefault()
+        public Task<Pipeline> Create(Guid id)
         {
             var pipelineId = Guid.NewGuid();
 
@@ -34,16 +33,15 @@ namespace PipelineService.Services.Impl
             return Task.FromResult(defaultPipeline);
         }
 
-        public Task<Pipeline> GetPipeline(Guid pipelineId)
+        public Task<Pipeline> Get(Guid pipelineId)
         {
-            if (Store.TryGetValue(pipelineId, out var pipeline))
+            if (!Store.TryGetValue(pipelineId, out var pipeline))
             {
-                _logger.LogInformation("Loading pipeline with id {pipelineId}", pipelineId);
-                return Task.FromResult(pipeline);
+                throw new NotFoundException("No pipeline with given id found");
             }
 
-            _logger.LogInformation("No pipeline with id {pipelineId} found", pipelineId);
-            return Task.FromResult<Pipeline>(null);
+            _logger.LogInformation("Loading pipeline with id {pipelineId}", pipelineId);
+            return Task.FromResult(pipeline);
         }
 
         /// <summary>
@@ -65,7 +63,7 @@ namespace PipelineService.Services.Impl
             var select = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = _hashService.ComputeHash(cleanUp),
+                InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
@@ -76,7 +74,7 @@ namespace PipelineService.Services.Impl
             var describe = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = _hashService.ComputeHash(select),
+                InputDatasetHash = HashHelper.ComputeStaticHash(select),
                 Operation = "describe"
             };
 

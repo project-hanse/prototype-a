@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using PipelineService.Models.MqttMessages;
+using PipelineService.Services.Impl;
 
 namespace PipelineService.Models.Pipeline
 {

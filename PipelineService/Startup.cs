@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using PipelineService.Dao;
+using PipelineService.Dao.Impl;
 using PipelineService.Services;
 using PipelineService.Services.Impl;
 
@@ -36,17 +38,21 @@ namespace PipelineService
             // Registering singleton services
             services.AddSingleton<IMqttMessageService, MqttMessageService>();
 
+            // Registering DAOs
+            services.AddSingleton<IPipelineExecutionDao, InMemoryPipelineExecutionDao>();
+            services.AddSingleton<IPipelineDao, InMemoryPipelineDao>();
+
             // Registering transient services
             services.AddTransient<IHashService, HashService>();
-            services.AddTransient<IPipelineService, Services.Impl.PipelineService>();
-            services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
+            services.AddTransient<IPipelineExecutionService, Services.Impl.PipelineExecutionService>();
+            services.AddTransient<ITestService, TestService>();
 
             services.AddHostedService<MqttMessageService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "PipelineService", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "PipelineDao", Version = "v1"});
             });
         }
 
@@ -59,7 +65,7 @@ namespace PipelineService
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PipelineService v1");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PipelineDao v1");
                     // swagger UI at root
                     c.RoutePrefix = string.Empty;
                 });

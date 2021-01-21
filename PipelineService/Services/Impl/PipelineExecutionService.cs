@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using PipelineService.Dao;
 using PipelineService.Exceptions;
-using PipelineService.Helper;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
@@ -14,113 +13,82 @@ namespace PipelineService.Services.Impl
 {
     public class PipelineExecutionService : IPipelineExecutionService
     {
-        // TODO change this to persistent storage.
-        private static readonly IDictionary<Guid, PipelineExecutionRecord> Store =
-            new ConcurrentDictionary<Guid, PipelineExecutionRecord>();
-
         private readonly ILogger<PipelineExecutionService> _logger;
-        private readonly IPipelineService _pipelineService;
+        private readonly IPipelineDao _pipelineDao;
+        private readonly IPipelineExecutionDao _pipelineExecutionDao;
         private readonly IMqttMessageService _mqttMessageService;
-        private readonly IHashService _hashService;
 
         public PipelineExecutionService(
             ILogger<PipelineExecutionService> logger,
-            IPipelineService pipelineService,
-            IMqttMessageService mqttMessageService,
-            IHashService hashService)
+            IPipelineDao pipelineDao,
+            IPipelineExecutionDao pipelineExecutionDao,
+            IMqttMessageService mqttMessageService)
         {
             _logger = logger;
-            _pipelineService = pipelineService;
+            _pipelineDao = pipelineDao;
+            _pipelineExecutionDao = pipelineExecutionDao;
             _mqttMessageService = mqttMessageService;
-            _hashService = hashService;
         }
 
-        public Task<PipelineExecutionRecord> GetById(Guid executionId)
+        public async Task<Pipeline> CreateDefaultPipeline()
         {
-            if (!Store.TryGetValue(executionId, out var pipelineExecutionRecord))
-            {
-                throw new NotFoundException("No PipelineExecutionRecord with id found");
-            }
-
-            _logger.LogInformation("Loaded execution by id {executionId}", executionId);
-            return Task.FromResult(pipelineExecutionRecord);
+            return await _pipelineDao.Create(Guid.NewGuid());
         }
 
-        public async Task<Guid?> ExecutePipeline(Guid pipelineId)
+        public async Task<Pipeline> GetPipeline(Guid id)
+        {
+            return await _pipelineDao.Get(id);
+        }
+
+        public async Task<Guid> ExecutePipeline(Guid pipelineId)
         {
             _logger.LogInformation("Executing pipeline with id {pipelineId}", pipelineId);
-            var pipeline = await _pipelineService.GetPipeline(pipelineId);
+            var pipeline = await _pipelineDao.Get(pipelineId);
 
             if (pipeline == null)
             {
-                _logger.LogWarning("No pipeline with id {pipelineId} found", pipelineId);
-                return null;
+                throw new NotFoundException("No pipeline with provided id found");
             }
 
-            var execution = new PipelineExecutionRecord
-            {
-                PipelineId = pipeline.Id
-            };
+            var execution = await _pipelineExecutionDao.Create(pipeline);
 
+            var toBeEnqueued = await SelectNextBlocks(execution.Id, pipeline);
+
+            _logger.LogDebug("Enqueueing {toBeEnqueued} blocks for execution {executionId} of pipeline {pipelineId}",
+                toBeEnqueued.Count, execution.Id, pipeline.Id);
+
+            foreach (var block in toBeEnqueued)
+            {
+                await EnqueueBlock(execution.Id, block);
+            }
 
             return execution.Id;
         }
 
-        public async Task EnqueueBlock(Guid executionId, Block block)
+        public Task HandleExecutionResponse(BlockExecutionResponse response)
         {
-            _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
+            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} oof pipeline {pipelineId}",
+                response.BlockId, response.ExecutionId, response.PipelineId);
 
-            var message = new SimpleBlockExecutionRequest
-            {
-                PipelineId = block.PipelineId,
-                BlockId = block.Id,
-                ExecutionId = executionId,
-                OperationName = block.Operation,
-                OperationConfiguration = block.OperationConfiguration,
-                ProducingBlockHash = _hashService.ComputeHash(block)
-            };
-
-            // TODO this needs to change
-            if (message.GetType() == typeof(SimpleBlock))
-            {
-                var simpleBlock = (SimpleBlock) block;
-                message.InputDataSetId = simpleBlock.InputDatasetId;
-                message.ProducingBlockHash = simpleBlock.InputDatasetHash;
-            }
-
-            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", message);
-
-            await _mqttMessageService.Subscribe($"executed/{block.PipelineId}");
+            return Task.CompletedTask;
         }
 
-        public Task<string> GetExecutionStatus(Guid executionId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<PipelineExecutionRecord> CreateExecution(Pipeline pipeline)
-        {
-            var executionRecord = new PipelineExecutionRecord
-            {
-                PipelineId = pipeline.Id
-            };
-
-            _logger.LogInformation("Creating execution ({executionId}) for pipeline {pipelineId}",
-                executionRecord.Id, pipeline.Id);
-
-            executionRecord.ToBeExecuted = PipelineExecutionHelper.GetExecutionOrder(pipeline);
-
-            Store.Add(executionRecord.Id, executionRecord);
-
-            return Task.FromResult(executionRecord);
-        }
-
-        public async Task<IList<Block>> SelectNextBlocks(Guid executionId, Pipeline pipeline)
+        /// <summary>
+        /// Selects the next blocks to be executed for a given execution of a pipeline.
+        /// Might return empty list if no blocks need to be executed at the moment.
+        /// </summary>
+        /// 
+        /// <exception cref="InvalidOperationException">If no execution for a given execution id exists.</exception>
+        /// <exception cref="ArgumentException">If the execution does not match the pipeline.</exception>
+        /// <param name="executionId">The execution's id.</param>
+        /// <param name="pipeline">The pipeline that is being executed.</param>
+        /// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
+        private async Task<IList<Block>> SelectNextBlocks(Guid executionId, Pipeline pipeline)
         {
             PipelineExecutionRecord executionRecord;
             try
             {
-                executionRecord = await GetById(executionId);
+                executionRecord = await _pipelineExecutionDao.Get(executionId);
             }
             catch (NotFoundException e)
             {
@@ -170,12 +138,42 @@ namespace PipelineService.Services.Impl
                 .ToList();
         }
 
-        public async Task<bool> MarkBlockAsExecuted(Guid executionId, Guid blockId)
+        /// <summary>
+        /// Enqueues a block to be executed by the appropriate worker. 
+        /// </summary>
+        /// <param name="executionId">The execution this block belongs to.</param>
+        /// <param name="block">The block to be executed.</param>
+        private async Task EnqueueBlock(Guid executionId, Block block)
+        {
+            _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
+
+            BlockExecutionRequest request;
+            // TODO: This can be solved in a nicer way by implementing eg the Visitor pattern 
+            if (block.GetType() == typeof(SimpleBlock))
+            {
+                request = ExecutionRequestFromBlock(executionId, (SimpleBlock) block);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Type {block.GetType()} is not supported");
+            }
+
+            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", request);
+        }
+
+        /// <summary>
+        /// Marks a block as executed in an execution.
+        /// TODO: This method must become thread safe (case: multiple block finish execution at the same time -> whe updating data might get lost).
+        /// </summary>
+        /// <param name="executionId">The execution's id a block has been executed in.</param>
+        /// <param name="blockId">The block that will be moved from status in execution to executed.</param>
+        /// <returns>True if there are still block in status in_execution.</returns>
+        private async Task<bool> MarkBlockAsExecuted(Guid executionId, Guid blockId)
         {
             PipelineExecutionRecord execution;
             try
             {
-                execution = await GetById(executionId);
+                execution = await _pipelineExecutionDao.Get(executionId);
             }
             catch (NotFoundException e)
             {
@@ -198,14 +196,31 @@ namespace PipelineService.Services.Impl
             execution.InExecution.Remove(block);
             execution.Executed.Add(block);
 
+            await _pipelineExecutionDao.Update(execution);
+
             return execution.InExecution.Count > 0;
         }
 
-        public Task BlockCompleted(BlockExecutionResponse response)
+        private SimpleBlockExecutionRequest ExecutionRequestFromBlock(Guid executionId, SimpleBlock block)
         {
-            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} oof pipeline {pipelineId}",
-                response.BlockId, response.ExecutionId, response.PipelineId);
-            return Task.CompletedTask;
+            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
+            if (!block.InputDatasetId.HasValue && string.IsNullOrEmpty(block.InputDatasetHash))
+            {
+                _logger.LogWarning("Block {blockId} has neither an input dataset id nor a producing block hash",
+                    block.Id);
+                throw new Exception("Block has neither an input dataset id nor a producing block hash");
+            }
+
+            return new SimpleBlockExecutionRequest
+            {
+                PipelineId = block.PipelineId,
+                BlockId = block.Id,
+                ExecutionId = executionId,
+                OperationName = block.Operation,
+                OperationConfiguration = block.OperationConfiguration,
+                ProducingBlockHash = block.InputDatasetHash,
+                InputDataSetId = block.InputDatasetId,
+            };
         }
     }
 }
