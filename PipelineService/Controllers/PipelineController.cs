@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PipelineService.Dao;
 using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
@@ -27,6 +26,16 @@ namespace PipelineService.Controllers
             return await _pipelineExecutionService.CreateDefaultPipeline();
         }
 
+        [HttpGet("newAndExecute")]
+        public async Task<Pipeline> GetNewAndExecute()
+        {
+            var pipeline = await _pipelineExecutionService.CreateDefaultPipeline();
+
+            await _pipelineExecutionService.ExecutePipeline(pipeline.Id);
+
+            return pipeline;
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPipeline(Guid id)
         {
@@ -46,7 +55,7 @@ namespace PipelineService.Controllers
             _logger.LogDebug("Executing pipeline {pipelineId}", pipelineId);
 
             var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId);
-            
+
             _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
                 pipelineId, execution);
 

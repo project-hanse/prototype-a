@@ -52,6 +52,31 @@ namespace PipelineService.Services.Impl
 
             var execution = await _pipelineExecutionDao.Create(pipeline);
 
+            await EnqueueNextBlocks(execution, pipeline);
+
+            return execution.Id;
+        }
+
+        public async Task HandleExecutionResponse(BlockExecutionResponse response)
+        {
+            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} of pipeline {pipelineId}",
+                response.BlockId, response.ExecutionId, response.PipelineId);
+
+            if (await MarkBlockAsExecuted(response.ExecutionId, response.BlockId))
+            {
+                _logger.LogDebug("Nothing to enqueue at the moment");
+            }
+            else
+            {
+                var execution = await _pipelineExecutionDao.Get(response.ExecutionId);
+                var pipeline = await _pipelineDao.Get(response.PipelineId);
+
+                await EnqueueNextBlocks(execution, pipeline);
+            }
+        }
+
+        private async Task EnqueueNextBlocks(PipelineExecutionRecord execution, Pipeline pipeline)
+        {
             var toBeEnqueued = await SelectNextBlocks(execution.Id, pipeline);
 
             _logger.LogDebug("Enqueueing {toBeEnqueued} blocks for execution {executionId} of pipeline {pipelineId}",
@@ -61,16 +86,6 @@ namespace PipelineService.Services.Impl
             {
                 await EnqueueBlock(execution.Id, block);
             }
-
-            return execution.Id;
-        }
-
-        public Task HandleExecutionResponse(BlockExecutionResponse response)
-        {
-            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} of pipeline {pipelineId}",
-                response.BlockId, response.ExecutionId, response.PipelineId);
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -167,7 +182,7 @@ namespace PipelineService.Services.Impl
         /// </summary>
         /// <param name="executionId">The execution's id a block has been executed in.</param>
         /// <param name="blockId">The block that will be moved from status in execution to executed.</param>
-        /// <returns>True if there are still block in status in_execution.</returns>
+        /// <returns>True if there are still blocks in status in_execution.</returns>
         private async Task<bool> MarkBlockAsExecuted(Guid executionId, Guid blockId)
         {
             PipelineExecutionRecord execution;

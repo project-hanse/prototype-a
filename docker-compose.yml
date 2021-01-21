@@ -11,13 +11,17 @@ services:
       - MQTT_CLIENT_ID=pipeline-service-1
     ports:
       - "5000:80"
-        
+    depends_on:
+      - message-broker
+
   block-worker:
     build:
       context: ./BlockWorker
       dockerfile: ./Dockerfile
     environment:
       - MQTT_HOST=message-broker
+    depends_on:
+      - message-broker
 
 
   # Message Broker

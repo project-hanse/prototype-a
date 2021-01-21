@@ -53,6 +53,11 @@ namespace PipelineService.Dao.Impl
 
         public Task<PipelineExecutionRecord> Update(PipelineExecutionRecord execution)
         {
+            if (Store.ContainsKey(execution.Id))
+            {
+                Store.Remove(execution.Id);
+            }
+
             Store.Add(execution.Id, execution);
 
             _logger.LogInformation("Updated pipeline execution record {executionId}", execution.Id);
