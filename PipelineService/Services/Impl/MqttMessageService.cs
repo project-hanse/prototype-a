@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Client;
@@ -13,11 +12,10 @@ using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
 {
-    public class MqttMessageService : IMqttMessageService, IHostedService
+    public class MqttMessageService : IMqttMessageService
     {
         private readonly ILogger<MqttClient> _logger;
         private readonly IConfiguration _configuration;
-        private readonly ITestService _testService;
         private IManagedMqttClient _client;
 
         private string Hostname => _configuration.GetValue("MQTT_HOST", "message-broker");
@@ -28,12 +26,10 @@ namespace PipelineService.Services.Impl
 
         public MqttMessageService(
             ILogger<MqttClient> logger,
-            IConfiguration configuration,
-            ITestService testService)
+            IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
-            _testService = testService;
         }
 
         private async Task ConnectAsync()
@@ -101,8 +97,7 @@ namespace PipelineService.Services.Impl
             await _client.PublishAsync(mqttMessage);
         }
 
-        // TODO replace this with attribute routing based library https://github.com/Atlas-LiftTech/MQTTnet.AspNetCore.AttributeRouting
-        private async Task Subscribe(string topic)
+        public async Task Subscribe<T>(string topic, Func<T, Task> handler) where T : BaseMqttMessage
         {
             await ConnectAsync();
 
@@ -119,10 +114,10 @@ namespace PipelineService.Services.Impl
             {
                 try
                 {
-                    BlockExecutionResponse message = JsonConvert.DeserializeObject<SimpleBlockExecutionResponse>(
+                    var message = JsonConvert.DeserializeObject<T>(
                         System.Text.Encoding.Default.GetString(a.ApplicationMessage.Payload));
 
-                    await _testService.NewMessage(message);
+                    await handler(message);
                 }
                 catch (Exception e)
                 {
@@ -130,27 +125,6 @@ namespace PipelineService.Services.Impl
                     Console.Error.WriteLine(e);
                 }
             });
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            await Subscribe("executed/+/+");
-        }
-
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (_client == null)
-            {
-                _logger.LogDebug("Nothing to shutdown");
-                return;
-            }
-
-            await _client.StopAsync();
-
-            _logger.LogInformation("Unsubscribed from executed topic...");
         }
     }
 }

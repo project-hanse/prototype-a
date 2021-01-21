@@ -44,10 +44,9 @@ namespace PipelineService
 
             // Registering transient services
             services.AddTransient<IHashService, HashService>();
-            services.AddTransient<IPipelineExecutionService, Services.Impl.PipelineExecutionService>();
-            services.AddTransient<ITestService, TestService>();
+            services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
 
-            services.AddHostedService<MqttMessageService>();
+            services.AddHostedService<HostedSubscriptionService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

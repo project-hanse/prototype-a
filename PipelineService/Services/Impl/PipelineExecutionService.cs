@@ -67,7 +67,7 @@ namespace PipelineService.Services.Impl
 
         public Task HandleExecutionResponse(BlockExecutionResponse response)
         {
-            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} oof pipeline {pipelineId}",
+            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} of pipeline {pipelineId}",
                 response.BlockId, response.ExecutionId, response.PipelineId);
 
             return Task.CompletedTask;
