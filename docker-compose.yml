@@ -10,10 +10,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - MQTT_CLIENT_ID=pipeline-service-1
     ports:
-      - "5000:80"
+      - 5000:80
     depends_on:
       - message-broker
 
+  # Block Worker 1
   block-worker:
     build:
       context: ./BlockWorker
@@ -23,6 +24,12 @@ services:
     depends_on:
       - message-broker
 
+  dataset-service:
+    build:
+      context: ./DataSetService
+      dockerfile: ./Dockerfile
+    ports:
+      - 5002:5000
 
   # Message Broker
   message-broker:
