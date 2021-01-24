@@ -11,11 +11,11 @@ namespace PipelineService.Dao.Impl
 {
     public class InMemoryPipelineDao : IPipelineDao
     {
-        private readonly ILogger<IPipelineDao> _logger;
+        private readonly ILogger<InMemoryPipelineDao> _logger;
         private static readonly IDictionary<Guid, Pipeline> Store = new ConcurrentDictionary<Guid, Pipeline>();
 
         public InMemoryPipelineDao(
-            ILogger<IPipelineDao> logger)
+            ILogger<InMemoryPipelineDao> logger)
         {
             _logger = logger;
         }
