@@ -10,3 +10,6 @@ class SimpleBlockExecutionRequest(BlockExecutionRequest):
         self.producing_block_hash: str = deserialized['ProducingBlockHash']
         self.operation_name: str = deserialized['OperationName']
         self.operation_configuration: dict = deserialized['OperationConfiguration']
+
+    def get_operation_name(self):
+        return self.operation_name
