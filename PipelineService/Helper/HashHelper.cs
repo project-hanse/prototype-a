@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -8,6 +9,11 @@ namespace PipelineService.Helper
 {
     public static class HashHelper
     {
+        public static string ComputeHash(params object[] args)
+        {
+            return Sha256(string.Join("|", JsonSerializer.Serialize(args)));
+        }
+
         public static string ComputeStaticHash(Block block)
         {
             if (block == null)
@@ -22,11 +28,18 @@ namespace PipelineService.Helper
             inputBuilder.Append(JsonSerializer.Serialize(block.OperationConfiguration));
             inputBuilder.Append(JsonSerializer.Serialize(block.IncludeInHash));
 
+            var input = inputBuilder.ToString();
+
+            return Sha256(input);
+        }
+
+        private static string Sha256(string input)
+        {
             using var hash = SHA256.Create();
 
             var enc = Encoding.UTF8;
 
-            var result = hash.ComputeHash(enc.GetBytes(inputBuilder.ToString()));
+            var result = hash.ComputeHash(enc.GetBytes(input));
 
             var hashBuilder = new StringBuilder();
             foreach (var b in result)

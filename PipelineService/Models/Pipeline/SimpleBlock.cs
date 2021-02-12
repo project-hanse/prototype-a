@@ -1,4 +1,5 @@
 using System;
+using PipelineService.Helper;
 
 namespace PipelineService.Models.Pipeline
 {
@@ -17,6 +18,15 @@ namespace PipelineService.Models.Pipeline
         /// The producing hash of the input dataset. 
         /// </summary>
         public string InputDatasetHash { get; set; }
+
+        /// <summary>
+        /// The key (id) the dataset produced by this operation is stored as.
+        /// </summary>
+        /// <remarks>
+        /// Typically sha256(InputDataSetId|InputDataSetHash|OperationName|OperationConfiguration).
+        /// </remarks>
+        public string ResultKey =>
+            HashHelper.ComputeHash(InputDatasetId, InputDatasetHash, Operation, OperationConfiguration);
 
         public override string IncludeInHash =>
             InputDatasetId.HasValue ? InputDatasetId.Value.ToString() : InputDatasetHash;

@@ -63,7 +63,7 @@ namespace PipelineService.Dao.Impl
             var select = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
+                InputDatasetHash = cleanUp.ResultKey,
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
@@ -74,7 +74,7 @@ namespace PipelineService.Dao.Impl
             var describe = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = HashHelper.ComputeStaticHash(select),
+                InputDatasetHash = select.ResultKey,
                 Operation = "describe"
             };
 

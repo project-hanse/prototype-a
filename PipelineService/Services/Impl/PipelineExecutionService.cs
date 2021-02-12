@@ -233,7 +233,8 @@ namespace PipelineService.Services.Impl
                 ExecutionId = executionId,
                 OperationName = block.Operation,
                 OperationConfiguration = block.OperationConfiguration,
-                ProducingBlockHash = block.InputDatasetHash,
+                ResultKey = block.ResultKey,
+                InputDataSetHash = block.InputDatasetHash,
                 InputDataSetId = block.InputDatasetId,
             };
         }
