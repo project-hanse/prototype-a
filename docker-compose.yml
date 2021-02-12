@@ -24,12 +24,15 @@ services:
     depends_on:
       - message-broker
 
+  # Dataset Store
   dataset-service:
     build:
       context: ./DataSetService
       dockerfile: ./Dockerfile
     ports:
       - 5002:5000
+    expose:
+      - 5002
 
   # Message Broker
   message-broker:
