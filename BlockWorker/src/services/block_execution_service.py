@@ -32,9 +32,16 @@ class BlockExecutionService:
             dataset = self.dataset_client.get_dataset_by_hash(request.get_input_dataset_hash())
         operation = request.get_operation_name()
 
+        # TODO: this must be more general
         if operation == 'dropna':
             resulting_dataset = dataset.dropna(
                 **self.preprocess_operation_config(request.get_operation_configuration()))
+            print(resulting_dataset)
+        elif operation == 'select_columns':
+            resulting_dataset = dataset[[0, 1, 14, 17, 18]]
+            print(resulting_dataset)
+        elif operation == 'describe':
+            resulting_dataset = dataset.describe()
             print(resulting_dataset)
         else:
             command = 'dataset.' + request.get_operation_name() + '(**self.preprocess_operation_config(request.get_operation_configuration()))'
