@@ -59,8 +59,19 @@ namespace PipelineService.Services.Impl
 
         public async Task HandleExecutionResponse(BlockExecutionResponse response)
         {
-            _logger.LogInformation("Block ({blockId}) completed for execution {executionId} of pipeline {pipelineId}",
-                response.BlockId, response.ExecutionId, response.PipelineId);
+            _logger.LogInformation(
+                "Block ({BlockId}) completed for execution {ExecutionId} of pipeline {PipelineId} with success state {SuccessState} in {ExecutionTimeMs} ms",
+                response.BlockId, response.ExecutionId, response.PipelineId, response.Successful,
+                (int) (response.StopTime - response.StartTime).TotalMilliseconds);
+
+            if (!response.Successful)
+            {
+                _logger.LogInformation("Execution of block {BlockId} failed with error {ExecutionErrorDescription}",
+                    response.BlockId, response.ErrorDescription);
+
+                // TODO mark execution as failed
+                return;
+            }
 
             if (await MarkBlockAsExecuted(response.ExecutionId, response.BlockId))
             {
@@ -79,7 +90,7 @@ namespace PipelineService.Services.Impl
         {
             var toBeEnqueued = await SelectNextBlocks(execution.Id, pipeline);
 
-            _logger.LogDebug("Enqueueing {toBeEnqueued} blocks for execution {executionId} of pipeline {pipelineId}",
+            _logger.LogDebug("Enqueueing {ToBeEnqueued} blocks for execution {ExecutionId} of pipeline {PipelineId}",
                 toBeEnqueued.Count, execution.Id, pipeline.Id);
 
             foreach (var block in toBeEnqueued)
@@ -134,14 +145,14 @@ namespace PipelineService.Services.Impl
                 .Where(b => b.Level == currentLevel)
                 .ToList();
 
-            _logger.LogDebug("Executing {executionLevelCount} blocks from level {executionLevel}",
+            _logger.LogDebug("Executing {ExecutionLevelCount} blocks from level {ExecutionLevel}",
                 nextBlocks.Count, currentLevel);
 
             // moving blocks from to be executed list to in execution list
             foreach (var nextBlock in nextBlocks)
             {
                 _logger.LogDebug(
-                    "Moving block {blockId} in execution {executionId} from status to_be_executed to in_execution",
+                    "Moving block {BlockId} in execution {ExecutionId} from status to_be_executed to in_execution",
                     nextBlock.BlockId, executionId);
                 executionRecord.ToBeExecuted.Remove(nextBlock);
                 nextBlock.MovedToStatusInExecutionAt = DateTime.UtcNow;
@@ -160,7 +171,7 @@ namespace PipelineService.Services.Impl
         /// <param name="block">The block to be executed.</param>
         private async Task EnqueueBlock(Guid executionId, Block block)
         {
-            _logger.LogInformation("Enqueuing block ({blockId}) with operation {operation}", block.Id, block.Operation);
+            _logger.LogInformation("Enqueuing block ({BlockId}) with operation {Operation}", block.Id, block.Operation);
 
             BlockExecutionRequest request;
             // TODO: This can be solved in a nicer way by implementing eg the Visitor pattern 
@@ -203,7 +214,7 @@ namespace PipelineService.Services.Impl
             }
 
             _logger.LogDebug(
-                "Moving block {blockId} in execution {executionId} from status in_execution to executed",
+                "Moving block {BlockId} in execution {ExecutionId} from status in_execution to executed",
                 blockId, executionId);
 
             block.ExecutionCompletedAt = DateTime.UtcNow;
@@ -221,7 +232,7 @@ namespace PipelineService.Services.Impl
             // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
             if (!block.InputDatasetId.HasValue && string.IsNullOrEmpty(block.InputDatasetHash))
             {
-                _logger.LogWarning("Block {blockId} has neither an input dataset id nor a producing block hash",
+                _logger.LogWarning("Block {BlockId} has neither an input dataset id nor a producing block hash",
                     block.Id);
                 throw new Exception("Block has neither an input dataset id nor a producing block hash");
             }

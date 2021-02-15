@@ -25,6 +25,11 @@ namespace PipelineService.Models.MqttMessages
         public bool Successful { get; set; }
 
         /// <summary>
+        /// A description of the error that occured if the operation could not be executed successfully.
+        /// </summary>
+        public string ErrorDescription { get; set; }
+
+        /// <summary>
         /// The time (UTC) the execution of this block was started.  
         /// </summary>
         public DateTime StartTime { get; set; }
