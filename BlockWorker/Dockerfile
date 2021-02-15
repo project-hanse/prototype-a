@@ -5,9 +5,9 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y build-essential
 
-COPY src/requirements.txt ./
+COPY requirements.txt .
 
-RUN pip install -r /app/requirements.txt
+RUN pip install -r ./requirements.txt
 
 COPY src/. .
 

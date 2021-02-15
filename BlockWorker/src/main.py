@@ -51,7 +51,7 @@ if __name__ == '__main__':
     while loop:
         client_wrapper.loop()
 
-    logging.debug('Shutting down')
+    logging.info('Shutting down')
 
     try:
         client_wrapper.cleanup()
