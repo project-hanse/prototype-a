@@ -31,26 +31,21 @@ class BlockExecutionService:
         else:
             dataset = self.dataset_client.get_dataset_by_hash(request.get_input_dataset_hash())
         operation = request.get_operation_name()
+        operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
-        # TODO: this must be more general
-        if operation == 'dropna':
-            resulting_dataset = dataset.dropna(
-                **self.preprocess_operation_config(request.get_operation_configuration()))
-            print(resulting_dataset)
-        elif operation == 'select_columns':
-            resulting_dataset = dataset[[0, 1, 14, 17, 18]]
-            print(resulting_dataset)
-        elif operation == 'describe':
-            resulting_dataset = dataset.describe()
-            print(resulting_dataset)
-        else:
-            command = 'dataset.' + request.get_operation_name() + '(**self.preprocess_operation_config(request.get_operation_configuration()))'
-            resulting_dataset = exec(command)
+        try:
+            resulting_dataset = self.execute_simple_operation(dataset, operation, operation_config)
 
-        self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
+            self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
+
+            response.set_result_dataset_id(str(uuid.uuid4()))
+            response.set_successful(True)
+        except Exception as e:
+            self.logging.warning("Failed to execute operation %s: %s" % (operation, str(e)))
+            response.set_successful(False)
+            response.set_error_description(str(e))
 
         response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
-        response.set_result_dataset_id(str(uuid.uuid4()))
 
         return response
 
@@ -64,3 +59,20 @@ class BlockExecutionService:
                 except ValueError:
                     config[key] = config[key]
         return config
+
+    def execute_simple_operation(self, df, operation: str, operation_config: dict):
+        self.logging.info("Executing operation %s" % operation)
+
+        if operation == 'select_columns':
+            resulting_dataset = df[dict[0]]
+        else:
+            command = ("resulting_dataset = df.%s(**operation_config)" % operation)
+            loc = {
+                'df': df,
+                'operation_config': operation_config
+            }
+            exec(command, globals(), loc)
+            resulting_dataset = loc['resulting_dataset']
+        print(resulting_dataset)
+
+        return resulting_dataset

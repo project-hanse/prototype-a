@@ -1,5 +1,4 @@
 import datetime
-import json
 
 from src.models.message import Message
 
@@ -11,6 +10,7 @@ class BlockExecutionResponse(Message):
     successful: bool
     start_time: datetime
     stop_time: datetime
+    error_description: str
 
     def __init__(self):
         super().__init__()
@@ -34,3 +34,6 @@ class BlockExecutionResponse(Message):
 
     def set_stop_time(self, stop_time: datetime):
         self.stop_time = stop_time
+
+    def set_error_description(self, error_description):
+        self.error_description = error_description
