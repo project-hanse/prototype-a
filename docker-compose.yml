@@ -21,6 +21,8 @@ services:
       dockerfile: ./Dockerfile
     environment:
       - MQTT_HOST=message-broker
+      - DATASET_HOST=dataset-service
+      - DATASET_PORT=5000
     depends_on:
       - message-broker
 

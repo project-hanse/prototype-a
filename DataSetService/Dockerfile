@@ -13,8 +13,6 @@ COPY datasets/. /datasets
 
 COPY src/. .
 
-RUN ls /src
-
 RUN chmod +x ./entrypoint.sh
 
 # The -u flag is important if you want to observe the logs, otherwise python buffers the output

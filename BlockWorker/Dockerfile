@@ -9,7 +9,10 @@ COPY requirements.txt .
 
 RUN pip install -r ./requirements.txt
 
-COPY src/. .
+COPY setup.py .
+COPY entrypoint.sh .
+
+COPY src ./src
 
 RUN chmod +x ./entrypoint.sh
 
