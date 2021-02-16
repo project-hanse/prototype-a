@@ -7,24 +7,28 @@ version: 2
 updates:
   - package-ecosystem: "nuget" # See documentation for possible values
     directory: "/PipelineService" # Location of package manifests
+    target-branch: "dev"
     schedule:
       interval: "daily"
     assignees:
       - "SirPumpkinHead"
   - package-ecosystem: "nuget" # See documentation for possible values
     directory: "/PipelineService.UnitTests" # Location of package manifests
+    target-branch: "dev"
     schedule:
       interval: "daily"
     assignees:
       - "SirPumpkinHead"
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/BlockWorker" # Location of package manifests
+    target-branch: "dev"
     schedule:
       interval: "daily"
     assignees:
       - "SirPumpkinHead"
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/DataSetService" # Location of package manifests
+    target-branch: "dev"
     schedule:
       interval: "daily"
     assignees:
