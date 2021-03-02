@@ -6,8 +6,8 @@
 
     <ItemGroup>
         <PackageReference Include="Hangfire.LiteDB" Version="0.4.0" />
-        <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.14" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.0.5" />
+        <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.15" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.0.7" />
         <PackageReference Include="Hangfire.AspNetCore" Version="1.7.19" />
     </ItemGroup>
 
