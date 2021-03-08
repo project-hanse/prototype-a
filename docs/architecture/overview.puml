@@ -30,6 +30,9 @@ rectangle "Low Level Services" {
     component "Pipeline Store" as pipeline_store
     database "Pipeline Database" as pipeline_db
     
+    component "Execution Store" as execution_store
+    database "Execution Database" as execution_db
+    
     component "Dataset Store" as dataset_store
     database "Dataset Database" as dataset_db
 }
@@ -44,17 +47,18 @@ api_gateway --> pipeline_service
 api_gateway --> suggestion_service
 api_gateway --> dataset_service
 
-pipeline_service --> execution_requests
-pipeline_service --> pipeline_store
-dataset_service --> dataset_store
-
 pipeline_store --> pipeline_db
 dataset_store --> dataset_db
+execution_store --> execution_db 
 
+pipeline_service --> execution_requests
 execution_requests --> worker 
-worker --> dataset_store 
 worker --> execution_responses 
 execution_responses --> pipeline_service
 
+worker --> dataset_store 
 suggestion_service --> pipeline_store
+pipeline_service --> execution_store
+pipeline_service --> pipeline_store
+dataset_service --> dataset_store
 @enduml
