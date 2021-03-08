@@ -23,7 +23,7 @@ and press <kbd>ctrl</kbd> + <kbd>C</kbd> (this will send a `SIGINT` signal to th
 This is a general overview of the components involved in a somewhat functional system. The first prototype will
 primarily focus on implementing the communication between the `Pipeline Service` and the `Python Workers`. In a second
 iteration it is planned to also include the `Leadning Service`.  
-![Architecture Diagram Overview](./docs/architecture/prototype-a.png)
+![Architecture Diagram Overview](./docs/architecture/overview.png)
 
 ## Sequence Diagram Iteration 1
 

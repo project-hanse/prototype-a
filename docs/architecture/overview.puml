@@ -1,0 +1,60 @@
+@startuml
+'https://plantuml.com/deployment-diagram
+
+title "Components Overview"
+
+'Definitions'
+
+rectangle "Frontend" {
+    component "Pipeline Editor" << Angular Frontend>> as pipeline_editor
+    component "Dataset Importer" << Angular Frontend >> as dataset_importer
+}
+
+rectangle "Edge Services" {
+    component "API Gateway" << Ocelot Gateway>> as api_gateway
+}
+
+component "Message Broker" as message_broker {
+    queue "Execution Requests" as execution_requests
+    queue "Execution Responses" as execution_responses
+}
+
+rectangle "Mid Level Services" {
+    component "Pipeline Service" << .NET API >> as pipeline_service
+    collections  "Worker" <<Python Worker>> as worker
+    component "Suggestion Service" << Python API >> as suggestion_service
+    component "Dataset Service" << Python API >> as dataset_service
+}
+
+rectangle "Low Level Services" {
+    component "Pipeline Store" as pipeline_store
+    database "Pipeline Database" as pipeline_db
+    
+    component "Dataset Store" as dataset_store
+    database "Dataset Database" as dataset_db
+}
+
+
+'Interaction'
+
+pipeline_editor --> api_gateway
+dataset_importer --> api_gateway
+
+api_gateway --> pipeline_service 
+api_gateway --> suggestion_service
+api_gateway --> dataset_service
+
+pipeline_service --> execution_requests
+pipeline_service --> pipeline_store
+dataset_service --> dataset_store
+
+pipeline_store --> pipeline_db
+dataset_store --> dataset_db
+
+execution_requests --> worker 
+worker --> dataset_store 
+worker --> execution_responses 
+execution_responses --> pipeline_service
+
+suggestion_service --> pipeline_store
+@enduml
