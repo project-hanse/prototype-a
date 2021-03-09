@@ -15,21 +15,21 @@ rectangle "Edge Services" {
 }
 
 rectangle "Mid Level Services" {
-    component "Pipeline Service" << .NET API >> as pipeline_service
-    collections  "Worker" <<Python Worker>> as worker
-    component "Suggestion Service" << Python API >> as suggestion_service
-    component "Dataset Service" << Python API >> as dataset_service
+    component "Pipeline Service" << .NET REST API >> as pipeline_service
+    collections  "Node Worker" <<Python Worker>> as worker
+    component "Suggestion Service" << Python REST API >> as suggestion_service
+    component "Dataset Service" << Python REST API >> as dataset_service
 }
 
 rectangle "Low Level Services" {
-    component "Pipeline Store" as pipeline_store
-    database "Pipeline Database" as pipeline_db
+    component "Pipeline Store" << .NET REST API >> as pipeline_store
+    database "Pipeline Database" << GraphDB >> as pipeline_db
     
-    component "Execution Store" as execution_store
-    database "Execution Database" as execution_db
+    component "Execution Store" << .NET REST API >> as execution_store
+    database "Execution Database" << MongoDB >> as execution_db
     
-    component "Dataset Store" as dataset_store
-    database "Dataset Database" as dataset_db
+    component "Dataset Store" << Python REST API >> as dataset_store
+    database "Dataset Database" << MongoDB >> as dataset_db
 }
 
 component "Event Bus" << MQTT Broker >> as message_broker {

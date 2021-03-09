@@ -5,20 +5,20 @@
 !$ps = "Pipeline Service"
 !$es = "Execution Service"
 !$hs = "Hangfire Service"
-!$mb = "Message Broker"
-!$bw = "Block Worker"
+!$mb = "Event Bus"
+!$bw = "Node Worker"
 !$ds = "Dataset Storage"
 
 title ** Pipeline execution **
 
 actor User
-participant "$pc" << (C,#ADD1B2) .NET Web API >>
-participant "$es" << (C,#ADD1B2) .NET Web API >>
-participant "$ps" << (C,#ADD1B2) .NET Web API >>
+participant "$pc" << (C,#ADD1B2) Pipeline Service >>
+participant "$es" << (C,#ADD1B2) Pipeline Service >>
+participant "$ps" << (C,#ADD1B2) Pipeline Service >>
 participant "$hs" << (C,#ADD1B2) .NET Web API >>
 participant "$mb" << MQTT Broker >>
-collections "$bw" << Python Container >>
-database "$ds" << Unspecified Web API >>
+collections "$bw" << Python Worker >>
+participant "$ds" << Dataset Store >>
 
 == Initialization ==
 
