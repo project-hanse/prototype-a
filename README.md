@@ -1,7 +1,7 @@
 ---
 title: "Project Hanse"
 author: "Konstantin Strümpf"
-date: "March 9, 2021"
+date: "March 10, 2021"
 geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
 ---
 
@@ -50,6 +50,8 @@ be implemented.
 
 ![Architecture Diagram Overview](./docs/architecture/overview.png)
 
+The following sections will be adapted and extended as the project progresses.
+
 ### Sequence Diagram Iteration 1
 
 The first iteration, implementing the execution of a pipeline, follows this diagram:
@@ -58,7 +60,18 @@ The first iteration, implementing the execution of a pipeline, follows this diag
 
 ## Implementation
 
-The code for the proof of concept is stored in this [git repo](https://github.com/project-hanse/prototype-a).
+The code for the proof of concept is stored in this git
+repository [https://github.com/project-hanse/prototype-a][git-repo].
+
+The technologies used for this project are primarily [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0)
+using [C#](https://docs.microsoft.com/en-us/dotnet/csharp/) for the services that are not directly interacting with
+datasets. Services handling datasets (e.g. `Dataset Service` when importing new datasets) or services that execute
+single nodes of pipelines (e.g. `Node Worker`) will be implemented using [Python](https://www.python.org/) and
+appropriate libraries like [Pandas](https://pandas.pydata.org/) and [NumPy](https://numpy.org/). For storing data in a
+persistent way databases like [MongoDB](https://www.mongodb.com/) and [GraphDB](https://graphdb.ontotext.com/) could be
+used. For the `Event Bus` a [MQTT](https://mqtt.org/) message broker like [Eclipse Mosquitto](https://mosquitto.org/)
+will be used. This can be replaced by a more scalable technology like [RabbitMQ](https://www.rabbitmq.com/) in the
+future. All services will be [dockerized](https://www.docker.com/) to allow for a simple deployment.
 
 ### How to use
 
@@ -75,3 +88,12 @@ Windows, [Terminal](https://g.co/kgs/RH4MXv) on Mac), navigate to the project's 
 You can then open a new browser window and navigate to http://localhost:5000/index.html. You can then test the Pipeline
 Service via the provided [Swagger UI](https://swagger.io/tools/swagger-ui/). To stop the prototype go back to your shell
 and press <kbd>ctrl</kbd> + <kbd>C</kbd> (this will send a `SIGINT` signal to the prototype telling it to shutdown).
+
+## Vision
+
+The tool developed in this prototype could become the central `Node System` of a larger platform that allows data
+providers and data consumers to exchange, transport and trade data.
+
+![Platform Vision](./docs/big-picture.jpg)
+
+[git-repo]: https://github.com/project-hanse/prototype-a
