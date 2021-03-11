@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ViewPipelineComponent } from './view-pipeline.component';
+import { PipelineDetailViewComponent } from './pipeline-detail-view.component';
 
-describe('ViewPipelineComponent', () => {
-  let component: ViewPipelineComponent;
-  let fixture: ComponentFixture<ViewPipelineComponent>;
+describe('PipelineDetailViewComponent', () => {
+  let component: PipelineDetailViewComponent;
+  let fixture: ComponentFixture<PipelineDetailViewComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ViewPipelineComponent ]
+      declarations: [ PipelineDetailViewComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ViewPipelineComponent);
+    fixture = TestBed.createComponent(PipelineDetailViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

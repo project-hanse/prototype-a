@@ -1,0 +1,7 @@
+<h2>Pipelines</h2>
+
+<ul *ngIf="getPipelines() | async as pipelines">
+  <li *ngFor="let pipeline of pipelines">
+    <a [routerLink]="[pipeline.id]">{{pipeline.name}}</a> ({{pipeline.createdOn | date: 'medium'}})
+  </li>
+</ul>

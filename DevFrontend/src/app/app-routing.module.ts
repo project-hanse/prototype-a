@@ -4,7 +4,7 @@ import {Routes, RouterModule} from '@angular/router';
 const routes: Routes = [
   {
     path: 'pipeline',
-    loadChildren: () => import('./pipeline-editor/pipeline-editor.module').then(m => m.PipelineEditorModule)
+    loadChildren: () => import('./pipeline/pipeline.module').then(m => m.PipelineModule)
   }
 ];
 
