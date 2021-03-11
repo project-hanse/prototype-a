@@ -36,6 +36,12 @@ namespace PipelineService.Controllers
             return pipeline;
         }
 
+        [HttpGet("")]
+        public async Task<IActionResult> GetPipelines()
+        {
+            return Ok(await _pipelineExecutionService.GetPipelines());
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPipeline(Guid id)
         {

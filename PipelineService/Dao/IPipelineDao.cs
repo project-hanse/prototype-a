@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Models.Pipeline;
 
@@ -19,5 +20,11 @@ namespace PipelineService.Dao
         /// <param name="pipelineId">The pipeline's id</param>
         /// <returns>The pipeline</returns>
         public Task<Pipeline> Get(Guid pipelineId);
+
+        /// <summary>
+        /// Loads all available pipelines.
+        /// </summary>
+        /// <returns>A list of all pipelines</returns>
+        public Task<IList<Pipeline>> Get();
     }
 }

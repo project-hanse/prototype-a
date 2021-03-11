@@ -24,6 +24,13 @@ namespace PipelineService.Services
         Task<Pipeline> GetPipeline(Guid id);
 
         /// <summary>
+        /// Loads all pipelines stored in this instance (this will be changed ofe pipelines are stored in a dedicated
+        /// microservice). 
+        /// </summary>
+        /// <returns>A list of pipelines</returns>
+        Task<IList<Pipeline>> GetPipelines();
+
+        /// <summary>
         /// Starts the execution of a given pipeline.
         /// Provides an id that can be used to check the execution status.
         /// </summary>

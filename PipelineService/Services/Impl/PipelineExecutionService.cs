@@ -40,9 +40,17 @@ namespace PipelineService.Services.Impl
             return await _pipelineDao.Get(id);
         }
 
+        public async Task<IList<Pipeline>> GetPipelines()
+        {
+            var pipelines = await _pipelineDao.Get();
+            return pipelines
+                .OrderByDescending(p => p.CreatedOn)
+                .ToList();
+        }
+
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
         {
-            _logger.LogInformation("Executing pipeline with id {pipelineId}", pipelineId);
+            _logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
             var pipeline = await _pipelineDao.Get(pipelineId);
 
             if (pipeline == null)

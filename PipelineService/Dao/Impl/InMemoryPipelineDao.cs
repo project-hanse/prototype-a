@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Exceptions;
-using PipelineService.Helper;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao.Impl
@@ -24,7 +24,7 @@ namespace PipelineService.Dao.Impl
         {
             var pipelineId = Guid.NewGuid();
 
-            _logger.LogInformation("Creating new default pipeline with id {pipelineId}", pipelineId);
+            _logger.LogInformation("Creating new default pipeline with id {PipelineId}", pipelineId);
 
             var defaultPipeline = NewDefaultPipeline(pipelineId);
 
@@ -40,8 +40,19 @@ namespace PipelineService.Dao.Impl
                 throw new NotFoundException("No pipeline with given id found");
             }
 
-            _logger.LogInformation("Loading pipeline with id {pipelineId}", pipelineId);
+            _logger.LogInformation("Loading pipeline with id {PipelineId}", pipelineId);
             return Task.FromResult(pipeline);
+        }
+
+        public Task<IList<Pipeline>> Get()
+        {
+            var pipelines = Store
+                .Select(r => r.Value)
+                .ToList();
+
+            _logger.LogInformation("Loading {PipelineCount} pipeline(s)", pipelines.Count);
+
+            return Task.FromResult<IList<Pipeline>>(pipelines);
         }
 
         /// <summary>
