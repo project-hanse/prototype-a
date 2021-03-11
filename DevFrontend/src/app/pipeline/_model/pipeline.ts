@@ -1,5 +1,7 @@
-export interface Pipeline {
-  id: string;
+import {BasePersistentModel} from './base-persistent-model';
+import {Block} from './block';
+
+export interface Pipeline extends BasePersistentModel {
   name: string;
-  createdOn: string;
+  root: Block[];
 }
