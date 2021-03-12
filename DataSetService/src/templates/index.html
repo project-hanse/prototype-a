@@ -3,4 +3,15 @@
 <p>If you ever need datasets, I'm your guy ;)</p>
 <p>Btw, I am a REST API..</p>
 
-<p>I currently hold {{ data.dataset_count }} datasets.</p>
+<ul>
+    <li>Dataset count: {{ data.dataset_count }}</li>
+</ul>
+
+<p><b>Datasets </b></p>
+<ul>
+    {% for id in data.dataset_ids %}
+        <li>
+            <a href="api/datasets/{{ id }}">{{ id }}</a>
+        </li>
+    {% endfor %}
+</ul>
