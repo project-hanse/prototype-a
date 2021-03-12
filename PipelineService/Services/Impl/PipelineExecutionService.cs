@@ -30,9 +30,9 @@ namespace PipelineService.Services.Impl
             _mqttMessageService = mqttMessageService;
         }
 
-        public async Task<Pipeline> CreateDefaultPipeline()
+        public async Task<IList<Pipeline>> CreateDefaultPipelines()
         {
-            return await _pipelineDao.Create(Guid.NewGuid());
+            return await _pipelineDao.CreateDefaults();
         }
 
         public async Task<Pipeline> GetPipeline(Guid id)

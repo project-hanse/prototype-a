@@ -13,7 +13,7 @@ namespace PipelineService.Services
         /// Creates a default pipeline.
         /// </summary>
         /// <returns>The new pipeline.</returns>
-        Task<Pipeline> CreateDefaultPipeline();
+        Task<IList<Pipeline>> CreateDefaultPipelines();
 
         /// <summary>
         /// Loads a pipeline by it's id.

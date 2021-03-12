@@ -26,11 +26,40 @@ namespace PipelineService.Dao.Impl
 
             _logger.LogInformation("Creating new default pipeline with id {PipelineId}", pipelineId);
 
-            var defaultPipeline = NewDefaultPipeline(pipelineId);
+            var defaultPipeline = HardcodedDefaultPipelines.MelbourneHousingPipeline(id);
 
             Store.Add(pipelineId, defaultPipeline);
 
             return Task.FromResult(defaultPipeline);
+        }
+
+        public async Task<IList<Pipeline>> CreateDefaults()
+        {
+            var pipelines = NewDefaultPipelines();
+
+            _logger.LogInformation("Creating {NewPipelines} new pipeline(s)", pipelines.Count);
+
+            foreach (var pipeline in pipelines)
+            {
+                await Add(pipeline);
+            }
+
+            return pipelines;
+        }
+
+        private Task Add(Pipeline pipeline)
+        {
+            if (!Store.ContainsKey(pipeline.Id))
+            {
+                Store.Add(pipeline.Id, pipeline);
+                _logger.LogDebug("Added new pipeline with id {PipelineId}", pipeline.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Pipeline with id {PipelineId} already exists", pipeline.Id);
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task<Pipeline> Get(Guid pipelineId)
@@ -55,51 +84,12 @@ namespace PipelineService.Dao.Impl
             return Task.FromResult<IList<Pipeline>>(pipelines);
         }
 
-        /// <summary>
-        /// Generates a default pipeline with hardcoded dataset ids for prototyping.
-        /// </summary>
-        private Pipeline NewDefaultPipeline(Guid pipelineId)
+        private static IList<Pipeline> NewDefaultPipelines()
         {
-            var cleanUp = new SimpleBlock
+            return new List<Pipeline>
             {
-                PipelineId = pipelineId,
-                InputDatasetId = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee"),
-                Operation = "dropna",
-                OperationConfiguration = new Dictionary<string, string>
-                {
-                    {"axis", "0"}
-                },
-            };
-
-            var select = new SimpleBlock
-            {
-                PipelineId = pipelineId,
-                InputDatasetHash = cleanUp.ResultKey,
-                Operation = "select_columns",
-                OperationConfiguration = new Dictionary<string, string>
-                {
-                    {"0", "['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']"}
-                }
-            };
-
-            var describe = new SimpleBlock
-            {
-                PipelineId = pipelineId,
-                InputDatasetHash = select.ResultKey,
-                Operation = "describe"
-            };
-
-            cleanUp.Successors.Add(select);
-            select.Successors.Add(describe);
-
-            return new Pipeline
-            {
-                Id = pipelineId,
-                Name = "Melbourne Housing Data",
-                Root = new List<Block>
-                {
-                    cleanUp
-                }
+                HardcodedDefaultPipelines.MelbourneHousingPipeline(),
+                HardcodedDefaultPipelines.InfluenzaInterpolation()
             };
         }
     }

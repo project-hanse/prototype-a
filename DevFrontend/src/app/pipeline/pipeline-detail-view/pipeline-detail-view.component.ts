@@ -38,9 +38,11 @@ export class PipelineDetailViewComponent implements OnInit {
 
     this.buildArrays(nodesArray, edgesArray, pipeline.root);
 
+    // @ts-ignore
     const nodes = new vis.DataSet(nodesArray);
 
     // create an array with edges
+    // @ts-ignore
     const edges = new vis.DataSet(edgesArray);
 
     // create a network
@@ -71,6 +73,7 @@ export class PipelineDetailViewComponent implements OnInit {
       }
 
     };
+    // @ts-ignore
     var network = new vis.Network(container, data, options);
 
   }

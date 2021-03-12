@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -20,20 +21,10 @@ namespace PipelineService.Controllers
             _pipelineExecutionService = pipelineExecutionService;
         }
 
-        [HttpGet("default")]
-        public async Task<Pipeline> GetDefault()
+        [HttpGet("create/defaults")]
+        public async Task<int> GetDefaults()
         {
-            return await _pipelineExecutionService.CreateDefaultPipeline();
-        }
-
-        [HttpGet("newAndExecute")]
-        public async Task<Pipeline> GetNewAndExecute()
-        {
-            var pipeline = await _pipelineExecutionService.CreateDefaultPipeline();
-
-            await _pipelineExecutionService.ExecutePipeline(pipeline.Id);
-
-            return pipeline;
+            return (await _pipelineExecutionService.CreateDefaultPipelines()).Count;
         }
 
         [HttpGet("")]
