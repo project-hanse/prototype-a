@@ -76,6 +76,19 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
+            var select = new SimpleBlock
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = interpolate.ResultKey,
+                Operation = "select_columns",
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"0", "['weekly_infections']"}
+                }
+            };
+
+            interpolate.Successors.Add(select);
+
             return new Pipeline
             {
                 Id = pipelineId,

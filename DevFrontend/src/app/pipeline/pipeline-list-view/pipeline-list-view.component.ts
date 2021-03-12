@@ -27,7 +27,6 @@ export class PipelineListViewComponent implements OnInit, OnDestroy {
     return this.$pipelines;
   }
 
-
   public generateNewPipelines(): void {
     this.subscriptions.add(
       this.pipelineService

@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
@@ -49,11 +47,11 @@ namespace PipelineService.Controllers
         [HttpGet("execute/{pipelineId}")]
         public async Task<IActionResult> ExecutePipeline(Guid pipelineId)
         {
-            _logger.LogDebug("Executing pipeline {pipelineId}", pipelineId);
+            _logger.LogDebug("Executing pipeline {PipelineId}", pipelineId);
 
             var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId);
 
-            _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
+            _logger.LogInformation("Execution of pipeline ({PipelineId}) with execution id {ExecutionId} started",
                 pipelineId, execution);
 
             return Ok(execution);
