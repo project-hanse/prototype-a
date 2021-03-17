@@ -1,8 +1,9 @@
-<h2>Pipelines</h2>
+<mat-toolbar>
+  <button mat-button (click)="generateNewPipelines()">
+    Generate New
+  </button>
+</mat-toolbar>
 
-<button (click)="generateNewPipelines()">
-  Generate New
-</button>
 
 <ul *ngIf="getPipelines() | async as pipelines">
   <li *ngFor="let pipeline of pipelines">
