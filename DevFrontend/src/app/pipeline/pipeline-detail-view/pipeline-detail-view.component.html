@@ -1,0 +1,8 @@
+<ng-container *ngIf="getId() | async as id">
+  <ng-container *ngIf="getPipeline(id) | async as pipeline">
+    <h2>Details of: {{pipeline.name}}</h2>
+    <button (click)="renderGraph('mynetwork', pipeline)">Render</button>
+    <div id="mynetwork" style="height: 500px"></div>
+  </ng-container>
+
+</ng-container>

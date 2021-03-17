@@ -28,6 +28,9 @@ class InMemoryStore:
     def get_dataset_count(self):
         return len(self.store)
 
+    def get_ids(self):
+        return self.store.keys()
+
     def get_by_id(self, dataframe_id: str):
         self.logger.info("Loading dataset by id %s" % str(dataframe_id))
 

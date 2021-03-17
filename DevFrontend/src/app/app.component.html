@@ -1,0 +1,19 @@
+<header>
+  <h1>Development Frontend</h1>
+  <nav>
+    <a routerLink="pipeline">Pipelines</a>
+  </nav>
+</header>
+
+
+<hr>
+
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+<hr>
+
+<footer>
+  <p>&copy; Project Hanse {{ getYear() | date: 'yyyy' }}</p>
+</footer>
