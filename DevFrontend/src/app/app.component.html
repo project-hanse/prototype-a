@@ -1,19 +1,27 @@
 <header>
-  <h1>Development Frontend</h1>
-  <nav>
-    <a routerLink="pipeline">Pipelines</a>
-  </nav>
+  <mat-toolbar color="primary" class="mat-elevation-z4">
+    <mat-toolbar-row>
+      <h1>Development Frontend</h1>
+    </mat-toolbar-row>
+    <mat-toolbar-row>
+      <nav>
+        <a mat-stroked-button routerLink="pipeline">Pipelines</a>
+      </nav>
+    </mat-toolbar-row>
+  </mat-toolbar>
 </header>
 
 
-<hr>
+<mat-divider></mat-divider>
 
 <main>
   <router-outlet></router-outlet>
 </main>
 
-<hr>
-
 <footer>
-  <p>&copy; Project Hanse {{ getYear() | date: 'yyyy' }}</p>
+  <mat-toolbar>
+    <span style="font-size: 0.75em; font-weight: normal; opacity: 0.75">
+      &copy; Project Hanse {{ getYear() | date: 'yyyy' }}
+    </span>
+  </mat-toolbar>
 </footer>

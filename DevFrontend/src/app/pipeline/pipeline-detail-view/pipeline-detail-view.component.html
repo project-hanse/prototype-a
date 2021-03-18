@@ -1,8 +1,16 @@
 <ng-container *ngIf="getId() | async as id">
   <ng-container *ngIf="getPipeline(id) | async as pipeline">
-    <h2>Details of: {{pipeline.name}}</h2>
-    <button (click)="renderGraph('mynetwork', pipeline)">Render</button>
-    <div id="mynetwork" style="height: 500px"></div>
+
+    <mat-toolbar>
+      <a mat-button routerLink="../">Back</a>
+      <button mat-raised-button (click)="executePipeline(id)">Execute</button>
+    </mat-toolbar>
+
+    <div style="padding: 1em">
+      <h2>{{pipeline.name}}</h2>
+      <ph-pipeline-node-view [pipeline]="pipeline"></ph-pipeline-node-view>
+
+    </div>
   </ng-container>
 
 </ng-container>
