@@ -12,6 +12,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Preparation
+        id: prep
+        run: |
+          TAGS="ghcr.io/${{ github.repository }}:${{ github.sha }}"
+          if [[ $GITHUB_REF == ref/head/master ]]; then
+            TAGS="$TAGS,ghcr.io/${{ github.repository }}:latest"
+          fi
+          echo ::set-output name=tags::${TAGS}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -21,10 +29,10 @@ jobs:
         with:
           registry: docker.pkg.github.com
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: ./DevFrontend
           push: true
-          tags: docker.pkg.github.com/project-hanse/prototype-a/dev-frontend:latest
+          tags: ${{ steps.prep.outputs.tags }}
