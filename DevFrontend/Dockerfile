@@ -1,7 +1,7 @@
 # Build
 FROM node:10-alpine as build-step
 
-RUN mkdir -p /app
+RUN mkdir -p /app/build
 
 WORKDIR /app
 
@@ -11,10 +11,14 @@ RUN npm install
 
 COPY . /app
 
-RUN npm run build --prod --output-path=./build
+RUN npm run build -- --output-path=./dist/out
 
 # Deployment
 
-FROM nginx:1.17.1-alpine
+FROM nginx:1.19-alpine
 
-COPY --from=build-step /app/build /usr/share/nginx/html
+# Replacing default config with Angular specific
+RUN rm /etc/nginx/conf.d/default.conf
+COPY src/etc/nginx/conf.d/ng.conf /etc/nginx/conf.d/
+
+COPY --from=build-step /app/dist/out/ /usr/share/nginx/html
