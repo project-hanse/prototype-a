@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Exceptions;
-using PipelineService.Helper;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao.Impl
@@ -24,13 +24,42 @@ namespace PipelineService.Dao.Impl
         {
             var pipelineId = Guid.NewGuid();
 
-            _logger.LogInformation("Creating new default pipeline with id {pipelineId}", pipelineId);
+            _logger.LogInformation("Creating new default pipeline with id {PipelineId}", pipelineId);
 
-            var defaultPipeline = NewDefaultPipeline(pipelineId);
+            var defaultPipeline = HardcodedDefaultPipelines.MelbourneHousingPipeline(id);
 
             Store.Add(pipelineId, defaultPipeline);
 
             return Task.FromResult(defaultPipeline);
+        }
+
+        public async Task<IList<Pipeline>> CreateDefaults()
+        {
+            var pipelines = NewDefaultPipelines();
+
+            _logger.LogInformation("Creating {NewPipelines} new pipeline(s)", pipelines.Count);
+
+            foreach (var pipeline in pipelines)
+            {
+                await Add(pipeline);
+            }
+
+            return pipelines;
+        }
+
+        private Task Add(Pipeline pipeline)
+        {
+            if (!Store.ContainsKey(pipeline.Id))
+            {
+                Store.Add(pipeline.Id, pipeline);
+                _logger.LogDebug("Added new pipeline with id {PipelineId}", pipeline.Id);
+            }
+            else
+            {
+                _logger.LogWarning("Pipeline with id {PipelineId} already exists", pipeline.Id);
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task<Pipeline> Get(Guid pipelineId)
@@ -40,55 +69,27 @@ namespace PipelineService.Dao.Impl
                 throw new NotFoundException("No pipeline with given id found");
             }
 
-            _logger.LogInformation("Loading pipeline with id {pipelineId}", pipelineId);
+            _logger.LogInformation("Loading pipeline with id {PipelineId}", pipelineId);
             return Task.FromResult(pipeline);
         }
 
-        /// <summary>
-        /// Generates a default pipeline with hardcoded dataset ids for prototyping.
-        /// </summary>
-        private Pipeline NewDefaultPipeline(Guid pipelineId)
+        public Task<IList<Pipeline>> Get()
         {
-            var cleanUp = new SimpleBlock
-            {
-                PipelineId = pipelineId,
-                InputDatasetId = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee"),
-                Operation = "dropna",
-                OperationConfiguration = new Dictionary<string, string>
-                {
-                    {"axis", "0"}
-                },
-            };
+            var pipelines = Store
+                .Select(r => r.Value)
+                .ToList();
 
-            var select = new SimpleBlock
-            {
-                PipelineId = pipelineId,
-                InputDatasetHash = cleanUp.ResultKey,
-                Operation = "select_columns",
-                OperationConfiguration = new Dictionary<string, string>
-                {
-                    {"0", "['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']"}
-                }
-            };
+            _logger.LogInformation("Loading {PipelineCount} pipeline(s)", pipelines.Count);
 
-            var describe = new SimpleBlock
-            {
-                PipelineId = pipelineId,
-                InputDatasetHash = select.ResultKey,
-                Operation = "describe"
-            };
+            return Task.FromResult<IList<Pipeline>>(pipelines);
+        }
 
-            cleanUp.Successors.Add(select);
-            select.Successors.Add(describe);
-
-            return new Pipeline
+        private static IList<Pipeline> NewDefaultPipelines()
+        {
+            return new List<Pipeline>
             {
-                Id = pipelineId,
-                Name = "Melbourne Housing Data",
-                Root = new List<Block>
-                {
-                    cleanUp
-                }
+                HardcodedDefaultPipelines.MelbourneHousingPipeline(),
+                HardcodedDefaultPipelines.InfluenzaInterpolation()
             };
         }
     }

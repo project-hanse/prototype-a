@@ -21,7 +21,8 @@ def root():
     return render_template(
         'index.html',
         data={
-            'dataset_count': store.get_dataset_count()
+            'dataset_count': store.get_dataset_count(),
+            'dataset_ids': store.get_ids()
         })
 
 
@@ -54,8 +55,11 @@ def dataset_by_hash(producing_hash: str):
         return 'OK'
 
 
+# Importing default datasets
 store.import_with_id("../datasets/Melbourne_housing_FULL.csv", "00e61417-cada-46db-adf3-a5fc89a3b6ee")
 store.import_with_id("../datasets/MELBOURNE_HOUSE_PRICES_LESS.csv", "0c2acbdb-544b-4efc-ae54-c2dcba988654")
+store.import_with_id("../datasets/influenca_vienna_2009-2018.csv", "4cfd0698-004a-404e-8605-de2f830190f2")
+store.import_with_id("../datasets/weather_vienna_2009-2018.csv", "244b5f61-1823-48fb-b7fa-47a2699bb580")
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)

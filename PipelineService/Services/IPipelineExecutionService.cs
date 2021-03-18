@@ -13,7 +13,7 @@ namespace PipelineService.Services
         /// Creates a default pipeline.
         /// </summary>
         /// <returns>The new pipeline.</returns>
-        Task<Pipeline> CreateDefaultPipeline();
+        Task<IList<Pipeline>> CreateDefaultPipelines();
 
         /// <summary>
         /// Loads a pipeline by it's id.
@@ -22,6 +22,13 @@ namespace PipelineService.Services
         /// <exception cref="NotFoundException">If not pipeline with a given id can be found.</exception>
         /// <returns>The pipeline</returns>
         Task<Pipeline> GetPipeline(Guid id);
+
+        /// <summary>
+        /// Loads all pipelines stored in this instance (this will be changed ofe pipelines are stored in a dedicated
+        /// microservice). 
+        /// </summary>
+        /// <returns>A list of pipelines</returns>
+        Task<IList<Pipeline>> GetPipelines();
 
         /// <summary>
         /// Starts the execution of a given pipeline.

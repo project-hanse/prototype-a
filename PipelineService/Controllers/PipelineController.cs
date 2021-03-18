@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
@@ -20,20 +19,16 @@ namespace PipelineService.Controllers
             _pipelineExecutionService = pipelineExecutionService;
         }
 
-        [HttpGet("default")]
-        public async Task<Pipeline> GetDefault()
+        [HttpGet("create/defaults")]
+        public async Task<int> GetDefaults()
         {
-            return await _pipelineExecutionService.CreateDefaultPipeline();
+            return (await _pipelineExecutionService.CreateDefaultPipelines()).Count;
         }
 
-        [HttpGet("newAndExecute")]
-        public async Task<Pipeline> GetNewAndExecute()
+        [HttpGet("")]
+        public async Task<IActionResult> GetPipelines()
         {
-            var pipeline = await _pipelineExecutionService.CreateDefaultPipeline();
-
-            await _pipelineExecutionService.ExecutePipeline(pipeline.Id);
-
-            return pipeline;
+            return Ok(await _pipelineExecutionService.GetPipelines());
         }
 
         [HttpGet("{id}")]
@@ -52,11 +47,11 @@ namespace PipelineService.Controllers
         [HttpGet("execute/{pipelineId}")]
         public async Task<IActionResult> ExecutePipeline(Guid pipelineId)
         {
-            _logger.LogDebug("Executing pipeline {pipelineId}", pipelineId);
+            _logger.LogDebug("Executing pipeline {PipelineId}", pipelineId);
 
             var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId);
 
-            _logger.LogInformation("Execution of pipeline ({pipelineId}) with execution id {executionId} started",
+            _logger.LogInformation("Execution of pipeline ({PipelineId}) with execution id {ExecutionId} started",
                 pipelineId, execution);
 
             return Ok(execution);
