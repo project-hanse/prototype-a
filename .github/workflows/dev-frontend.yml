@@ -27,4 +27,4 @@ jobs:
         with:
           context: ./DevFrontend
           push: true
-          tags: project-hanse/prototype-a/dev-frontend:latest
+          tags: https://docker.pkg.github.com/project-hanse/prototype-a/dev-frontend:latest
