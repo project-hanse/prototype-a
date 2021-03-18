@@ -24,4 +24,8 @@ export class PipelineService extends BaseHttpService {
   public generateNew(): Observable<number> {
     return super.get('create/defaults');
   }
+
+  public executePipeline(id: string): Observable<string> {
+    return super.get('execute/' + id);
+  }
 }

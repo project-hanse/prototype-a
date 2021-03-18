@@ -3,13 +3,12 @@
 
     <mat-toolbar>
       <a mat-button routerLink="../">Back</a>
-      <button mat-raised-button (click)="renderGraph('mynetwork', pipeline)">Render</button>
+      <button mat-raised-button (click)="executePipeline(id)">Execute</button>
     </mat-toolbar>
 
     <div style="padding: 1em">
-      <h2>Details of: {{pipeline.name}}</h2>
-
-      <div id="mynetwork" style="height: 500px"></div>
+      <h2>{{pipeline.name}}</h2>
+      <ph-pipeline-node-view [pipeline]="pipeline"></ph-pipeline-node-view>
 
     </div>
   </ng-container>
