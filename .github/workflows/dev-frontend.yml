@@ -15,9 +15,9 @@ jobs:
       - name: Preparation
         id: prep
         run: |
-          TAGS="docker.pkg.github.com/${{ github.repository }}:${{ github.sha }}"
+          TAGS="docker.pkg.github.com/${{ github.repository }}/dev-frontend:${{ github.sha }}"
           if [[ $GITHUB_REF == ref/head/master ]]; then
-            TAGS="$TAGS,docker.pkg.github.com/${{ github.repository }}:latest"
+            TAGS="$TAGS,docker.pkg.github.com/${{ github.repository }}/dev-frontend:latest"
           fi
           echo ::set-output name=tags::${TAGS}
       - name: Set up QEMU
