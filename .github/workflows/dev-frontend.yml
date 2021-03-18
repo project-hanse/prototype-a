@@ -15,9 +15,9 @@ jobs:
       - name: Preparation
         id: prep
         run: |
-          TAGS="ghcr.io/${{ github.repository }}:${{ github.sha }}"
+          TAGS="docker.pkg.github.com/${{ github.repository }}:${{ github.sha }}"
           if [[ $GITHUB_REF == ref/head/master ]]; then
-            TAGS="$TAGS,ghcr.io/${{ github.repository }}:latest"
+            TAGS="$TAGS,docker.pkg.github.com/${{ github.repository }}:latest"
           fi
           echo ::set-output name=tags::${TAGS}
       - name: Set up QEMU
