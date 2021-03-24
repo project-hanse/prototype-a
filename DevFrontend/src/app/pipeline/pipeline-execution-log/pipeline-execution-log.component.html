@@ -9,6 +9,15 @@
         {{e.Successful ? 'Success' : 'Failed'}} {{e.ExecutionTime}}
       </mat-list-item>
     </mat-list>
+    <ng-container *ngIf="getLast(events) as last">
+      <mat-progress-bar
+        class="example-margin"
+        [mode]="'buffer'"
+        [value]="progressValue(last)"
+        [bufferValue]="bufferValue(last)">
+      </mat-progress-bar>
+    </ng-container>
+
   </mat-card-content>
 
 </mat-card>

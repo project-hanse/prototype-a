@@ -1,7 +1,8 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {MqttService} from 'ngx-mqtt';
 import {Observable} from 'rxjs';
-import {map, scan} from 'rxjs/operators';
+import {groupBy, map, scan, take} from 'rxjs/operators';
+import {FrontendExecutionNotification} from '../_model/FrontendExecutionNotification';
 
 @Component({
   selector: 'ph-pipeline-execution-log',
@@ -34,7 +35,7 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
     this.mqttService.connect();
   }
 
-  public executionEvents(pipelineId: string): Observable<any[]> {
+  public executionEvents(pipelineId: string): Observable<FrontendExecutionNotification[]> {
     if (!this.$executionEvents) {
       this.$executionEvents = this.mqttService
         .observe('pipeline/event/' + pipelineId)
@@ -47,8 +48,8 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
           }),
           scan((acc, val) => {
             acc.push(val);
-            return acc.slice(-3);
-          }, []),
+            return acc.slice(-10);
+          }, [])
         );
     }
     return this.$executionEvents;
@@ -58,4 +59,18 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
     this.mqttService.disconnect();
   }
 
+  public getLast(events: FrontendExecutionNotification[]): FrontendExecutionNotification | null {
+    if (!events || events.length === 0) {
+      return null;
+    }
+    return events[events.length - 1];
+  }
+
+  public progressValue(last: FrontendExecutionNotification): number {
+    return ((last.NodesExecuted / (last.ToBeExecuted + last.NodesInExecution + last.NodesExecuted))) * 100;
+  }
+
+  public bufferValue(last: FrontendExecutionNotification): number {
+    return (((last.NodesInExecution + last.NodesExecuted) / (last.ToBeExecuted + last.NodesInExecution + last.NodesExecuted))) * 100;
+  }
 }

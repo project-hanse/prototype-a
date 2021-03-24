@@ -75,17 +75,6 @@ namespace PipelineService.Services.Impl
                 response.BlockId, response.ExecutionId, response.PipelineId, response.Successful,
                 (int) (response.StopTime - response.StartTime).TotalMilliseconds);
 
-
-            await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
-                new FrontendExecutionNotification
-                {
-                    PipelineId = response.PipelineId,
-                    ExecutionId = response.ExecutionId,
-                    Successful = response.Successful,
-                    ExecutionTime = response.StopTime - response.StartTime,
-                    ErrorDescription = response.ErrorDescription
-                });
-
             if (!response.Successful)
             {
                 _logger.LogInformation("Execution of block {BlockId} failed with error {ExecutionErrorDescription}",
@@ -106,6 +95,27 @@ namespace PipelineService.Services.Impl
 
                 await EnqueueNextBlocks(execution, pipeline);
             }
+
+            await NotifyFrontend(response);
+        }
+
+        private async Task NotifyFrontend(BlockExecutionResponse response)
+        {
+            var executionRecord = await _pipelineExecutionDao.Get(response.ExecutionId);
+
+            await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
+                new FrontendExecutionNotification
+                {
+                    PipelineId = response.PipelineId,
+                    ExecutionId = response.ExecutionId,
+                    BlockId = response.BlockId,
+                    Successful = response.Successful,
+                    ExecutionTime = response.StopTime - response.StartTime,
+                    ErrorDescription = response.ErrorDescription,
+                    NodesExecuted = executionRecord.Executed.Count,
+                    NodesInExecution = executionRecord.InExecution.Count,
+                    ToBeExecuted = executionRecord.ToBeExecuted.Count
+                });
         }
 
         private async Task EnqueueNextBlocks(PipelineExecutionRecord execution, Pipeline pipeline)
