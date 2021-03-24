@@ -102,6 +102,12 @@ namespace PipelineService.Services.Impl
         private async Task NotifyFrontend(BlockExecutionResponse response)
         {
             var executionRecord = await _pipelineExecutionDao.Get(response.ExecutionId);
+            var blockExecutionRecord = executionRecord.Executed.FirstOrDefault(b => b.BlockId == response.BlockId);
+            string resultKey = null;
+            if (blockExecutionRecord?.Block is SimpleBlock simpleBlock)
+            {
+                resultKey = simpleBlock.ResultKey;
+            }
 
             await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
                 new FrontendExecutionNotification
@@ -109,12 +115,15 @@ namespace PipelineService.Services.Impl
                     PipelineId = response.PipelineId,
                     ExecutionId = response.ExecutionId,
                     BlockId = response.BlockId,
+                    OperationName = blockExecutionRecord?.Name,
                     Successful = response.Successful,
-                    ExecutionTime = response.StopTime - response.StartTime,
+                    CompletedAt = response.StopTime,
+                    ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
                     ErrorDescription = response.ErrorDescription,
                     NodesExecuted = executionRecord.Executed.Count,
                     NodesInExecution = executionRecord.InExecution.Count,
-                    ToBeExecuted = executionRecord.ToBeExecuted.Count
+                    ToBeExecuted = executionRecord.ToBeExecuted.Count,
+                    ResultDatasetKey = resultKey
                 });
         }
 

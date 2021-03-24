@@ -48,7 +48,7 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
           }),
           scan((acc, val) => {
             acc.push(val);
-            return acc.slice(-10);
+            return acc.slice(-5);
           }, [])
         );
     }
@@ -72,5 +72,11 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 
   public bufferValue(last: FrontendExecutionNotification): number {
     return (((last.NodesInExecution + last.NodesExecuted) / (last.ToBeExecuted + last.NodesInExecution + last.NodesExecuted))) * 100;
+  }
+
+  public sort(events: FrontendExecutionNotification[]): FrontendExecutionNotification[] {
+    return events.sort((a, b) => {
+      return new Date(a.CompletedAt).getTime() - new Date(b.CompletedAt).getTime();
+    });
   }
 }

@@ -4,19 +4,26 @@
   </mat-card-title>
 
   <mat-card-content *ngIf="executionEvents(pipelineId) | async as events">
+
+    <mat-progress-bar
+      *ngIf="getLast(events) as last"
+      [mode]="'buffer'"
+      [value]="progressValue(last)"
+      [bufferValue]="bufferValue(last)">
+    </mat-progress-bar>
+
     <mat-list>
-      <mat-list-item *ngFor="let e of events">
-        {{e.Successful ? 'Success' : 'Failed'}} {{e.ExecutionTime}}
+      <mat-list-item *ngFor="let e of sort(events)">
+
+        <mat-icon mat-list-icon>{{e.Successful ? 'check' : 'error'}}</mat-icon>
+        <div mat-line>{{e.OperationName}}</div>
+        <div mat-line>
+          <a target="_blank" [href]="'http://localhost:5002/api/datasets/'+e.ResultDatasetKey">Result Dataset</a>
+          {{e.ExecutionTime}} ms (Execution: {{e.ExecutionId}})
+        </div>
+
       </mat-list-item>
     </mat-list>
-    <ng-container *ngIf="getLast(events) as last">
-      <mat-progress-bar
-        class="example-margin"
-        [mode]="'buffer'"
-        [value]="progressValue(last)"
-        [bufferValue]="bufferValue(last)">
-      </mat-progress-bar>
-    </ng-container>
 
   </mat-card-content>
 
