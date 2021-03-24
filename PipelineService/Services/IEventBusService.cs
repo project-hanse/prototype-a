@@ -7,7 +7,7 @@ namespace PipelineService.Services
     /// <summary>
     /// A wrapper service around a managed MQTT client that handles setting up the client.
     /// </summary>
-    public interface IMqttMessageService
+    public interface IEventBusService
     {
         public Task PublishMessage<T>(string topic, T payload) where T : BaseMqttMessage;
 

@@ -16,18 +16,18 @@ namespace PipelineService.Services.Impl
         private readonly ILogger<PipelineExecutionService> _logger;
         private readonly IPipelineDao _pipelineDao;
         private readonly IPipelineExecutionDao _pipelineExecutionDao;
-        private readonly IMqttMessageService _mqttMessageService;
+        private readonly IEventBusService _eventBusService;
 
         public PipelineExecutionService(
             ILogger<PipelineExecutionService> logger,
             IPipelineDao pipelineDao,
             IPipelineExecutionDao pipelineExecutionDao,
-            IMqttMessageService mqttMessageService)
+            IEventBusService eventBusService)
         {
             _logger = logger;
             _pipelineDao = pipelineDao;
             _pipelineExecutionDao = pipelineExecutionDao;
-            _mqttMessageService = mqttMessageService;
+            _eventBusService = eventBusService;
         }
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
@@ -192,7 +192,7 @@ namespace PipelineService.Services.Impl
                 throw new InvalidOperationException($"Type {block.GetType()} is not supported");
             }
 
-            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", request);
+            await _eventBusService.PublishMessage($"execute/{block.PipelineId}", request);
         }
 
         /// <summary>

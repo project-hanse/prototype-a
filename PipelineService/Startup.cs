@@ -29,9 +29,9 @@ namespace PipelineService
             {
                 options.AddPolicy("AllowAnyCorsPolicy",
                     policy => policy
-                        .AllowAnyHeader()
+                        .AllowAnyOrigin()
                         .AllowAnyMethod()
-                        .AllowAnyOrigin());
+                        .AllowAnyHeader());
             });
 
             // Configuring Hangfire services
@@ -45,7 +45,7 @@ namespace PipelineService
             services.AddHangfireServer();
 
             // Registering singleton services
-            services.AddSingleton<IMqttMessageService, MqttMessageService>();
+            services.AddSingleton<IEventBusService, EventBusService>();
 
             // Registering DAOs
             services.AddSingleton<IPipelineExecutionDao, InMemoryPipelineExecutionDao>();
@@ -60,7 +60,7 @@ namespace PipelineService
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "PipelineDao", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "Pipeline Service", Version = "v1"});
             });
         }
 
@@ -79,8 +79,10 @@ namespace PipelineService
                 });
                 app.UseHangfireDashboard();
             }
-
-            app.UseHttpsRedirection();
+            else
+            {
+                app.UseHttpsRedirection();
+            }
 
             app.UseRouting();
 

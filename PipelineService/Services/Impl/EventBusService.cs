@@ -1,10 +1,9 @@
 using System;
-using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
 using Newtonsoft.Json;
@@ -12,20 +11,26 @@ using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
 {
-    public class MqttMessageService : IMqttMessageService
+    /// <summary>
+    /// A service that implements communication with the internal event bus (message broker).
+    /// </summary>
+    public class EventBusService : IEventBusService
     {
-        private readonly ILogger<MqttClient> _logger;
+        private readonly ILogger<EventBusService> _logger;
         private readonly IConfiguration _configuration;
         private IManagedMqttClient _client;
 
-        private string Hostname => _configuration.GetValue("MQTT_HOST", "message-broker");
-        private int Port => _configuration.GetValue("MQTT_PORT", 1883);
-        private string ClientId => _configuration.GetValue("MQTT_CLIENT_ID", $"PipelineDao-{Guid.NewGuid()}");
-        private string Username => _configuration.GetValue<string>("MQTT_USER", null);
-        private string Password => _configuration.GetValue<string>("MQTT_PASSWORD", null);
+        private string Hostname => _configuration.GetValue("EVENT_BUS:MQTT_HOST", "message-broker");
+        private int Port => _configuration.GetValue("EVENT_BUS:MQTT_PORT", 1883);
 
-        public MqttMessageService(
-            ILogger<MqttClient> logger,
+        private string ClientId =>
+            _configuration.GetValue("EVENT_BUS:MQTT_CLIENT_ID", $"PipelineService-{Guid.NewGuid()}");
+
+        private string Username => _configuration.GetValue<string>("EVENT_BUS:MQTT_USER", null);
+        private string Password => _configuration.GetValue<string>("EVENT_BUS:MQTT_PASSWORD", null);
+
+        public EventBusService(
+            ILogger<EventBusService> logger,
             IConfiguration configuration)
         {
             _logger = logger;
@@ -41,7 +46,8 @@ namespace PipelineService.Services.Impl
             }
 
             _logger.LogInformation(
-                $"Setting up client for MQTT broker ({Hostname}:{Port}) with client id {ClientId}...");
+                "Setting up client for MQTT broker ({Hostname}:{Port}) with client id {ClientId}...",
+                Hostname, Port, ClientId);
 
             var mqttClientOptionsBuilder = new MqttClientOptionsBuilder()
                 .WithClientId(ClientId)
@@ -49,7 +55,7 @@ namespace PipelineService.Services.Impl
 
             if (!string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password))
             {
-                _logger.LogDebug($"Using authentication with username {Username}");
+                _logger.LogDebug("Using authentication with username {Username}", Username);
 
                 mqttClientOptionsBuilder.WithCredentials(Username, Password);
             }
@@ -63,18 +69,20 @@ namespace PipelineService.Services.Impl
 
             _client.UseConnectedHandler(e =>
             {
-                _logger.LogDebug($"Disconnected from MQTT broker ({Hostname}:{Port})", e);
+                _logger.LogDebug("Disconnected from MQTT broker ({Hostname}:{Port}) {@EventArgs}",
+                    Hostname, Port, e);
             });
 
             _client.UseDisconnectedHandler(e =>
             {
-                _logger.LogDebug($"Connected to MQTT broker ({Hostname}:{Port}) as client {ClientId}", e);
+                _logger.LogDebug("Connected to MQTT broker ({Hostname}:{Port}) as client {ClientId} {@EventArgs}",
+                    Hostname, Port, ClientId, e);
             });
 
             _client.UseApplicationMessageReceivedHandler(e =>
             {
-                _logger.LogDebug(
-                    $"Received payload from ({Hostname}:{Port}) on topic {e.ApplicationMessage.Topic}");
+                _logger.LogDebug("Received payload from ({Hostname}:{Port}) on topic {@EventArgs}",
+                    Hostname, Port, e);
             });
 
             await _client.StartAsync(managedMqttClientOptions);
@@ -84,7 +92,7 @@ namespace PipelineService.Services.Impl
         {
             await ConnectAsync();
 
-            _logger.LogInformation($"Publishing message to topic {topic}");
+            _logger.LogInformation("Publishing message to topic {Topic}", topic);
 
             // TODO implement quality of service 2 (Exactly once) - requires acknowledgement from receiver
             var mqttMessage = new MqttApplicationMessageBuilder()
@@ -101,7 +109,7 @@ namespace PipelineService.Services.Impl
         {
             await ConnectAsync();
 
-            _logger.LogInformation($"Subscribing to MQTT topic {topic}");
+            _logger.LogInformation("Subscribing to MQTT topic {Topic}", topic);
 
             var topicFilter = new MqttTopicFilterBuilder()
                 .WithTopic(topic)
@@ -114,8 +122,8 @@ namespace PipelineService.Services.Impl
             {
                 try
                 {
-                    var message = JsonConvert.DeserializeObject<T>(
-                        System.Text.Encoding.Default.GetString(a.ApplicationMessage.Payload));
+                    var message =
+                        JsonConvert.DeserializeObject<T>(Encoding.Default.GetString(a.ApplicationMessage.Payload));
 
                     await handler(message);
                 }

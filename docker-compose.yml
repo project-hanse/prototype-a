@@ -15,8 +15,8 @@ services:
       context: ./PipelineService
       dockerfile: ./Dockerfile
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MQTT_CLIENT_ID=pipeline-service-1
+      ASPNETCORE_ENVIRONMENT: Development
+      EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     ports:
       - 5000:80
     depends_on:
