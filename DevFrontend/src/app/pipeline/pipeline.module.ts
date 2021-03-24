@@ -6,13 +6,15 @@ import {PipelineListViewComponent} from './pipeline-list-view/pipeline-list-view
 import {PipelineDetailViewComponent} from './pipeline-detail-view/pipeline-detail-view.component';
 import {CoreModule} from '../core/core.module';
 import { PipelineNodeViewComponent } from './pipeline-node-view/pipeline-node-view.component';
+import { PipelineExecutionLogComponent } from './pipeline-execution-log/pipeline-execution-log.component';
 
 
 @NgModule({
   declarations: [
     PipelineListViewComponent,
     PipelineDetailViewComponent,
-    PipelineNodeViewComponent
+    PipelineNodeViewComponent,
+    PipelineExecutionLogComponent
   ],
     imports: [
         CommonModule,

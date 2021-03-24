@@ -16,7 +16,8 @@ namespace PipelineService.UnitTests.Services
         private IPipelineExecutionService _pipelineExecutionService;
         private IPipelineDao _pipelineDao;
         private IPipelineExecutionDao _pipelineExecutionDao;
-        private IMqttMessageService _mqttMessageService;
+        private EventBusService _eventBusService;
+        private EdgeEventBusService _edgeEventBusService;
 
         [SetUp]
         public void SetUp()
@@ -30,14 +31,17 @@ namespace PipelineService.UnitTests.Services
             _pipelineExecutionDao =
                 new InMemoryPipelineExecutionDao(GeneralHelper.CreateLogger<InMemoryPipelineExecutionDao>());
 
-            var mqttServiceMock = new Mock<IMqttMessageService>();
-            _mqttMessageService = mqttServiceMock.Object;
+            var mqttServiceMock = new Mock<EventBusService>();
+            _eventBusService = mqttServiceMock.Object;
+            var edgeMqttServiceMock = new Mock<EdgeEventBusService>();
+            _edgeEventBusService = edgeMqttServiceMock.Object;
 
             _pipelineExecutionService = new PipelineExecutionService(
                 GeneralHelper.CreateLogger<PipelineExecutionService>(),
                 _pipelineDao,
                 _pipelineExecutionDao,
-                _mqttMessageService);
+                _eventBusService,
+                _edgeEventBusService);
         }
     }
 }

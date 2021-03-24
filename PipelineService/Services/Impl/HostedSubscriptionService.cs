@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -9,16 +8,16 @@ namespace PipelineService.Services.Impl
     public class HostedSubscriptionService : IHostedSubscriptionService
     {
         private readonly ILogger<HostedSubscriptionService> _logger;
-        private readonly IMqttMessageService _messageService;
+        private readonly EventBusService _eventBusService;
         private readonly IPipelineExecutionService _pipelineExecutionService;
 
         public HostedSubscriptionService(
             ILogger<HostedSubscriptionService> logger,
-            IMqttMessageService messageService,
+            EventBusService eventBusService,
             IPipelineExecutionService pipelineExecutionService)
         {
             _logger = logger;
-            _messageService = messageService;
+            _eventBusService = eventBusService;
             _pipelineExecutionService = pipelineExecutionService;
         }
 
@@ -28,7 +27,7 @@ namespace PipelineService.Services.Impl
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _messageService.Subscribe<SimpleBlockExecutionResponse>(
+            await _eventBusService.Subscribe<SimpleBlockExecutionResponse>(
                 "executed/+/+",
                 async m => { await _pipelineExecutionService.HandleExecutionResponse(m); });
         }

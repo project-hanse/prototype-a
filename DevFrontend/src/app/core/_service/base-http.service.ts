@@ -12,6 +12,6 @@ export class BaseHttpService {
   }
 
   public get<T>(path: string = ''): Observable<T> {
-    return this.http.get<T>(environment.apiUrl + '/' + this.basePath + '/' + path);
+    return this.http.get<T>(environment.apiUrl + '/' + this.basePath + (path !== '' ? ('/' + path) : ''));
   }
 }

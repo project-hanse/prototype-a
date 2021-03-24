@@ -12,6 +12,7 @@ rectangle "Frontend" {
 
 rectangle "Edge Services" {
     component "API Gateway" << Ocelot Gateway>> as api_gateway
+    component "Edge Event Bus" << MQTT Broker >> as message_broker_edge
 }
 
 rectangle "Mid Level Services" {
@@ -57,4 +58,7 @@ suggestion_service --> pipeline_store
 pipeline_service --> execution_store
 pipeline_service --> pipeline_store
 dataset_service --> dataset_store
+
+pipeline_service <--> message_broker_edge
+pipeline_editor <--> message_broker_edge
 @enduml
