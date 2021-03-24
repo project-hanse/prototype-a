@@ -45,7 +45,8 @@ namespace PipelineService
             services.AddHangfireServer();
 
             // Registering singleton services
-            services.AddSingleton<IEventBusService, EventBusService>();
+            services.AddSingleton<EventBusService>();
+            services.AddSingleton<EdgeEventBusService>();
 
             // Registering DAOs
             services.AddSingleton<IPipelineExecutionDao, InMemoryPipelineExecutionDao>();

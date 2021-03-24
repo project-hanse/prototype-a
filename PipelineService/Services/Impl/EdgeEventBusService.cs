@@ -10,26 +10,23 @@ using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
 {
-    /// <summary>
-    /// A service that implements communication with the internal event bus (message broker).
-    /// </summary>
-    public class EventBusService : BaseEventBusService, IEventBusService
+    public class EdgeEventBusService : BaseEventBusService, IEventBusService
     {
-        private readonly ILogger<EventBusService> _logger;
+        private readonly ILogger<EdgeEventBusService> _logger;
         private readonly IConfiguration _configuration;
 
-        protected override string Hostname => _configuration.GetValue("EVENT_BUS:MQTT_HOST", "message-broker");
-        protected override int Port => _configuration.GetValue("EVENT_BUS:MQTT_PORT", 1883);
+        protected override string Hostname =>
+            _configuration.GetValue("EDGE_EVENT_BUS:MQTT_HOST", "edge-message-broker");
+
+        protected override int Port => _configuration.GetValue("EDGE_EVENT_BUS:MQTT_PORT", 1884);
 
         protected override string ClientId =>
-            _configuration.GetValue("EVENT_BUS:MQTT_CLIENT_ID", $"PipelineService-{Guid.NewGuid()}");
+            _configuration.GetValue("EDGE_EVENT_BUS:MQTT_CLIENT_ID", $"PipelineService-{Guid.NewGuid()}");
 
-        protected override string Username => _configuration.GetValue<string>("EVENT_BUS:MQTT_USER", null);
-        protected override string Password => _configuration.GetValue<string>("EVENT_BUS:MQTT_PASSWORD", null);
+        protected override string Username => _configuration.GetValue<string>("EDGE_EVENT_BUS:MQTT_USER", null);
+        protected override string Password => _configuration.GetValue<string>("EDGE_EVENT_BUS:MQTT_PASSWORD", null);
 
-        public EventBusService(
-            ILogger<EventBusService> logger,
-            IConfiguration configuration) : base(logger)
+        public EdgeEventBusService(ILogger<EdgeEventBusService> logger, IConfiguration configuration) : base(logger)
         {
             _logger = logger;
             _configuration = configuration;
@@ -56,7 +53,7 @@ namespace PipelineService.Services.Impl
         {
             await ConnectAsync();
 
-            _logger.LogInformation("Subscribing to MQTT topic {Topic}", topic);
+            _logger.LogInformation("Subscribing to MQTT topic {Topic} from the edge", topic);
 
             var topicFilter = new MqttTopicFilterBuilder()
                 .WithTopic(topic)

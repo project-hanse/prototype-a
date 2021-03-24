@@ -16,18 +16,21 @@ namespace PipelineService.Services.Impl
         private readonly ILogger<PipelineExecutionService> _logger;
         private readonly IPipelineDao _pipelineDao;
         private readonly IPipelineExecutionDao _pipelineExecutionDao;
-        private readonly IEventBusService _eventBusService;
+        private readonly EventBusService _eventBusService;
+        private readonly EdgeEventBusService _edgeEventBusService;
 
         public PipelineExecutionService(
             ILogger<PipelineExecutionService> logger,
             IPipelineDao pipelineDao,
             IPipelineExecutionDao pipelineExecutionDao,
-            IEventBusService eventBusService)
+            EventBusService eventBusService,
+            EdgeEventBusService edgeEventBusService)
         {
             _logger = logger;
             _pipelineDao = pipelineDao;
             _pipelineExecutionDao = pipelineExecutionDao;
             _eventBusService = eventBusService;
+            _edgeEventBusService = edgeEventBusService;
         }
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
@@ -71,6 +74,17 @@ namespace PipelineService.Services.Impl
                 "Block ({BlockId}) completed for execution {ExecutionId} of pipeline {PipelineId} with success state {SuccessState} in {ExecutionTimeMs} ms",
                 response.BlockId, response.ExecutionId, response.PipelineId, response.Successful,
                 (int) (response.StopTime - response.StartTime).TotalMilliseconds);
+
+
+            await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
+                new FrontendExecutionNotification
+                {
+                    PipelineId = response.PipelineId,
+                    ExecutionId = response.ExecutionId,
+                    Successful = response.Successful,
+                    ExecutionTime = response.StopTime - response.StartTime,
+                    ErrorDescription = response.ErrorDescription
+                });
 
             if (!response.Successful)
             {

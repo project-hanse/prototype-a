@@ -8,12 +8,12 @@ namespace PipelineService.Services.Impl
     public class HostedSubscriptionService : IHostedSubscriptionService
     {
         private readonly ILogger<HostedSubscriptionService> _logger;
-        private readonly IEventBusService _eventBusService;
+        private readonly EventBusService _eventBusService;
         private readonly IPipelineExecutionService _pipelineExecutionService;
 
         public HostedSubscriptionService(
             ILogger<HostedSubscriptionService> logger,
-            IEventBusService eventBusService,
+            EventBusService eventBusService,
             IPipelineExecutionService pipelineExecutionService)
         {
             _logger = logger;

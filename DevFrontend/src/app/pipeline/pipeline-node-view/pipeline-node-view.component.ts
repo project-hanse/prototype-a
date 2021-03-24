@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Pipeline} from '../_model/pipeline';
 import {Block} from '../_model/block';
-import {DataSet, Edge, Network, Node} from 'vis-network';
+import {Edge, Network, Node} from 'vis-network';
 import {Options} from 'vis-network/declarations/network/Network';
 
 
@@ -29,10 +29,12 @@ export class PipelineNodeViewComponent implements OnInit {
 
     this.buildArrays(nodesArray, edgesArray, pipeline.root);
 
-    const nodes = new DataSet(nodesArray);
+    // @ts-ignore
+    const nodes = new vis.DataSet(nodesArray, {});
 
     // create an array with edges
-    const edges = new DataSet(edgesArray);
+    // @ts-ignore
+    const edges = new vis.DataSet(edgesArray, {});
 
     // create a network
     const container = document.getElementById(id);

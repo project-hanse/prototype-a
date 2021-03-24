@@ -66,7 +66,5 @@ services:
       - "1884:1883"
       - "9002:9001"
     volumes:
-      - ./volumes/mosquitto/config:/mosquitto/config
-      - ./volumes/mosquitto/data:/mosquitto/data
-      - ./volumes/mosquitto/log:/mosquitto/log
+      - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
     
