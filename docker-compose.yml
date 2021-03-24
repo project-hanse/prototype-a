@@ -2,12 +2,12 @@ version: '3'
 services:
 
   # Development Frontend
-#  dev-frontend:
-#    build:
-#      context: ./DevFrontend
-#      dockerfile: ./Dockerfile
-#    ports:
-#      - 8080:80
+  dev-frontend:
+    build:
+      context: ./DevFrontend
+      dockerfile: ./Dockerfile
+    ports:
+      - 8080:80
 
   # Pipeline Service
   pipeline-service:
