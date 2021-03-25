@@ -73,15 +73,21 @@ namespace PipelineService.Dao.Impl
             return Task.FromResult(pipeline);
         }
 
-        public Task<IList<Pipeline>> Get()
+        public async Task<IList<Pipeline>> Get()
         {
+            if (Store.Count == 0)
+            {
+                _logger.LogInformation("Creating new default pipelines");
+                await CreateDefaults();
+            }
+
             var pipelines = Store
                 .Select(r => r.Value)
                 .ToList();
 
             _logger.LogInformation("Loading {PipelineCount} pipeline(s)", pipelines.Count);
 
-            return Task.FromResult<IList<Pipeline>>(pipelines);
+            return pipelines;
         }
 
         private static IList<Pipeline> NewDefaultPipelines()

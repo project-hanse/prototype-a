@@ -55,6 +55,7 @@ namespace PipelineService
             // Registering transient services
             services.AddTransient<IHashService, HashService>();
             services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
+            services.AddTransient<INodeService, NodeService>();
 
             services.AddHostedService<HostedSubscriptionService>();
 
