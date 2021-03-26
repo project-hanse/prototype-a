@@ -34,7 +34,8 @@ class BlockExecutionService:
         operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
         try:
-            resulting_dataset = self.execute_simple_operation(dataset, operation, operation_config)
+            resulting_dataset = self.execute_simple_operation(
+                dataset, operation, request.operation_id, operation_config)
 
             self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
 
@@ -60,8 +61,8 @@ class BlockExecutionService:
                     config[key] = config[key]
         return config
 
-    def execute_simple_operation(self, df, operation: str, operation_config: dict):
-        self.logging.info("Executing operation %s" % operation)
+    def execute_simple_operation(self, df, operation: str, operation_id: str, operation_config: dict):
+        self.logging.info("Executing operation %s (%s)" % (operation, operation_id))
 
         if operation == 'select_columns':
             resulting_dataset = df[dict[0]]

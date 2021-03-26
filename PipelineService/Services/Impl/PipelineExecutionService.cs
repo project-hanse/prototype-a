@@ -268,7 +268,7 @@ namespace PipelineService.Services.Impl
             return execution.InExecution.Count > 0;
         }
 
-        private SimpleBlockExecutionRequest ExecutionRequestFromBlock(Guid executionId, SimpleBlock block)
+        private BlockExecutionRequest ExecutionRequestFromBlock(Guid executionId, SimpleBlock block)
         {
             // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
             if (!block.InputDatasetId.HasValue && string.IsNullOrEmpty(block.InputDatasetHash))
@@ -278,12 +278,13 @@ namespace PipelineService.Services.Impl
                 throw new Exception("Block has neither an input dataset id nor a producing block hash");
             }
 
-            return new SimpleBlockExecutionRequest
+            return new NodeExecutionRequestSingleInput
             {
                 PipelineId = block.PipelineId,
                 BlockId = block.Id,
                 ExecutionId = executionId,
                 OperationName = block.Operation,
+                OperationId = block.OperationId,
                 OperationConfiguration = block.OperationConfiguration,
                 ResultKey = block.ResultKey,
                 InputDataSetHash = block.InputDatasetHash,

@@ -8,9 +8,13 @@ class SimpleBlockExecutionRequest(BlockExecutionRequest):
 
         self.input_dataset_id: str = deserialized['InputDataSetId']
         self.input_dataset_hash: str = deserialized['InputDataSetHash']
+        self.operation_id: str = deserialized['OperationId']
         self.operation_name: str = deserialized['OperationName']
         self.operation_configuration: dict = deserialized['OperationConfiguration']
         self.result_key: str = deserialized['ResultKey']
+
+    def get_operation_id(self):
+        return self.operation_id
 
     def get_operation_name(self):
         return self.operation_name
