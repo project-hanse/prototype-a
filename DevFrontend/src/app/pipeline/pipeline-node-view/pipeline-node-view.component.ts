@@ -1,6 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Pipeline} from '../_model/pipeline';
 import {Block} from '../_model/block';
+import {Edge, Network, Node} from 'vis-network';
+import {Options} from 'vis-network/declarations/network/Network';
+
 
 @Component({
   selector: 'ph-pipeline-node-view',
@@ -10,8 +13,8 @@ import {Block} from '../_model/block';
 export class PipelineNodeViewComponent implements OnInit {
 
   @Input() pipeline: Pipeline;
-  // @ts-ignore
-  private network: vis.Network;
+
+  private network: Network;
 
   constructor() {
   }
@@ -20,37 +23,29 @@ export class PipelineNodeViewComponent implements OnInit {
     this.network = this.renderGraph('mynetwork', this.pipeline);
   }
 
-  // @ts-ignore
-  public renderGraph(id: string, pipeline: Pipeline): vis.Network {
-    const nodesArray = [];
-    const edgesArray = [];
+  public renderGraph(id: string, pipeline: Pipeline): Network {
+    const nodesArray = new Array<Node>();
+    const edgesArray = new Array<Edge>();
 
     this.buildArrays(nodesArray, edgesArray, pipeline.root);
 
-    console.log(pipeline, nodesArray, edgesArray);
-
     // @ts-ignore
-    const nodes = new vis.DataSet(nodesArray);
+    const nodes = new vis.DataSet(nodesArray, {});
 
     // create an array with edges
     // @ts-ignore
-    const edges = new vis.DataSet(edgesArray);
+    const edges = new vis.DataSet(edgesArray, {});
 
     // create a network
     const container = document.getElementById(id);
     const data = {
-      nodes: nodes,
-      edges: edges,
+      nodes,
+      edges,
     };
-    const options = {
+    const options: Options = {
       edges: {
         font: {
           align: 'top'
-        },
-        smooth: {
-          type: 'dynamic',
-          forceDirection: 'horizontal',
-          roundness: 0.0
         },
         arrows: {
           to: {enabled: true, scaleFactor: 1, type: 'arrow'}
@@ -62,10 +57,9 @@ export class PipelineNodeViewComponent implements OnInit {
           sortMethod: 'directed'
         }
       }
-
     };
-    // @ts-ignore
-    return new vis.Network(container, data, options);
+
+    return new Network(container, data, options);
   }
 
   private buildArrays(nodesArray: any[], edgesArray: any[], blocks: Block[], parentId: string = null): void {

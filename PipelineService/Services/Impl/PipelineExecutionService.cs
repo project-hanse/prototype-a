@@ -16,18 +16,21 @@ namespace PipelineService.Services.Impl
         private readonly ILogger<PipelineExecutionService> _logger;
         private readonly IPipelineDao _pipelineDao;
         private readonly IPipelineExecutionDao _pipelineExecutionDao;
-        private readonly IMqttMessageService _mqttMessageService;
+        private readonly EventBusService _eventBusService;
+        private readonly EdgeEventBusService _edgeEventBusService;
 
         public PipelineExecutionService(
             ILogger<PipelineExecutionService> logger,
             IPipelineDao pipelineDao,
             IPipelineExecutionDao pipelineExecutionDao,
-            IMqttMessageService mqttMessageService)
+            EventBusService eventBusService,
+            EdgeEventBusService edgeEventBusService)
         {
             _logger = logger;
             _pipelineDao = pipelineDao;
             _pipelineExecutionDao = pipelineExecutionDao;
-            _mqttMessageService = mqttMessageService;
+            _eventBusService = eventBusService;
+            _edgeEventBusService = edgeEventBusService;
         }
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
@@ -92,6 +95,36 @@ namespace PipelineService.Services.Impl
 
                 await EnqueueNextBlocks(execution, pipeline);
             }
+
+            await NotifyFrontend(response);
+        }
+
+        private async Task NotifyFrontend(BlockExecutionResponse response)
+        {
+            var executionRecord = await _pipelineExecutionDao.Get(response.ExecutionId);
+            var blockExecutionRecord = executionRecord.Executed.FirstOrDefault(b => b.BlockId == response.BlockId);
+            string resultKey = null;
+            if (blockExecutionRecord?.Block is SimpleBlock simpleBlock)
+            {
+                resultKey = simpleBlock.ResultKey;
+            }
+
+            await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
+                new FrontendExecutionNotification
+                {
+                    PipelineId = response.PipelineId,
+                    ExecutionId = response.ExecutionId,
+                    BlockId = response.BlockId,
+                    OperationName = blockExecutionRecord?.Name,
+                    Successful = response.Successful,
+                    CompletedAt = response.StopTime,
+                    ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
+                    ErrorDescription = response.ErrorDescription,
+                    NodesExecuted = executionRecord.Executed.Count,
+                    NodesInExecution = executionRecord.InExecution.Count,
+                    ToBeExecuted = executionRecord.ToBeExecuted.Count,
+                    ResultDatasetKey = resultKey
+                });
         }
 
         private async Task EnqueueNextBlocks(PipelineExecutionRecord execution, Pipeline pipeline)
@@ -192,7 +225,7 @@ namespace PipelineService.Services.Impl
                 throw new InvalidOperationException($"Type {block.GetType()} is not supported");
             }
 
-            await _mqttMessageService.PublishMessage($"execute/{block.PipelineId}", request);
+            await _eventBusService.PublishMessage($"execute/{block.PipelineId}", request);
         }
 
         /// <summary>
@@ -235,7 +268,7 @@ namespace PipelineService.Services.Impl
             return execution.InExecution.Count > 0;
         }
 
-        private SimpleBlockExecutionRequest ExecutionRequestFromBlock(Guid executionId, SimpleBlock block)
+        private BlockExecutionRequest ExecutionRequestFromBlock(Guid executionId, SimpleBlock block)
         {
             // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
             if (!block.InputDatasetId.HasValue && string.IsNullOrEmpty(block.InputDatasetHash))
@@ -245,12 +278,13 @@ namespace PipelineService.Services.Impl
                 throw new Exception("Block has neither an input dataset id nor a producing block hash");
             }
 
-            return new SimpleBlockExecutionRequest
+            return new NodeExecutionRequestSingleInput
             {
                 PipelineId = block.PipelineId,
                 BlockId = block.Id,
                 ExecutionId = executionId,
                 OperationName = block.Operation,
+                OperationId = block.OperationId,
                 OperationConfiguration = block.OperationConfiguration,
                 ResultKey = block.ResultKey,
                 InputDataSetHash = block.InputDatasetHash,

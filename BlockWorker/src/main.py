@@ -6,6 +6,7 @@ import uuid
 from src.services.block_execution_service import BlockExecutionService
 from src.services.dateset_service_client import DatasetServiceClient
 from src.services.mqtt_client_wrapper import MqttClientWrapper
+from src.services.operation_service import OperationService
 
 MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
 MQTT_PORT: int = os.getenv("MQTT_PORT", 1883)
@@ -34,8 +35,9 @@ def sigterm_handler(_signo, _stack_frame):
 
 if __name__ == '__main__':
     logging.info('Starting block worker')
+    operation_service = OperationService(logging)
     dataset_client = DatasetServiceClient(DATASET_HOST, DATASET_PORT, logging)
-    block_execution_service = BlockExecutionService(logging, dataset_client)
+    block_execution_service = BlockExecutionService(logging, dataset_client, operation_service)
     client_wrapper = MqttClientWrapper(logging, block_execution_service)
 
     logging.debug('Setting up signal handler')

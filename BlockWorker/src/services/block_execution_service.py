@@ -4,15 +4,17 @@ import uuid
 from src.models.simple_block_execution_request import SimpleBlockExecutionRequest
 from src.models.simple_block_execution_response import SimpleBlockExecutionResponse
 from src.services.dateset_service_client import DatasetServiceClient
+from src.services.operation_service import OperationService
 
 
 class BlockExecutionService:
     count: int
 
-    def __init__(self, logging, dataset_client: DatasetServiceClient) -> None:
+    def __init__(self, logging, dataset_client: DatasetServiceClient, operation_service: OperationService) -> None:
         self.count = 0
         self.logging = logging
         self.dataset_client = dataset_client
+        self.operation_service = operation_service
         super().__init__()
 
     def handle_simple_request(self, request: SimpleBlockExecutionRequest) -> SimpleBlockExecutionResponse:
@@ -34,7 +36,8 @@ class BlockExecutionService:
         operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
         try:
-            resulting_dataset = self.execute_simple_operation(dataset, operation, operation_config)
+            resulting_dataset = self.execute_simple_operation(
+                dataset, operation, request.operation_id, operation_config)
 
             self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
 
@@ -60,8 +63,11 @@ class BlockExecutionService:
                     config[key] = config[key]
         return config
 
-    def execute_simple_operation(self, df, operation: str, operation_config: dict):
-        self.logging.info("Executing operation %s" % operation)
+    def execute_simple_operation(self, df, operation: str, operation_id: str, operation_config: dict):
+        self.logging.info("Executing operation %s (%s)" % (operation, operation_id))
+
+        op = self.operation_service.get_operation_by_id(operation_id)
+        op(df)
 
         if operation == 'select_columns':
             resulting_dataset = df[dict[0]]

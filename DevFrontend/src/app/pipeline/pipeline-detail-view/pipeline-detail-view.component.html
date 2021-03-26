@@ -6,9 +6,18 @@
       <button mat-raised-button (click)="executePipeline(id)">Execute</button>
     </mat-toolbar>
 
-    <div style="padding: 1em">
+    <div class="component-wrapper">
       <h2>{{pipeline.name}}</h2>
+      <p *ngIf="getRootInputDatasets(pipeline) | async as inputDatasets">
+        <span> Root datasets: </span>
+        <a *ngFor="let id of inputDatasets"
+           target="_blank"
+           [href]="'http://localhost:5002/api/datasets/' + id">
+          {{id}}
+        </a>
+      </p>
       <ph-pipeline-node-view [pipeline]="pipeline"></ph-pipeline-node-view>
+      <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
 
     </div>
   </ng-container>

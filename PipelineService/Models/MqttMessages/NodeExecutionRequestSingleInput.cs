@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public class SimpleBlockExecutionRequest : BlockExecutionRequest
+    public class NodeExecutionRequestSingleInput : BlockExecutionRequest
     {
         /// <summary>
         /// The input dataset the operation will be performed on.
@@ -19,6 +19,7 @@ namespace PipelineService.Models.MqttMessages
         /// <summary>
         /// The configuration of the operation. 
         /// </summary>
-        public IDictionary<string, string> OperationConfiguration { get; set; }
+        public IDictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
+        
     }
 }

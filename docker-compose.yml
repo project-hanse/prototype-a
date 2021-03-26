@@ -15,8 +15,12 @@ services:
       context: ./PipelineService
       dockerfile: ./Dockerfile
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MQTT_CLIENT_ID=pipeline-service-1
+      ASPNETCORE_ENVIRONMENT: Development
+      EVENT_BUS__MQTT_HOST: message-broker
+      EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+      EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+      EDGE_EVENT_BUS__MQTT_pORT: 1883
+      EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     ports:
       - 5000:80
     depends_on:
@@ -56,4 +60,15 @@ services:
       - ./volumes/mosquitto/config:/mosquitto/config
       - ./volumes/mosquitto/data:/mosquitto/data
       - ./volumes/mosquitto/log:/mosquitto/log
+
+  # Edge Message Broker
+  edge-message-broker:
+    image: eclipse-mosquitto
+    networks:
+      - default
+    ports:
+      - "1884:1883"
+      - "9002:9001"
+    volumes:
+      - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
     

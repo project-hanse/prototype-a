@@ -4,6 +4,7 @@ import {Observable, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {Pipeline} from '../_model/pipeline';
 import {PipelineService} from '../_service/pipeline.service';
+import {NodeService} from '../_service/node.service';
 
 @Component({
   selector: 'ph-pipeline-detail-view',
@@ -15,8 +16,9 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
   private readonly subscriptions: Subscription;
 
   private $pipeline: Observable<Pipeline>;
+  private $rootInputDatasets: Observable<string[]>;
 
-  constructor(private route: ActivatedRoute, private pipelineService: PipelineService) {
+  constructor(private route: ActivatedRoute, private pipelineService: PipelineService, private nodeService: NodeService) {
     this.subscriptions = new Subscription();
   }
 
@@ -41,6 +43,13 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
           executionId => console.log('Started execution' + executionId)
         )
     );
+  }
+
+  public getRootInputDatasets(pipeline: Pipeline): Observable<string[]> {
+    if (!this.$rootInputDatasets) {
+      this.$rootInputDatasets = this.nodeService.getBlockInputDatasets(pipeline.id, pipeline.root[0].id);
+    }
+    return this.$rootInputDatasets;
   }
 
   ngOnDestroy(): void {
