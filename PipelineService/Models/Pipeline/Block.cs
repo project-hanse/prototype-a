@@ -23,6 +23,11 @@ namespace PipelineService.Models.Pipeline
         public string Operation { get; set; }
 
         /// <summary>
+        /// The id of the operation that will be performed on the input dataset.
+        /// </summary>
+        public Guid OperationId { get; set; }
+
+        /// <summary>
         /// The configuration of the operation (usually corresponds to function parameters).
         /// </summary>
         public IDictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
