@@ -6,8 +6,6 @@ from src.models.simple_block_execution_request import SimpleBlockExecutionReques
 from src.services.block_execution_service import BlockExecutionService
 
 
-
-
 class MqttClientWrapper:
     logging = None
     execution_service: BlockExecutionService
@@ -26,10 +24,11 @@ class MqttClientWrapper:
         self.topic_name_pub = topic_name_pub
 
         self.client = mqtt.Client(client_id=client_id, clean_session=False)
-        self.client.connect(mqtt_host, port=mqtt_port)
         self.client.on_connect = self.connect_callback
         self.client.on_message = self.on_message_callback
         self.client.on_publish = self.on_publish_callback
+        self.client.connect(mqtt_host, port=mqtt_port)
+        self.logging.debug('Broker client setup complete')
 
     def loop(self):
         self.client.loop()

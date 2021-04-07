@@ -54,13 +54,13 @@ namespace PipelineService.Services.Impl
 
             Client.UseConnectedHandler(e =>
             {
-                _logger.LogDebug("Disconnected from MQTT broker ({Hostname}:{Port}) {@EventArgs}",
+                _logger.LogDebug("Connected to MQTT broker ({Hostname}:{Port}) {@EventArgs}",
                     Hostname, Port, e);
             });
 
             Client.UseDisconnectedHandler(e =>
             {
-                _logger.LogDebug("Connected to MQTT broker ({Hostname}:{Port}) as client {ClientId} {@EventArgs}",
+                _logger.LogDebug("Disconnected from MQTT broker ({Hostname}:{Port}) as client {ClientId} {@EventArgs}",
                     Hostname, Port, ClientId, e);
             });
 
