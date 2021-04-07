@@ -49,6 +49,16 @@ services:
     expose:
       - 5002
 
+  # Operation Store
+  operation-store:
+    build:
+      context: ./OperationStore
+      dockerfile: ./Dockerfile
+    ports:
+      - 5003:5000
+    expose:
+      - 5003
+
   # Message Broker
   message-broker:
     image: eclipse-mosquitto
