@@ -15,6 +15,8 @@ TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+")
 TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "executed")
 DATASET_HOST: str = os.getenv("DATASET_HOST", "dataset-service")
 DATASET_PORT: int = os.getenv("DATASET_PORT", 5002)
+OPERATION_HOST: str = os.getenv("OPERATION_HOST", "operation-store")
+OPERATION_PORT: int = os.getenv("OPERATION_PORT", 5010)
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -35,7 +37,7 @@ def sigterm_handler(_signo, _stack_frame):
 
 if __name__ == '__main__':
     logging.info('Starting block worker')
-    operation_service = OperationService(logging)
+    operation_service = OperationService(OPERATION_HOST, OPERATION_PORT, logging)
     dataset_client = DatasetServiceClient(DATASET_HOST, DATASET_PORT, logging)
     block_execution_service = BlockExecutionService(logging, dataset_client, operation_service)
     client_wrapper = MqttClientWrapper(logging, block_execution_service)

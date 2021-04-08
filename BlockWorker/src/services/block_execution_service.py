@@ -1,5 +1,7 @@
 import datetime
+import logging
 import uuid
+import pandas as pd
 
 from src.models.simple_block_execution_request import SimpleBlockExecutionRequest
 from src.models.simple_block_execution_response import SimpleBlockExecutionResponse
@@ -10,16 +12,18 @@ from src.services.operation_service import OperationService
 class BlockExecutionService:
     count: int
 
-    def __init__(self, logging, dataset_client: DatasetServiceClient, operation_service: OperationService) -> None:
+    def __init__(self, logger: logging,
+                 dataset_client: DatasetServiceClient,
+                 operation_service: OperationService) -> None:
         self.count = 0
-        self.logging = logging
+        self.logger = logger
         self.dataset_client = dataset_client
         self.operation_service = operation_service
         super().__init__()
 
     def handle_simple_request(self, request: SimpleBlockExecutionRequest) -> SimpleBlockExecutionResponse:
         self.count += 1
-        self.logging.debug("Handling request %d" % self.count)
+        self.logger.debug("Handling request %d" % self.count)
 
         response = SimpleBlockExecutionResponse()
         response.set_pipeline_id(request.pipeline_id)
@@ -44,7 +48,7 @@ class BlockExecutionService:
             response.set_result_dataset_id(str(uuid.uuid4()))
             response.set_successful(True)
         except Exception as e:
-            self.logging.warning("Failed to execute operation %s: %s" % (operation, str(e)))
+            self.logger.warning("Failed to execute operation %s: %s" % (operation, str(e)))
             response.set_successful(False)
             response.set_error_description(str(e))
 
@@ -52,7 +56,8 @@ class BlockExecutionService:
 
         return response
 
-    def preprocess_operation_config(self, config: dict) -> dict:
+    @staticmethod
+    def preprocess_operation_config(config: dict) -> dict:
         for key in config:
             try:
                 config[key] = int(config[key])
@@ -63,10 +68,10 @@ class BlockExecutionService:
                     config[key] = config[key]
         return config
 
-    def execute_simple_operation(self, df, operation: str, operation_id: str, operation_config: dict):
-        self.logging.info("Executing operation %s (%s)" % (operation, operation_id))
+    def execute_simple_operation(self, df: pd.DataFrame, operation: str, operation_id: str, operation_config: dict):
+        self.logger.info("Executing operation %s (%s)" % (operation, operation_id))
 
-        op = self.operation_service.get_operation_by_id(operation_id)
+        op = self.operation_service.get_simple_operation_by_id(operation_id)
         op(df)
 
         if operation == 'select_columns':

@@ -16,3 +16,5 @@ Configuration parameters via environment variables.
 | `MQTT_PORT` | The MQTT broker's port for a TCP based connection. | `1883` | `1883` |
 | `MQTT_CLIENT_ID` | The client id used for connecting to the MQTT broker. | `BlockWorker-[RANDOM-GUID]` | `BlockWorker-1` |
 | `MQTT_TOPIC_SUB` | The topic the worker subscribes to for messages (blocks that will be executed). | `execute/+` | `BlockWorker-1` |
+
+TODO add host and port combinations for operations store and dataset store.

@@ -1,7 +1,8 @@
+import base64
 import logging
 import os
 
-from flask import Flask, render_template, abort, redirect
+from flask import Flask, render_template, abort, redirect, jsonify
 from flask_bootstrap import Bootstrap
 from flask_jsonpify import jsonpify
 from flask_socketio import SocketIO
@@ -39,13 +40,15 @@ def root():
 
 @app.route('/api/operations/<operation_id>', methods=['GET'])
 def dataset_by_id(operation_id: str):
-    df = store.get_by_id(operation_id)
+    response = {
+        "operationId": operation_id,
+        "serializedOperation": store.get_by_id(operation_id).hex()
+    }
 
-    if df is None:
+    if response["serializedOperation"] is None:
         abort(404)
 
-    df_list = df.values.tolist()
-    return jsonpify(df_list)
+    return jsonify(response)
 
 
 # Generating default operations
