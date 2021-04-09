@@ -1,10 +1,8 @@
-import base64
 import logging
 import os
 
 from flask import Flask, render_template, abort, redirect, jsonify
 from flask_bootstrap import Bootstrap
-from flask_jsonpify import jsonpify
 from flask_socketio import SocketIO
 
 from services.in_memory_store import InMemoryStore
