@@ -47,11 +47,11 @@ namespace PipelineService.Controllers
         [HttpGet("execute/{pipelineId}")]
         public async Task<IActionResult> ExecutePipeline(Guid pipelineId)
         {
-            _logger.LogDebug("Executing pipeline {PipelineId}", pipelineId);
+            _logger.LogInformation("Executing pipeline {PipelineId}", pipelineId);
 
             var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId);
 
-            _logger.LogInformation("Execution of pipeline ({PipelineId}) with execution id {ExecutionId} started",
+            _logger.LogDebug("Execution of pipeline ({PipelineId}) with execution id {ExecutionId} started",
                 pipelineId, execution);
 
             return Ok(execution);

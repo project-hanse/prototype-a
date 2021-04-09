@@ -81,6 +81,7 @@ namespace PipelineService.Services.Impl
                     response.BlockId, response.ErrorDescription);
 
                 // TODO mark execution as failed
+                await NotifyFrontend(response);
                 return;
             }
 
