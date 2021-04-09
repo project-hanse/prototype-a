@@ -35,7 +35,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = Guid.Parse("7b0bb47f-f997-43d8-acb1-c31f2a22475d"),
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"0", "['Rooms', 'Bathroom', 'Landsize', 'Lattitude', 'Longtitude']"}
+                    {"0", "[1, 3, 4, 5]"}
                 }
             };
 
@@ -44,7 +44,7 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetHash = select.ResultKey,
                 Operation = "describe",
-                OperationId = Guid.Parse("78f3b2f5-958c-49e9-b0cb-be0fd762ffa9"),
+                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
             };
 
             cleanUp.Successors.Add(select);
@@ -73,7 +73,7 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetId = Guid.Parse("4cfd0698-004a-404e-8605-de2f830190f2"),
                 Operation = "interpolate",
-                OperationId = Guid.Parse("0da055fe-0a0c-41fa-a6d6-768415dc834a"),
+                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     {"method", "linear"}
@@ -88,7 +88,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = Guid.Parse("7b0bb47f-f997-43d8-acb1-c31f2a22475d"),
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"0", "['weekly_infections']"}
+                    {"0", "[0, 1]"}
                 }
             };
 

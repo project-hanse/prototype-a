@@ -56,6 +56,19 @@ class BlockExecutionService:
 
         return response
 
+    def execute_simple_operation(self, df: pd.DataFrame,
+                                 operation_name: str,
+                                 operation_id: str,
+                                 operation_config: dict):
+        self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
+
+        operation_callable = self.operation_service.get_simple_operation_by_id(operation_id)
+
+        # TODO catch method signature mismatch exception
+        resulting_dataset = operation_callable(self.logger, operation_name, operation_config, df)
+
+        return resulting_dataset
+
     @staticmethod
     def preprocess_operation_config(config: dict) -> dict:
         for key in config:
@@ -67,23 +80,3 @@ class BlockExecutionService:
                 except ValueError:
                     config[key] = config[key]
         return config
-
-    def execute_simple_operation(self, df: pd.DataFrame, operation: str, operation_id: str, operation_config: dict):
-        self.logger.info("Executing operation %s (%s)" % (operation, operation_id))
-
-        op = self.operation_service.get_simple_operation_by_id(operation_id)
-        op(df)
-
-        if operation == 'select_columns':
-            resulting_dataset = df[dict[0]]
-        else:
-            command = ("resulting_dataset = df.%s(**operation_config)" % operation)
-            loc = {
-                'df': df,
-                'operation_config': operation_config
-            }
-            exec(command, globals(), loc)
-            resulting_dataset = loc['resulting_dataset']
-        print(resulting_dataset)
-
-        return resulting_dataset

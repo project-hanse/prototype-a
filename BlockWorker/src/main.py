@@ -51,6 +51,7 @@ if __name__ == '__main__':
                          mqtt_port=MQTT_PORT,
                          topic_name_sub=TOPIC_NAME_SUB,
                          topic_name_pub=TOPIC_NAME_PUB)
+    operation_service.init()
 
     while loop:
         client_wrapper.loop()
