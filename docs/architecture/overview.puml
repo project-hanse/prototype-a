@@ -31,6 +31,12 @@ rectangle "Low Level Services" {
     
     component "Dataset Store" << Python REST API >> as dataset_store
     database "Dataset Database" << MongoDB >> as dataset_db
+    
+    component #line.dashed "Operation Store" << Python REST API >> as operation_store
+    database #line.dashed "Operation Database" << MongoDB >> as operation_db
+    
+    component #line.dashed "Event Logging" << Logstash? >> as event_logging
+    database #line.dashed "Event Database" << Elasticsearch >> as event_db    
 }
 
 component "Event Bus" << MQTT Broker >> as message_broker {
@@ -49,11 +55,16 @@ api_gateway --> dataset_service
 pipeline_store --> pipeline_db
 dataset_store --> dataset_db
 execution_store --> execution_db 
+operation_store --> operation_db
+event_logging --> event_db
 
 pipeline_service <--> node_execution_queue
 node_execution_queue <--> worker 
 
+message_broker --> event_logging
+
 worker --> dataset_store 
+worker -->operation_store
 suggestion_service --> pipeline_store
 pipeline_service --> execution_store
 pipeline_service --> pipeline_store

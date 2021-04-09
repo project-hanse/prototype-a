@@ -42,6 +42,15 @@ updates:
     assignees:
       - "SirPumpkinHead"
 
+  # Dataset Service
+  - package-ecosystem: "pip" # See documentation for possible values
+    directory: "/OperationStore" # Location of package manifests
+    target-branch: "dev"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "SirPumpkinHead"
+
   # Dev Frontend
   - package-ecosystem: "npm"
     directory: "/DevFrontend"
