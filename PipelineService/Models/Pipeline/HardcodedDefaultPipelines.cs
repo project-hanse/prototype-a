@@ -8,6 +8,10 @@ namespace PipelineService.Models.Pipeline
     /// </summary>
     public static class HardcodedDefaultPipelines
     {
+        private static readonly Guid DsIdMelbourneHousingFull = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee");
+        private static readonly Guid DsIdMelbourneHousePricesLess = Guid.Parse("0c2acbdb-544b-4efc-ae54-c2dcba988654");
+        private static readonly Guid DsIdInfluencaVienna20092018 = Guid.Parse("4cfd0698-004a-404e-8605-de2f830190f2");
+
         public static Pipeline MelbourneHousingPipeline(Guid pipelineId = default)
         {
             if (pipelineId == default)
@@ -18,7 +22,7 @@ namespace PipelineService.Models.Pipeline
             var cleanUp = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetId = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee"),
+                InputDatasetId = DsIdMelbourneHousingFull,
                 Operation = "dropna",
                 OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
                 OperationConfiguration = new Dictionary<string, string>
@@ -71,7 +75,7 @@ namespace PipelineService.Models.Pipeline
             var interpolate = new SimpleBlock
             {
                 PipelineId = pipelineId,
-                InputDatasetId = Guid.Parse("4cfd0698-004a-404e-8605-de2f830190f2"),
+                InputDatasetId = DsIdInfluencaVienna20092018,
                 Operation = "interpolate",
                 OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
                 OperationConfiguration = new Dictionary<string, string>
@@ -103,6 +107,33 @@ namespace PipelineService.Models.Pipeline
                     interpolate
                 }
             };
+        }
+
+        public static Pipeline MelbourneHousingPipelineWithError(Guid pipelineId = default)
+        {
+            var pipeline = MelbourneHousingPipeline(pipelineId);
+            pipeline.Name = "Invalid: Melbourne Housing Data";
+
+            var unknownOperation = new SimpleBlock
+            {
+                PipelineId = pipeline.Id,
+                InputDatasetId = DsIdMelbourneHousePricesLess,
+                Operation = "unknown_operation",
+                OperationId = Guid.NewGuid(), // random guid that does not represent an operation
+                OperationConfiguration = new Dictionary<string, string>()
+            };
+
+            var describe = new SimpleBlock
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = unknownOperation.ResultKey,
+                Operation = "describe",
+                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+            };
+
+            unknownOperation.Successors.Add(describe);
+            pipeline.Root[0].Successors.Add(unknownOperation);
+            return pipeline;
         }
     }
 }
