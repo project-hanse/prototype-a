@@ -9,6 +9,7 @@ export interface FrontendExecutionNotification {
   ErrorDescription: string;
   NodesExecuted: number;
   NodesInExecution: number;
-  ToBeExecuted: number;
+  NodesToBeExecuted: number;
+  NodesFailedToExecute: number;
   ResultDatasetKey: string;
 }

@@ -66,12 +66,16 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
     return events[events.length - 1];
   }
 
+  private totalNodes(last: FrontendExecutionNotification): number {
+    return last.NodesToBeExecuted + last.NodesInExecution + last.NodesFailedToExecute + last.NodesExecuted;
+  }
+
   public progressValue(last: FrontendExecutionNotification): number {
-    return ((last.NodesExecuted / (last.ToBeExecuted + last.NodesInExecution + last.NodesExecuted))) * 100;
+    return last.NodesExecuted / this.totalNodes(last) * 100;
   }
 
   public bufferValue(last: FrontendExecutionNotification): number {
-    return (((last.NodesInExecution + last.NodesExecuted) / (last.ToBeExecuted + last.NodesInExecution + last.NodesExecuted))) * 100;
+    return last.NodesInExecution / this.totalNodes(last) * 100 + this.progressValue(last);
   }
 
   public sort(events: FrontendExecutionNotification[]): FrontendExecutionNotification[] {
