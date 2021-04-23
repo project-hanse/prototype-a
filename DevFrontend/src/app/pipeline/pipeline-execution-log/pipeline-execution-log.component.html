@@ -18,11 +18,15 @@
         <mat-icon mat-list-icon>{{e.Successful ? 'check' : 'error'}}</mat-icon>
         <div mat-line>{{e.OperationName}} </div>
         <div mat-line>
-          <a target="_blank" [href]="'http://localhost:5002/api/datasets/'+e.ResultDatasetKey">Result Dataset</a>
+          <a *ngIf="e.Successful" target="_blank" [href]="'http://localhost:5002/api/datasets/'+e.ResultDatasetKey">
+            Result Dataset
+          </a>
+          <span *ngIf="e.ErrorDescription" style="color: red">{{e.ErrorDescription}}</span>
           &nbsp;
           <span [matTooltip]="e.CompletedAt | date: 'medium'">{{e.ExecutionTime}} ms</span>
           &nbsp;
           <span>(Execution: {{e.ExecutionId}})</span>
+
         </div>
 
       </mat-list-item>

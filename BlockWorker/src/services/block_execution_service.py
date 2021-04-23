@@ -1,6 +1,7 @@
 import datetime
 import logging
 import uuid
+
 import pandas as pd
 
 from src.models.simple_block_execution_request import SimpleBlockExecutionRequest
@@ -32,13 +33,23 @@ class BlockExecutionService:
         response.set_successful(True)
         response.set_start_time(datetime.datetime.now(datetime.timezone.utc))
 
-        if request.get_input_dataset_id() is not None:
-            dataset = self.dataset_client.get_dataset_by_id(request.get_input_dataset_id())
-        else:
-            dataset = self.dataset_client.get_dataset_by_hash(request.get_input_dataset_hash())
+        # Loading dataset from dedicated service
+        try:
+            if request.get_input_dataset_id() is not None:
+                dataset = self.dataset_client.get_dataset_by_id(request.get_input_dataset_id())
+            else:
+                dataset = self.dataset_client.get_dataset_by_hash(request.get_input_dataset_hash())
+        except Exception as e:
+            self.logger.warning("Failed to load dataset: %s" % str(e))
+            response.set_successful(False)
+            response.set_error_description(str(e))
+            response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
+            return response
+
         operation = request.get_operation_name()
         operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
+        # Executing operation
         try:
             resulting_dataset = self.execute_simple_operation(
                 dataset, operation, request.operation_id, operation_config)

@@ -19,5 +19,7 @@ namespace PipelineService.Models.Pipeline.Execution
         public IList<BlockExecutionRecord> InExecution { get; set; } = new List<BlockExecutionRecord>();
 
         public IList<BlockExecutionRecord> Executed { get; set; } = new List<BlockExecutionRecord>();
+
+        public IList<BlockExecutionRecord> Failed { get; set; } = new List<BlockExecutionRecord>();
     }
 }

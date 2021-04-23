@@ -80,7 +80,7 @@ namespace PipelineService.Services.Impl
                 _logger.LogInformation("Execution of block {BlockId} failed with error {ExecutionErrorDescription}",
                     response.BlockId, response.ErrorDescription);
 
-                // TODO mark execution as failed
+                await MarkBlockAsFailed(response.ExecutionId, response.BlockId);
                 await NotifyFrontend(response);
                 return;
             }
@@ -104,6 +104,11 @@ namespace PipelineService.Services.Impl
         {
             var executionRecord = await _pipelineExecutionDao.Get(response.ExecutionId);
             var blockExecutionRecord = executionRecord.Executed.FirstOrDefault(b => b.BlockId == response.BlockId);
+            if (blockExecutionRecord == null)
+            {
+                blockExecutionRecord = executionRecord.Failed.FirstOrDefault(b => b.BlockId == response.BlockId);
+            }
+
             string resultKey = null;
             if (blockExecutionRecord?.Block is SimpleBlock simpleBlock)
             {
@@ -123,7 +128,8 @@ namespace PipelineService.Services.Impl
                     ErrorDescription = response.ErrorDescription,
                     NodesExecuted = executionRecord.Executed.Count,
                     NodesInExecution = executionRecord.InExecution.Count,
-                    ToBeExecuted = executionRecord.ToBeExecuted.Count,
+                    NodesToBeExecuted = executionRecord.ToBeExecuted.Count,
+                    NodesFailedToExecute = executionRecord.Failed.Count,
                     ResultDatasetKey = resultKey
                 });
         }
@@ -231,7 +237,7 @@ namespace PipelineService.Services.Impl
 
         /// <summary>
         /// Marks a block as executed in an execution.
-        /// TODO: This method must become thread safe (case: multiple block finish execution at the same time -> whe updating data might get lost).
+        /// TODO: This method must become thread safe (case: multiple block finish execution at the same time -> when updating data might get lost).
         /// </summary>
         /// <param name="executionId">The execution's id a block has been executed in.</param>
         /// <param name="blockId">The block that will be moved from status in execution to executed.</param>
@@ -267,6 +273,64 @@ namespace PipelineService.Services.Impl
             await _pipelineExecutionDao.Update(execution);
 
             return execution.InExecution.Count > 0;
+        }
+
+        private async Task MarkBlockAsFailed(Guid responseExecutionId, Guid responseBlockId)
+        {
+            PipelineExecutionRecord execution;
+            try
+            {
+                execution = await _pipelineExecutionDao.Get(responseExecutionId);
+            }
+            catch (NotFoundException e)
+            {
+                throw new InvalidOperationException("Can not move block for non existent execution", e);
+            }
+
+            var block = execution.InExecution.FirstOrDefault(b => b.BlockId == responseBlockId);
+
+            if (block == null)
+            {
+                throw new InvalidOperationException("Block is not in status expected status for this execution");
+            }
+
+            _logger.LogDebug(
+                "Moving block {BlockId} in execution {ExecutionId} from status in_execution to failed",
+                responseBlockId, responseExecutionId);
+
+            block.ExecutionCompletedAt = DateTime.UtcNow;
+
+            execution.InExecution.Remove(block);
+            execution.Failed.Add(block);
+
+            _logger.LogDebug("Moving all operations following failed to operation to failed state");
+
+            var successorIds = GetAllSuccessorIds(block.Block.Successors);
+            var failedBlocks = execution.ToBeExecuted
+                .Where(e => successorIds.Contains(e.BlockId))
+                .ToList();
+
+            foreach (var failedBlock in failedBlocks)
+            {
+                execution.ToBeExecuted.Remove(failedBlock);
+                execution.Failed.Add(failedBlock);
+            }
+
+            await _pipelineExecutionDao.Update(execution);
+        }
+
+        private static IList<Guid> GetAllSuccessorIds(IList<Block> blockSuccessors, List<Guid> ids = default)
+        {
+            ids ??= new List<Guid>();
+
+            ids.AddRange(blockSuccessors.Select(b => b.Id));
+
+            foreach (var blockSuccessor in blockSuccessors)
+            {
+                GetAllSuccessorIds(blockSuccessor.Successors, ids);
+            }
+
+            return ids;
         }
 
         private BlockExecutionRequest ExecutionRequestFromBlock(Guid executionId, SimpleBlock block)

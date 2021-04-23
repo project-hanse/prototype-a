@@ -95,7 +95,8 @@ namespace PipelineService.Dao.Impl
             return new List<Pipeline>
             {
                 HardcodedDefaultPipelines.MelbourneHousingPipeline(),
-                HardcodedDefaultPipelines.InfluenzaInterpolation()
+                HardcodedDefaultPipelines.InfluenzaInterpolation(),
+                HardcodedDefaultPipelines.MelbourneHousingPipelineWithError()
             };
         }
     }

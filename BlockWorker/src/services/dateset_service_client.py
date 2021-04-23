@@ -1,5 +1,7 @@
-import requests
 import pandas as pd
+import requests
+
+from src.exceptions.NotFoundError import NotFoundError
 
 
 class DatasetServiceClient:
@@ -14,14 +16,18 @@ class DatasetServiceClient:
     def get_dataset_by_id(self, dataset_id: str):
         address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/' + dataset_id
         self.logging.info('Loading dataset from %s' % address)
-        data = requests.get(address)
-        return pd.read_json(data.text)
+        response = requests.get(address)
+        if response.status_code == 404:
+            raise NotFoundError("No dataset with id found")
+        return pd.read_json(response.text)
 
     def get_dataset_by_hash(self, producing_hash: str):
         address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/hash/' + producing_hash
         self.logging.info('Loading dataset from %s' % address)
-        data = requests.get(address)
-        return pd.read_json(data.text)
+        response = requests.get(address)
+        if response.status_code == 404:
+            raise NotFoundError("No dataset with hash found")
+        return pd.read_json(response.text)
 
     def store_with_hash(self, producing_hash: str, resulting_dataset):
         address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/hash/' + producing_hash
