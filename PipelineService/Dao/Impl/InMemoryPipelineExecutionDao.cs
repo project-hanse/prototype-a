@@ -27,7 +27,8 @@ namespace PipelineService.Dao.Impl
         {
             var executionRecord = new PipelineExecutionRecord
             {
-                PipelineId = pipeline.Id
+                PipelineId = pipeline.Id,
+                StartedOn = DateTime.UtcNow
             };
 
             _logger.LogInformation("Creating execution ({executionId}) for pipeline {pipelineId}",

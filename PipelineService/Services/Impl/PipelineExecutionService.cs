@@ -128,7 +128,8 @@ namespace PipelineService.Services.Impl
                     ErrorDescription = response.ErrorDescription,
                     NodesExecuted = executionRecord.Executed.Count,
                     NodesInExecution = executionRecord.InExecution.Count,
-                    ToBeExecuted = executionRecord.ToBeExecuted.Count,
+                    NodesToBeExecuted = executionRecord.ToBeExecuted.Count,
+                    NodesFailedToExecute = executionRecord.Failed.Count,
                     ResultDatasetKey = resultKey
                 });
         }
