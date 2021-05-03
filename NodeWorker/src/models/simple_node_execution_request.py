@@ -1,7 +1,7 @@
-from src.models.block_execution_request import BlockExecutionRequest
+from src.models.node_execution_request import NodeExecutionRequest
 
 
-class SimpleBlockExecutionRequest(BlockExecutionRequest):
+class SimpleNodeExecutionRequest(NodeExecutionRequest):
 
     def __init__(self, deserialized: dict):
         super().__init__(deserialized)

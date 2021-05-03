@@ -3,14 +3,14 @@ import os
 import signal
 import uuid
 
-from src.services.block_execution_service import BlockExecutionService
+from src.services.node_execution_service import NodeExecutionService
 from src.services.dateset_service_client import DatasetServiceClient
 from src.services.mqtt_client_wrapper import MqttClientWrapper
 from src.services.operation_service import OperationService
 
 MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
 MQTT_PORT: int = os.getenv("MQTT_PORT", 1883)
-CLIENT_ID: str = os.getenv("MQTT_CLIENT_ID", ("BlockWorker-" + str(uuid.uuid4())))
+CLIENT_ID: str = os.getenv("MQTT_CLIENT_ID", ("NodeWorker-" + str(uuid.uuid4())))
 TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+")
 TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "executed")
 DATASET_HOST: str = os.getenv("DATASET_HOST", "dataset-service")
@@ -36,11 +36,11 @@ def sigterm_handler(_signo, _stack_frame):
 
 
 if __name__ == '__main__':
-    logging.info('Starting block worker')
+    logging.info('Starting node worker')
     operation_service = OperationService(OPERATION_HOST, OPERATION_PORT, logging)
     dataset_client = DatasetServiceClient(DATASET_HOST, DATASET_PORT, logging)
-    block_execution_service = BlockExecutionService(logging, dataset_client, operation_service)
-    client_wrapper = MqttClientWrapper(logging, block_execution_service)
+    node_execution_service = NodeExecutionService(logging, dataset_client, operation_service)
+    client_wrapper = MqttClientWrapper(logging, node_execution_service)
 
     logging.debug('Setting up signal handler')
     signal.signal(signal.SIGTERM, sigterm_handler)

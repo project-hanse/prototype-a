@@ -14,7 +14,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 pipelineId = Guid.NewGuid();
             }
 
-            var cleanUp = new SimpleBlock
+            var cleanUp = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee"),
@@ -25,7 +25,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 },
             };
 
-            var select1 = new SimpleBlock
+            var select1 = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
@@ -36,7 +36,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 }
             };
 
-            var select2 = new SimpleBlock
+            var select2 = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
@@ -47,14 +47,14 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 }
             };
 
-            var describe1 = new SimpleBlock
+            var describe1 = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(select1),
                 Operation = "describe"
             };
 
-            var describe2 = new SimpleBlock
+            var describe2 = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(select2),
@@ -70,7 +70,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
             {
                 Id = pipelineId,
                 Name = "Melbourne Housing Data",
-                Root = new List<Block>
+                Root = new List<Node>
                 {
                     cleanUp
                 }

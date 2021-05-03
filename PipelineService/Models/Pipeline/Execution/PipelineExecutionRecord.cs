@@ -14,12 +14,12 @@ namespace PipelineService.Models.Pipeline.Execution
 
         public DateTime CompletedOn { get; set; }
 
-        public IList<BlockExecutionRecord> ToBeExecuted { get; set; } = new List<BlockExecutionRecord>();
+        public IList<NodeExecutionRecord> ToBeExecuted { get; set; } = new List<NodeExecutionRecord>();
 
-        public IList<BlockExecutionRecord> InExecution { get; set; } = new List<BlockExecutionRecord>();
+        public IList<NodeExecutionRecord> InExecution { get; set; } = new List<NodeExecutionRecord>();
 
-        public IList<BlockExecutionRecord> Executed { get; set; } = new List<BlockExecutionRecord>();
+        public IList<NodeExecutionRecord> Executed { get; set; } = new List<NodeExecutionRecord>();
 
-        public IList<BlockExecutionRecord> Failed { get; set; } = new List<BlockExecutionRecord>();
+        public IList<NodeExecutionRecord> Failed { get; set; } = new List<NodeExecutionRecord>();
     }
 }

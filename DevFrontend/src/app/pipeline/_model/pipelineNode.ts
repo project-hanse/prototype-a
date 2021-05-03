@@ -1,8 +1,8 @@
 import {BasePersistentModel} from './base-persistent-model';
 
-export interface Block extends BasePersistentModel {
+export interface PipelineNode extends BasePersistentModel {
   pipelineId: string;
-  successors: Block[];
+  successors: PipelineNode[];
   operation: string;
   operationConfiguration: Map<string, string>;
   includeInHash: string;

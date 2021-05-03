@@ -19,7 +19,7 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var cleanUp = new SimpleBlock
+            var cleanUp = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdMelbourneHousingFull,
@@ -31,7 +31,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            var select = new SimpleBlock
+            var select = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = cleanUp.ResultKey,
@@ -43,7 +43,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            var describe = new SimpleBlock
+            var describe = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = select.ResultKey,
@@ -58,7 +58,7 @@ namespace PipelineService.Models.Pipeline
             {
                 Id = pipelineId,
                 Name = "Melbourne Housing Data",
-                Root = new List<Block>
+                Root = new List<Node>
                 {
                     cleanUp
                 }
@@ -72,7 +72,7 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var interpolate = new SimpleBlock
+            var interpolate = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdInfluencaVienna20092018,
@@ -84,7 +84,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            var select = new SimpleBlock
+            var select = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = interpolate.ResultKey,
@@ -102,7 +102,7 @@ namespace PipelineService.Models.Pipeline
             {
                 Id = pipelineId,
                 Name = "Influenza Interpolation",
-                Root = new List<Block>
+                Root = new List<Node>
                 {
                     interpolate
                 }
@@ -114,7 +114,7 @@ namespace PipelineService.Models.Pipeline
             var pipeline = MelbourneHousingPipeline(pipelineId);
             pipeline.Name = "Invalid: Melbourne Housing Data";
 
-            var unknownOperation = new SimpleBlock
+            var unknownOperation = new SimpleNode
             {
                 PipelineId = pipeline.Id,
                 InputDatasetId = DsIdMelbourneHousePricesLess,
@@ -123,7 +123,7 @@ namespace PipelineService.Models.Pipeline
                 OperationConfiguration = new Dictionary<string, string>()
             };
 
-            var describe = new SimpleBlock
+            var describe = new SimpleNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = unknownOperation.ResultKey,

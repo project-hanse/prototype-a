@@ -4,13 +4,13 @@ import uuid
 
 import pandas as pd
 
-from src.models.simple_block_execution_request import SimpleBlockExecutionRequest
-from src.models.simple_block_execution_response import SimpleBlockExecutionResponse
+from src.models.simple_node_execution_request import SimpleNodeExecutionRequest
+from src.models.simple_node_execution_response import SimpleNodeExecutionResponse
 from src.services.dateset_service_client import DatasetServiceClient
 from src.services.operation_service import OperationService
 
 
-class BlockExecutionService:
+class NodeExecutionService:
     count: int
 
     def __init__(self, logger: logging,
@@ -22,13 +22,13 @@ class BlockExecutionService:
         self.operation_service = operation_service
         super().__init__()
 
-    def handle_simple_request(self, request: SimpleBlockExecutionRequest) -> SimpleBlockExecutionResponse:
+    def handle_simple_request(self, request: SimpleNodeExecutionRequest) -> SimpleNodeExecutionResponse:
         self.count += 1
         self.logger.debug("Handling request %d" % self.count)
 
-        response = SimpleBlockExecutionResponse()
+        response = SimpleNodeExecutionResponse()
         response.set_pipeline_id(request.pipeline_id)
-        response.set_block_id(request.block_id)
+        response.set_node_id(request.node_id)
         response.set_execution_id(request.execution_id)
         response.set_successful(True)
         response.set_start_time(datetime.datetime.now(datetime.timezone.utc))

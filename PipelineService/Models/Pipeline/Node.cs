@@ -4,18 +4,18 @@ using System.Collections.Generic;
 namespace PipelineService.Models.Pipeline
 {
     /// <summary>
-    /// A <code>Block</code> is part of a pipeline.
-    /// A <code>Block</code> describes an operation performed on one or more input datasets and produces one dataset.
-    /// A <code>Block</code> can have no, one or multiple successor Blocks.
+    /// A <code>Node</code> is part of a pipeline.
+    /// A <code>Node</code> describes an operation performed on one or more input datasets and produces one dataset.
+    /// A <code>Node</code> can have no, one or multiple successor Blocks.
     /// </summary>
-    public abstract record Block : BasePersistentModel
+    public abstract record Node : BasePersistentModel
     {
         /// <summary>
-        /// The pipeline's id this block belongs to.
+        /// The pipeline's id this node belongs to.
         /// </summary>
         public Guid PipelineId { get; set; }
 
-        public IList<Block> Successors { get; set; } = new List<Block>();
+        public IList<Node> Successors { get; set; } = new List<Node>();
 
         /// <summary>
         /// The operation that will be performed on the input dataset.

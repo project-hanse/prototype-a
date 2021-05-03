@@ -1,7 +1,7 @@
-from src.models.block_execution_response import BlockExecutionResponse
+from src.models.node_execution_response import NodeExecutionResponse
 
 
-class SimpleBlockExecutionResponse(BlockExecutionResponse):
+class SimpleNodeExecutionResponse(NodeExecutionResponse):
     result_dataset_id: str
 
     def __init__(self) -> None:

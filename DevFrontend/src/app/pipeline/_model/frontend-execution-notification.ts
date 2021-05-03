@@ -1,7 +1,7 @@
 export interface FrontendExecutionNotification {
   PipelineId: string;
   ExecutionId: string;
-  BlockId: string;
+  NodeId: string;
   OperationName: string;
   Successful: boolean;
   ExecutionTime: any;

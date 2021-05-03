@@ -2,18 +2,18 @@ import json
 
 import paho.mqtt.client as mqtt
 
-from src.models.simple_block_execution_request import SimpleBlockExecutionRequest
-from src.services.block_execution_service import BlockExecutionService
+from src.models.simple_node_execution_request import SimpleNodeExecutionRequest
+from src.services.node_execution_service import NodeExecutionService
 
 
 class MqttClientWrapper:
     logging = None
-    execution_service: BlockExecutionService
+    execution_service: NodeExecutionService
     client: mqtt.Client
     topic_name_sub: str
     topic_name_pub: str
 
-    def __init__(self, logging, execution_service: BlockExecutionService) -> None:
+    def __init__(self, logging, execution_service: NodeExecutionService) -> None:
         self.execution_service = execution_service
         self.logging = logging
 
@@ -45,7 +45,7 @@ class MqttClientWrapper:
 
     def on_message_callback(self, client, userdata, message):
         # TODO make this more robust (error handling, MQTT service level 2 ...)
-        request = SimpleBlockExecutionRequest(json.loads(message.payload))
+        request = SimpleNodeExecutionRequest(json.loads(message.payload))
 
         self.logging.debug("Received message on topic %s:\n%s" % (str(message.topic), request.to_json()))
 

@@ -5,9 +5,9 @@ namespace PipelineService.Services.Impl
 {
     public class HashService : IHashService
     {
-        public string ComputeHash(Block block)
+        public string ComputeHash(Node node)
         {
-            return HashHelper.ComputeStaticHash(block);
+            return HashHelper.ComputeStaticHash(node);
         }
     }
 }

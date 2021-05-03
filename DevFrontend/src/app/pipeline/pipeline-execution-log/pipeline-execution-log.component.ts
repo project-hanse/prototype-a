@@ -2,7 +2,7 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {MqttService} from 'ngx-mqtt';
 import {Observable} from 'rxjs';
 import {groupBy, map, scan, take} from 'rxjs/operators';
-import {FrontendExecutionNotification} from '../_model/FrontendExecutionNotification';
+import {FrontendExecutionNotification} from '../_model/frontend-execution-notification';
 
 @Component({
   selector: 'ph-pipeline-execution-log',

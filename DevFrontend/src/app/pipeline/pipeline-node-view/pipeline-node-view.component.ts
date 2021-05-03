@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Pipeline} from '../_model/pipeline';
-import {Block} from '../_model/block';
+import {PipelineNode} from '../_model/pipelineNode';
 import {Edge, Network, Node} from 'vis-network';
 import {Options} from 'vis-network/declarations/network/Network';
 
@@ -24,7 +24,7 @@ export class PipelineNodeViewComponent implements OnInit {
   }
 
   public renderGraph(id: string, pipeline: Pipeline): Network {
-    const nodesArray = new Array<Node>();
+    const nodesArray = new Array<PipelineNode>();
     const edgesArray = new Array<Edge>();
 
     this.buildArrays(nodesArray, edgesArray, pipeline.root);
@@ -62,7 +62,7 @@ export class PipelineNodeViewComponent implements OnInit {
     return new Network(container, data, options);
   }
 
-  private buildArrays(nodesArray: any[], edgesArray: any[], blocks: Block[], parentId: string = null): void {
+  private buildArrays(nodesArray: any[], edgesArray: any[], blocks: PipelineNode[], parentId: string = null): void {
     blocks.forEach(block => {
       nodesArray.push({id: block.id, label: block.operation});
       if (parentId) {

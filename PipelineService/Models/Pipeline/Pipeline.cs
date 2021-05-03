@@ -5,9 +5,9 @@ namespace PipelineService.Models.Pipeline
     public record Pipeline : BasePersistentModel
     {
         /// <summary>
-        /// The first (root) block in the pipeline.
+        /// The first (root) node in the pipeline.
         /// </summary>
-        public IList<Block> Root { get; set; }
+        public IList<Node> Root { get; set; }
 
         /// <summary>
         /// The pipeline's name.

@@ -28,7 +28,7 @@ namespace PipelineService.UnitTests.Services
         public void ComputeHash_WithInputDatasetId_ShouldComputeSameHash()
         {
             // arrange
-            var simpleBlock1 = new SimpleBlock
+            var simpleBlock1 = new SimpleNode
             {
                 PipelineId = Guid.Parse("81c21ab9-dd6d-41e0-bf78-9c87d05a7188"),
                 InputDatasetId = Guid.Parse("7a26d703-1942-42fd-8b46-54bac5bfc988"),
@@ -39,7 +39,7 @@ namespace PipelineService.UnitTests.Services
                 }
             };
 
-            var simpleBlock2 = new SimpleBlock
+            var simpleBlock2 = new SimpleNode
             {
                 PipelineId = Guid.Parse("81c21ab9-dd6d-41e0-bf78-9c87d05a7188"),
                 InputDatasetId = Guid.Parse("7a26d703-1942-42fd-8b46-54bac5bfc988"),
@@ -64,7 +64,7 @@ namespace PipelineService.UnitTests.Services
         public void ComputeHash_WithInputDatasetHash_ShouldComputeSameHash()
         {
             // arrange
-            var simpleBlock1 = new SimpleBlock
+            var simpleBlock1 = new SimpleNode
             {
                 PipelineId = Guid.Parse("81c21ab9-dd6d-41e0-bf78-9c87d05a7188"),
                 InputDatasetHash = "21e90095cce54b21fc55067f904d8e2d61d869956d363efa3d2c9d7a5419b408",
@@ -75,7 +75,7 @@ namespace PipelineService.UnitTests.Services
                 }
             };
 
-            var simpleBlock2 = new SimpleBlock
+            var simpleBlock2 = new SimpleNode
             {
                 PipelineId = Guid.Parse("81c21ab9-dd6d-41e0-bf78-9c87d05a7188"),
                 InputDatasetHash = "21e90095cce54b21fc55067f904d8e2d61d869956d363efa3d2c9d7a5419b408",
@@ -100,7 +100,7 @@ namespace PipelineService.UnitTests.Services
         public void ComputeHash_WithInputDatasetId_ShouldComputeDifferentHashes()
         {
             // arrange
-            var simpleBlock1 = new SimpleBlock
+            var simpleBlock1 = new SimpleNode
             {
                 PipelineId = Guid.Parse("81c21ab9-dd6d-41e0-bf78-9c87d05a7188"),
                 InputDatasetId = Guid.Parse("7a26d703-1942-42fd-8b46-54bac5bfc988"),
@@ -111,7 +111,7 @@ namespace PipelineService.UnitTests.Services
                 }
             };
 
-            var simpleBlock2 = new SimpleBlock
+            var simpleBlock2 = new SimpleNode
             {
                 PipelineId = Guid.Parse("81c21ab9-dd6d-41e0-bf78-9c87d05a7188"),
                 InputDatasetId = Guid.Parse("37f245f4-7b93-4ec9-9da9-c8f042b40df9"),

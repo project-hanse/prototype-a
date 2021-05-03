@@ -2,7 +2,7 @@ using System;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public class SimpleBlockExecutionResponse : BlockExecutionResponse
+    public class SimpleNodeExecutionResponse : NodeExecutionResponse
     {
 
         /// <summary>
