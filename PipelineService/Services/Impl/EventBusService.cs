@@ -81,5 +81,11 @@ namespace PipelineService.Services.Impl
                 }
             });
         }
+
+        public async Task StopAsync()
+        {
+            _logger.LogInformation("Stopping MQTT client");
+            await Client.StopAsync();
+        }
     }
 }

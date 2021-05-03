@@ -27,18 +27,18 @@ namespace PipelineService.Services.Impl
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _eventBusService.Subscribe<SimpleNodeExecutionResponse>(
+            await _eventBusService.Subscribe<NodeExecutionResponse>(
                 "executed/+/+",
                 async m => { await _pipelineExecutionService.HandleExecutionResponse(m); });
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Shutting down...");
-            
-            // TODO: shutdown client
+            cancellationToken.ThrowIfCancellationRequested();
 
-            return Task.CompletedTask;
+            // TODO: shutdown client
+            await _eventBusService.StopAsync();
         }
     }
 }
