@@ -22,7 +22,7 @@ class InMemoryStore:
 
         self.logger.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
 
-        df = pd.read_csv(filename)
+        df = pd.read_csv(filename, sep=self.get_sep(file))
         self.store[dataframe_id] = df
 
     def get_dataset_count(self):
@@ -50,3 +50,16 @@ class InMemoryStore:
     def store_data_set(self, key: str, data):
         self.logger.info("Storing data with key %s of shape %s" % (key, data.shape))
         self.store[key] = data
+
+    @staticmethod
+    def get_sep(file: str):
+        """
+        Checks if a given file (assuming it's a csv file) is separated by , or ;
+        """
+        # TODO: this should be made much more efficient but works for now
+        df_comma = pd.read_csv(file, nrows=1, sep=",")
+        df_semi = pd.read_csv(file, nrows=1, sep=";")
+        if df_comma.shape[1] > df_semi.shape[1]:
+            return ','
+        else:
+            return ';'
