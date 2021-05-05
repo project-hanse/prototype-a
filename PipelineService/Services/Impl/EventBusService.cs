@@ -70,14 +70,23 @@ namespace PipelineService.Services.Impl
                 try
                 {
                     var message =
-                        JsonConvert.DeserializeObject<T>(Encoding.Default.GetString(a.ApplicationMessage.Payload));
+                        JsonConvert.DeserializeObject<T>(Encoding.Default.GetString(a.ApplicationMessage.Payload),
+                            new JsonSerializerSettings
+                            {
+                                TypeNameHandling = TypeNameHandling.Auto,
+                                NullValueHandling = NullValueHandling.Ignore,
+                            });
 
                     await handler(message);
                 }
-                catch (Exception e)
+                catch (JsonSerializationException e)
                 {
                     // TODO: Do proper exception handling
-                    Console.Error.WriteLine(e);
+                    _logger.LogError("Failed to deserialize message - {@ErrorMessage}", e);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("General error while handling message - {@ErrorMessage}", e);
                 }
             });
         }

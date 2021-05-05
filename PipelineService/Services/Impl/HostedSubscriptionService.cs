@@ -27,7 +27,7 @@ namespace PipelineService.Services.Impl
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _eventBusService.Subscribe<NodeExecutionResponse>(
+            await _eventBusService.Subscribe<NodeExecutionResponseSingleInput>(
                 "executed/+/+",
                 async m => { await _pipelineExecutionService.HandleExecutionResponse(m); });
         }
@@ -37,7 +37,6 @@ namespace PipelineService.Services.Impl
             _logger.LogInformation("Shutting down...");
             cancellationToken.ThrowIfCancellationRequested();
 
-            // TODO: shutdown client
             await _eventBusService.StopAsync();
         }
     }

@@ -11,6 +11,8 @@ namespace PipelineService.Models.Pipeline
         private static readonly Guid DsIdMelbourneHousingFull = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee");
         private static readonly Guid DsIdMelbourneHousePricesLess = Guid.Parse("0c2acbdb-544b-4efc-ae54-c2dcba988654");
         private static readonly Guid DsIdInfluencaVienna20092018 = Guid.Parse("4cfd0698-004a-404e-8605-de2f830190f2");
+        private static readonly Guid DsIdChemnitzBerufsbildung1993 = Guid.Parse("2b88720f-8d2d-46c8-84d2-ab177c88cb5f");
+        private static readonly Guid DsIdChemnitzStudenten1993 = Guid.Parse("61501213-d945-49a5-9212-506d6305af13");
 
         public static Pipeline MelbourneHousingPipeline(Guid pipelineId = default)
         {
@@ -19,7 +21,7 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var cleanUp = new SimpleNode
+            var cleanUp = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdMelbourneHousingFull,
@@ -31,7 +33,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            var select = new SimpleNode
+            var select = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = cleanUp.ResultKey,
@@ -43,7 +45,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            var describe = new SimpleNode
+            var describe = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = select.ResultKey,
@@ -72,7 +74,7 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var interpolate = new SimpleNode
+            var interpolate = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdInfluencaVienna20092018,
@@ -84,7 +86,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            var select = new SimpleNode
+            var select = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = interpolate.ResultKey,
@@ -114,7 +116,7 @@ namespace PipelineService.Models.Pipeline
             var pipeline = MelbourneHousingPipeline(pipelineId);
             pipeline.Name = "Invalid: Melbourne Housing Data";
 
-            var unknownOperation = new SimpleNode
+            var unknownOperation = new SingleInputNode
             {
                 PipelineId = pipeline.Id,
                 InputDatasetId = DsIdMelbourneHousePricesLess,
@@ -123,7 +125,7 @@ namespace PipelineService.Models.Pipeline
                 OperationConfiguration = new Dictionary<string, string>()
             };
 
-            var describe = new SimpleNode
+            var describe = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = unknownOperation.ResultKey,
@@ -134,6 +136,49 @@ namespace PipelineService.Models.Pipeline
             unknownOperation.Successors.Add(describe);
             pipeline.Root[0].Successors.Add(unknownOperation);
             return pipeline;
+        }
+
+        public static Pipeline ChemnitzStudentAndJobsPipeline(Guid pipelineId = default)
+        {
+            if (pipelineId == default)
+            {
+                pipelineId = Guid.NewGuid();
+            }
+
+            var cleanupBerufsbildung = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetId = DsIdChemnitzBerufsbildung1993,
+                Operation = "dropna",
+                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"axis", "0"}
+                },
+            };
+
+            var cleanupStudenten = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetId = DsIdChemnitzStudenten1993,
+                Operation = "dropna",
+                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"axis", "0"}
+                },
+            };
+
+            return new Pipeline
+            {
+                Id = pipelineId,
+                Name = "Chemnitz Students and Jobs",
+                Root = new List<Node>
+                {
+                    cleanupBerufsbildung,
+                    cleanupStudenten
+                }
+            };
         }
     }
 }

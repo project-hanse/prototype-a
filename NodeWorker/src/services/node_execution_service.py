@@ -4,8 +4,8 @@ import uuid
 
 import pandas as pd
 
-from src.models.simple_node_execution_request import SimpleNodeExecutionRequest
-from src.models.simple_node_execution_response import SimpleNodeExecutionResponse
+from src.models.node_execution_request_single_input import NodeExecutionRequestSingleInput
+from src.models.node_execution_response_single_input import NodeExecutionResponseSingleInput
 from src.services.dateset_service_client import DatasetServiceClient
 from src.services.operation_service import OperationService
 
@@ -22,11 +22,11 @@ class NodeExecutionService:
         self.operation_service = operation_service
         super().__init__()
 
-    def handle_simple_request(self, request: SimpleNodeExecutionRequest) -> SimpleNodeExecutionResponse:
+    def handle_simple_request(self, request: NodeExecutionRequestSingleInput) -> NodeExecutionResponseSingleInput:
         self.count += 1
         self.logger.debug("Handling request %d" % self.count)
 
-        response = SimpleNodeExecutionResponse()
+        response = NodeExecutionResponseSingleInput()
         response.set_pipeline_id(request.pipeline_id)
         response.set_node_id(request.node_id)
         response.set_execution_id(request.execution_id)
@@ -56,7 +56,7 @@ class NodeExecutionService:
 
             self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
 
-            response.set_result_dataset_id(str(uuid.uuid4()))
+            response.set_dataset_producing_hash(request.get_result_key())
             response.set_successful(True)
         except Exception as e:
             self.logger.warning("Failed to execute operation %s: %s" % (operation, str(e)))

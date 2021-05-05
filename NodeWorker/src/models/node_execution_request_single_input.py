@@ -1,7 +1,7 @@
 from src.models.node_execution_request import NodeExecutionRequest
 
 
-class SimpleNodeExecutionRequest(NodeExecutionRequest):
+class NodeExecutionRequestSingleInput(NodeExecutionRequest):
 
     def __init__(self, deserialized: dict):
         super().__init__(deserialized)

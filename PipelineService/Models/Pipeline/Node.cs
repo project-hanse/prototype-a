@@ -36,5 +36,10 @@ namespace PipelineService.Models.Pipeline
         /// Any value returned here will be included in the hash value of this object.
         /// </summary>
         public abstract string IncludeInHash { get; }
+        
+        protected static string IdOrHash(Guid? datasetId, string datasetHash)
+        {
+            return datasetId.HasValue ? datasetId.Value.ToString() : datasetHash;
+        }
     }
 }

@@ -110,7 +110,7 @@ namespace PipelineService.Services.Impl
             }
 
             string resultKey = null;
-            if (blockExecutionRecord?.Node is SimpleNode simpleBlock)
+            if (blockExecutionRecord?.Node is SingleInputNode simpleBlock)
             {
                 resultKey = simpleBlock.ResultKey;
             }
@@ -223,9 +223,9 @@ namespace PipelineService.Services.Impl
 
             NodeExecutionRequest request;
             // TODO: This can be solved in a nicer way by implementing eg the Visitor pattern 
-            if (node.GetType() == typeof(SimpleNode))
+            if (node.GetType() == typeof(SingleInputNode))
             {
-                request = ExecutionRequestFromNode(executionId, (SimpleNode) node);
+                request = ExecutionRequestFromNode(executionId, (SingleInputNode) node);
             }
             else
             {
@@ -333,7 +333,7 @@ namespace PipelineService.Services.Impl
             return ids;
         }
 
-        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, SimpleNode node)
+        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, SingleInputNode node)
         {
             // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
             if (!node.InputDatasetId.HasValue && string.IsNullOrEmpty(node.InputDatasetHash))
