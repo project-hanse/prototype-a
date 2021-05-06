@@ -14,6 +14,10 @@ namespace PipelineService.Models.Pipeline
         private static readonly Guid DsIdChemnitzBerufsbildung1993 = Guid.Parse("2b88720f-8d2d-46c8-84d2-ab177c88cb5f");
         private static readonly Guid DsIdChemnitzStudenten1993 = Guid.Parse("61501213-d945-49a5-9212-506d6305af13");
 
+        private static readonly Guid OpIdPdSingleGeneric = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62");
+        private static readonly Guid OpIdPdSingleTrim = Guid.Parse("5c9b34fc-ac4f-4290-9dfe-418647509559");
+        private static readonly Guid OpIdPdSingleMakeColumnHeader = Guid.Parse("db8b6a9d-d01f-4328-b971-fa56ac350320");
+
         public static Pipeline MelbourneHousingPipeline(Guid pipelineId = default)
         {
             if (pipelineId == default)
@@ -26,7 +30,7 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdMelbourneHousingFull,
                 Operation = "dropna",
-                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     {"axis", "0"}
@@ -50,7 +54,7 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetHash = select.ResultKey,
                 Operation = "describe",
-                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                OperationId = OpIdPdSingleGeneric,
             };
 
             cleanUp.Successors.Add(select);
@@ -79,7 +83,7 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdInfluencaVienna20092018,
                 Operation = "interpolate",
-                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     {"method", "linear"}
@@ -130,7 +134,7 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetHash = unknownOperation.ResultKey,
                 Operation = "describe",
-                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                OperationId = OpIdPdSingleGeneric,
             };
 
             unknownOperation.Successors.Add(describe);
@@ -145,29 +149,83 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var cleanupBerufsbildung = new SingleInputNode
+            // Data cleaning Berufsbildung
+            var trimBerufsbildung = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdChemnitzBerufsbildung1993,
-                Operation = "dropna",
-                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                Operation = "trim",
+                OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    {"first_n", "5"}
                 },
             };
 
-            var cleanupStudenten = new SingleInputNode
+            var setHeaderBerufsbildung = new SingleInputNode
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdChemnitzStudenten1993,
+                InputDatasetHash = trimBerufsbildung.ResultKey,
+                Operation = "set_header",
+                OperationId = OpIdPdSingleMakeColumnHeader,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"header_row", "0"}
+                }
+            };
+            trimBerufsbildung.Successors.Add(setHeaderBerufsbildung);
+
+            var dropNaBerufsbildung = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = setHeaderBerufsbildung.ResultKey,
                 Operation = "dropna",
-                OperationId = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62"),
+                OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     {"axis", "0"}
                 },
             };
+            setHeaderBerufsbildung.Successors.Add(dropNaBerufsbildung);
+
+            // Data Cleaning Studenten
+            var trimStudenten = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetId = DsIdChemnitzStudenten1993,
+                Operation = "trim",
+                OperationId = OpIdPdSingleTrim,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"first_n", "5"}
+                },
+            };
+
+            var setHeaderStudenten = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = trimBerufsbildung.ResultKey,
+                Operation = "set_header",
+                OperationId = OpIdPdSingleMakeColumnHeader,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"header_row", "0"}
+                }
+            };
+            trimStudenten.Successors.Add(setHeaderStudenten);
+
+            var dropNaStudenten = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = trimStudenten.ResultKey,
+                Operation = "dropna",
+                OperationId = OpIdPdSingleGeneric,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"axis", "0"}
+                },
+            };
+            setHeaderStudenten.Successors.Add(dropNaStudenten);
 
             return new Pipeline
             {
@@ -175,8 +233,8 @@ namespace PipelineService.Models.Pipeline
                 Name = "Chemnitz Students and Jobs",
                 Root = new List<Node>
                 {
-                    cleanupBerufsbildung,
-                    cleanupStudenten
+                    trimBerufsbildung,
+                    trimStudenten
                 }
             };
         }

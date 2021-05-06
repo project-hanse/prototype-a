@@ -48,6 +48,7 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
           }),
           scan((acc, val) => {
             acc.push(val);
+            // TODO display number of nodes in pipeline
             return acc.slice(-5);
           }, [])
         );

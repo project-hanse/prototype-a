@@ -38,6 +38,16 @@ def dataset_by_id(dataset_id: str):
     return jsonpify(df_list)
 
 
+@app.route('/api/datasets/html/<dataset_id>', methods=['GET'])
+def dataset_as_html_by_id(dataset_id: str):
+    df = store.get_by_id(dataset_id)
+
+    if df is None:
+        abort(404)
+
+    return df.to_html()
+
+
 @app.route('/api/datasets/hash/<producing_hash>', methods=['GET', 'POST'])
 def dataset_by_hash(producing_hash: str):
     if request.method == 'GET':

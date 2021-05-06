@@ -18,7 +18,7 @@
         <mat-icon mat-list-icon>{{e.Successful ? 'check' : 'error'}}</mat-icon>
         <div mat-line>{{e.OperationName}} </div>
         <div mat-line>
-          <a *ngIf="e.Successful" target="_blank" [href]="'http://localhost:5002/api/datasets/'+e.ResultDatasetKey">
+          <a *ngIf="e.Successful" target="_blank" [href]="'http://localhost:5002/api/datasets/html/'+e.ResultDatasetKey">
             Result Dataset
           </a>
           <span *ngIf="e.ErrorDescription" style="color: red">{{e.ErrorDescription}}</span>
