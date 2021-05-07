@@ -11,7 +11,7 @@ from src.services.operation_service import OperationService
 MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
 MQTT_PORT: int = os.getenv("MQTT_PORT", 1883)
 CLIENT_ID: str = os.getenv("MQTT_CLIENT_ID", ("NodeWorker-" + str(uuid.uuid4())))
-TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+")
+TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+/+")
 TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "executed")
 DATASET_HOST: str = os.getenv("DATASET_HOST", "dataset-service")
 DATASET_PORT: int = os.getenv("DATASET_PORT", 5002)

@@ -2,6 +2,7 @@ import json
 
 import paho.mqtt.client as mqtt
 
+from src.models.node_execution_request_double_input import NodeExecutionRequestDoubleInput
 from src.models.node_execution_request_single_input import NodeExecutionRequestSingleInput
 from src.services.node_execution_service import NodeExecutionService
 
@@ -45,11 +46,28 @@ class MqttClientWrapper:
 
     def on_message_callback(self, client, userdata, message):
         # TODO make this more robust (error handling, MQTT service level 2 ...)
-        request = NodeExecutionRequestSingleInput(json.loads(message.payload))
+        self.logging.debug("Received message on topic %s:\n%s" % (str(message.topic), message.payload))
 
-        self.logging.debug("Received message on topic %s:\n%s" % (str(message.topic), request.to_json()))
+        try:
+            payload_deserialized = json.loads(message.payload)
+        except Exception as e:
+            self.logging.error("Error during deserialization of payload %s" % str(e))
+            self.publish_error_message(str(e))
+            return
 
-        response = self.execution_service.handle_simple_request(request)
+        # TODO this contains hardcoded strings that might change in the config (MQTT_TOPIC_SUB);
+        #  - Possible solution: validate at startup?
+        if message.topic.endswith("single"):
+            request = NodeExecutionRequestSingleInput(payload_deserialized)
+            response = self.execution_service.handle_single_input_request(request)
+        elif message.topic.endswith("double"):
+            request = NodeExecutionRequestDoubleInput(payload_deserialized)
+            response = self.execution_service.handle_double_input_request(request)
+        else:
+            self.logging.error("Got message that can not be processed by this worker")
+            self.publish_error_message("Unknown message")
+            # TODO: requeue message
+            return
 
         topic = ("%s/%s/%s" % (self.topic_name_pub, request.get_pipeline_id(), request.get_pipeline_id()))
 
@@ -58,6 +76,10 @@ class MqttClientWrapper:
         self.logging.debug("Publishing to topic %s with payload %s" % (topic, payload_serialized))
 
         client.publish(topic, payload=payload_serialized, qos=0)
+
+    def publish_error_message(self, message: str):
+        self.logging.debug("Publishing error '%s' to event bus" % message)
+        # TODO: implement me
 
     def on_publish_callback(self, client, userdata, mid):
         self.logging.debug("Published message %i" % mid)

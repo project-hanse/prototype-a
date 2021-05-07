@@ -257,6 +257,7 @@ namespace PipelineService.Models.Pipeline
 
             var join = new DoubleInputNode
             {
+                PipelineId = pipelineId,
                 InputDatasetOneHash = trim2Berufsbildung.ResultKey,
                 InputDatasetTwoHash = trim2Studenten.ResultKey,
                 Operation = "join",

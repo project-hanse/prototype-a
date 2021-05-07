@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -226,13 +227,17 @@ namespace PipelineService.Services.Impl
             if (node.GetType() == typeof(SingleInputNode))
             {
                 request = ExecutionRequestFromNode(executionId, (SingleInputNode) node);
+                await _eventBusService.PublishMessage($"execute/{node.PipelineId}/single", request);
+            }
+            else if (node.GetType() == typeof(DoubleInputNode))
+            {
+                request = ExecutionRequestFromNode(executionId, (DoubleInputNode) node);
+                await _eventBusService.PublishMessage($"execute/{node.PipelineId}/double", request);
             }
             else
             {
                 throw new InvalidOperationException($"Type {node.GetType()} is not supported");
             }
-
-            await _eventBusService.PublishMessage($"execute/{node.PipelineId}", request);
         }
 
         /// <summary>
@@ -340,7 +345,7 @@ namespace PipelineService.Services.Impl
             {
                 _logger.LogWarning("Node {NodeId} has neither an input dataset id nor a producing node hash",
                     node.Id);
-                throw new Exception("Node has neither an input dataset id nor a producing node hash");
+                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
             }
 
             return new NodeExecutionRequestSingleInput
@@ -354,6 +359,41 @@ namespace PipelineService.Services.Impl
                 ResultKey = node.ResultKey,
                 InputDataSetHash = node.InputDatasetHash,
                 InputDataSetId = node.InputDatasetId,
+            };
+        }
+
+        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, DoubleInputNode node)
+        {
+            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
+            if (!node.InputDatasetOneId.HasValue && string.IsNullOrEmpty(node.InputDatasetOneHash))
+            {
+                _logger.LogWarning(
+                    "Node {NodeId} has neither an input dataset id nor a producing node hash for the first dataset",
+                    node.Id);
+                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
+            }
+
+            if (!node.InputDatasetTwoId.HasValue && string.IsNullOrEmpty(node.InputDatasetTwoHash))
+            {
+                _logger.LogWarning(
+                    "Node {NodeId} has neither an input dataset id nor a producing node hash for the second dataset",
+                    node.Id);
+                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
+            }
+
+            return new NodeExecutionRequestDoubleInput
+            {
+                PipelineId = node.PipelineId,
+                NodeId = node.Id,
+                ExecutionId = executionId,
+                OperationName = node.Operation,
+                OperationId = node.OperationId,
+                OperationConfiguration = node.OperationConfiguration,
+                ResultKey = node.ResultKey,
+                InputDataSetOneHash = node.InputDatasetOneHash,
+                InputDataSetOneId = node.InputDatasetOneId,
+                InputDataSetTwoHash = node.InputDatasetTwoHash,
+                InputDataSetTwoId = node.InputDatasetTwoId
             };
         }
     }

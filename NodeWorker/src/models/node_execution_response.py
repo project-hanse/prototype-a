@@ -29,6 +29,9 @@ class NodeExecutionResponse(Message):
     def set_successful(self, successful: bool):
         self.successful = successful
 
+    def get_successful(self) -> bool:
+        return self.successful
+
     def set_start_time(self, start_time: datetime):
         self.start_time = start_time
 
