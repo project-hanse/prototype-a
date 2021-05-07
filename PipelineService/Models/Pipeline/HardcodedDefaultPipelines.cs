@@ -17,6 +17,7 @@ namespace PipelineService.Models.Pipeline
         private static readonly Guid OpIdPdSingleGeneric = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62");
         private static readonly Guid OpIdPdSingleTrim = Guid.Parse("5c9b34fc-ac4f-4290-9dfe-418647509559");
         private static readonly Guid OpIdPdSingleMakeColumnHeader = Guid.Parse("db8b6a9d-d01f-4328-b971-fa56ac350320");
+        private static readonly Guid OpIdPdDoubleJoin = Guid.Parse("9acea312-713e-4de8-b8db-5d33613ab2f1");
 
         public static Pipeline MelbourneHousingPipeline(Guid pipelineId = default)
         {
@@ -253,6 +254,18 @@ namespace PipelineService.Models.Pipeline
                 },
             };
             dropNaStudenten.Successors.Add(trim2Studenten);
+
+            var join = new DoubleInputNode
+            {
+                InputDatasetOneHash = trim2Berufsbildung.ResultKey,
+                InputDatasetTwoHash = trim2Studenten.ResultKey,
+                Operation = "join",
+                OperationId = OpIdPdDoubleJoin,
+                OperationConfiguration = new Dictionary<string, string>()
+            };
+
+            trim2Berufsbildung.Successors.Add(join);
+            trim2Studenten.Successors.Add(join);
 
             return new Pipeline
             {
