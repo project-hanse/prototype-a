@@ -150,7 +150,7 @@ namespace PipelineService.Models.Pipeline
             }
 
             // Data cleaning Berufsbildung
-            var trimBerufsbildung = new SingleInputNode
+            var trim1Berufsbildung = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdChemnitzBerufsbildung1993,
@@ -165,7 +165,7 @@ namespace PipelineService.Models.Pipeline
             var setHeaderBerufsbildung = new SingleInputNode
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = trimBerufsbildung.ResultKey,
+                InputDatasetHash = trim1Berufsbildung.ResultKey,
                 Operation = "set_header",
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
@@ -173,7 +173,7 @@ namespace PipelineService.Models.Pipeline
                     {"header_row", "0"}
                 }
             };
-            trimBerufsbildung.Successors.Add(setHeaderBerufsbildung);
+            trim1Berufsbildung.Successors.Add(setHeaderBerufsbildung);
 
             var dropNaBerufsbildung = new SingleInputNode
             {
@@ -188,8 +188,22 @@ namespace PipelineService.Models.Pipeline
             };
             setHeaderBerufsbildung.Successors.Add(dropNaBerufsbildung);
 
+            var trim2Berufsbildung = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = dropNaBerufsbildung.ResultKey,
+                Operation = "trim",
+                OperationId = OpIdPdSingleTrim,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"first_n", "1"}
+                },
+            };
+
+            dropNaBerufsbildung.Successors.Add(trim2Berufsbildung);
+
             // Data Cleaning Studenten
-            var trimStudenten = new SingleInputNode
+            var trim1Studenten = new SingleInputNode
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdChemnitzStudenten1993,
@@ -204,7 +218,7 @@ namespace PipelineService.Models.Pipeline
             var setHeaderStudenten = new SingleInputNode
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = trimBerufsbildung.ResultKey,
+                InputDatasetHash = trim1Berufsbildung.ResultKey,
                 Operation = "set_header",
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
@@ -212,12 +226,12 @@ namespace PipelineService.Models.Pipeline
                     {"header_row", "0"}
                 }
             };
-            trimStudenten.Successors.Add(setHeaderStudenten);
+            trim1Studenten.Successors.Add(setHeaderStudenten);
 
             var dropNaStudenten = new SingleInputNode
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = trimStudenten.ResultKey,
+                InputDatasetHash = trim1Studenten.ResultKey,
                 Operation = "dropna",
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
@@ -227,14 +241,27 @@ namespace PipelineService.Models.Pipeline
             };
             setHeaderStudenten.Successors.Add(dropNaStudenten);
 
+            var trim2Studenten = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = dropNaStudenten.ResultKey,
+                Operation = "trim",
+                OperationId = OpIdPdSingleTrim,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"first_n", "1"}
+                },
+            };
+            dropNaStudenten.Successors.Add(trim2Studenten);
+
             return new Pipeline
             {
                 Id = pipelineId,
                 Name = "Chemnitz Students and Jobs",
                 Root = new List<Node>
                 {
-                    trimBerufsbildung,
-                    trimStudenten
+                    trim1Berufsbildung,
+                    trim1Studenten
                 }
             };
         }

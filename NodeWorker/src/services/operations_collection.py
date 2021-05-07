@@ -41,7 +41,7 @@ class OperationsCollection:
 
         df.columns = df.iloc[header_row]
         df = df.drop(header_row)
-        df = df.reset_index()
+        df = df.reset_index(drop=True)
         return df
 
     @staticmethod
