@@ -56,7 +56,7 @@ class OperationsCollection:
         if "last_n" in operation_config:
             df = df.iloc[operation_config["last_n"]:]
 
-        return df
+        return df.reset_index(drop=True)
 
     @staticmethod
     def pd_single_input_select_columns(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
@@ -86,3 +86,35 @@ class OperationsCollection:
             raise ValidationError("Missing select_value in config")
 
         return df.loc[df[operation_config["column_name"]] == operation_config["select_value"]]
+
+    @staticmethod
+    def pd_double_input_join(logger: logging,
+                             operation_name: str,
+                             operation_config: dict,
+                             df_one: pd.DataFrame,
+                             df_two: pd.DataFrame):
+        """
+        Joins dataset two onto dataset one.
+        """
+        logger.info("Executing pandas operation pd_double_input_join (%s)" % operation_name)
+
+        if "on" not in operation_config:
+            raise ValidationError("Missing on in config")
+        join_on = operation_config["on"]
+
+        if "lsuffix" in operation_config:
+            lsuffix = operation_config["lsuffix"]
+        else:
+            lsuffix = "_left"
+
+        if "rsuffix" in operation_config:
+            rsuffix = operation_config["rsuffix"]
+        else:
+            rsuffix = "_right"
+
+        # TODO: add prefix options
+
+        df_one_reindex = df_one.set_index(join_on)
+        df_two_reindex = df_two.set_index(join_on)
+
+        return df_one_reindex.join(df_two_reindex, lsuffix=lsuffix, rsuffix=rsuffix)

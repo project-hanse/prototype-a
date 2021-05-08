@@ -4,7 +4,7 @@ Absolventen, Hochschularten/Hochschulen, Geschlecht;;;;;;;;;;;;;
 Statistik der Studenten;;;;;;;;;;;;;
 Freistaat Sachsen;;;;;;;;;;;;;
 Anzahl Studierende (Anzahl);;;;;;;;;;;;;
-Typ;Jahr;Studenten im Wintersemester;Studenten im Wintersemester;Studenten im Wintersemester;Studienanfänger im 1. Hochschulsemester;Studienanfänger im 1. Hochschulsemester;Studienanfänger im 1. Hochschulsemester;Studenten im 1. Fachsemester;Studenten im 1. Fachsemester;Studenten im 1. Fachsemester;Absolventen;Absolventen;Absolventen
+Typ;Jahr;Studenten im Wintersemester;Studenten im Wintersemester (männlich);Studenten im Wintersemester (weiblich);Studienanfänger im 1. Hochschulsemester;Studienanfänger im 1. Hochschulsemester (männlich);Studienanfänger im 1. Hochschulsemester (weiblich);Studenten im 1. Fachsemester;Studenten im 1. Fachsemester (männlich);Studenten im 1. Fachsemester (weiblich);Absolventen;Absolventen (männlich);Absolventen (weiblich)
 ;;Insgesamt;männlich;weiblich;Insgesamt;männlich;weiblich;Insgesamt;männlich;weiblich;Insgesamt;männlich;weiblich
 Insgesamt;1993;58746;33964;24782;12099;6490;5609;13031;6927;6104;7448;4600;2848
 Insgesamt;1994;63549;36521;27028;13175;7231;5944;14383;7692;6691;7988;4460;3528

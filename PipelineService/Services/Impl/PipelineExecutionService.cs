@@ -101,6 +101,7 @@ namespace PipelineService.Services.Impl
             await NotifyFrontend(response);
         }
 
+        // TODO this method should be independent of response type -> no switch for types
         private async Task NotifyFrontend(NodeExecutionResponse response)
         {
             var executionRecord = await _pipelineExecutionDao.Get(response.ExecutionId);
@@ -111,9 +112,14 @@ namespace PipelineService.Services.Impl
             }
 
             string resultKey = null;
-            if (blockExecutionRecord?.Node is SingleInputNode simpleBlock)
+            switch (blockExecutionRecord?.Node)
             {
-                resultKey = simpleBlock.ResultKey;
+                case SingleInputNode singleInputNode:
+                    resultKey = singleInputNode.ResultKey;
+                    break;
+                case DoubleInputNode doubleInputNode:
+                    resultKey = doubleInputNode.ResultKey;
+                    break;
             }
 
             await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",

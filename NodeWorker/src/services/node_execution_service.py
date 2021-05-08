@@ -4,8 +4,10 @@ import logging
 import pandas as pd
 
 from src.models.node_execution_request import NodeExecutionRequest
+from src.models.node_execution_request_double_input import NodeExecutionRequestDoubleInput
 from src.models.node_execution_request_single_input import NodeExecutionRequestSingleInput
 from src.models.node_execution_response import NodeExecutionResponse
+from src.models.node_execution_response_double_input import NodeExecutionResponseDoubleInput
 from src.models.node_execution_response_single_input import NodeExecutionResponseSingleInput
 from src.services.dateset_service_client import DatasetServiceClient
 from src.services.operation_service import OperationService
@@ -30,13 +32,11 @@ class NodeExecutionService:
         response = NodeExecutionResponseSingleInput()
         self.set_initial_response_values(request, response)
 
-        df_id = request.get_input_dataset_id()
-        df_hash = request.get_input_dataset_hash()
-
-        # Loading dataset from dedicated service (using successful state to check if loading was successful)
-        response.set_successful(True)
-        dataset = self.load_dataset_from_service(df_hash, df_id, response)
-        if not response.get_successful():
+        # Loading dataset from dedicated service
+        dataset = self.load_dataset_from_service(request.get_input_dataset_id(),
+                                                 request.get_input_dataset_hash(),
+                                                 response)
+        if dataset is None:
             # Dataset loading not successful -> returning error message
             return response
 
@@ -45,8 +45,10 @@ class NodeExecutionService:
 
         # Executing operation
         try:
-            resulting_dataset = self.execute_simple_operation(
-                dataset, operation, request.operation_id, operation_config)
+            resulting_dataset = self.execute_single_input_operation(dataset,
+                                                                    operation,
+                                                                    request.operation_id,
+                                                                    operation_config)
 
             self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
 
@@ -61,9 +63,49 @@ class NodeExecutionService:
 
         return response
 
-    def handle_double_input_request(self, request):
+    def handle_double_input_request(self, request: NodeExecutionRequestDoubleInput):
         self.count += 1
-        self.logger.debug("Handling request for single input operation %d" % self.count)
+        self.logger.debug("Handling request for double input operation %d" % self.count)
+        response = NodeExecutionResponseDoubleInput()
+        self.set_initial_response_values(request, response)
+
+        dataset_one = self.load_dataset_from_service(request.get_input_dataset_one_id(),
+                                                     request.get_input_dataset_one_hash(),
+                                                     response)
+        if dataset_one is None:
+            # Dataset loading not successful -> returning error message
+            return response
+
+        dataset_two = self.load_dataset_from_service(request.get_input_dataset_two_id(),
+                                                     request.get_input_dataset_two_hash(),
+                                                     response)
+        if dataset_two is None:
+            # Dataset loading not successful -> returning error message
+            return response
+
+        operation = request.get_operation_name()
+        operation_config = self.preprocess_operation_config(request.get_operation_configuration())
+
+        # Executing operation
+        try:
+            resulting_dataset = self.execute_double_input_operation(dataset_one,
+                                                                    dataset_two,
+                                                                    operation,
+                                                                    request.operation_id,
+                                                                    operation_config)
+
+            self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
+
+            response.set_dataset_producing_hash(request.get_result_key())
+            response.set_successful(True)
+        except Exception as e:
+            self.logger.warning("Failed to execute operation %s: %s" % (operation, str(e)))
+            response.set_successful(False)
+            response.set_error_description(str(e))
+
+        response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
+
+        return response
 
     def set_initial_response_values(self, request: NodeExecutionRequest, response: NodeExecutionResponse):
         self.logger.debug("Generating basic response message")
@@ -73,10 +115,11 @@ class NodeExecutionService:
         response.set_successful(True)
         response.set_start_time(datetime.datetime.now(datetime.timezone.utc))
 
-    def execute_simple_operation(self, df: pd.DataFrame,
-                                 operation_name: str,
-                                 operation_id: str,
-                                 operation_config: dict):
+    # TODO: Merge execute_*_input_operation methods
+    def execute_single_input_operation(self, df: pd.DataFrame,
+                                       operation_name: str,
+                                       operation_id: str,
+                                       operation_config: dict):
         self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
 
         operation_callable = self.operation_service.get_simple_operation_by_id(operation_id)
@@ -86,7 +129,22 @@ class NodeExecutionService:
 
         return resulting_dataset
 
-    def load_dataset_from_service(self, df_hash: str, df_id: str, response: NodeExecutionResponse) -> pd.DataFrame:
+    def execute_double_input_operation(self,
+                                       df_one: pd.DataFrame,
+                                       df_two: pd.DataFrame,
+                                       operation_name: str,
+                                       operation_id: str,
+                                       operation_config: dict):
+        self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
+
+        operation_callable = self.operation_service.get_simple_operation_by_id(operation_id)
+
+        # TODO catch method signature mismatch exception
+        resulting_dataset = operation_callable(self.logger, operation_name, operation_config, df_one, df_two)
+
+        return resulting_dataset
+
+    def load_dataset_from_service(self, df_id: str, df_hash: str, response: NodeExecutionResponse) -> pd.DataFrame:
         dataset = None
         try:
             if df_id is not None:

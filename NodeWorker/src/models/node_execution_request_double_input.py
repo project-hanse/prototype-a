@@ -15,13 +15,13 @@ class NodeExecutionRequestDoubleInput(NodeExecutionRequest):
         return self.input_dataset_one_id
 
     def get_input_dataset_one_hash(self):
-        return self.input_dataset_one_id
+        return self.input_dataset_one_hash
 
     def get_input_dataset_two_id(self):
         return self.input_dataset_two_id
 
     def get_input_dataset_two_hash(self):
-        return self.input_dataset_two_id
+        return self.input_dataset_two_hash
 
     def get_operation_configuration(self):
         return self.operation_configuration
