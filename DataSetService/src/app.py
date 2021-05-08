@@ -3,7 +3,6 @@ import os
 import pandas as pd
 from flask import Flask, render_template, request, abort
 from flask_bootstrap import Bootstrap
-from flask_jsonpify import jsonpify
 from flask_socketio import SocketIO
 
 from services.in_memory_store import InMemoryStore
@@ -34,8 +33,7 @@ def dataset_by_id(dataset_id: str):
     if df is None:
         abort(404)
 
-    df_list = df.values.tolist()
-    return jsonpify(df_list)
+    return my_jsonpify(df)
 
 
 @app.route('/api/datasets/html/<dataset_id>', methods=['GET'])
@@ -56,14 +54,21 @@ def dataset_by_hash(producing_hash: str):
         if df is None:
             abort(404)
 
-        df_list = df.values.tolist()
-        return jsonpify(df_list)
+        return my_jsonpify(df)
 
     if request.method == 'POST':
         data = request.data
         df = pd.read_json(data)
         store.store_data_set(producing_hash, df)
         return 'OK'
+
+
+def my_jsonpify(df):
+    return app.response_class(
+        response=df.to_json(),
+        status=200,
+        mimetype='application/json'
+    )
 
 
 # Importing default datasets

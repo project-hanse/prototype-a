@@ -47,7 +47,7 @@ class InMemoryStore:
         else:
             return None
 
-    def store_data_set(self, key: str, data):
+    def store_data_set(self, key: str, data: pd.DataFrame):
         self.logger.info("Storing data with key %s of shape %s" % (key, data.shape))
         self.store[key] = data
 
