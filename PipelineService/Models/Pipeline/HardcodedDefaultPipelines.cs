@@ -302,6 +302,15 @@ namespace PipelineService.Models.Pipeline
             selectRowsStudenten.Successors.Add(join);
             selectRowsBerufsbildung.Successors.Add(join);
 
+            var describe = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = join.ResultKey,
+                Operation = "describe",
+                OperationId = OpIdPdSingleGeneric,
+            };
+            join.Successors.Add(describe);
+
             return new Pipeline
             {
                 Id = pipelineId,
