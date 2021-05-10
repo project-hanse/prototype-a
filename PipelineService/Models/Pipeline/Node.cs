@@ -30,7 +30,7 @@ namespace PipelineService.Models.Pipeline
         /// <summary>
         /// The configuration of the operation (usually corresponds to function parameters).
         /// </summary>
-        public IDictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// Any value returned here will be included in the hash value of this object.

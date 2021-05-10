@@ -29,6 +29,40 @@ class OperationsCollection:
         return resulting_dataset
 
     @staticmethod
+    def pd_single_input_set_index(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Sets the DataFrame index using existing columns.
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.set_index.html
+        """
+        logger.info("Executing pandas operation pd_single_input_set_index (%s)" % operation_name)
+        if "keys" not in operation_config:
+            raise ValidationError("Missing keys in config")
+        keys = operation_config["keys"]
+        if "drop" not in operation_config:
+            drop = True
+        else:
+            drop = operation_config["drop"]
+
+        return df.set_index(keys, drop=drop)
+
+    @staticmethod
+    def pd_single_input_rename(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Alters axes labels of a DataFrame.
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html
+        """
+        logger.info("Executing pandas operation pd_single_input_set_index (%s)" % operation_name)
+        if "mapper" not in operation_config:
+            raise ValidationError("Missing mapper in config")
+        mapper = operation_config["mapper"]
+        if "axis" not in operation_config:
+            axis = 'columns'
+        else:
+            axis = operation_config["axis"]
+
+        return df.rename(mapper, axis=axis)
+
+    @staticmethod
     def pd_single_input_make_row_header(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
         """
         Chooses a row and makes it the header of the df. Removes row from df and resets index.
@@ -52,9 +86,9 @@ class OperationsCollection:
         logger.info("Executing pandas operation pd_single_input_trim_rows (%s)" % operation_name)
 
         if "first_n" in operation_config:
-            df = df.iloc[operation_config["first_n"]:]
+            df = df.iloc[operation_config["first_n"] - 1:]
         if "last_n" in operation_config:
-            df = df.iloc[operation_config["last_n"]:]
+            df = df.iloc[:operation_config["last_n"]]
 
         return df.reset_index(drop=True)
 

@@ -13,8 +13,11 @@ namespace PipelineService.Models.Pipeline
         private static readonly Guid DsIdInfluencaVienna20092018 = Guid.Parse("4cfd0698-004a-404e-8605-de2f830190f2");
         private static readonly Guid DsIdChemnitzBerufsbildung1993 = Guid.Parse("2b88720f-8d2d-46c8-84d2-ab177c88cb5f");
         private static readonly Guid DsIdChemnitzStudenten1993 = Guid.Parse("61501213-d945-49a5-9212-506d6305af13");
+        private static readonly Guid DsIdSimulatedVineYield = Guid.Parse("1a953cb2-4ad1-4c07-9a80-bd2c6a68623a");
 
         private static readonly Guid OpIdPdSingleGeneric = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62");
+        private static readonly Guid OpIdPdSingleSetIndex = Guid.Parse("de26c7a0-0444-414d-826f-458cd3b8979c");
+        private static readonly Guid OpIdPdSingleRename = Guid.Parse("0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61");
         private static readonly Guid OpIdPdSingleTrim = Guid.Parse("5c9b34fc-ac4f-4290-9dfe-418647509559");
         private static readonly Guid OpIdPdSingleMakeColumnHeader = Guid.Parse("db8b6a9d-d01f-4328-b971-fa56ac350320");
         private static readonly Guid OpIdPdSingleSelectRows = Guid.Parse("d2701fa4-b038-4fcb-b981-49f9f123da01");
@@ -169,7 +172,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "5"}
+                    {"first_n", "6"}
                 },
             };
 
@@ -236,7 +239,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "5"}
+                    {"first_n", "6"}
                 },
             };
 
@@ -330,6 +333,82 @@ namespace PipelineService.Models.Pipeline
                     trim1Studenten
                 }
             };
+        }
+
+        public static Pipeline SimulatedVineYieldPipeline(Guid pipelineId = default)
+        {
+            if (pipelineId == default)
+            {
+                pipelineId = Guid.NewGuid();
+            }
+
+            var trimYield = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetId = DsIdSimulatedVineYield,
+                Operation = "trim",
+                OperationId = OpIdPdSingleTrim,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"first_n", "1"}
+                },
+            };
+
+            var setHeader = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                Operation = "set_header",
+                OperationId = OpIdPdSingleMakeColumnHeader,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"header_row", "0"}
+                }
+            };
+            Successor(trimYield, setHeader);
+
+            var renameLabels = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                Operation = "rename",
+                OperationId = OpIdPdSingleRename,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"mapper", "{'nan':'Jahr'}"},
+                    {"axis", "columns"}
+                }
+            };
+            Successor(setHeader, renameLabels);
+
+            var setIndex = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                Operation = "set_index",
+                OperationId = OpIdPdSingleSetIndex,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"keys", "Jahr"}
+                }
+            };
+            Successor(renameLabels, setIndex);
+
+            return new Pipeline
+            {
+                Id = pipelineId,
+                Name = "Simulated Vine Yield Styria",
+                Root = new List<Node>
+                {
+                    trimYield
+                }
+            };
+        }
+
+        /// <summary>
+        /// Makes <code>successor</code> the successor of <code>node</code>. 
+        /// </summary>
+        private static void Successor(SingleInputNode node, SingleInputNode successor)
+        {
+            node.Successors.Add(successor);
+            successor.InputDatasetHash = node.ResultKey;
         }
     }
 }
