@@ -6,7 +6,7 @@ namespace PipelineService.Models.MqttMessages
     {
         public Guid PipelineId { get; set; }
         public Guid ExecutionId { get; set; }
-        public Guid BlockId { get; set; }
+        public Guid NodeId { get; set; }
         public bool Successful { get; set; }
         public int ExecutionTime { get; set; }
         public string ErrorDescription { get; set; }

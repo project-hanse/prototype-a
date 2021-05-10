@@ -2,22 +2,22 @@ using System;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public abstract class BlockExecutionResponse : BaseMqttMessage
+    public abstract class NodeExecutionResponse : BaseMqttMessage
     {
         /// <summary>
-        /// The pipeline's id the block was executed for.
+        /// The pipeline's id the node was executed for.
         /// </summary>
         public Guid PipelineId { get; set; }
 
         /// <summary>
-        /// The pipeline execution this block belongs to. 
+        /// The pipeline execution this node belongs to. 
         /// </summary>
         public Guid ExecutionId { get; set; }
 
         /// <summary>
-        /// The block's id that was executed.
+        /// The node's id that was executed.
         /// </summary>
-        public Guid BlockId { get; set; }
+        public Guid NodeId { get; set; }
 
         /// <summary>
         /// Indicates if the execution was successful.
@@ -30,12 +30,12 @@ namespace PipelineService.Models.MqttMessages
         public string ErrorDescription { get; set; }
 
         /// <summary>
-        /// The time (UTC) the execution of this block was started.  
+        /// The time (UTC) the execution of this node was started.  
         /// </summary>
         public DateTime StartTime { get; set; }
 
         /// <summary>
-        /// The time (UTC) the execution of this block was stopped (either due to an error or completion).
+        /// The time (UTC) the execution of this node was stopped (either due to an error or completion).
         /// </summary>
         public DateTime StopTime { get; set; }
     }

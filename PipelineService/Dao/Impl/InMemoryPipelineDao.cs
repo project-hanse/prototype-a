@@ -96,7 +96,8 @@ namespace PipelineService.Dao.Impl
             {
                 HardcodedDefaultPipelines.MelbourneHousingPipeline(),
                 HardcodedDefaultPipelines.InfluenzaInterpolation(),
-                HardcodedDefaultPipelines.MelbourneHousingPipelineWithError()
+                HardcodedDefaultPipelines.MelbourneHousingPipelineWithError(),
+                HardcodedDefaultPipelines.ChemnitzStudentAndJobsPipeline()
             };
         }
     }

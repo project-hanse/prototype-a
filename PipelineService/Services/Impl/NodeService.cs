@@ -40,7 +40,7 @@ namespace PipelineService.Services.Impl
 
             var ids = new List<string>();
 
-            if (node is SimpleBlock sn)
+            if (node is SingleInputNode sn)
             {
                 ids.Add(sn.InputDatasetId.HasValue ? sn.InputDatasetId.Value.ToString() : sn.InputDatasetHash);
             }
@@ -48,7 +48,7 @@ namespace PipelineService.Services.Impl
             return ids;
         }
 
-        private static Block FindNodeOrDefault(Guid nodeId, IList<Block> nodes)
+        private static Node FindNodeOrDefault(Guid nodeId, IList<Node> nodes)
         {
             var node = nodes.FirstOrDefault(n => n.Id == nodeId);
 

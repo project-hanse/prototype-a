@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public class NodeExecutionRequestSingleInput : BlockExecutionRequest
+    public class NodeExecutionRequestSingleInput : NodeExecutionRequest
     {
         /// <summary>
         /// The input dataset the operation will be performed on.
@@ -12,7 +12,7 @@ namespace PipelineService.Models.MqttMessages
         public Guid? InputDataSetId { get; set; }
 
         /// <summary>
-        /// The hash value of the block who's output is the input for this operation.
+        /// The hash value of the node who's output is the input for this operation.
         /// </summary>
         public string InputDataSetHash { get; set; }
 
