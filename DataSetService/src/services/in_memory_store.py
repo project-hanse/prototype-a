@@ -21,8 +21,13 @@ class InMemoryStore:
         filename = os.path.join(dirname, '../', file)
 
         self.logger.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
-
-        df = pd.read_csv(filename, sep=self.get_sep(file))
+        if file.endswith(".csv"):
+            df = pd.read_csv(filename, sep=self.get_sep(file))
+        elif file.endswith(".xlsx"):
+            df = pd.read_excel(filename)
+        else:
+            self.logger.error("This file (%s) is not supported" % filename)
+            return
         self.store[dataframe_id] = df
 
     def get_dataset_count(self):

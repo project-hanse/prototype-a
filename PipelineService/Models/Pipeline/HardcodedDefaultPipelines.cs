@@ -106,6 +106,15 @@ namespace PipelineService.Models.Pipeline
 
             interpolate.Successors.Add(select);
 
+            var describe = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                InputDatasetHash = select.ResultKey,
+                Operation = "describe",
+                OperationId = OpIdPdSingleGeneric,
+            };
+            select.Successors.Add(describe);
+
             return new Pipeline
             {
                 Id = pipelineId,
