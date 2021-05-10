@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Pipeline} from '../_model/pipeline';
-import {Block} from '../_model/block';
+import {PipelineNode} from '../_model/pipelineNode';
 import {Edge, Network, Node} from 'vis-network';
 import {Options} from 'vis-network/declarations/network/Network';
 
@@ -24,7 +24,7 @@ export class PipelineNodeViewComponent implements OnInit {
   }
 
   public renderGraph(id: string, pipeline: Pipeline): Network {
-    const nodesArray = new Array<Node>();
+    const nodesArray = new Array<PipelineNode>();
     const edgesArray = new Array<Edge>();
 
     this.buildArrays(nodesArray, edgesArray, pipeline.root);
@@ -62,13 +62,18 @@ export class PipelineNodeViewComponent implements OnInit {
     return new Network(container, data, options);
   }
 
-  private buildArrays(nodesArray: any[], edgesArray: any[], blocks: Block[], parentId: string = null): void {
-    blocks.forEach(block => {
-      nodesArray.push({id: block.id, label: block.operation});
+  private buildArrays(nodesArray: any[], edgesArray: any[], nodes: PipelineNode[], parentId: string = null): void {
+    nodes.forEach(node => {
       if (parentId) {
-        edgesArray.push({from: parentId, to: block.id});
+        // establish edge between this node and parent node
+        edgesArray.push({from: parentId, to: node.id});
       }
-      this.buildArrays(nodesArray, edgesArray, block.successors, block.id);
+      // check that nodes are not added multiple times
+      if (!nodesArray.find(n => n.id === node.id)) {
+        nodesArray.push({id: node.id, label: node.operation});
+        // recursive call to all children
+        this.buildArrays(nodesArray, edgesArray, node.successors, node.id);
+      }
     });
   }
 

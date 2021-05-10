@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PipelineService.Models.Pipeline.Execution
 {
-    public record BlockExecutionRecord : BasePersistentModel
+    public record NodeExecutionRecord : BasePersistentModel
     {
         public Guid PipelineId { get; set; }
 
-        public Guid BlockId { get; set; }
+        public Guid NodeId { get; set; }
 
         [NotMapped]
-        public Block Block { get; set; }
+        public Node Node { get; set; }
 
         public string Name { get; set; }
 

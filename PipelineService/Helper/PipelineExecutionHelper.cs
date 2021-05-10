@@ -9,9 +9,9 @@ namespace PipelineService.Helper
 {
     public static class PipelineExecutionHelper
     {
-        public static IList<BlockExecutionRecord> GetExecutionOrder(Pipeline pipeline)
+        public static IList<NodeExecutionRecord> GetExecutionOrder(Pipeline pipeline)
         {
-            var stack = new Stack<BlockExecutionRecord>();
+            var stack = new Stack<NodeExecutionRecord>();
             var visited = GetVisitedDictionary(pipeline);
 
             foreach (var root in pipeline.Root)
@@ -22,13 +22,13 @@ namespace PipelineService.Helper
             return stack.ToList();
         }
 
-        private static void TopologicalSortUtil(Block block, Stack<BlockExecutionRecord> stack,
+        private static void TopologicalSortUtil(Node node, Stack<NodeExecutionRecord> stack,
             IDictionary<Guid, bool> visited, int level = 0)
         {
-            visited[block.Id] = true;
+            visited[node.Id] = true;
 
             level++;
-            foreach (var blockSuccessor in block.Successors)
+            foreach (var blockSuccessor in node.Successors)
             {
                 if (!visited[blockSuccessor.Id])
                 {
@@ -37,12 +37,12 @@ namespace PipelineService.Helper
                 }
             }
 
-            stack.Push(new BlockExecutionRecord
+            stack.Push(new NodeExecutionRecord
             {
-                PipelineId = block.PipelineId,
-                BlockId = block.Id,
-                Block = block,
-                Name = $"{block.Operation}:{JsonSerializer.Serialize(block.OperationConfiguration)}",
+                PipelineId = node.PipelineId,
+                NodeId = node.Id,
+                Node = node,
+                Name = $"{node.Operation}:{JsonSerializer.Serialize(node.OperationConfiguration)}",
                 Level = level
             });
         }
@@ -59,14 +59,14 @@ namespace PipelineService.Helper
             return visited;
         }
 
-        private static void AddToDict(Block block, IDictionary<Guid, bool> dict)
+        private static void AddToDict(Node node, IDictionary<Guid, bool> dict)
         {
-            if (!dict.ContainsKey(block.Id))
+            if (!dict.ContainsKey(node.Id))
             {
-                dict.Add(block.Id, false);
+                dict.Add(node.Id, false);
             }
 
-            foreach (var blockSuccessor in block.Successors)
+            foreach (var blockSuccessor in node.Successors)
             {
                 AddToDict(blockSuccessor, dict);
             }

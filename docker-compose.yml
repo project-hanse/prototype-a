@@ -27,10 +27,10 @@ services:
     depends_on:
       - message-broker
 
-  # Block Worker 1
-  block-worker:
+  # Node Worker 1
+  node-worker:
     build:
-      context: ./BlockWorker
+      context: ./NodeWorker
       dockerfile: ./Dockerfile
     environment:
       - MQTT_HOST=message-broker

@@ -2,22 +2,22 @@ using System;
 
 namespace PipelineService.Models.MqttMessages
 {
-    public abstract class BlockExecutionRequest : BaseMqttMessage
+    public abstract class NodeExecutionRequest : BaseMqttMessage
     {
         /// <summary>
-        /// The pipeline's id the block was executed for.
+        /// The pipeline's id the node was executed for.
         /// </summary>
         public Guid PipelineId { get; set; }
 
         /// <summary>
-        /// The pipeline execution this block belongs to. 
+        /// The pipeline execution this node belongs to. 
         /// </summary>
         public Guid ExecutionId { get; set; }
 
         /// <summary>
-        /// The block's id that was executed.
+        /// The node's id that was executed.
         /// </summary>
-        public Guid BlockId { get; set; }
+        public Guid NodeId { get; set; }
 
         /// <summary>
         /// The operations id that will be executed.

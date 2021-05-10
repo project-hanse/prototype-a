@@ -22,8 +22,14 @@ class OperationService:
 
     def init(self):
         self.logger.info("Initializing local operations store...")
-        self.local_operations["0759dede-2cee-433c-b314-10a8fa456e62"] = OperationsCollection.simple_pd_generic
-        self.local_operations["7b0bb47f-f997-43d8-acb1-c31f2a22475d"] = OperationsCollection.simple_pd_select_columns
+        self.local_operations["0759dede-2cee-433c-b314-10a8fa456e62"] = OperationsCollection.pd_single_input_generic
+        self.local_operations[
+            "7b0bb47f-f997-43d8-acb1-c31f2a22475d"] = OperationsCollection.pd_single_input_select_columns
+        self.local_operations["d2701fa4-b038-4fcb-b981-49f9f123da01"] = OperationsCollection.pd_single_input_select_rows
+        self.local_operations["5c9b34fc-ac4f-4290-9dfe-418647509559"] = OperationsCollection.pd_single_input_trim_rows
+        self.local_operations[
+            "db8b6a9d-d01f-4328-b971-fa56ac350320"] = OperationsCollection.pd_single_input_make_row_header
+        self.local_operations["9acea312-713e-4de8-b8db-5d33613ab2f1"] = OperationsCollection.pd_double_input_join
 
     def get_simple_operation_by_id(self, operation_id: str) -> Callable:
         self.logger.info('Getting simple operation %s' % operation_id)

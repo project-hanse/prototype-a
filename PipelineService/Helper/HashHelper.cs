@@ -14,19 +14,19 @@ namespace PipelineService.Helper
             return Sha256(string.Join("|", JsonSerializer.Serialize(args)));
         }
 
-        public static string ComputeStaticHash(Block block)
+        public static string ComputeStaticHash(Node node)
         {
-            if (block == null)
+            if (node == null)
             {
                 throw new NullReferenceException();
             }
 
             var inputBuilder = new StringBuilder();
 
-            inputBuilder.Append(JsonSerializer.Serialize(block.PipelineId));
-            inputBuilder.Append(JsonSerializer.Serialize(block.Operation));
-            inputBuilder.Append(JsonSerializer.Serialize(block.OperationConfiguration));
-            inputBuilder.Append(JsonSerializer.Serialize(block.IncludeInHash));
+            inputBuilder.Append(JsonSerializer.Serialize(node.PipelineId));
+            inputBuilder.Append(JsonSerializer.Serialize(node.Operation));
+            inputBuilder.Append(JsonSerializer.Serialize(node.OperationConfiguration));
+            inputBuilder.Append(JsonSerializer.Serialize(node.IncludeInHash));
 
             var input = inputBuilder.ToString();
 

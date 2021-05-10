@@ -12,6 +12,7 @@
     {% for id in data.dataset_ids %}
         <li>
             <a href="api/datasets/{{ id }}">{{ id }}</a>
+            (<a href="api/datasets/html/{{ id }}">html</a>)
         </li>
     {% endfor %}
 </ul>

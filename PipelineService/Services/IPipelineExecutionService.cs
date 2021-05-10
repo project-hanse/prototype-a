@@ -40,12 +40,12 @@ namespace PipelineService.Services
         public Task<Guid> ExecutePipeline(Guid pipelineId);
 
         /// <summary>
-        /// Handles the response of a worker after a block has been executed.
+        /// Handles the response of a worker after a node has been executed.
         /// </summary>
         /// <remarks>
         /// This covers both successful and unsuccessful execution.
         /// </remarks>
         /// <param name="response">The response message payload from the worker.</param>
-        Task HandleExecutionResponse(BlockExecutionResponse response);
+        Task HandleExecutionResponse(NodeExecutionResponse response);
     }
 }
