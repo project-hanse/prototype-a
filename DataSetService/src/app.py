@@ -80,5 +80,11 @@ store.import_with_id("../datasets/21211-003Z_format.csv", "2b88720f-8d2d-46c8-84
 store.import_with_id("../datasets/21311-001Z_format.csv", "61501213-d945-49a5-9212-506d6305af13")
 store.import_with_id("../datasets/simulated-vine-yield-styria.xlsx", "1a953cb2-4ad1-4c07-9a80-bd2c6a68623a")
 
+# Load ZAMG data Graz Flughafen
+for year in range(1990, 2021):
+    base_uuid = "8d15d14d-2eba-4d36-b2ba-aaaaaaaa"
+    store.import_with_id("../datasets/ZAMG/Steiermark/Graz_Flughafen/ZAMG_Jahrbuch_%s.csv" % year,
+                         "%s%s" % (base_uuid, year))
+
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)
