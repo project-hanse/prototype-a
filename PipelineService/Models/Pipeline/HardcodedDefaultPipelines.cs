@@ -18,6 +18,7 @@ namespace PipelineService.Models.Pipeline
         private static readonly Guid OpIdPdSingleGeneric = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62");
         private static readonly Guid OpIdPdSingleSetIndex = Guid.Parse("de26c7a0-0444-414d-826f-458cd3b8979c");
         private static readonly Guid OpIdPdSingleRename = Guid.Parse("0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61");
+        private static readonly Guid OpIdPdSingleMean = Guid.Parse("074669e8-9b60-48ce-bfc9-509d5990f517");
         private static readonly Guid OpIdPdSingleTrim = Guid.Parse("5c9b34fc-ac4f-4290-9dfe-418647509559");
         private static readonly Guid OpIdPdSingleMakeColumnHeader = Guid.Parse("db8b6a9d-d01f-4328-b971-fa56ac350320");
         private static readonly Guid OpIdPdSingleSelectRows = Guid.Parse("d2701fa4-b038-4fcb-b981-49f9f123da01");
@@ -390,6 +391,19 @@ namespace PipelineService.Models.Pipeline
                 }
             };
             Successor(renameLabels, setIndex);
+
+            var mean = new SingleInputNode
+            {
+                PipelineId = pipelineId,
+                Operation = "mean",
+                OperationId = OpIdPdSingleMean,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    {"axis", "1"}
+                }
+            };
+
+            Successor(setIndex, mean);
 
             return new Pipeline
             {

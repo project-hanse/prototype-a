@@ -63,6 +63,41 @@ class OperationsCollection:
         return df.rename(mapper, axis=axis)
 
     @staticmethod
+    def pd_single_input_mean(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Return the mean of the values over the requested axis.
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.mean.html
+        """
+        logger.info("Executing pandas operation pd_single_input_mean (%s)" % operation_name)
+
+        if "axis" not in operation_config:
+            axis = 1
+        else:
+            axis = operation_config["axis"]
+
+        if "skipna" not in operation_config:
+            skipna = True
+        else:
+            skipna = operation_config["skipna"]
+
+        if "level" not in operation_config:
+            level = None
+        else:
+            level = operation_config["level"]
+
+        if "numeric_only" not in operation_config:
+            numeric_only = None
+        else:
+            numeric_only = operation_config["numeric_only"]
+
+        if "name" not in operation_config:
+            name = "mean"
+        else:
+            name = operation_config["name"]
+
+        return df.mean(axis=axis, skipna=skipna, level=level, numeric_only=numeric_only).to_frame(name=name)
+
+    @staticmethod
     def pd_single_input_make_row_header(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
         """
         Chooses a row and makes it the header of the df. Removes row from df and resets index.

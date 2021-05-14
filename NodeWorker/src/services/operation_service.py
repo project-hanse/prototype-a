@@ -25,6 +25,7 @@ class OperationService:
         self.local_operations["0759dede-2cee-433c-b314-10a8fa456e62"] = OperationsCollection.pd_single_input_generic
         self.local_operations["de26c7a0-0444-414d-826f-458cd3b8979c"] = OperationsCollection.pd_single_input_set_index
         self.local_operations["0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61"] = OperationsCollection.pd_single_input_rename
+        self.local_operations["074669e8-9b60-48ce-bfc9-509d5990f517"] = OperationsCollection.pd_single_input_mean
         self.local_operations[
             "7b0bb47f-f997-43d8-acb1-c31f2a22475d"] = OperationsCollection.pd_single_input_select_columns
         self.local_operations["d2701fa4-b038-4fcb-b981-49f9f123da01"] = OperationsCollection.pd_single_input_select_rows
