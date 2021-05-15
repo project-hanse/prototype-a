@@ -1,7 +1,9 @@
 import logging
 import os
+from pathlib import Path
 
 import pandas as pd
+import chardet
 
 
 class InMemoryStore:
@@ -18,11 +20,15 @@ class InMemoryStore:
 
     def import_with_id(self, file: str, dataframe_id: str):
         dirname = os.path.dirname(__file__)
-        filename = os.path.join(dirname, '../', file)
+        filename = str(Path(file).resolve())
+
+        if not os.path.isfile(filename):
+            self.logger.error("File %s does not exist", filename)
+            return
 
         self.logger.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
         if file.endswith(".csv"):
-            df = pd.read_csv(filename, sep=self.get_sep(file))
+            df = pd.read_csv(filename, sep=self.get_sep(filename), encoding=self.get_file_encoding(filename))
         elif file.endswith(".xlsx"):
             df = pd.read_excel(filename)
         else:
@@ -57,14 +63,24 @@ class InMemoryStore:
         self.store[key] = data
 
     @staticmethod
-    def get_sep(file: str):
+    def get_sep(file_path: str):
         """
         Checks if a given file (assuming it's a csv file) is separated by , or ;
         """
         # TODO: this should be made much more efficient but works for now
-        df_comma = pd.read_csv(file, nrows=1, sep=",")
-        df_semi = pd.read_csv(file, nrows=1, sep=";")
+        df_comma = pd.read_csv(file_path, nrows=1, sep=",")
+        df_semi = pd.read_csv(file_path, nrows=1, sep=";")
         if df_comma.shape[1] > df_semi.shape[1]:
             return ','
         else:
             return ';'
+
+    @staticmethod
+    def get_file_encoding(file_path: str):
+        """
+        Get the encoding of a file using chardet package
+        :param file_path:
+        """
+        with open(file_path, 'rb') as f:
+            result = chardet.detect(f.read())
+            return result['encoding']
