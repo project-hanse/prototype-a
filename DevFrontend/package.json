@@ -37,7 +37,7 @@
     "@angular/compiler-cli": "~11.2.13",
     "@types/jasmine": "~3.7.4",
     "@types/jasminewd2": "~2.0.9",
-    "@types/node": "^15.3.1",
+    "@types/node": "^15.6.0",
     "codelyzer": "^6.0.2",
     "jasmine-core": "~3.7.1",
     "jasmine-spec-reporter": "~7.0.0",
@@ -47,7 +47,7 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.6.0",
     "protractor": "~7.0.0",
-    "ts-node": "~9.1.1",
+    "ts-node": "~10.0.0",
     "tslint": "~6.1.0",
     "typescript": "~4.0.2"
   }
