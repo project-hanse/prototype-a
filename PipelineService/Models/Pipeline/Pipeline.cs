@@ -7,7 +7,7 @@ namespace PipelineService.Models.Pipeline
         /// <summary>
         /// The first (root) node in the pipeline.
         /// </summary>
-        public IList<Node> Root { get; set; }
+        public IList<Node> Root { get; set; } = new List<Node>();
 
         /// <summary>
         /// The pipeline's name.

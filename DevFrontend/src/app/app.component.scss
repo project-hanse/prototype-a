@@ -1,3 +1,11 @@
 footer {
   margin-top: auto;
 }
+
+.nav-row {
+  margin: 0 -0.5em;
+}
+
+mat-toolbar-row > nav {
+  margin: 0 0.5em;
+}

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using static PipelineService.Models.Constants.DatasetIds;
+using static PipelineService.Models.Constants.OperationIds;
 
 namespace PipelineService.Models.Pipeline
 {
@@ -8,22 +10,6 @@ namespace PipelineService.Models.Pipeline
     /// </summary>
     public static class HardcodedDefaultPipelines
     {
-        private static readonly Guid DsIdMelbourneHousingFull = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee");
-        private static readonly Guid DsIdMelbourneHousePricesLess = Guid.Parse("0c2acbdb-544b-4efc-ae54-c2dcba988654");
-        private static readonly Guid DsIdInfluencaVienna20092018 = Guid.Parse("4cfd0698-004a-404e-8605-de2f830190f2");
-        private static readonly Guid DsIdChemnitzBerufsbildung1993 = Guid.Parse("2b88720f-8d2d-46c8-84d2-ab177c88cb5f");
-        private static readonly Guid DsIdChemnitzStudenten1993 = Guid.Parse("61501213-d945-49a5-9212-506d6305af13");
-        private static readonly Guid DsIdSimulatedVineYield = Guid.Parse("1a953cb2-4ad1-4c07-9a80-bd2c6a68623a");
-
-        private static readonly Guid OpIdPdSingleGeneric = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62");
-        private static readonly Guid OpIdPdSingleSetIndex = Guid.Parse("de26c7a0-0444-414d-826f-458cd3b8979c");
-        private static readonly Guid OpIdPdSingleRename = Guid.Parse("0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61");
-        private static readonly Guid OpIdPdSingleMean = Guid.Parse("074669e8-9b60-48ce-bfc9-509d5990f517");
-        private static readonly Guid OpIdPdSingleTrim = Guid.Parse("5c9b34fc-ac4f-4290-9dfe-418647509559");
-        private static readonly Guid OpIdPdSingleMakeColumnHeader = Guid.Parse("db8b6a9d-d01f-4328-b971-fa56ac350320");
-        private static readonly Guid OpIdPdSingleSelectRows = Guid.Parse("d2701fa4-b038-4fcb-b981-49f9f123da01");
-        private static readonly Guid OpIdPdDoubleJoin = Guid.Parse("9acea312-713e-4de8-b8db-5d33613ab2f1");
-
         public static Pipeline MelbourneHousingPipeline(Guid pipelineId = default)
         {
             if (pipelineId == default)
@@ -101,7 +87,7 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetHash = interpolate.ResultKey,
                 Operation = "select_columns",
-                OperationId = Guid.Parse("7b0bb47f-f997-43d8-acb1-c31f2a22475d"),
+                OperationId = OpIdPdSingleSelectColumns,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     {"0", "['year', 'week', 'weekly_infections']"}
@@ -414,6 +400,27 @@ namespace PipelineService.Models.Pipeline
                     trimYield
                 }
             };
+        }
+
+        public static Pipeline ZamgWeatherPreprocessingGraz(Guid pipelineId = default)
+        {
+            if (pipelineId == default)
+            {
+                pipelineId = Guid.NewGuid();
+            }
+
+            var pipeline = new Pipeline
+            {
+                Name = "ZAMG Weather Data Preprocessing Graz 1990-2020",
+                Id = pipelineId
+            };
+
+            for (var year = 1990; year <= 2020; year++)
+            {
+                pipeline.Root.Add(HardcodedNodes.ZamgWeatherPreprocessing(pipelineId, year));
+            }
+
+            return pipeline;
         }
 
         /// <summary>
