@@ -169,12 +169,14 @@ class NodeExecutionService:
                     config[key] = float(config[key])
                 except ValueError:
                     try:
-                        if config[key].strip().startswith("{"):
+                        if config[key].strip().startswith("{") or config[key].strip().startswith("["):
                             cleaned_str = config[key].replace("'", '"')
                             parsed = json.loads(cleaned_str)
                             config[key] = NodeExecutionService.preprocess_operation_config(parsed)
                         else:
                             raise ValueError
                     except ValueError:
-                        config[key] = config[key]
+                        config[key] = json.loads(config[key])
+            except TypeError:
+                return config
         return config

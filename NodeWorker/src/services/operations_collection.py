@@ -51,7 +51,7 @@ class OperationsCollection:
         Alters axes labels of a DataFrame.
         https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html
         """
-        logger.info("Executing pandas operation pd_single_input_set_index (%s)" % operation_name)
+        logger.info("Executing pandas operation pd_single_input_rename (%s)" % operation_name)
         if "mapper" not in operation_config:
             raise ValidationError("Missing mapper in config")
         mapper = operation_config["mapper"]
@@ -61,6 +61,27 @@ class OperationsCollection:
             axis = operation_config["axis"]
 
         return df.rename(mapper, axis=axis)
+
+    @staticmethod
+    def pd_single_input_drop(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Drop specified labels from rows or columns.
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html
+        """
+        logger.info("Executing pandas operation pd_single_input_drop (%s)" % operation_name)
+
+        if "labels" not in operation_config["labels"]:
+            labels = operation_config["labels"]
+        else:
+            labels = None
+
+        if "axis" not in operation_config:
+            axis = 0
+        else:
+            axis = operation_config["axis"]
+
+        df.drop(labels=labels, axis=axis, inplace=True)
+        return df
 
     @staticmethod
     def pd_single_input_mean(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):

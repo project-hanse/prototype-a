@@ -14,10 +14,10 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetId = DatasetIds.ZamgWeatherId(year),
                 Operation = $"trim_{year}",
-                OperationId = OpIdPdSingleTrim,
+                OperationId = OpIdPdSingleDrop,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "1"},
+                    {"labels", "['Beaufort']"},
                     // {"last_n", "13"}
                 },
             };

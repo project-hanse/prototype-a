@@ -19,7 +19,6 @@ class InMemoryStore:
         self.logger.setLevel(logging.INFO)
 
     def import_with_id(self, file: str, dataframe_id: str):
-        dirname = os.path.dirname(__file__)
         filename = str(Path(file).resolve())
 
         if not os.path.isfile(filename):
