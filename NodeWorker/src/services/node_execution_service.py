@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 
 import pandas as pd
@@ -167,5 +168,15 @@ class NodeExecutionService:
                 try:
                     config[key] = float(config[key])
                 except ValueError:
-                    config[key] = config[key]
+                    try:
+                        if config[key].strip().startswith("{") or config[key].strip().startswith("["):
+                            cleaned_str = config[key].replace("'", '"')
+                            parsed = json.loads(cleaned_str)
+                            config[key] = NodeExecutionService.preprocess_operation_config(parsed)
+                        else:
+                            raise ValueError
+                    except ValueError:
+                        config[key] = json.loads(config[key])
+            except TypeError:
+                return config
         return config
