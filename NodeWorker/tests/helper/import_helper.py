@@ -1,9 +1,9 @@
 import pandas as pd
 
 
-def load_file(path: str) -> pd.DataFrame:
+def load_file(path: str, csv_sep: str = ';') -> pd.DataFrame:
     if path.endswith(".csv"):
-        df = pd.read_csv(path, sep=';')
+        df = pd.read_csv(path, sep=csv_sep)
     elif path.endswith(".xlsx"):
         df = pd.read_excel(path)
     else:
