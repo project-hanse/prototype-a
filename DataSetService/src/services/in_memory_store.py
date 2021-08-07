@@ -27,7 +27,8 @@ class InMemoryStore:
 
         self.logger.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
         if file.endswith(".csv"):
-            df = pd.read_csv(filename, sep=self.get_sep(filename), encoding=self.get_file_encoding(filename))
+            df = pd.read_csv(filename, sep=self.get_sep(filename), encoding=self.get_file_encoding(filename),
+                             skiprows=self.get_skiprows(filename))
         elif file.endswith(".xlsx"):
             df = pd.read_excel(filename)
         else:
@@ -83,3 +84,16 @@ class InMemoryStore:
         with open(file_path, 'rb') as f:
             result = chardet.detect(f.read())
             return result['encoding']
+
+    @staticmethod
+    def get_skiprows(file_path: str):
+        """
+        Get an array of line numbers that should be skipped when importing a csv file.
+        :param file_path:
+        :return:
+        """
+        # TODO: Implement in a general way e.g.: pass 1 get maximum separator count (, or ;) per row, pass 2 build
+        #  array with row index that does not have this count
+        if "ZAMG_Jahrbuch" in file_path:
+            return 4
+        return 0
