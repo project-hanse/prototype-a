@@ -13,6 +13,8 @@ from src.services.init_service import InitService
 PORT: int = os.getenv("PORT", 5000)
 S3_HOST: str = os.getenv("S3_HOST", "http://localstack-s3")
 S3_PORT: int = os.getenv("S3_PORT", 4566)
+S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
+S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
 
 # Creating service instances
 app = Flask(__name__, template_folder='templates')
@@ -82,7 +84,9 @@ def my_jsonpify(df):
 
 
 # Initializing services
-init_service.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)))
+init_service.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)),
+                   s3_access_key_id=S3_ACCESS_KEY_ID,
+                   s3_secret_access_key=S3_ACCESS_KEY_SECRET)
 init_service.init_default_files_s3()
 import_service.import_defaults_in_background()
 
