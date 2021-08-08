@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, abort
 from flask_bootstrap import Bootstrap
 from flask_socketio import SocketIO
 
+from src.services.file_store import FileStore
 from src.services.import_service import ImportService
 from src.services.in_memory_store import InMemoryStore
 from src.services.init_service import InitService
@@ -20,9 +21,10 @@ S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
 app = Flask(__name__, template_folder='templates')
 socketio = SocketIO(app)
 bootstrap = Bootstrap(app)
-store = InMemoryStore()
-import_service = ImportService(store)
-init_service = InitService()
+dataset_store = InMemoryStore()
+file_store = FileStore()
+import_service = ImportService(dataset_store)
+init_service = InitService(file_store)
 
 
 # Setting up endpoint
@@ -33,14 +35,14 @@ def root():
     return render_template(
         'index.html',
         data={
-            'dataset_count': store.get_dataset_count(),
-            'dataset_ids': store.get_ids()
+            'dataset_count': dataset_store.get_dataset_count(),
+            'dataset_ids': dataset_store.get_ids()
         })
 
 
 @app.route('/api/datasets/<dataset_id>', methods=['GET'])
 def dataset_by_id(dataset_id: str):
-    df = store.get_by_id(dataset_id)
+    df = dataset_store.get_by_id(dataset_id)
 
     if df is None:
         abort(404)
@@ -50,7 +52,7 @@ def dataset_by_id(dataset_id: str):
 
 @app.route('/api/datasets/html/<dataset_id>', methods=['GET'])
 def dataset_as_html_by_id(dataset_id: str):
-    df = store.get_by_id(dataset_id)
+    df = dataset_store.get_by_id(dataset_id)
 
     if df is None:
         abort(404)
@@ -61,7 +63,7 @@ def dataset_as_html_by_id(dataset_id: str):
 @app.route('/api/datasets/hash/<producing_hash>', methods=['GET', 'POST'])
 def dataset_by_hash(producing_hash: str):
     if request.method == 'GET':
-        df = store.get_by_hash(producing_hash)
+        df = dataset_store.get_by_hash(producing_hash)
 
         if df is None:
             abort(404)
@@ -71,7 +73,7 @@ def dataset_by_hash(producing_hash: str):
     if request.method == 'POST':
         data = request.data
         df = pd.read_json(data)
-        store.store_data_set(producing_hash, df)
+        dataset_store.store_data_set(producing_hash, df)
         return 'OK'
 
 
@@ -84,9 +86,9 @@ def my_jsonpify(df):
 
 
 # Initializing services
-init_service.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)),
-                   s3_access_key_id=S3_ACCESS_KEY_ID,
-                   s3_secret_access_key=S3_ACCESS_KEY_SECRET)
+file_store.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)),
+                 s3_access_key_id=S3_ACCESS_KEY_ID,
+                 s3_secret_access_key=S3_ACCESS_KEY_SECRET)
 init_service.init_default_files_s3()
 import_service.import_defaults_in_background()
 
