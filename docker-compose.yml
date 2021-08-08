@@ -1,4 +1,4 @@
-version: '3'
+version: "3.8"
 services:
 
   # Development Frontend
@@ -7,7 +7,7 @@ services:
       context: ./DevFrontend
       dockerfile: ./Dockerfile
     ports:
-      - 8080:80
+      - "8080:80"
 
   # Pipeline Service
   pipeline-service:
@@ -23,7 +23,7 @@ services:
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     ports:
-      - 5000:80
+      - "5000:80"
     depends_on:
       - message-broker
 
@@ -45,7 +45,7 @@ services:
       context: ./DataSetService
       dockerfile: ./Dockerfile
     ports:
-      - 5002:5000
+      - "5002:5000"
     expose:
       - 5002
 
@@ -70,4 +70,17 @@ services:
       - "9002:9001"
     volumes:
       - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
-    
+
+  # S3 Bucket
+  localstack-s3:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=eu-west-2
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    volumes:
+      - ./volumes/localstack-data:/tmp/localstack
