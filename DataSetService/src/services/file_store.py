@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -37,7 +40,7 @@ class FileStore:
                 create_bucket_response = self.s3_client.create_bucket(
                     Bucket=self.default_file_bucket_name,
                     CreateBucketConfiguration={
-                        'LocationConstraint': 'eu-west-1',
+                        'LocationConstraint': 'eu-west-2',
                     }
                 )
                 self.log.info("Created new default file bucket %s" % create_bucket_response)
@@ -49,3 +52,32 @@ class FileStore:
             self.log.error(e)
         except Exception as e:
             self.log.error('Unexpected error while asserting default file bucket exists %s' % e)
+
+    def store_file_to_bucket(self, file_path: str):
+        resolved_path = str(Path(file_path).resolve())
+        filename = os.path.basename(resolved_path)
+
+        if not os.path.isfile(resolved_path):
+            self.log.error("File %s does not exist", resolved_path)
+            return
+
+        self.log.info("Uploading file '%s' to bucket '%s'" % (filename, self.default_file_bucket_name))
+        # TODO: extend this check to include the content-md5 hash to allow newer versions of files
+        if self.key_exists(filename):
+            self.log.debug("object with key '%s' already exists" % filename)
+            return
+        with open(resolved_path, 'rb') as data:
+            self.s3_client.upload_fileobj(data, self.default_file_bucket_name, filename)
+
+    def key_exists(self, key: str) -> bool:
+        """
+        Checks if an object (file) with a given key (name) exists in the default file bucket.
+        """
+        try:
+            response = self.s3_client.head_object(Bucket=self.default_file_bucket_name, Key=key)
+            self.log.debug("Checking if key exists responded with %s" % response)
+            return True
+        except ClientError as e:
+            if e.response['ResponseMetadata']['HTTPStatusCode'] == 404:
+                return False
+            raise e
