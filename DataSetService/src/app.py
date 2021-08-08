@@ -7,15 +7,23 @@ from flask_socketio import SocketIO
 
 from src.services.import_service import ImportService
 from src.services.in_memory_store import InMemoryStore
+from src.services.init_service import InitService
 
+# Configuration
 PORT: int = os.getenv("PORT", 5000)
+S3_HOST: str = os.getenv("S3_HOST", "http://localstack-s3")
+S3_PORT: int = os.getenv("S3_PORT", 4566)
 
+# Creating service instances
 app = Flask(__name__, template_folder='templates')
 socketio = SocketIO(app)
 bootstrap = Bootstrap(app)
 store = InMemoryStore()
 import_service = ImportService(store)
+init_service = InitService()
 
+
+# Setting up endpoint
 
 @app.route('/')
 @app.route('/index.html')
@@ -73,6 +81,9 @@ def my_jsonpify(df):
     )
 
 
+# Initializing services
+init_service.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)))
+init_service.init_default_files_s3()
 import_service.import_defaults_in_background()
 
 if __name__ == '__main__':
