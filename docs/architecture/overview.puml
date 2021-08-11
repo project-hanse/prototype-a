@@ -69,7 +69,13 @@ node_executed_queue <-- worker
 
 'message_broker --> event_logging
 
-worker --> dataset_store 
+worker --> dataset_store
+note right of worker 
+    Node Worker should not directly access 
+    the file store, this should go through 
+    the dataset store or another low level service 
+end note    
+worker --> file_store
 'worker -->operation_store
 suggestion_service --> pipeline_store
 pipeline_service --> execution_store

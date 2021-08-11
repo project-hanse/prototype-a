@@ -6,11 +6,14 @@ import pandas as pd
 
 from src.models.node_execution_request import NodeExecutionRequest
 from src.models.node_execution_request_double_input import NodeExecutionRequestDoubleInput
+from src.models.node_execution_request_file_input import NodeExecutionRequestFileInput
 from src.models.node_execution_request_single_input import NodeExecutionRequestSingleInput
 from src.models.node_execution_response import NodeExecutionResponse
 from src.models.node_execution_response_double_input import NodeExecutionResponseDoubleInput
+from src.models.node_execution_response_file_input import NodeExecutionResponseFileInput
 from src.models.node_execution_response_single_input import NodeExecutionResponseSingleInput
 from src.services.dateset_service_client import DatasetServiceClient
+from src.services.file_store_client import FileStoreClient
 from src.services.operation_service import OperationService
 
 
@@ -19,12 +22,28 @@ class NodeExecutionService:
 
     def __init__(self, logger: logging,
                  dataset_client: DatasetServiceClient,
+                 file_store_client: FileStoreClient,
                  operation_service: OperationService) -> None:
         self.count = 0
         self.logger = logger
         self.dataset_client = dataset_client
+        self.file_store_client = file_store_client
         self.operation_service = operation_service
         super().__init__()
+
+    def handle_file_input_request(self, request: NodeExecutionRequestFileInput) -> NodeExecutionResponseFileInput:
+        self.count += 1
+        self.logger.debug("Handling request for no input operation %d" % self.count)
+
+        response = NodeExecutionResponseFileInput()
+        self.set_initial_response_values(request, response)
+
+        file_content = self.file_store_client.get_object_content(request.input_object_bucket, request.input_object_key)
+
+        # TODO: Implement me
+        response.set_successful(False)
+
+        return response
 
     def handle_single_input_request(self, request: NodeExecutionRequestSingleInput) -> NodeExecutionResponseSingleInput:
         self.count += 1

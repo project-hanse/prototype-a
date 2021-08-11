@@ -14,7 +14,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 pipelineId = Guid.NewGuid();
             }
 
-            var cleanUp = new SingleInputNode
+            var cleanUp = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetId = Guid.Parse("00e61417-cada-46db-adf3-a5fc89a3b6ee"),
@@ -25,7 +25,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 },
             };
 
-            var select1 = new SingleInputNode
+            var select1 = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
@@ -36,7 +36,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 }
             };
 
-            var select2 = new SingleInputNode
+            var select2 = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(cleanUp),
@@ -47,14 +47,14 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 }
             };
 
-            var describe1 = new SingleInputNode
+            var describe1 = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(select1),
                 Operation = "describe"
             };
 
-            var describe2 = new SingleInputNode
+            var describe2 = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = HashHelper.ComputeStaticHash(select2),

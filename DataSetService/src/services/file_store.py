@@ -12,7 +12,7 @@ class FileStore:
 
     def __init__(self) -> None:
         super().__init__()
-        self.log = self.logger = LogHelper.get_logger('FileStore')
+        self.log = LogHelper.get_logger('FileStore')
         self.session = None
         self.s3_client = None
 

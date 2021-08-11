@@ -8,7 +8,7 @@ class InitService:
 
     def __init__(self, file_store: FileStore) -> None:
         super().__init__()
-        self.log = self.logger = LogHelper.get_logger('InitService')
+        self.log = LogHelper.get_logger('InitService')
         self.file_store = file_store
 
     def init_default_files_s3(self):

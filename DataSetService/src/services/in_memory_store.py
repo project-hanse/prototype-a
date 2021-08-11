@@ -24,7 +24,9 @@ class InMemoryStore:
 
         self.log.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
         if file.endswith(".csv"):
-            df = pd.read_csv(filename, sep=self.get_sep(filename), encoding=self.get_file_encoding(filename),
+            df = pd.read_csv(filename,
+                             sep=self.get_sep(filename),
+                             encoding=self.get_file_encoding(filename),
                              skiprows=self.get_skiprows(filename))
         elif file.endswith(".xlsx"):
             df = pd.read_excel(filename)
