@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
-ls
+#!/bin/bash
 pip install .
 exec python3 -u ./src/main.py

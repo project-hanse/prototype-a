@@ -6,47 +6,50 @@ title "Components Overview"
 'Definitions'
 
 rectangle "Frontend" {
-    component "Pipeline Editor" << Angular Frontend>> as pipeline_editor
-    component "Dataset Importer" << Angular Frontend >> as dataset_importer
+    component #line.dashed "Pipeline Editor" << Angular Frontend>> as pipeline_editor
+    component "Development Frontend" << Angular Frontend >> as development_frontend
 }
 
 rectangle "Edge Services" {
-    component "API Gateway" << Ocelot Gateway>> as api_gateway
+    component #line.dashed "API Gateway" << Ocelot Gateway>> as api_gateway
     component "Edge Event Bus" << MQTT Broker >> as message_broker_edge
 }
 
 rectangle "Mid Level Services" {
     component "Pipeline Service" << .NET REST API >> as pipeline_service
     collections  "Node Worker" <<Python Worker>> as worker
-    component "Suggestion Service" << Python REST API >> as suggestion_service
-    component "Dataset Service" << Python REST API >> as dataset_service
+    component #line.dashed "Suggestion Service" << Python REST API >> as suggestion_service
+    component #line.dashed "Dataset Service" << Python REST API >> as dataset_service
 }
 
 rectangle "Low Level Services" {
-    component "Pipeline Store" << .NET REST API >> as pipeline_store
-    database "Pipeline Database" << GraphDB >> as pipeline_db
+    component #line.dashed "Pipeline Store" << .NET REST API >> as pipeline_store
+    database #line.dashed "Pipeline Database" << GraphDB >> as pipeline_db
     
-    component "Execution Store" << .NET REST API >> as execution_store
-    database "Execution Database" << MongoDB >> as execution_db
+    component #line.dashed "Execution Store" << .NET REST API >> as execution_store
+    database #line.dashed "Execution Database" << MongoDB >> as execution_db
     
     component "Dataset Store" << Python REST API >> as dataset_store
-    database "Dataset Database" << MongoDB >> as dataset_db
-    
+    node "File Store" << S3 Bucket >> as file_store
+    database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
+    /'
     component #line.dashed "Operation Store" << Python REST API >> as operation_store
     database #line.dashed "Operation Database" << MongoDB >> as operation_db
-    
+    '/
     component #line.dashed "Event Logging" << Logstash? >> as event_logging
     database #line.dashed "Event Database" << Elasticsearch >> as event_db    
 }
 
 component "Event Bus" << MQTT Broker >> as message_broker {
     queue "Node Execution Queue" as node_execution_queue
+    queue "Node Executed Queue" as node_executed_queue
 }
 
 'Interaction'
 
 pipeline_editor --> api_gateway
-dataset_importer --> api_gateway
+development_frontend --> message_broker_edge
+development_frontend --> pipeline_service
 
 api_gateway --> pipeline_service 
 api_gateway --> suggestion_service
@@ -54,17 +57,26 @@ api_gateway --> dataset_service
 
 pipeline_store --> pipeline_db
 dataset_store --> dataset_db
+dataset_store --> file_store
 execution_store --> execution_db 
-operation_store --> operation_db
+'operation_store --> operation_db
 event_logging --> event_db
 
-pipeline_service <--> node_execution_queue
-node_execution_queue <--> worker 
+pipeline_service --> node_execution_queue
+node_execution_queue --> worker 
+pipeline_service <-- node_executed_queue
+node_executed_queue <-- worker 
 
-message_broker --> event_logging
+'message_broker --> event_logging
 
-worker --> dataset_store 
-worker -->operation_store
+worker --> dataset_store
+note right of worker 
+    Node Worker should not directly access 
+    the file store, this should go through 
+    the dataset store or another low level service 
+end note    
+worker --> file_store
+'worker -->operation_store
 suggestion_service --> pipeline_store
 pipeline_service --> execution_store
 pipeline_service --> pipeline_store
