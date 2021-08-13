@@ -21,8 +21,12 @@ class FileStoreClient:
                 aws_access_key_id=s3_access_key_id,
                 aws_secret_access_key=s3_secret_access_key,
                 endpoint_url=s3_endpoint)
+            if self.s3_client is None:
+                self.log.warning("Could not create client for S3 file store")
+                return False
         except Exception as e:
             self.log.error("Failed to setup connection to S3 service %s" % str(e))
+        return True
 
     def get_object_content(self, input_object_bucket: str, input_object_key: str) -> Optional[str]:
         self.log.info("Loading object content from bucket '%s' for object with key '%s'"
@@ -30,6 +34,8 @@ class FileStoreClient:
 
         # Implemented based on:
         # https://stackoverflow.com/questions/35803601/reading-a-file-from-a-private-s3-bucket-to-a-pandas-dataframe/43838676
+        if self.s3_client is None:
+            raise Exception('Service not initialized')
 
         response = self.s3_client.get_object(Bucket=input_object_bucket, Key=input_object_key)
         if response is None:

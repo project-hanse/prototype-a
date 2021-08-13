@@ -114,6 +114,9 @@ namespace PipelineService.Services.Impl
             string resultKey = null;
             switch (blockExecutionRecord?.Node)
             {
+                case NodeFileInput fileInput:
+                    resultKey = fileInput.ResultKey;
+                    break;
                 case NodeSingleInput singleInputNode:
                     resultKey = singleInputNode.ResultKey;
                     break;

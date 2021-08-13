@@ -3,10 +3,10 @@ import os
 import signal
 import uuid
 
-from src.services.file_store_client import FileStoreClient
-from src.services.node_execution_service import NodeExecutionService
 from src.services.dateset_service_client import DatasetServiceClient
+from src.services.file_store_client import FileStoreClient
 from src.services.mqtt_client_wrapper import MqttClientWrapper
+from src.services.node_execution_service import NodeExecutionService
 from src.services.operation_service import OperationService
 
 MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
@@ -57,9 +57,12 @@ if __name__ == '__main__':
                          mqtt_port=MQTT_PORT,
                          topic_name_sub=TOPIC_NAME_SUB,
                          topic_name_pub=TOPIC_NAME_PUB)
-    file_store_client.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)),
-                            s3_access_key_id=S3_ACCESS_KEY_ID,
-                            s3_secret_access_key=S3_ACCESS_KEY_SECRET)
+    file_store_ok = file_store_client.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)),
+                                            s3_access_key_id=S3_ACCESS_KEY_ID,
+                                            s3_secret_access_key=S3_ACCESS_KEY_SECRET)
+    if not file_store_ok:
+        raise Exception("Failed to setup file store")
+
     operation_service.init()
 
     while loop:

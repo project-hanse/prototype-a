@@ -1,8 +1,8 @@
 import json
 import logging
+from io import StringIO
 
 import pandas as pd
-import s3fs
 
 from src.exceptions.ValidationError import ValidationError
 
@@ -10,13 +10,13 @@ from src.exceptions.ValidationError import ValidationError
 class OperationsCollection:
 
     @staticmethod
-    def pd_file_input_read_csv(logger: logging, operation_name: str, operation_config: dict) -> pd.DataFrame:
+    def pd_file_input_read_csv(logger: logging, operation_name: str, operation_config: dict,
+                               file_content: str) -> pd.DataFrame:
         """
         Loads a csv file and returns it as a dataframe.
         """
         logger.info("Executing pandas operation pd_file_input_read_csv (%s)" % operation_name)
-        # TODO: fix s3 path generation
-        df = pd.read_csv(operation_config['s3_path'])
+        df = pd.read_csv(StringIO(file_content))
         return df
 
     @staticmethod
