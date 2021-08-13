@@ -22,6 +22,7 @@ class OperationService:
 
     def init(self):
         self.logger.info("Initializing local operations store...")
+        self.local_operations["dfbca055-69f1-40df-9639-023ec6363bac"] = OperationsCollection.pd_file_input_read_csv
         self.local_operations["0759dede-2cee-433c-b314-10a8fa456e62"] = OperationsCollection.pd_single_input_generic
         self.local_operations["de26c7a0-0444-414d-826f-458cd3b8979c"] = OperationsCollection.pd_single_input_set_index
         self.local_operations["0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61"] = OperationsCollection.pd_single_input_rename
@@ -37,6 +38,14 @@ class OperationService:
 
     def get_simple_operation_by_id(self, operation_id: str) -> Callable:
         self.logger.info('Getting simple operation %s' % operation_id)
+        if operation_id in self.local_operations:
+            return self.local_operations[operation_id]
+
+        self.logger.warn("Operation with id %s not found" % operation_id)
+        raise NotImplementedError("Operation with this id is not implemented")
+
+    def get_file_operation_by_id(self, operation_id) -> Callable:
+        self.logger.info('Getting operation %s' % operation_id)
         if operation_id in self.local_operations:
             return self.local_operations[operation_id]
 

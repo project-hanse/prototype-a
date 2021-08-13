@@ -38,11 +38,26 @@ class NodeExecutionService:
         response = NodeExecutionResponseFileInput()
         self.set_initial_response_values(request, response)
 
-        file_content = self.file_store_client.get_object_content(request.input_object_bucket, request.input_object_key)
+        # TODO: Load directly with pandas (pd.read_csv(s3://...))
+        # file_content = self.file_store_client.get_object_content(request.input_object_bucket, request.input_object_key)
+        s3_path = 's3://localhost:4566/%s/%s' % (request.get_input_object_bucket(), request.get_input_object_key())
 
-        # TODO: Implement me
-        response.set_successful(False)
+        operation_config = self.preprocess_operation_config(request.get_operation_configuration())
+        operation_config['s3_path'] = s3_path
 
+        try:
+            resulting_dataset = self.execute_file_input_operation(request.operation_name,
+                                                                  request.operation_id,
+                                                                  operation_config)
+            self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
+            response.set_dataset_producing_hash(request.get_result_key())
+            response.set_successful(True)
+        except Exception as e:
+            self.logger.info("Failed to execute operation %s: %s" % (operation, str(e)))
+            response.set_successful(False)
+            response.set_error_description(str(e))
+
+        response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
         return response
 
     def handle_single_input_request(self, request: NodeExecutionRequestSingleInput) -> NodeExecutionResponseSingleInput:
@@ -75,7 +90,7 @@ class NodeExecutionService:
             response.set_dataset_producing_hash(request.get_result_key())
             response.set_successful(True)
         except Exception as e:
-            self.logger.warning("Failed to execute operation %s: %s" % (operation, str(e)))
+            self.logger.info("Failed to execute operation %s: %s" % (operation, str(e)))
             response.set_successful(False)
             response.set_error_description(str(e))
 
@@ -136,6 +151,17 @@ class NodeExecutionService:
         response.set_start_time(datetime.datetime.now(datetime.timezone.utc))
 
     # TODO: Merge execute_*_input_operation methods
+    def execute_file_input_operation(self, operation_name: str,
+                                     operation_id: str,
+                                     operation_config: dict):
+        self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
+        operation_callable = self.operation_service.get_file_operation_by_id(operation_id)
+
+        # TODO catch method signature mismatch exception
+        resulting_dataset = operation_callable(self.logger, operation_name, operation_config)
+
+        return resulting_dataset
+
     def execute_single_input_operation(self, df: pd.DataFrame,
                                        operation_name: str,
                                        operation_id: str,

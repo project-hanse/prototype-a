@@ -2,11 +2,22 @@ import json
 import logging
 
 import pandas as pd
+import s3fs
 
 from src.exceptions.ValidationError import ValidationError
 
 
 class OperationsCollection:
+
+    @staticmethod
+    def pd_file_input_read_csv(logger: logging, operation_name: str, operation_config: dict) -> pd.DataFrame:
+        """
+        Loads a csv file and returns it as a dataframe.
+        """
+        logger.info("Executing pandas operation pd_file_input_read_csv (%s)" % operation_name)
+        # TODO: fix s3 path generation
+        df = pd.read_csv(operation_config['s3_path'])
+        return df
 
     @staticmethod
     def pd_single_input_generic(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):

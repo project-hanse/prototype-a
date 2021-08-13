@@ -13,5 +13,8 @@ class NodeExecutionRequestFileInput(NodeExecutionRequest):
     def get_input_object_key(self):
         return self.input_object_key
 
+    def get_input_object_bucket(self):
+        return self.input_object_bucket
+
     def get_operation_configuration(self):
         return self.operation_configuration
