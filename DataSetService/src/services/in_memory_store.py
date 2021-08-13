@@ -1,9 +1,10 @@
-import logging
 import os
 from pathlib import Path
 
-import pandas as pd
 import chardet
+import pandas as pd
+
+from src.helper.log_helper import LogHelper
 
 
 class InMemoryStore:
@@ -12,27 +13,25 @@ class InMemoryStore:
     def __init__(self) -> None:
         super().__init__()
         self.store = dict()
-        self.logger = logging.getLogger('InMemoryStore')
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
+        self.log = LogHelper.get_logger('InMemoryStore')
 
     def import_with_id(self, file: str, dataframe_id: str):
         filename = str(Path(file).resolve())
 
         if not os.path.isfile(filename):
-            self.logger.error("File %s does not exist", filename)
+            self.log.error("File %s does not exist", filename)
             return
 
-        self.logger.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
+        self.log.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
         if file.endswith(".csv"):
-            df = pd.read_csv(filename, sep=self.get_sep(filename), encoding=self.get_file_encoding(filename),
+            df = pd.read_csv(filename,
+                             sep=self.get_sep(filename),
+                             encoding=self.get_file_encoding(filename),
                              skiprows=self.get_skiprows(filename))
         elif file.endswith(".xlsx"):
             df = pd.read_excel(filename)
         else:
-            self.logger.error("This file (%s) is not supported" % filename)
+            self.log.error("This file (%s) is not supported" % filename)
             return
         self.store[dataframe_id] = df
 
@@ -43,7 +42,7 @@ class InMemoryStore:
         return self.store.keys()
 
     def get_by_id(self, dataframe_id: str):
-        self.logger.info("Loading dataset by id %s" % str(dataframe_id))
+        self.log.info("Loading dataset by id %s" % str(dataframe_id))
 
         if self.store.keys().__contains__(dataframe_id):
             return self.store.get(dataframe_id)
@@ -51,7 +50,7 @@ class InMemoryStore:
             return None
 
     def get_by_hash(self, producing_hash):
-        self.logger.info("Loading dataset by hash %s" % str(producing_hash))
+        self.log.info("Loading dataset by hash %s" % str(producing_hash))
 
         if self.store.keys().__contains__(producing_hash):
             return self.store.get(producing_hash)
@@ -59,7 +58,7 @@ class InMemoryStore:
             return None
 
     def store_data_set(self, key: str, data: pd.DataFrame):
-        self.logger.info("Storing data with key %s of shape %s" % (key, data.shape))
+        self.log.info("Storing data with key %s of shape %s" % (key, data.shape))
         self.store[key] = data
 
     @staticmethod

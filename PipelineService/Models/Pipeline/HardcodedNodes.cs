@@ -9,7 +9,7 @@ namespace PipelineService.Models.Pipeline
     {
         public static Node ZamgWeatherPreprocessing(Guid pipelineId, int year)
         {
-            var trimRows = new SingleInputNode
+            var trimRows = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DatasetIds.ZamgWeatherId(year),

@@ -74,7 +74,7 @@ namespace PipelineService.Services.Impl
             _logger.LogInformation(
                 "Node ({NodeId}) completed for execution {ExecutionId} of pipeline {PipelineId} with success state {SuccessState} in {ExecutionTimeMs} ms",
                 response.NodeId, response.ExecutionId, response.PipelineId, response.Successful,
-                (int) (response.StopTime - response.StartTime).TotalMilliseconds);
+                (int)(response.StopTime - response.StartTime).TotalMilliseconds);
 
             if (!response.Successful)
             {
@@ -114,7 +114,10 @@ namespace PipelineService.Services.Impl
             string resultKey = null;
             switch (blockExecutionRecord?.Node)
             {
-                case SingleInputNode singleInputNode:
+                case NodeFileInput fileInput:
+                    resultKey = fileInput.ResultKey;
+                    break;
+                case NodeSingleInput singleInputNode:
                     resultKey = singleInputNode.ResultKey;
                     break;
                 case DoubleInputNode doubleInputNode:
@@ -230,14 +233,19 @@ namespace PipelineService.Services.Impl
 
             NodeExecutionRequest request;
             // TODO: This can be solved in a nicer way by implementing eg the Visitor pattern 
-            if (node.GetType() == typeof(SingleInputNode))
+            if (node.GetType() == typeof(NodeFileInput))
             {
-                request = ExecutionRequestFromNode(executionId, (SingleInputNode) node);
+                request = ExecutionRequestFromNode(executionId, (NodeFileInput)node);
+                await _eventBusService.PublishMessage($"execute/{node.PipelineId}/file", request);
+            }
+            else if (node.GetType() == typeof(NodeSingleInput))
+            {
+                request = ExecutionRequestFromNode(executionId, (NodeSingleInput)node);
                 await _eventBusService.PublishMessage($"execute/{node.PipelineId}/single", request);
             }
             else if (node.GetType() == typeof(DoubleInputNode))
             {
-                request = ExecutionRequestFromNode(executionId, (DoubleInputNode) node);
+                request = ExecutionRequestFromNode(executionId, (DoubleInputNode)node);
                 await _eventBusService.PublishMessage($"execute/{node.PipelineId}/double", request);
             }
             else
@@ -344,7 +352,31 @@ namespace PipelineService.Services.Impl
             return ids;
         }
 
-        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, SingleInputNode node)
+        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeFileInput node)
+        {
+            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
+            if (string.IsNullOrEmpty(node.InputObjectKey) && string.IsNullOrEmpty(node.InputObjectBucket))
+            {
+                _logger.LogWarning("Node {NodeId} has no input object key or bucket defined",
+                    node.Id);
+                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
+            }
+
+            return new NodeExecutionRequestFileInput
+            {
+                PipelineId = node.PipelineId,
+                NodeId = node.Id,
+                ExecutionId = executionId,
+                OperationName = node.Operation,
+                OperationId = node.OperationId,
+                OperationConfiguration = node.OperationConfiguration,
+                ResultKey = node.ResultKey,
+                InputObjectBucket = node.InputObjectBucket,
+                InputObjectKey = node.InputObjectKey
+            };
+        }
+
+        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeSingleInput node)
         {
             // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
             if (!node.InputDatasetId.HasValue && string.IsNullOrEmpty(node.InputDatasetHash))

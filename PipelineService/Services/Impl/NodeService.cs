@@ -40,7 +40,7 @@ namespace PipelineService.Services.Impl
 
             var ids = new List<string>();
 
-            if (node is SingleInputNode sn)
+            if (node is NodeSingleInput sn)
             {
                 ids.Add(sn.InputDatasetId.HasValue ? sn.InputDatasetId.Value.ToString() : sn.InputDatasetHash);
             }

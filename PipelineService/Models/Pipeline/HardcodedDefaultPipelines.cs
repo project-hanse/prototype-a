@@ -17,7 +17,16 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var cleanUp = new SingleInputNode
+            var import = new NodeFileInput
+            {
+                InputObjectKey = "Melbourne_housing_FULL.csv",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_csv",
+                OperationId = OpIdPdFileInputReadCsv
+            };
+
+            var cleanUp = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdMelbourneHousingFull,
@@ -25,11 +34,11 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 },
             };
 
-            var select = new SingleInputNode
+            var select = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = cleanUp.ResultKey,
@@ -37,11 +46,11 @@ namespace PipelineService.Models.Pipeline
                 OperationId = Guid.Parse("7b0bb47f-f997-43d8-acb1-c31f2a22475d"),
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"0", "['Price', 'YearBuilt', 'BuildingArea', 'Landsize']"}
+                    { "0", "['Price', 'YearBuilt', 'BuildingArea', 'Landsize']" }
                 }
             };
 
-            var describe = new SingleInputNode
+            var describe = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = select.ResultKey,
@@ -49,8 +58,9 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleGeneric,
             };
 
-            cleanUp.Successors.Add(select);
-            select.Successors.Add(describe);
+            Successor(import, cleanUp);
+            Successor(cleanUp, select);
+            Successor(select, describe);
 
             return new Pipeline
             {
@@ -58,7 +68,7 @@ namespace PipelineService.Models.Pipeline
                 Name = "Melbourne Housing Data",
                 Root = new List<Node>
                 {
-                    cleanUp
+                    import
                 }
             };
         }
@@ -70,7 +80,7 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var interpolate = new SingleInputNode
+            var interpolate = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdInfluencaVienna20092018,
@@ -78,11 +88,11 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"method", "linear"}
+                    { "method", "linear" }
                 },
             };
 
-            var select = new SingleInputNode
+            var select = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = interpolate.ResultKey,
@@ -90,13 +100,13 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleSelectColumns,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"0", "['year', 'week', 'weekly_infections']"}
+                    { "0", "['year', 'week', 'weekly_infections']" }
                 }
             };
 
             interpolate.Successors.Add(select);
 
-            var describe = new SingleInputNode
+            var describe = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = select.ResultKey,
@@ -121,7 +131,7 @@ namespace PipelineService.Models.Pipeline
             var pipeline = MelbourneHousingPipeline(pipelineId);
             pipeline.Name = "Invalid: Melbourne Housing Data";
 
-            var unknownOperation = new SingleInputNode
+            var unknownOperation = new NodeSingleInput
             {
                 PipelineId = pipeline.Id,
                 InputDatasetId = DsIdMelbourneHousePricesLess,
@@ -130,7 +140,7 @@ namespace PipelineService.Models.Pipeline
                 OperationConfiguration = new Dictionary<string, string>()
             };
 
-            var describe = new SingleInputNode
+            var describe = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = unknownOperation.ResultKey,
@@ -151,7 +161,7 @@ namespace PipelineService.Models.Pipeline
             }
 
             // Data cleaning Berufsbildung
-            var trim1Berufsbildung = new SingleInputNode
+            var trim1Berufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdChemnitzBerufsbildung1993,
@@ -159,11 +169,11 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "6"}
+                    { "first_n", "6" }
                 },
             };
 
-            var setHeaderBerufsbildung = new SingleInputNode
+            var setHeaderBerufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = trim1Berufsbildung.ResultKey,
@@ -171,12 +181,12 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"header_row", "0"}
+                    { "header_row", "0" }
                 }
             };
             trim1Berufsbildung.Successors.Add(setHeaderBerufsbildung);
 
-            var dropNaBerufsbildung = new SingleInputNode
+            var dropNaBerufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = setHeaderBerufsbildung.ResultKey,
@@ -184,12 +194,12 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 },
             };
             setHeaderBerufsbildung.Successors.Add(dropNaBerufsbildung);
 
-            var trim2Berufsbildung = new SingleInputNode
+            var trim2Berufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = dropNaBerufsbildung.ResultKey,
@@ -197,13 +207,13 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "1"}
+                    { "first_n", "1" }
                 },
             };
             dropNaBerufsbildung.Successors.Add(trim2Berufsbildung);
 
 
-            var selectRowsBerufsbildung = new SingleInputNode
+            var selectRowsBerufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = trim2Berufsbildung.ResultKey,
@@ -211,14 +221,14 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleSelectRows,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"select_value", "Insgesamt"},
-                    {"column_name", "Typ"}
+                    { "select_value", "Insgesamt" },
+                    { "column_name", "Typ" }
                 },
             };
             trim2Berufsbildung.Successors.Add(selectRowsBerufsbildung);
 
             // Data Cleaning Studenten
-            var trim1Studenten = new SingleInputNode
+            var trim1Studenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdChemnitzStudenten1993,
@@ -226,11 +236,11 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "6"}
+                    { "first_n", "6" }
                 },
             };
 
-            var setHeaderStudenten = new SingleInputNode
+            var setHeaderStudenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = trim1Studenten.ResultKey,
@@ -238,12 +248,12 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"header_row", "0"}
+                    { "header_row", "0" }
                 }
             };
             trim1Studenten.Successors.Add(setHeaderStudenten);
 
-            var dropNaStudenten = new SingleInputNode
+            var dropNaStudenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = setHeaderStudenten.ResultKey,
@@ -251,12 +261,12 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 },
             };
             setHeaderStudenten.Successors.Add(dropNaStudenten);
 
-            var trim2Studenten = new SingleInputNode
+            var trim2Studenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = dropNaStudenten.ResultKey,
@@ -264,12 +274,12 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "1"}
+                    { "first_n", "1" }
                 },
             };
             dropNaStudenten.Successors.Add(trim2Studenten);
 
-            var selectRowsStudenten = new SingleInputNode
+            var selectRowsStudenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = trim2Studenten.ResultKey,
@@ -277,8 +287,8 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleSelectRows,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"select_value", "Insgesamt"},
-                    {"column_name", "Typ"}
+                    { "select_value", "Insgesamt" },
+                    { "column_name", "Typ" }
                 },
             };
             trim2Studenten.Successors.Add(selectRowsStudenten);
@@ -292,16 +302,16 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdDoubleJoin,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"on", "Jahr"},
-                    {"lsuffix", "_berufsbildung"},
-                    {"rsuffix", "_studenten"}
+                    { "on", "Jahr" },
+                    { "lsuffix", "_berufsbildung" },
+                    { "rsuffix", "_studenten" }
                 }
             };
 
             selectRowsStudenten.Successors.Add(join);
             selectRowsBerufsbildung.Successors.Add(join);
 
-            var describe = new SingleInputNode
+            var describe = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetHash = join.ResultKey,
@@ -329,7 +339,7 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var trimYield = new SingleInputNode
+            var trimYield = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetId = DsIdSimulatedVineYield,
@@ -337,55 +347,55 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"first_n", "1"}
+                    { "first_n", "1" }
                 },
             };
 
-            var setHeader = new SingleInputNode
+            var setHeader = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 Operation = "set_header",
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"header_row", "0"}
+                    { "header_row", "0" }
                 }
             };
             Successor(trimYield, setHeader);
 
-            var renameLabels = new SingleInputNode
+            var renameLabels = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 Operation = "rename",
                 OperationId = OpIdPdSingleRename,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"mapper", "{'nan':'Jahr'}"},
-                    {"axis", "columns"}
+                    { "mapper", "{'nan':'Jahr'}" },
+                    { "axis", "columns" }
                 }
             };
             Successor(setHeader, renameLabels);
 
-            var setIndex = new SingleInputNode
+            var setIndex = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 Operation = "set_index",
                 OperationId = OpIdPdSingleSetIndex,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"keys", "Jahr"}
+                    { "keys", "Jahr" }
                 }
             };
             Successor(renameLabels, setIndex);
 
-            var mean = new SingleInputNode
+            var mean = new NodeSingleInput
             {
                 PipelineId = pipelineId,
                 Operation = "mean",
                 OperationId = OpIdPdSingleMean,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "1"}
+                    { "axis", "1" }
                 }
             };
 
@@ -426,7 +436,16 @@ namespace PipelineService.Models.Pipeline
         /// <summary>
         /// Makes <code>successor</code> the successor of <code>node</code>. 
         /// </summary>
-        private static void Successor(SingleInputNode node, SingleInputNode successor)
+        private static void Successor(NodeSingleInput node, NodeSingleInput successor)
+        {
+            node.Successors.Add(successor);
+            successor.InputDatasetHash = node.ResultKey;
+        }
+
+        /// <summary>
+        /// Makes <code>successor</code> the successor of <code>node</code>. 
+        /// </summary>
+        private static void Successor(NodeFileInput node, NodeSingleInput successor)
         {
             node.Successors.Add(successor);
             successor.InputDatasetHash = node.ResultKey;

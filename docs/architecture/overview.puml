@@ -30,6 +30,7 @@ rectangle "Low Level Services" {
     database #line.dashed "Execution Database" << MongoDB >> as execution_db
     
     component "Dataset Store" << Python REST API >> as dataset_store
+    node "File Store" << S3 Bucket >> as file_store
     database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
     /'
     component #line.dashed "Operation Store" << Python REST API >> as operation_store
@@ -56,6 +57,7 @@ api_gateway --> dataset_service
 
 pipeline_store --> pipeline_db
 dataset_store --> dataset_db
+dataset_store --> file_store
 execution_store --> execution_db 
 'operation_store --> operation_db
 event_logging --> event_db
@@ -67,7 +69,13 @@ node_executed_queue <-- worker
 
 'message_broker --> event_logging
 
-worker --> dataset_store 
+worker --> dataset_store
+note right of worker 
+    Node Worker should not directly access 
+    the file store, this should go through 
+    the dataset store or another low level service 
+end note    
+worker --> file_store
 'worker -->operation_store
 suggestion_service --> pipeline_store
 pipeline_service --> execution_store
