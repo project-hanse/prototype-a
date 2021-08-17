@@ -83,10 +83,22 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
+            var import = new NodeFileInput
+            {
+                InputObjectKey = "influenca_vienna_2009-2018.csv",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_csv",
+                OperationId = OpIdPdFileInputReadCsv,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "header", "0" }
+                }
+            };
+
             var interpolate = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdInfluencaVienna20092018,
                 Operation = "interpolate",
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
@@ -107,8 +119,6 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            interpolate.Successors.Add(select);
-
             var describe = new NodeSingleInput
             {
                 PipelineId = pipelineId,
@@ -116,7 +126,10 @@ namespace PipelineService.Models.Pipeline
                 Operation = "describe",
                 OperationId = OpIdPdSingleGeneric,
             };
-            select.Successors.Add(describe);
+
+            Successor(import, interpolate);
+            Successor(interpolate, select);
+            Successor(select, describe);
 
             return new Pipeline
             {
@@ -124,7 +137,7 @@ namespace PipelineService.Models.Pipeline
                 Name = "Influenza Interpolation",
                 Root = new List<Node>
                 {
-                    interpolate
+                    import
                 }
             };
         }
@@ -163,11 +176,19 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
+            var import1Berufsbildung = new NodeFileInput
+            {
+                InputObjectKey = "21211-003Z_format.csv",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_csv",
+                OperationId = OpIdPdFileInputReadCsv
+            };
+
             // Data cleaning Berufsbildung
             var trim1Berufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdChemnitzBerufsbildung1993,
                 Operation = "trim",
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
@@ -175,6 +196,8 @@ namespace PipelineService.Models.Pipeline
                     { "first_n", "6" }
                 },
             };
+
+            Successor(import1Berufsbildung, trim1Berufsbildung);
 
             var setHeaderBerufsbildung = new NodeSingleInput
             {
@@ -230,11 +253,18 @@ namespace PipelineService.Models.Pipeline
             };
             trim2Berufsbildung.Successors.Add(selectRowsBerufsbildung);
 
+            var import1Studenten = new NodeFileInput
+            {
+                InputObjectKey = "21311-001Z_format.csv",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_csv",
+                OperationId = OpIdPdFileInputReadCsv
+            };
             // Data Cleaning Studenten
             var trim1Studenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdChemnitzStudenten1993,
                 Operation = "trim",
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
@@ -242,6 +272,8 @@ namespace PipelineService.Models.Pipeline
                     { "first_n", "6" }
                 },
             };
+
+            Successor(import1Studenten, trim1Studenten);
 
             var setHeaderStudenten = new NodeSingleInput
             {
@@ -329,8 +361,8 @@ namespace PipelineService.Models.Pipeline
                 Name = "Chemnitz Students and Jobs",
                 Root = new List<Node>
                 {
-                    trim1Berufsbildung,
-                    trim1Studenten
+                    import1Berufsbildung,
+                    import1Studenten
                 }
             };
         }
@@ -430,7 +462,10 @@ namespace PipelineService.Models.Pipeline
 
             for (var year = 1990; year <= 2020; year++)
             {
-                pipeline.Root.Add(HardcodedNodes.ZamgWeatherPreprocessing(pipelineId, year));
+                var import = HardcodedNodes.ZamgWeatherImport(pipelineId, year);
+                var trim = HardcodedNodes.ZamgWeatherTrim(pipelineId, year);
+                Successor(import, trim);
+                pipeline.Root.Add(import);
             }
 
             return pipeline;

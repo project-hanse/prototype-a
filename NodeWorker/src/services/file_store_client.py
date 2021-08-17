@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 import boto3
+import chardet
 
 
 class FileStoreClient:
@@ -41,5 +42,7 @@ class FileStoreClient:
         if response is None:
             return None
 
-        body = response['Body']
-        return body.read().decode('utf-8')
+        body = response['Body'].read()
+        detection = chardet.detect(body)
+        self.log.info('Detected charset %s' % detection["encoding"])
+        return body.decode(detection["encoding"])

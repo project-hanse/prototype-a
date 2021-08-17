@@ -26,6 +26,11 @@ class OperationsFileInputCollection:
         else:
             skiprows = None
 
+        if 'skipfooter' in operation_config:
+            skipfooter = operation_config['skipfooter']
+        else:
+            skipfooter = 0
+
         if 'header' in operation_config:
             header = operation_config['header']
         else:
@@ -47,6 +52,7 @@ class OperationsFileInputCollection:
         df = pd.read_csv(StringIO(file_content),
                          sep=separator,
                          skiprows=skiprows,
+                         skipfooter=skipfooter,
                          header=header,
                          names=names,
                          index_col=index_col)

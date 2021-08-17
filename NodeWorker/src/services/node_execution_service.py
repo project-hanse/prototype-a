@@ -227,7 +227,10 @@ class NodeExecutionService:
                         else:
                             raise ValueError
                     except ValueError:
-                        config[key] = json.loads(config[key])
+                        try:
+                            config[key] = json.loads(config[key])
+                        except Exception:
+                            config[key] = config[key]
             except TypeError:
                 return config
         return config
