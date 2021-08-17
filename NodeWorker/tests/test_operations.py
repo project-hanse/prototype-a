@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from src.services.operations_collection import OperationsCollection
+from src.services.operations_single_input_collection import OperationsSingleInputCollection
 from tests.helper.import_helper import load_file
 
 
@@ -17,7 +17,7 @@ class OperationsUnitTests(unittest.TestCase):
         df = load_file("./datasets/artificial-1.csv", ',')
 
         # act
-        result = OperationsCollection.pd_single_input_drop(
+        result = OperationsSingleInputCollection.pd_single_input_drop(
             self.logger,
             "drop",
             {
@@ -35,7 +35,7 @@ class OperationsUnitTests(unittest.TestCase):
         df = load_file("./datasets/artificial-1.csv", ',')
 
         # act
-        result = OperationsCollection.pd_single_input_drop(
+        result = OperationsSingleInputCollection.pd_single_input_drop(
             self.logger,
             "drop",
             {
@@ -52,7 +52,7 @@ class OperationsUnitTests(unittest.TestCase):
         df = load_file("./datasets/ZAMG_Jahrbuch_1990-utf-8.csv", csv_sep=';', skip_rows=4)
 
         # act
-        result = OperationsCollection.pd_single_input_drop(
+        result = OperationsSingleInputCollection.pd_single_input_drop(
             self.logger,
             "drop",
             {
@@ -69,7 +69,7 @@ class OperationsUnitTests(unittest.TestCase):
         df = load_file("./datasets/artificial-1.csv", ',')
 
         # act
-        result = OperationsCollection.pd_single_input_select_columns(
+        result = OperationsSingleInputCollection.pd_single_input_select_columns(
             self.logger,
             "select_columns",
             {

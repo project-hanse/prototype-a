@@ -19,8 +19,6 @@ class ImportService:
         """
         Importing default datasets to in memory store.
         """
-        self.in_memory_store.import_with_id("./datasets/Melbourne_housing_FULL.csv",
-                                            "00e61417-cada-46db-adf3-a5fc89a3b6ee")
         self.in_memory_store.import_with_id("./datasets/MELBOURNE_HOUSE_PRICES_LESS.csv",
                                             "0c2acbdb-544b-4efc-ae54-c2dcba988654")
         self.in_memory_store.import_with_id("./datasets/influenca_vienna_2009-2018.csv",
@@ -35,8 +33,8 @@ class ImportService:
                                             "1a953cb2-4ad1-4c07-9a80-bd2c6a68623a")
 
         # Load ZAMG data Graz Flughafen
-        for year in range(1990, 2021):
-            base_uuid = "8d15d14d-2eba-4d36-b2ba-aaaaaaaa"
-            self.in_memory_store.import_with_id(
-                "./datasets/ZAMG/Steiermark/Graz_Flughafen/ZAMG_Jahrbuch_%s.csv" % year,
-                "%s%s" % (base_uuid, year))
+        # for year in range(1990, 2021):
+        #     base_uuid = "8d15d14d-2eba-4d36-b2ba-aaaaaaaa"
+        #     self.in_memory_store.import_with_id(
+        #         "./datasets/ZAMG/Steiermark/Graz_Flughafen/ZAMG_Jahrbuch_%s.csv" % year,
+        #         "%s%s" % (base_uuid, year))

@@ -38,6 +38,7 @@ services:
       - DATASET_PORT=5000
     depends_on:
       - message-broker
+      - localstack-s3
 
   # Dataset Store
   dataset-service:
@@ -48,6 +49,8 @@ services:
       - "5002:5000"
     expose:
       - 5002
+    depends_on:
+      - localstack-s3
 
   # Message Broker
   message-broker:
@@ -82,5 +85,5 @@ services:
     ports:
       - "4566:4566"
       - "4571:4571"
-    volumes:
-      - ./volumes/localstack-data:/tmp/localstack
+    #volumes:
+    #  - ./volumes/localstack-data:/tmp/localstack

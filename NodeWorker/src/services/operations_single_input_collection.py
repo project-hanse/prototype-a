@@ -1,24 +1,12 @@
 import json
 import logging
-from io import StringIO
 
 import pandas as pd
 
 from src.exceptions.ValidationError import ValidationError
 
 
-class OperationsCollection:
-
-    @staticmethod
-    def pd_file_input_read_csv(logger: logging, operation_name: str, operation_config: dict,
-                               file_content: str) -> pd.DataFrame:
-        """
-        Loads a csv file and returns it as a dataframe.
-        """
-        logger.info("Executing pandas operation pd_file_input_read_csv (%s)" % operation_name)
-        df = pd.read_csv(StringIO(file_content))
-        return df
-
+class OperationsSingleInputCollection:
     @staticmethod
     def pd_single_input_generic(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
         logger.info("Executing pandas operation pd_single_input_generic (%s)" % operation_name)

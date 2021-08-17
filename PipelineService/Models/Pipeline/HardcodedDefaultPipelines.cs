@@ -23,13 +23,16 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv
+                OperationId = OpIdPdFileInputReadCsv,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "header", "0" }
+                }
             };
 
             var cleanUp = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdMelbourneHousingFull,
                 Operation = "dropna",
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
