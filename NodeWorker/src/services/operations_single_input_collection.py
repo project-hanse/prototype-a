@@ -45,6 +45,53 @@ class OperationsSingleInputCollection:
         return df.set_index(keys, drop=drop)
 
     @staticmethod
+    def pd_single_input_reset_index(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Reset the index, or a level of it. Reset the index of the DataFrame, and use the default one instead. If the
+        DataFrame has a MultiIndex, this method can remove one or more levels.
+
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.reset_index.html
+        """
+        logger.info("Executing pandas operation pd_single_input_set_index (%s)" % operation_name)
+        if "level" in operation_config:
+            level = operation_config["level"]
+        else:
+            level = None
+
+        if "drop" in operation_config:
+            drop = operation_config["drop"]
+        else:
+            drop = False
+
+        if "inplace" in operation_config:
+            inplace = operation_config['inplace']
+        else:
+            inplace = False
+
+        if "col_level" in operation_config:
+            col_level = operation_config['col_level']
+        else:
+            col_level = 0
+
+        if "col_fill" in operation_config:
+            col_fill = operation_config['col_fill']
+        else:
+            col_fill = 0
+
+        return df.reset_index(level=level, drop=drop, inplace=inplace, col_level=col_level, col_fill=col_fill)
+
+    @staticmethod
+    def pd_single_input_transpose(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+                Transpose index and columns.
+                Reflect the DataFrame over its main diagonal by writing rows as columns and vice-versa.
+                https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.transpose.html
+                """
+        logger.info("Executing pandas operation pd_single_input_transpose (%s)" % operation_name)
+
+        return df.T
+
+    @staticmethod
     def pd_single_input_rename(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
         """
         Alters axes labels of a DataFrame.
@@ -128,9 +175,12 @@ class OperationsSingleInputCollection:
 
         header_row = operation_config["header_row"]
 
-        df.columns = df.iloc[header_row]
-        df = df.drop(header_row)
-        df = df.reset_index(drop=True)
+        if type(header_row) == int:
+            df.columns = df.iloc[header_row]
+            df.drop(labels=header_row, axis='index', inplace=True)
+        else:
+            df.columns = df.loc[header_row]
+            df.drop(header_row, inplace=True)
         return df
 
     @staticmethod
@@ -145,7 +195,7 @@ class OperationsSingleInputCollection:
         if "last_n" in operation_config:
             df = df.iloc[:operation_config["last_n"]]
 
-        return df.reset_index(drop=True)
+        return df
 
     @staticmethod
     def pd_single_input_select_columns(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):

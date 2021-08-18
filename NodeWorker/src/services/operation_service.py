@@ -23,12 +23,18 @@ class OperationService:
 
     def init(self):
         self.logger.info("Initializing local operations store...")
+
         self.local_operations[
             "dfbca055-69f1-40df-9639-023ec6363bac"] = OperationsFileInputCollection.pd_file_input_read_csv
+
+        self.local_operations[
+            "0ebc4dd5-6a81-48e7-8abd-3488c608020f"] = OperationsSingleInputCollection.pd_single_input_transpose
         self.local_operations[
             "0759dede-2cee-433c-b314-10a8fa456e62"] = OperationsSingleInputCollection.pd_single_input_generic
         self.local_operations[
             "de26c7a0-0444-414d-826f-458cd3b8979c"] = OperationsSingleInputCollection.pd_single_input_set_index
+        self.local_operations[
+            "e44cc87e-3150-4387-b5dc-f7a7b8131d87"] = OperationsSingleInputCollection.pd_single_input_reset_index
         self.local_operations[
             "0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61"] = OperationsSingleInputCollection.pd_single_input_rename
         self.local_operations[
@@ -43,6 +49,7 @@ class OperationService:
             "5c9b34fc-ac4f-4290-9dfe-418647509559"] = OperationsSingleInputCollection.pd_single_input_trim_rows
         self.local_operations[
             "db8b6a9d-d01f-4328-b971-fa56ac350320"] = OperationsSingleInputCollection.pd_single_input_make_row_header
+
         self.local_operations[
             "9acea312-713e-4de8-b8db-5d33613ab2f1"] = OperationsSingleInputCollection.pd_double_input_join
 

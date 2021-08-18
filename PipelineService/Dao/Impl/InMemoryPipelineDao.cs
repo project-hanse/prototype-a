@@ -99,7 +99,8 @@ namespace PipelineService.Dao.Impl
                 HardcodedDefaultPipelines.MelbourneHousingPipelineWithError(),
                 HardcodedDefaultPipelines.ChemnitzStudentAndJobsPipeline(),
                 HardcodedDefaultPipelines.SimulatedVineYieldPipeline(),
-                HardcodedDefaultPipelines.ZamgWeatherPreprocessingGraz()
+                HardcodedDefaultPipelines.ZamgWeatherPreprocessingGraz(),
+                HardcodedDefaultPipelines.ZamgWeatherPreprocessingGraz(Guid.NewGuid(), 1991)
             };
         }
     }

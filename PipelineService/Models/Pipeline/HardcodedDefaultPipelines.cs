@@ -199,10 +199,18 @@ namespace PipelineService.Models.Pipeline
 
             Successor(import1Berufsbildung, trim1Berufsbildung);
 
+            var resetIndexBerufsbildung = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "reset_index",
+                OperationId = OpIdPdSingleResetIndex
+            };
+
+            Successor(trim1Berufsbildung, resetIndexBerufsbildung);
+
             var setHeaderBerufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = trim1Berufsbildung.ResultKey,
                 Operation = "set_header",
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
@@ -210,7 +218,8 @@ namespace PipelineService.Models.Pipeline
                     { "header_row", "0" }
                 }
             };
-            trim1Berufsbildung.Successors.Add(setHeaderBerufsbildung);
+
+            Successor(resetIndexBerufsbildung, setHeaderBerufsbildung);
 
             var dropNaBerufsbildung = new NodeSingleInput
             {
@@ -275,10 +284,17 @@ namespace PipelineService.Models.Pipeline
 
             Successor(import1Studenten, trim1Studenten);
 
+            var resetIndexStudenten = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "reset_index",
+                OperationId = OpIdPdSingleResetIndex
+            };
+            Successor(trim1Studenten, resetIndexStudenten);
+
             var setHeaderStudenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = trim1Studenten.ResultKey,
                 Operation = "set_header",
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
@@ -286,7 +302,8 @@ namespace PipelineService.Models.Pipeline
                     { "header_row", "0" }
                 }
             };
-            trim1Studenten.Successors.Add(setHeaderStudenten);
+
+            Successor(resetIndexStudenten, setHeaderStudenten);
 
             var dropNaStudenten = new NodeSingleInput
             {
@@ -447,7 +464,7 @@ namespace PipelineService.Models.Pipeline
             };
         }
 
-        public static Pipeline ZamgWeatherPreprocessingGraz(Guid pipelineId = default)
+        public static Pipeline ZamgWeatherPreprocessingGraz(Guid pipelineId = default, int to = 2020)
         {
             if (pipelineId == default)
             {
@@ -456,15 +473,33 @@ namespace PipelineService.Models.Pipeline
 
             var pipeline = new Pipeline
             {
-                Name = "ZAMG Weather Data Preprocessing Graz 1990-2020",
+                Name = $"ZAMG Weather Data Preprocessing Graz 1990-{to}",
                 Id = pipelineId
             };
 
-            for (var year = 1990; year <= 2020; year++)
+            for (var year = 1990; year <= to; year++)
             {
                 var import = HardcodedNodes.ZamgWeatherImport(pipelineId, year);
+                var transpose = new NodeSingleInput
+                {
+                    PipelineId = pipelineId,
+                    Operation = $"transpose_{year}",
+                    OperationId = OpIdPdSingleTranspose
+                };
                 var trim = HardcodedNodes.ZamgWeatherTrim(pipelineId, year);
-                Successor(import, trim);
+                var setHeader = new NodeSingleInput
+                {
+                    PipelineId = pipelineId,
+                    Operation = $"set_header_{year}",
+                    OperationId = OpIdPdSingleMakeColumnHeader,
+                    OperationConfiguration = new Dictionary<string, string>
+                    {
+                        { "header_row", "Parameter" }
+                    }
+                };
+                Successor(import, transpose);
+                Successor(transpose, trim);
+                Successor(trim, setHeader);
                 pipeline.Root.Add(import);
             }
 

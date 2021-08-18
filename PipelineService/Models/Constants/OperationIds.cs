@@ -6,7 +6,9 @@ namespace PipelineService.Models.Constants
     {
         public static readonly Guid OpIdPdFileInputReadCsv = Guid.Parse("dfbca055-69f1-40df-9639-023ec6363bac");
         public static readonly Guid OpIdPdSingleGeneric = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62");
+        public static readonly Guid OpIdPdSingleTranspose = Guid.Parse("0ebc4dd5-6a81-48e7-8abd-3488c608020f");
         public static readonly Guid OpIdPdSingleSetIndex = Guid.Parse("de26c7a0-0444-414d-826f-458cd3b8979c");
+        public static readonly Guid OpIdPdSingleResetIndex = Guid.Parse("e44cc87e-3150-4387-b5dc-f7a7b8131d87");
         public static readonly Guid OpIdPdSingleRename = Guid.Parse("0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61");
         public static readonly Guid OpIdPdSingleMean = Guid.Parse("074669e8-9b60-48ce-bfc9-509d5990f517");
         public static readonly Guid OpIdPdSingleDrop = Guid.Parse("43f6b64a-ae47-45e3-95e5-55dc65d4249e");

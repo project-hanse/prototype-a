@@ -32,11 +32,10 @@ namespace PipelineService.Models.Pipeline
             {
                 PipelineId = pipelineId,
                 Operation = $"trim_{year}",
-                OperationId = OpIdPdSingleDrop,
+                OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "labels", "['Beaufort']" },
-                    // {"last_n", "13"}
+                    { "first_n", "8" }
                 },
             };
 
