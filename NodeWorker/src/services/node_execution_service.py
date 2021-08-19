@@ -44,15 +44,20 @@ class NodeExecutionService:
         operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
         try:
-            file_content = self.file_store_client.get_object_content(request.input_object_bucket,
-                                                                     request.input_object_key)
-            if file_content is not None:
+            file_content_str = self.file_store_client.get_object_content(request.input_object_bucket,
+                                                                         request.input_object_key)
+            if file_content_str is not None:
                 resulting_dataset = self.execute_file_input_operation(request.operation_name,
                                                                       request.operation_id,
                                                                       operation_config,
-                                                                      file_content)
+                                                                      file_content_str)
             else:
-                raise FileNotFoundError('Failed to load file')
+                file_content_bin = self.file_store_client.get_object_content_as_binary(request.input_object_bucket,
+                                                                                       request.input_object_key)
+                resulting_dataset = self.execute_file_input_operation(request.operation_name,
+                                                                      request.operation_id,
+                                                                      operation_config,
+                                                                      file_content_bin)
 
             self.dataset_client.store_with_hash(request.get_result_key(), resulting_dataset)
             response.set_dataset_producing_hash(request.get_result_key())
@@ -159,7 +164,7 @@ class NodeExecutionService:
     def execute_file_input_operation(self, operation_name: str,
                                      operation_id: str,
                                      operation_config: dict,
-                                     file_content: str):
+                                     file_content):
         self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
         operation_callable = self.operation_service.get_file_operation_by_id(operation_id)
 

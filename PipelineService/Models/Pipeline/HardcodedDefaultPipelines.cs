@@ -391,29 +391,18 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var trimYield = new NodeSingleInput
+            var import = new NodeFileInput
             {
+                InputObjectKey = "simulated-vine-yield-styria.xlsx",
+                InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdSimulatedVineYield,
-                Operation = "trim",
-                OperationId = OpIdPdSingleTrim,
+                Operation = "read_excel",
+                OperationId = OpIdPdFileInputReadExcel,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "first_n", "1" }
-                },
-            };
-
-            var setHeader = new NodeSingleInput
-            {
-                PipelineId = pipelineId,
-                Operation = "set_header",
-                OperationId = OpIdPdSingleMakeColumnHeader,
-                OperationConfiguration = new Dictionary<string, string>
-                {
-                    { "header_row", "0" }
+                    { "skiprows", "1" }
                 }
             };
-            Successor(trimYield, setHeader);
 
             var renameLabels = new NodeSingleInput
             {
@@ -422,11 +411,12 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleRename,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "mapper", "{'nan':'Jahr'}" },
+                    { "mapper", "{'Unnamed: 0':'Jahr'}" },
                     { "axis", "columns" }
                 }
             };
-            Successor(setHeader, renameLabels);
+
+            Successor(import, renameLabels);
 
             var setIndex = new NodeSingleInput
             {
@@ -438,6 +428,7 @@ namespace PipelineService.Models.Pipeline
                     { "keys", "Jahr" }
                 }
             };
+
             Successor(renameLabels, setIndex);
 
             var mean = new NodeSingleInput
@@ -459,7 +450,7 @@ namespace PipelineService.Models.Pipeline
                 Name = "Simulated Vine Yield Styria",
                 Root = new List<Node>
                 {
-                    trimYield
+                    import
                 }
             };
         }

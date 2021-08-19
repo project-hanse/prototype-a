@@ -44,5 +44,23 @@ class FileStoreClient:
 
         body = response['Body'].read()
         detection = chardet.detect(body)
+        if detection["encoding"] is None:
+            self.log.info('Could not detect encoding of file')
+            return None
         self.log.info('Detected charset %s' % detection["encoding"])
         return body.decode(detection["encoding"])
+
+    def get_object_content_as_binary(self, input_object_bucket: str, input_object_key: str):
+        self.log.info("Loading object content from bucket '%s' for object with key '%s'"
+                      % (input_object_bucket, input_object_key))
+
+        # Implemented based on:
+        # https://stackoverflow.com/questions/35803601/reading-a-file-from-a-private-s3-bucket-to-a-pandas-dataframe/43838676
+        if self.s3_client is None:
+            raise Exception('Service not initialized')
+
+        response = self.s3_client.get_object(Bucket=input_object_bucket, Key=input_object_key)
+        if response is None:
+            return None
+
+        return response['Body'].read()

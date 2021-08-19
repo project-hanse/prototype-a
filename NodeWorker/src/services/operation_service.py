@@ -26,6 +26,8 @@ class OperationService:
 
         self.local_operations[
             "dfbca055-69f1-40df-9639-023ec6363bac"] = OperationsFileInputCollection.pd_file_input_read_csv
+        self.local_operations[
+            "2413f0d5-c3c0-4ce6-b1f3-5837b296ab92"] = OperationsFileInputCollection.pd_file_input_read_excel
 
         self.local_operations[
             "0ebc4dd5-6a81-48e7-8abd-3488c608020f"] = OperationsSingleInputCollection.pd_single_input_transpose
