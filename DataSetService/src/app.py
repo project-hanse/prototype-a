@@ -60,6 +60,16 @@ def dataset_as_html_by_id(dataset_id: str):
     return df.to_html()
 
 
+@app.route('/api/datasets/csv/<dataset_id>', methods=['GET'])
+def dataset_as_csv_by_id(dataset_id: str):
+    df = dataset_store.get_by_id(dataset_id)
+
+    if df is None:
+        abort(404)
+
+    return df.to_csv()
+
+
 @app.route('/api/datasets/hash/<producing_hash>', methods=['GET', 'POST'])
 def dataset_by_hash(producing_hash: str):
     if request.method == 'GET':
