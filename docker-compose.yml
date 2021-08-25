@@ -49,6 +49,9 @@ services:
       - "5002:5000"
     expose:
       - 5002
+    environment:
+      - S3_HOST=localstack-s3
+      - S3_PORT=4566
     depends_on:
       - localstack-s3
 
@@ -86,5 +89,5 @@ services:
     ports:
       - "4566:4566"
       - "4571:4571"
-    volumes:
-      - ./volumes/localstack-data:/tmp/localstack
+    # volumes:
+    #   - ./volumes/localstack-data:/tmp/localstack

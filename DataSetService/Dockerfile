@@ -3,7 +3,7 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# RUN apt-get update && apt-get install -y build-essential
+RUN apt-get update && apt-get install -y build-essential curl
 
 COPY requirements.txt .
 
@@ -11,11 +11,12 @@ RUN pip install -r ./requirements.txt
 
 COPY setup.py .
 COPY entrypoint.sh .
+COPY wait-for-it.sh .
 COPY datasets ./datasets
 
 COPY src ./src
 
-RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./*.sh
 
 # The -u flag is important if you want to observe the logs, otherwise python buffers the output
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["./wait-for-it.sh", "--", "./entrypoint.sh"]
