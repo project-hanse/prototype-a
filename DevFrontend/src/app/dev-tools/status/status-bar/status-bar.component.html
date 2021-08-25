@@ -1,0 +1,5 @@
+<div *ngIf="$s3Status | async as status" class="wrapper">
+  <p><b>S3 Filestore</b></p>
+  <mat-icon>{{getIcon(status)}}</mat-icon>
+</div>
+
