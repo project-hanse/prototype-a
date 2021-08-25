@@ -1,7 +1,9 @@
 # Build
 FROM node:16-alpine as build-step
 
-RUN mkdir -p /app/build
+RUN npm install -g @angular/cli
+
+RUN mkdir -p /app
 
 WORKDIR /app
 
@@ -12,7 +14,7 @@ RUN npm ci
 
 COPY . /app
 
-RUN npm run build -- --output-path=./dist/out
+RUN ng build --output-path=./dist/out  --output-hashing=all
 
 # Deployment
 

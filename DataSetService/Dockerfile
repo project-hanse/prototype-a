@@ -18,5 +18,4 @@ COPY src ./src
 
 RUN chmod +x ./*.sh
 
-# The -u flag is important if you want to observe the logs, otherwise python buffers the output
-CMD ["./wait-for-it.sh", "--", "./entrypoint.sh"]
+CMD ./wait-for-it.sh && ./entrypoint.sh
