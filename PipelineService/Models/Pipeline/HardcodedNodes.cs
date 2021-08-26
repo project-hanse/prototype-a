@@ -19,7 +19,8 @@ namespace PipelineService.Models.Pipeline
                 {
                     { "header", "0" },
                     { "skiprows", "4" },
-                    { "skipfooter", "14" }
+                    { "skipfooter", "14" },
+                    { "decimal", "," }
                 }
             };
 

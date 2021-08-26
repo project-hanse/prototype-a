@@ -16,7 +16,7 @@ export class StatusBarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.$s3Status = timer(1, 3000).pipe(switchMap(() => this.httpClient.get(`${environment.services.s3.url}/health`)));
+    this.$s3Status = timer(1, 3000).pipe(switchMap(() => this.httpClient.get(this.getS3Url())));
   }
 
 
@@ -31,5 +31,9 @@ export class StatusBarComponent implements OnInit {
       return 'thumb_up_alt';
     }
     return 'help_outline';
+  }
+
+  getS3Url(): string {
+    return `${environment.services.s3.url}/health`;
   }
 }

@@ -17,8 +17,12 @@ namespace PipelineService.Models.Constants
         public static readonly Guid OpIdPdSingleMakeColumnHeader = Guid.Parse("db8b6a9d-d01f-4328-b971-fa56ac350320");
         public static readonly Guid OpIdPdSingleSelectRows = Guid.Parse("d2701fa4-b038-4fcb-b981-49f9f123da01");
         public static readonly Guid OpIdPdSingleSelectColumns = Guid.Parse("7b0bb47f-f997-43d8-acb1-c31f2a22475d");
+        public static readonly Guid OpIdPdSingleSortIndex = Guid.Parse("7537069e-03b2-481c-b6a3-fca096e4acf8");
+        public static readonly Guid OpIdPdSingleReplace = Guid.Parse("d249e0be-abc4-4801-8622-4e39b4be49bf");
+        public static readonly Guid OpIdPdSingleInterpolate = Guid.Parse("f2abca86-2175-4d44-8a26-c7bd68ee2dc6");
         public static readonly Guid OpIdPdDoubleJoin = Guid.Parse("9acea312-713e-4de8-b8db-5d33613ab2f1");
         public static readonly Guid OpIdPdDoubleConcat = Guid.Parse("804aadc7-4f9e-41cc-8ccc-e386459fbc63");
         public static readonly Guid OpIdPdSingleSetDateIndex = Guid.Parse("d424052c-caa5-43b2-a9bc-d543167b983f");
+        public static readonly Guid OpIdPdSingleDfToNumeric = Guid.Parse("e8877645-b0b6-43c9-84ed-79c6565b6f28");
     }
 }

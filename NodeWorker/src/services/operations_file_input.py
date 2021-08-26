@@ -21,7 +21,8 @@ class OperationsFileInputCollection:
         else:
             separator = 'auto'
 
-        header, index_col, names, skipfooter, skiprows = OperationsFileInputCollection.get_config(operation_config)
+        header, index_col, names, skipfooter, skiprows, decimal = OperationsFileInputCollection.get_config(
+            operation_config)
 
         if separator is 'auto':
             separator = OperationsFileInputCollection.get_sep(file_content)
@@ -32,6 +33,7 @@ class OperationsFileInputCollection:
                          skipfooter=skipfooter,
                          header=header,
                          names=names,
+                         decimal=decimal,
                          index_col=index_col)
         return df
 
@@ -80,7 +82,11 @@ class OperationsFileInputCollection:
             index_col = operation_config['index_col']
         else:
             index_col = None
-        return header, index_col, names, skipfooter, skiprows
+        if 'decimal' in operation_config:
+            decimal = operation_config['decimal']
+        else:
+            decimal = '.'
+        return header, index_col, names, skipfooter, skiprows, decimal
 
     @staticmethod
     def get_sep(file_content: str):

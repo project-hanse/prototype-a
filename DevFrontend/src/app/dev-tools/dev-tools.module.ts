@@ -8,14 +8,17 @@ import {CoreModule} from '../core/core.module';
 
 
 @NgModule({
-  declarations: [
-    StatusComponent,
-    StatusBarComponent
-  ],
-  imports: [
-    CommonModule,
-    DevToolsRoutingModule,
-    CoreModule
-  ]
+    declarations: [
+        StatusComponent,
+        StatusBarComponent
+    ],
+    exports: [
+        StatusBarComponent
+    ],
+    imports: [
+        CommonModule,
+        DevToolsRoutingModule,
+        CoreModule
+    ]
 })
 export class DevToolsModule { }

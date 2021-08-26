@@ -54,6 +54,10 @@ class OperationService:
             "db8b6a9d-d01f-4328-b971-fa56ac350320"] = OperationsSingleInputPandasWrappers.pd_single_input_make_row_header
         self.local_operations[
             "7537069e-03b2-481c-b6a3-fca096e4acf8"] = OperationsSingleInputPandasWrappers.pd_single_input_sort_index
+        self.local_operations[
+            "d249e0be-abc4-4801-8622-4e39b4be49bf"] = OperationsSingleInputPandasWrappers.pd_single_input_replace
+        self.local_operations[
+            "f2abca86-2175-4d44-8a26-c7bd68ee2dc6"] = OperationsSingleInputPandasWrappers.pd_single_input_interpolate
 
         self.local_operations[
             "9acea312-713e-4de8-b8db-5d33613ab2f1"] = OperationsSingleInputPandasWrappers.pd_double_input_join
@@ -62,6 +66,8 @@ class OperationService:
 
         self.local_operations[
             "d424052c-caa5-43b2-a9bc-d543167b983f"] = OperationsSingleInputPandasCustom.pd_single_input_set_date_index
+        self.local_operations[
+            "e8877645-b0b6-43c9-84ed-79c6565b6f28"] = OperationsSingleInputPandasCustom.pd_single_input_df_to_numeric
 
     def get_simple_operation_by_id(self, operation_id: str) -> Callable:
         self.logger.info('Getting simple operation %s' % operation_id)

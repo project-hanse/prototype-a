@@ -531,6 +531,47 @@ namespace PipelineService.Models.Pipeline
 
             Successor(nodesToJoin.Dequeue(), sortIndex);
 
+            var replaceStrings = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "replace",
+                OperationId = OpIdPdSingleReplace,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "to_replace", "['Spuren']" },
+                    { "value", "0" }
+                }
+            };
+
+            Successor(sortIndex, replaceStrings);
+
+            var toNumeric = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "to_numeric",
+                OperationId = OpIdPdSingleDfToNumeric,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "errors", "coerce" }
+                }
+            };
+
+            Successor(replaceStrings, toNumeric);
+
+            var interpolate = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "interpolate",
+                OperationId = OpIdPdSingleInterpolate,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "axis", "0" },
+                    { "method", "time" },
+                }
+            };
+
+            Successor(toNumeric, interpolate);
+
             return pipeline;
         }
 

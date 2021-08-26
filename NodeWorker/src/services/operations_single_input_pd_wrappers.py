@@ -4,6 +4,7 @@ import logging
 import pandas as pd
 
 from src.exceptions.ValidationError import ValidationError
+from src.helper.operations_helper import OperationsHelper
 
 
 class OperationsSingleInputPandasWrappers:
@@ -200,6 +201,44 @@ class OperationsSingleInputPandasWrappers:
             df = df.iloc[:operation_config["last_n"]]
 
         return df
+
+    @staticmethod
+    def pd_single_input_replace(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Replace values given in to_replace with value.
+        Values of the DataFrame are replaced with other values dynamically.
+
+        https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.replace.html
+        """
+        logger.info("Executing pandas operation pd_single_input_replace (%s)" % operation_name)
+
+        to_replace = OperationsHelper.get_or_default(operation_config, 'to_replace', None)
+        value = OperationsHelper.get_or_default(operation_config, 'value', None)
+        limit = OperationsHelper.get_or_default(operation_config, 'limit', None)
+        regex = OperationsHelper.get_or_default(operation_config, 'regex', False)
+        method = OperationsHelper.get_or_default(operation_config, 'method', None)
+
+        return df.replace(to_replace=to_replace, value=value, limit=limit, regex=regex, method=method)
+
+    @staticmethod
+    def pd_single_input_interpolate(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Fill NaN values using an interpolation method.
+        Please note that only method='linear' is supported for DataFrame/Series with a MultiIndex.
+
+        https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.interpolate.html
+        """
+        logger.info("Executing pandas operation pd_single_input_interpolate (%s)" % operation_name)
+
+        method = OperationsHelper.get_or_default(operation_config, 'method', 'linear')
+        axis = OperationsHelper.get_or_default(operation_config, 'axis', None)
+        limit = OperationsHelper.get_or_default(operation_config, 'limit', None)
+        limit_direction = OperationsHelper.get_or_default(operation_config, 'limit_direction', None)
+        limit_area = OperationsHelper.get_or_default(operation_config, 'limit_area', None)
+        downcast = OperationsHelper.get_or_default(operation_config, 'downcast', None)
+
+        return df.interpolate(method=method, axis=axis, limit=limit, limit_direction=limit_direction,
+                              limit_area=limit_area, downcast=downcast)
 
     @staticmethod
     def pd_single_input_select_columns(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
