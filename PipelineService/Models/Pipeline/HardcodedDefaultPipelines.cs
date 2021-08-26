@@ -345,7 +345,7 @@ namespace PipelineService.Models.Pipeline
             };
             trim2Studenten.Successors.Add(selectRowsStudenten);
 
-            var join = new DoubleInputNode
+            var join = new NodeDoubleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetOneHash = selectRowsBerufsbildung.ResultKey,
@@ -468,6 +468,7 @@ namespace PipelineService.Models.Pipeline
                 Id = pipelineId
             };
 
+            NodeSingleInput lastNode = null;
             for (var year = 1990; year <= to; year++)
             {
                 var import = HardcodedNodes.ZamgWeatherImport(pipelineId, year);
@@ -488,10 +489,31 @@ namespace PipelineService.Models.Pipeline
                         { "header_row", "Parameter" }
                     }
                 };
+                var setDateIndex = new NodeSingleInput
+                {
+                    PipelineId = pipelineId,
+                    Operation = $"set_date_index_{year}",
+                    OperationId = OpIdPdSingleSetDateIndex
+                };
                 Successor(import, transpose);
                 Successor(transpose, trim);
                 Successor(trim, setHeader);
+                Successor(setHeader, setDateIndex);
                 pipeline.Root.Add(import);
+                if (lastNode != null)
+                {
+                    var concat = new NodeDoubleInput
+                    {
+                        PipelineId = pipelineId,
+                        InputDatasetOneHash = lastNode.ResultKey,
+                        InputDatasetTwoHash = setDateIndex.ResultKey,
+                        Operation = $"concat_{year - 1}_{year}",
+                        OperationId = OpIdPdDoubleConcat
+                    };
+                    Successor(lastNode, setDateIndex, concat);
+                }
+
+                lastNode = setDateIndex;
             }
 
             return pipeline;
@@ -513,6 +535,14 @@ namespace PipelineService.Models.Pipeline
         {
             node.Successors.Add(successor);
             successor.InputDatasetHash = node.ResultKey;
+        }
+
+        private static void Successor(NodeSingleInput node1, NodeSingleInput node2, NodeDoubleInput successor)
+        {
+            node1.Successors.Add(successor);
+            node2.Successors.Add(successor);
+            successor.InputDatasetOneHash = node1.ResultKey;
+            successor.InputDatasetTwoHash = node2.ResultKey;
         }
     }
 }

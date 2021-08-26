@@ -6,7 +6,11 @@ import pandas as pd
 from src.exceptions.ValidationError import ValidationError
 
 
-class OperationsSingleInputCollection:
+class OperationsSingleInputPandasWrappers:
+    """
+    Primarily wrappers around pandas operations.
+    """
+
     @staticmethod
     def pd_single_input_generic(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
         logger.info("Executing pandas operation pd_single_input_generic (%s)" % operation_name)
@@ -237,23 +241,56 @@ class OperationsSingleInputCollection:
         """
         logger.info("Executing pandas operation pd_double_input_join (%s)" % operation_name)
 
-        if "on" not in operation_config:
-            raise ValidationError("Missing on in config")
-        join_on = operation_config["on"]
+        if "on" in operation_config:
+            join_on = operation_config["on"]
+        else:
+            join_on = None
 
         if "lsuffix" in operation_config:
             lsuffix = operation_config["lsuffix"]
         else:
-            lsuffix = "_left"
+            lsuffix = ''
 
         if "rsuffix" in operation_config:
             rsuffix = operation_config["rsuffix"]
         else:
-            rsuffix = "_right"
+            rsuffix = ''
 
         # TODO: add prefix options
-
-        df_one_reindex = df_one.set_index(join_on)
-        df_two_reindex = df_two.set_index(join_on)
+        if join_on is None:
+            df_one_reindex = df_one
+            df_two_reindex = df_two
+        else:
+            df_one_reindex = df_one.set_index(join_on)
+            df_two_reindex = df_two.set_index(join_on)
 
         return df_one_reindex.join(df_two_reindex, lsuffix=lsuffix, rsuffix=rsuffix)
+
+    @staticmethod
+    def pd_double_input_concat(logger: logging,
+                               operation_name: str,
+                               operation_config: dict,
+                               df_one: pd.DataFrame,
+                               df_two: pd.DataFrame):
+        """
+        Concatenate pandas objects along a particular axis with optional set logic along the other axes.
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html#pandas.concat
+        """
+        logger.info("Executing pandas operation pd_double_input_concat (%s)" % operation_name)
+
+        if "axis" in operation_config:
+            axis = operation_config["axis"]
+        else:
+            axis = 0
+
+        if "join" in operation_config:
+            join = operation_config["join"]
+        else:
+            join = 'outer'
+
+        if "ignore_index" in operation_config:
+            ignore_index = operation_config["ignore_index"]
+        else:
+            ignore_index = False
+
+        return pd.concat([df_one, df_two], axis=axis, join=join, ignore_index=ignore_index)

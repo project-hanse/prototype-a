@@ -120,7 +120,7 @@ namespace PipelineService.Services.Impl
                 case NodeSingleInput singleInputNode:
                     resultKey = singleInputNode.ResultKey;
                     break;
-                case DoubleInputNode doubleInputNode:
+                case NodeDoubleInput doubleInputNode:
                     resultKey = doubleInputNode.ResultKey;
                     break;
             }
@@ -243,9 +243,9 @@ namespace PipelineService.Services.Impl
                 request = ExecutionRequestFromNode(executionId, (NodeSingleInput)node);
                 await _eventBusService.PublishMessage($"execute/{node.PipelineId}/single", request);
             }
-            else if (node.GetType() == typeof(DoubleInputNode))
+            else if (node.GetType() == typeof(NodeDoubleInput))
             {
-                request = ExecutionRequestFromNode(executionId, (DoubleInputNode)node);
+                request = ExecutionRequestFromNode(executionId, (NodeDoubleInput)node);
                 await _eventBusService.PublishMessage($"execute/{node.PipelineId}/double", request);
             }
             else
@@ -400,7 +400,7 @@ namespace PipelineService.Services.Impl
             };
         }
 
-        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, DoubleInputNode node)
+        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeDoubleInput node)
         {
             // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
             if (!node.InputDatasetOneId.HasValue && string.IsNullOrEmpty(node.InputDatasetOneHash))

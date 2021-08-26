@@ -18,5 +18,7 @@ namespace PipelineService.Models.Constants
         public static readonly Guid OpIdPdSingleSelectRows = Guid.Parse("d2701fa4-b038-4fcb-b981-49f9f123da01");
         public static readonly Guid OpIdPdSingleSelectColumns = Guid.Parse("7b0bb47f-f997-43d8-acb1-c31f2a22475d");
         public static readonly Guid OpIdPdDoubleJoin = Guid.Parse("9acea312-713e-4de8-b8db-5d33613ab2f1");
+        public static readonly Guid OpIdPdDoubleConcat = Guid.Parse("804aadc7-4f9e-41cc-8ccc-e386459fbc63");
+        public static readonly Guid OpIdPdSingleSetDateIndex = Guid.Parse("d424052c-caa5-43b2-a9bc-d543167b983f");
     }
 }
