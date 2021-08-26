@@ -231,6 +231,31 @@ class OperationsSingleInputPandasWrappers:
         return df.loc[df[operation_config["column_name"]] == operation_config["select_value"]]
 
     @staticmethod
+    def pd_single_input_sort_index(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Sort object by labels (along an axis). Returns a new DataFrame sorted by label.
+        https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.sort_index.html
+        """
+        logger.info("Executing pandas operation pd_single_input_sort_index (%s)" % operation_name)
+
+        if "axis" in operation_config:
+            axis = operation_config['axis']
+        else:
+            axis = 0
+
+        if "level" in operation_config:
+            level = operation_config['level']
+        else:
+            level = None
+
+        if "ascending" in operation_config:
+            ascending = operation_config['ascending']
+        else:
+            ascending = True
+
+        return df.sort_index(axis=axis, level=level, ascending=ascending)
+
+    @staticmethod
     def pd_double_input_join(logger: logging,
                              operation_name: str,
                              operation_config: dict,

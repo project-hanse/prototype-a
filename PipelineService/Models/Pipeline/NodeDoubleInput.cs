@@ -35,7 +35,7 @@ namespace PipelineService.Models.Pipeline
         /// <summary>
         /// The key (id) the dataset produced by this operation is stored as.
         /// </summary>
-        public string ResultKey =>
+        public override string ResultKey =>
             HashHelper.ComputeHash(
                 IdOrHash(InputDatasetOneId, InputDatasetOneHash),
                 IdOrHash(InputDatasetTwoId, InputDatasetTwoHash),

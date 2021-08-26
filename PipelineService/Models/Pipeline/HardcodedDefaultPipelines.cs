@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PipelineService.Extensions;
 using static PipelineService.Models.Constants.DatasetIds;
 using static PipelineService.Models.Constants.OperationIds;
 
@@ -468,7 +469,7 @@ namespace PipelineService.Models.Pipeline
                 Id = pipelineId
             };
 
-            NodeSingleInput lastNode = null;
+            var nodesToJoin = new Queue<Node>();
             for (var year = 1990; year <= to; year++)
             {
                 var import = HardcodedNodes.ZamgWeatherImport(pipelineId, year);
@@ -500,21 +501,35 @@ namespace PipelineService.Models.Pipeline
                 Successor(trim, setHeader);
                 Successor(setHeader, setDateIndex);
                 pipeline.Root.Add(import);
-                if (lastNode != null)
-                {
-                    var concat = new NodeDoubleInput
-                    {
-                        PipelineId = pipelineId,
-                        InputDatasetOneHash = lastNode.ResultKey,
-                        InputDatasetTwoHash = setDateIndex.ResultKey,
-                        Operation = $"concat_{year - 1}_{year}",
-                        OperationId = OpIdPdDoubleConcat
-                    };
-                    Successor(lastNode, setDateIndex, concat);
-                }
-
-                lastNode = setDateIndex;
+                nodesToJoin.Enqueue(setDateIndex);
             }
+
+            // join nodes
+            while (nodesToJoin.Count >= 2)
+            {
+                var nodeOne = nodesToJoin.Dequeue();
+                var nodeTwo = nodesToJoin.Dequeue();
+                var concat = new NodeDoubleInput
+                {
+                    PipelineId = pipelineId,
+                    InputDatasetOneHash = nodeOne.ResultKey,
+                    InputDatasetTwoHash = nodeTwo.ResultKey,
+                    Operation = $"concat_{nodeOne.Operation.LastChars(4)}_{nodeTwo.Operation.LastChars(4)}",
+                    OperationId = OpIdPdDoubleConcat
+                };
+                Successor(nodeOne, nodeTwo, concat);
+
+                nodesToJoin.Enqueue(concat);
+            }
+
+            var sortIndex = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "sort_index",
+                OperationId = OpIdPdSingleSortIndex
+            };
+
+            Successor(nodesToJoin.Dequeue(), sortIndex);
 
             return pipeline;
         }
@@ -522,7 +537,7 @@ namespace PipelineService.Models.Pipeline
         /// <summary>
         /// Makes <code>successor</code> the successor of <code>node</code>. 
         /// </summary>
-        private static void Successor(NodeSingleInput node, NodeSingleInput successor)
+        private static void Successor(Node node, NodeSingleInput successor)
         {
             node.Successors.Add(successor);
             successor.InputDatasetHash = node.ResultKey;
@@ -537,7 +552,7 @@ namespace PipelineService.Models.Pipeline
             successor.InputDatasetHash = node.ResultKey;
         }
 
-        private static void Successor(NodeSingleInput node1, NodeSingleInput node2, NodeDoubleInput successor)
+        private static void Successor(Node node1, Node node2, NodeDoubleInput successor)
         {
             node1.Successors.Add(successor);
             node2.Successors.Add(successor);

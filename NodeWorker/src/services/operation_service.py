@@ -52,6 +52,8 @@ class OperationService:
             "5c9b34fc-ac4f-4290-9dfe-418647509559"] = OperationsSingleInputPandasWrappers.pd_single_input_trim_rows
         self.local_operations[
             "db8b6a9d-d01f-4328-b971-fa56ac350320"] = OperationsSingleInputPandasWrappers.pd_single_input_make_row_header
+        self.local_operations[
+            "7537069e-03b2-481c-b6a3-fca096e4acf8"] = OperationsSingleInputPandasWrappers.pd_single_input_sort_index
 
         self.local_operations[
             "9acea312-713e-4de8-b8db-5d33613ab2f1"] = OperationsSingleInputPandasWrappers.pd_double_input_join
