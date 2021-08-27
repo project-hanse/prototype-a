@@ -60,3 +60,45 @@ class OperationsSingleInputPandasCustom:
             return df_groupby.min()
 
         raise ValueError('Configuration invalid')
+
+    @staticmethod
+    def pd_single_input_resample(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        logger.info("Executing pandas operation pd_single_input_resample (%s)" % operation_name)
+
+        rule = OperationsHelper.get_or_throw(operation_config, 'rule')
+        axis = OperationsHelper.get_or_default(operation_config, 'axis', 0)
+        closed = OperationsHelper.get_or_default(operation_config, 'closed', None)
+        label = OperationsHelper.get_or_default(operation_config, 'label', None)
+        convention = OperationsHelper.get_or_default(operation_config, 'convention', 'start')
+        kind = OperationsHelper.get_or_default(operation_config, 'kind', None)
+        on = OperationsHelper.get_or_default(operation_config, 'on', None)
+        level = OperationsHelper.get_or_default(operation_config, 'level', None)
+        origin = OperationsHelper.get_or_default(operation_config, 'origin', None)
+        offset = OperationsHelper.get_or_default(operation_config, 'offset', None)
+
+        if 'group_by_operation' in operation_config:
+            group_by_operation = operation_config['group_by_operation']
+        else:
+            raise ValueError('group_by_operation must be defined; Possible values: mean, sum, max, min')
+
+        df_groupby = df.resample(rule=rule,
+                                 axis=axis,
+                                 level=level,
+                                 closed=closed,
+                                 label=label,
+                                 convention=convention,
+                                 kind=kind,
+                                 on=on,
+                                 origin=origin,
+                                 offset=offset)
+
+        if group_by_operation == 'mean':
+            return df_groupby.mean()
+        if group_by_operation is 'sum':
+            return df_groupby.sum()
+        if group_by_operation is 'max':
+            return df_groupby.max()
+        if group_by_operation is 'min':
+            return df_groupby.min()
+
+        raise ValueError('Configuration invalid')

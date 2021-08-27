@@ -6,6 +6,7 @@ import pandas as pd
 from src.services.operations_file_input import OperationsFileInputCollection
 from src.services.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
 from src.services.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
+from src.services.operations_single_input_scikit_wrappers import OperationsSingleInputSciKitWrappers
 
 
 class OperationService:
@@ -30,6 +31,7 @@ class OperationService:
         self.local_operations[
             "2413f0d5-c3c0-4ce6-b1f3-5837b296ab92"] = OperationsFileInputCollection.pd_file_input_read_excel
 
+        # Single Input Pandas
         self.local_operations[
             "0ebc4dd5-6a81-48e7-8abd-3488c608020f"] = OperationsSingleInputPandasWrappers.pd_single_input_transpose
         self.local_operations[
@@ -59,15 +61,25 @@ class OperationService:
         self.local_operations[
             "f2abca86-2175-4d44-8a26-c7bd68ee2dc6"] = OperationsSingleInputPandasWrappers.pd_single_input_interpolate
 
+        # Double Input Pandas
         self.local_operations[
             "9acea312-713e-4de8-b8db-5d33613ab2f1"] = OperationsSingleInputPandasWrappers.pd_double_input_join
         self.local_operations[
             "804aadc7-4f9e-41cc-8ccc-e386459fbc63"] = OperationsSingleInputPandasWrappers.pd_double_input_concat
 
+        # SkLearn Operations
+        self.local_operations[
+            "2878ca36-8e03-4825-8afa-552064686337"] = OperationsSingleInputSciKitWrappers.sklearn_double_input_predict
+
+        # Custom Operations
         self.local_operations[
             "d424052c-caa5-43b2-a9bc-d543167b983f"] = OperationsSingleInputPandasCustom.pd_single_input_set_date_index
         self.local_operations[
             "e8877645-b0b6-43c9-84ed-79c6565b6f28"] = OperationsSingleInputPandasCustom.pd_single_input_df_to_numeric
+        self.local_operations[
+            "0fc78290-88c8-49b0-878e-a25a3f6452c1"] = OperationsSingleInputPandasCustom.pd_single_input_resample
+        self.local_operations[
+            "1991ccdb-c8ba-4a71-a325-420e48471379"] = OperationsSingleInputPandasCustom.pd_single_input_groupby
 
     def get_simple_operation_by_id(self, operation_id: str) -> Callable:
         self.logger.info('Getting simple operation %s' % operation_id)

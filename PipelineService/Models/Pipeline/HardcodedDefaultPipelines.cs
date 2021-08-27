@@ -572,6 +572,71 @@ namespace PipelineService.Models.Pipeline
 
             Successor(toNumeric, interpolate);
 
+            var resample = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "resample",
+                OperationId = OpIdPdSingleResample,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "rule", "1Y" },
+                    { "group_by_operation", "mean" },
+                }
+            };
+
+            Successor(interpolate, resample);
+
+            /*
+            // Simulated Vine Yield
+            var importVine = new NodeFileInput
+            {
+                InputObjectKey = "simulated-vine-yield-styria.xlsx",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_excel",
+                OperationId = OpIdPdFileInputReadExcel,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "skiprows", "1" }
+                }
+            };
+
+            var renameLabels = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "rename",
+                OperationId = OpIdPdSingleRename,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "mapper", "{'Unnamed: 0':'Jahr'}" },
+                    { "axis", "columns" }
+                }
+            };
+
+            Successor(importVine, renameLabels);
+
+            var setIndex = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "set_index",
+                OperationId = OpIdPdSingleSetIndex,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "keys", "Jahr" }
+                }
+            };
+
+            Successor(renameLabels, setIndex);
+
+            var predict = new NodeDoubleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "predict_yield",
+                OperationId = OpIdSkLearnDoubleMlpRegr
+            };
+
+            Successor(resample, setIndex, predict);
+            pipeline.Root.Add(importVine);*/
             return pipeline;
         }
 

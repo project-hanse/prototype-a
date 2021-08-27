@@ -50,7 +50,8 @@ class OperationsFileInputCollection:
         """
         logger.info("Executing pandas operation pd_file_input_read_excel (%s)" % operation_name)
 
-        header, index_col, names, skipfooter, skiprows = OperationsFileInputCollection.get_config(operation_config)
+        header, index_col, names, skipfooter, skiprows, decimal = OperationsFileInputCollection.get_config(
+            operation_config)
 
         df = pd.read_excel(file_content,
                            skiprows=skiprows,

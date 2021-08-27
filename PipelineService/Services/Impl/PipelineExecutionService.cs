@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Exceptions;
+using PipelineService.Models.Dtos;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
@@ -44,11 +45,17 @@ namespace PipelineService.Services.Impl
             return await _pipelineDao.Get(id);
         }
 
-        public async Task<IList<Pipeline>> GetPipelines()
+        public async Task<IList<PipelineSummaryDto>> GetPipelines()
         {
             var pipelines = await _pipelineDao.Get();
             return pipelines
                 .OrderByDescending(p => p.CreatedOn)
+                .Select(p => new PipelineSummaryDto
+                {
+                    Name = p.Name,
+                    Id = p.Id,
+                    CreatedOn = p.CreatedOn
+                })
                 .ToList();
         }
 

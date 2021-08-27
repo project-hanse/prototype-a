@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Exceptions;
+using PipelineService.Models.Dtos;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 
@@ -28,7 +29,7 @@ namespace PipelineService.Services
         /// microservice). 
         /// </summary>
         /// <returns>A list of pipelines</returns>
-        Task<IList<Pipeline>> GetPipelines();
+        Task<IList<PipelineSummaryDto>> GetPipelines();
 
         /// <summary>
         /// Starts the execution of a given pipeline.
