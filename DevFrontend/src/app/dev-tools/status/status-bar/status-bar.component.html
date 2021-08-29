@@ -1,7 +1,7 @@
-<div *ngIf="$s3Status | async as status" class="wrapper">
+<div *ngIf="{status: $s3Status | async} as status" class="wrapper">
   <a [href]="getS3Url()" target="_blank" mat-stroked-button>
     <span>S3 Filestore</span>
-    <mat-icon style="margin-left: 0.5em;">{{getIcon(status)}}</mat-icon>
+    <mat-icon style="margin-left: 0.5em;">{{getIcon(status?.status)}}</mat-icon>
   </a>
 </div>
 

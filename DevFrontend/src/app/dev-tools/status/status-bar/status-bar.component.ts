@@ -20,7 +20,7 @@ export class StatusBarComponent implements OnInit {
   }
 
 
-  getIcon(status: any): string {
+  getIcon(status: any | undefined): string {
     if (!status?.services?.s3 || !status?.features?.persistence) {
       return 'thumb_down_alt';
     }

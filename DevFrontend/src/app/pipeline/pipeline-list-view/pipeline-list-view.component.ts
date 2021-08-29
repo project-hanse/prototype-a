@@ -27,14 +27,6 @@ export class PipelineListViewComponent implements OnInit, OnDestroy {
     return this.$pipelines;
   }
 
-  public generateNewPipelines(): void {
-    this.subscriptions.add(
-      this.pipelineService
-        .generateNew()
-        .subscribe(c => console.log('Generated ' + c + ' new pipeline(s)'))
-    );
-  }
-
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
