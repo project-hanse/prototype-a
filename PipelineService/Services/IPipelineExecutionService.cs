@@ -22,7 +22,7 @@ namespace PipelineService.Services
         /// <param name="id">The pipeline's id.</param>
         /// <exception cref="NotFoundException">If not pipeline with a given id can be found.</exception>
         /// <returns>The pipeline</returns>
-        Task<Pipeline> GetPipeline(Guid id);
+        Task<PipelineInfoDto> GetPipelineInfoDto(Guid id);
 
         /// <summary>
         /// Builds a DTO that represents a pipeline that can be used in a nis network for visualization of
@@ -37,7 +37,7 @@ namespace PipelineService.Services
         /// microservice). 
         /// </summary>
         /// <returns>A list of pipelines</returns>
-        Task<IList<PipelineSummaryDto>> GetPipelines();
+        Task<IList<PipelineInfoDto>> GetPipelineDtos();
 
         /// <summary>
         /// Starts the execution of a given pipeline.

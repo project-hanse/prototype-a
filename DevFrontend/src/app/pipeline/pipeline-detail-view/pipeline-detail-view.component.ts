@@ -2,10 +2,9 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Observable, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Pipeline} from '../_model/pipeline';
+import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
 import {PipelineService} from '../_service/pipeline.service';
 import {NodeService} from '../_service/node.service';
-import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 
 @Component({
   selector: 'ph-pipeline-detail-view',
@@ -16,7 +15,7 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
 
   private readonly subscriptions: Subscription;
 
-  private $pipeline: Observable<PipelineVisualizationDto>;
+  private $pipeline: Observable<PipelineInfoDto>;
   private $rootInputDatasets: Observable<string[]>;
 
   constructor(private route: ActivatedRoute, private pipelineService: PipelineService, private nodeService: NodeService) {
@@ -30,9 +29,9 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
     return this.route.paramMap.pipe(map(p => p.get('id')));
   }
 
-  public getPipeline(id: string): Observable<PipelineVisualizationDto> {
+  public getPipeline(id: string): Observable<PipelineInfoDto> {
     if (!this.$pipeline) {
-      this.$pipeline = this.pipelineService.getPipelineForVisualization(id);
+      this.$pipeline = this.pipelineService.getPipelineDto(id);
     }
     return this.$pipeline;
   }

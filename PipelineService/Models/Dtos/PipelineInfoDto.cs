@@ -2,7 +2,7 @@ using System;
 
 namespace PipelineService.Models.Dtos
 {
-    public class PipelineSummaryDto
+    public class PipelineInfoDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

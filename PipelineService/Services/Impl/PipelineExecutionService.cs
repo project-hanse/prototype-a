@@ -40,9 +40,9 @@ namespace PipelineService.Services.Impl
             return await _pipelineDao.CreateDefaults();
         }
 
-        public async Task<Pipeline> GetPipeline(Guid id)
+        public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
         {
-            return await _pipelineDao.Get(id);
+            return await _pipelineDao.GetInfoDto(id);
         }
 
         public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
@@ -54,7 +54,7 @@ namespace PipelineService.Services.Impl
                 return null;
             }
 
-            var visDto = new PipelineVisualizationDto()
+            var visDto = new PipelineVisualizationDto
             {
                 PipelineId = pipeline.Id,
                 PipelineName = pipeline.Name
@@ -88,18 +88,9 @@ namespace PipelineService.Services.Impl
             }
         }
 
-        public async Task<IList<PipelineSummaryDto>> GetPipelines()
+        public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
         {
-            var pipelines = await _pipelineDao.Get();
-            return pipelines
-                .OrderByDescending(p => p.CreatedOn)
-                .Select(p => new PipelineSummaryDto
-                {
-                    Name = p.Name,
-                    Id = p.Id,
-                    CreatedOn = p.CreatedOn
-                })
-                .ToList();
+            return await _pipelineDao.GetDtos();
         }
 
         public async Task<Guid> ExecutePipeline(Guid pipelineId)

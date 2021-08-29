@@ -25,24 +25,23 @@ namespace PipelineService.Controllers
             return (await _pipelineExecutionService.CreateDefaultPipelines()).Count;
         }
 
-        [HttpGet("")]
-        public async Task<IActionResult> GetPipelines()
+        [HttpGet]
+        public async Task<IActionResult> GetPipelineDtos()
         {
-            return Ok(await _pipelineExecutionService.GetPipelines());
+            return Ok(await _pipelineExecutionService.GetPipelineDtos());
         }
 
-        [HttpGet("{id}")]
-        [Obsolete("JSON serialization breaks for large pipelines")]
-        public async Task<IActionResult> GetPipeline(Guid id)
+        [HttpGet("{pipelineId:Guid}")]
+        public async Task<IActionResult> GetPipelineDto(Guid pipelineId)
         {
-            var pipeline = await _pipelineExecutionService.GetPipeline(id);
+            var pipelineDto = await _pipelineExecutionService.GetPipelineInfoDto(pipelineId);
 
-            if (pipeline == null)
+            if (pipelineDto == null)
             {
-                return NotFound($"No pipeline with id {id} exists");
+                return NotFound($"No pipeline with id {pipelineId} exists");
             }
 
-            return Ok(pipeline);
+            return Ok(pipelineDto);
         }
 
         [HttpGet("vis/{pipelineId:Guid}")]
@@ -57,7 +56,7 @@ namespace PipelineService.Controllers
             return Ok(pipelineVisDto);
         }
 
-        [HttpGet("execute/{pipelineId}")]
+        [HttpGet("execute/{pipelineId:Guid}")]
         public async Task<IActionResult> ExecutePipeline(Guid pipelineId)
         {
             _logger.LogInformation("Executing pipeline {PipelineId}", pipelineId);
