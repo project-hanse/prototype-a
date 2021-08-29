@@ -32,6 +32,7 @@ namespace PipelineService.Controllers
         }
 
         [HttpGet("{id}")]
+        [Obsolete("JSON serialization breaks for large pipelines")]
         public async Task<IActionResult> GetPipeline(Guid id)
         {
             var pipeline = await _pipelineExecutionService.GetPipeline(id);
@@ -42,6 +43,18 @@ namespace PipelineService.Controllers
             }
 
             return Ok(pipeline);
+        }
+
+        [HttpGet("vis/{pipelineId:Guid}")]
+        public async Task<IActionResult> GetPipelineForVisualization(Guid pipelineId)
+        {
+            var pipelineVisDto = await _pipelineExecutionService.GetPipelineForVisualization(pipelineId);
+            if (pipelineVisDto == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(pipelineVisDto);
         }
 
         [HttpGet("execute/{pipelineId}")]

@@ -5,6 +5,7 @@ import {map} from 'rxjs/operators';
 import {Pipeline} from '../_model/pipeline';
 import {PipelineService} from '../_service/pipeline.service';
 import {NodeService} from '../_service/node.service';
+import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 
 @Component({
   selector: 'ph-pipeline-detail-view',
@@ -15,7 +16,7 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
 
   private readonly subscriptions: Subscription;
 
-  private $pipeline: Observable<Pipeline>;
+  private $pipeline: Observable<PipelineVisualizationDto>;
   private $rootInputDatasets: Observable<string[]>;
 
   constructor(private route: ActivatedRoute, private pipelineService: PipelineService, private nodeService: NodeService) {
@@ -29,9 +30,9 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
     return this.route.paramMap.pipe(map(p => p.get('id')));
   }
 
-  public getPipeline(id: string): Observable<Pipeline> {
+  public getPipeline(id: string): Observable<PipelineVisualizationDto> {
     if (!this.$pipeline) {
-      this.$pipeline = this.pipelineService.getPipeline(id);
+      this.$pipeline = this.pipelineService.getPipelineForVisualization(id);
     }
     return this.$pipeline;
   }

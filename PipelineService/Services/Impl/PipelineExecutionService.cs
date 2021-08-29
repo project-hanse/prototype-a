@@ -45,6 +45,49 @@ namespace PipelineService.Services.Impl
             return await _pipelineDao.Get(id);
         }
 
+        public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
+        {
+            var pipeline = await _pipelineDao.Get(pipelineId);
+            if (pipeline == null)
+            {
+                _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
+                return null;
+            }
+
+            var visDto = new PipelineVisualizationDto()
+            {
+                PipelineId = pipeline.Id,
+                PipelineName = pipeline.Name
+            };
+
+            BuildArrays(visDto.Nodes, visDto.Edges, pipeline.Root);
+
+            return visDto;
+        }
+
+        private static void BuildArrays(IList<VisNode> nodesArray,
+            IList<VisEdge> edgesArray,
+            IList<Node> nodes,
+            Guid? parentId = null)
+        {
+            foreach (var node in nodes)
+            {
+                if (parentId.HasValue)
+                {
+                    // establish edge between this node and parent node
+                    edgesArray.Add(new VisEdge { Id = Guid.NewGuid(), From = parentId, To = node.Id });
+                }
+
+                // check that nodes are not added multiple times
+                if (nodesArray.FirstOrDefault(n => n.Id == node.Id) == default)
+                {
+                    nodesArray.Add(new VisNode { Id = node.Id, Label = node.Operation });
+                    // recursive call to all children
+                    BuildArrays(nodesArray, edgesArray, node.Successors, node.Id);
+                }
+            }
+        }
+
         public async Task<IList<PipelineSummaryDto>> GetPipelines()
         {
             var pipelines = await _pipelineDao.Get();

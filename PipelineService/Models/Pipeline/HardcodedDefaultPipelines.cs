@@ -586,7 +586,6 @@ namespace PipelineService.Models.Pipeline
 
             Successor(interpolate, resample);
 
-            /*
             // Simulated Vine Yield
             var importVine = new NodeFileInput
             {
@@ -636,7 +635,7 @@ namespace PipelineService.Models.Pipeline
             };
 
             Successor(resample, setIndex, predict);
-            pipeline.Root.Add(importVine);*/
+            pipeline.Root.Add(importVine);
             return pipeline;
         }
 

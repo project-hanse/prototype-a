@@ -25,6 +25,14 @@ namespace PipelineService.Services
         Task<Pipeline> GetPipeline(Guid id);
 
         /// <summary>
+        /// Builds a DTO that represents a pipeline that can be used in a nis network for visualization of
+        /// the pipeline graph.
+        /// </summary>
+        /// <param name="pipelineId">The pipelines id</param>
+        /// <returns>If a pipeline with this id exists the corresponding DTO, otherwise null.</returns>
+        Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId);
+
+        /// <summary>
         /// Loads all pipelines stored in this instance (this will be changed ofe pipelines are stored in a dedicated
         /// microservice). 
         /// </summary>
