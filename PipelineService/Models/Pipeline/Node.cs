@@ -32,11 +32,13 @@ namespace PipelineService.Models.Pipeline
         /// </summary>
         public Dictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
 
+        public abstract string ResultKey { get; }
+
         /// <summary>
         /// Any value returned here will be included in the hash value of this object.
         /// </summary>
         public abstract string IncludeInHash { get; }
-        
+
         protected static string IdOrHash(Guid? datasetId, string datasetHash)
         {
             return datasetId.HasValue ? datasetId.Value.ToString() : datasetHash;

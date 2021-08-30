@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Exceptions;
+using PipelineService.Models.Dtos;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 
@@ -21,14 +22,22 @@ namespace PipelineService.Services
         /// <param name="id">The pipeline's id.</param>
         /// <exception cref="NotFoundException">If not pipeline with a given id can be found.</exception>
         /// <returns>The pipeline</returns>
-        Task<Pipeline> GetPipeline(Guid id);
+        Task<PipelineInfoDto> GetPipelineInfoDto(Guid id);
+
+        /// <summary>
+        /// Builds a DTO that represents a pipeline that can be used in a nis network for visualization of
+        /// the pipeline graph.
+        /// </summary>
+        /// <param name="pipelineId">The pipelines id</param>
+        /// <returns>If a pipeline with this id exists the corresponding DTO, otherwise null.</returns>
+        Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId);
 
         /// <summary>
         /// Loads all pipelines stored in this instance (this will be changed ofe pipelines are stored in a dedicated
         /// microservice). 
         /// </summary>
         /// <returns>A list of pipelines</returns>
-        Task<IList<Pipeline>> GetPipelines();
+        Task<IList<PipelineInfoDto>> GetPipelineDtos();
 
         /// <summary>
         /// Starts the execution of a given pipeline.

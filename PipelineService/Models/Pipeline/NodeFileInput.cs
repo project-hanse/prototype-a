@@ -15,7 +15,7 @@ namespace PipelineService.Models.Pipeline
         /// <remarks>
         /// Typically sha256(InputDataSetId|InputDataSetHash|OperationName|OperationConfiguration).
         /// </remarks>
-        public string ResultKey =>
+        public override string ResultKey =>
             HashHelper.ComputeHash(InputObjectKey, InputObjectBucket, Operation, OperationConfiguration);
 
         public override string IncludeInHash => InputObjectKey + InputObjectBucket;
