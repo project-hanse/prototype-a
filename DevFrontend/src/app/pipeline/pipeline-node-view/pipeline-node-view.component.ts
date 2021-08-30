@@ -1,8 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {Pipeline} from '../_model/pipeline';
-import {PipelineNode} from '../_model/pipelineNode';
-import {Edge, Network, Node} from 'vis-network';
+import {Network} from 'vis-network';
 import {Options} from 'vis-network/declarations/network/Network';
+import {PipelineService} from '../_service/pipeline.service';
+import {Subscription} from 'rxjs';
+import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 
 
 @Component({
@@ -12,29 +13,38 @@ import {Options} from 'vis-network/declarations/network/Network';
 })
 export class PipelineNodeViewComponent implements OnInit {
 
-  @Input() pipeline: Pipeline;
+  @Input() pipelineId: string;
 
-  private network: Network;
+  private network?: Network;
 
-  constructor() {
+  private readonly subscriptions: Subscription;
+
+  constructor(private pipelineService: PipelineService) {
+    this.subscriptions = new Subscription();
   }
 
   ngOnInit(): void {
-    this.network = this.renderGraph('mynetwork', this.pipeline);
+    this.subscriptions.add(
+      this.pipelineService.getPipelineForVisualization(this.pipelineId).subscribe(
+        res => {
+          this.network = this.renderGraph('mynetwork', res);
+        },
+        error => {
+          console.error('Failed to load pipeline', error);
+        }
+      )
+    );
+
   }
 
-  public renderGraph(id: string, pipeline: Pipeline): Network {
-    const nodesArray = new Array<PipelineNode>();
-    const edgesArray = new Array<Edge>();
-
-    this.buildArrays(nodesArray, edgesArray, pipeline.root);
+  public renderGraph(id: string, pipeline: PipelineVisualizationDto): Network {
 
     // @ts-ignore
-    const nodes = new vis.DataSet(nodesArray, {});
+    const nodes = new vis.DataSet(pipeline.nodes, {});
 
     // create an array with edges
     // @ts-ignore
-    const edges = new vis.DataSet(edgesArray, {});
+    const edges = new vis.DataSet(pipeline.edges, {});
 
     // create a network
     const container = document.getElementById(id);
@@ -60,21 +70,6 @@ export class PipelineNodeViewComponent implements OnInit {
     };
 
     return new Network(container, data, options);
-  }
-
-  private buildArrays(nodesArray: any[], edgesArray: any[], nodes: PipelineNode[], parentId: string = null): void {
-    nodes.forEach(node => {
-      if (parentId) {
-        // establish edge between this node and parent node
-        edgesArray.push({from: parentId, to: node.id});
-      }
-      // check that nodes are not added multiple times
-      if (!nodesArray.find(n => n.id === node.id)) {
-        nodesArray.push({id: node.id, label: node.operation});
-        // recursive call to all children
-        this.buildArrays(nodesArray, edgesArray, node.successors, node.id);
-      }
-    });
   }
 
 }

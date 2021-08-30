@@ -1,8 +1,9 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Pipeline} from '../_model/pipeline';
+import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
 import {BaseHttpService} from '../../core/_service/base-http.service';
+import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +18,7 @@ export class PipelineService extends BaseHttpService {
     return super.get();
   }
 
-  public getPipeline(id: string): Observable<Pipeline> {
+  public getPipelineDto(id: string): Observable<PipelineInfoDto> {
     return super.get(id);
   }
 
@@ -27,5 +28,9 @@ export class PipelineService extends BaseHttpService {
 
   public executePipeline(id: string): Observable<string> {
     return super.get('execute/' + id);
+  }
+
+  public getPipelineForVisualization(pipelineId: string): Observable<PipelineVisualizationDto> {
+    return super.get<PipelineVisualizationDto>(`vis/${pipelineId}`);
   }
 }

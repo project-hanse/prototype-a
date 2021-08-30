@@ -33,9 +33,17 @@ class DatasetServiceClient:
     def store_with_hash(self, producing_hash: str, resulting_dataset: pd.DataFrame):
         address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/hash/' + producing_hash
         self.logging.info('Storing dataset to %s' % address)
-        response = requests.post(address, data=resulting_dataset.to_json())
+        response = requests.post(address, data=self.serialize(resulting_dataset))
         if response.status_code < 300:
             self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
         else:
             self.logging.warning('Failed to store dataset: (%i) %s' % (response.status_code, str(response.text)))
             raise NotStoredError('Failed to store dataset: (%i) %s' % (response.status_code, str(response.reason)))
+
+    def serialize(self, dataframe: pd.DataFrame) -> str:
+        try:
+            return dataframe.to_json()
+        except ValueError as e:
+            self.logging.warning('Error during serializing %s, trying to set index' % str(e))
+            dataframe.reset_index(inplace=True)
+            return dataframe.to_json()

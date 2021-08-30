@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PipelineService.Extensions;
 using static PipelineService.Models.Constants.DatasetIds;
 using static PipelineService.Models.Constants.OperationIds;
 
@@ -23,13 +24,16 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv
+                OperationId = OpIdPdFileInputReadCsv,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "header", "0" }
+                }
             };
 
             var cleanUp = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdMelbourneHousingFull,
                 Operation = "dropna",
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
@@ -80,10 +84,22 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
+            var import = new NodeFileInput
+            {
+                InputObjectKey = "influenca_vienna_2009-2018.csv",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_csv",
+                OperationId = OpIdPdFileInputReadCsv,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "header", "0" }
+                }
+            };
+
             var interpolate = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdInfluencaVienna20092018,
                 Operation = "interpolate",
                 OperationId = OpIdPdSingleGeneric,
                 OperationConfiguration = new Dictionary<string, string>
@@ -104,8 +120,6 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            interpolate.Successors.Add(select);
-
             var describe = new NodeSingleInput
             {
                 PipelineId = pipelineId,
@@ -113,7 +127,10 @@ namespace PipelineService.Models.Pipeline
                 Operation = "describe",
                 OperationId = OpIdPdSingleGeneric,
             };
-            select.Successors.Add(describe);
+
+            Successor(import, interpolate);
+            Successor(interpolate, select);
+            Successor(select, describe);
 
             return new Pipeline
             {
@@ -121,7 +138,7 @@ namespace PipelineService.Models.Pipeline
                 Name = "Influenza Interpolation",
                 Root = new List<Node>
                 {
-                    interpolate
+                    import
                 }
             };
         }
@@ -160,11 +177,19 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
+            var import1Berufsbildung = new NodeFileInput
+            {
+                InputObjectKey = "21211-003Z_format.csv",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_csv",
+                OperationId = OpIdPdFileInputReadCsv
+            };
+
             // Data cleaning Berufsbildung
             var trim1Berufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdChemnitzBerufsbildung1993,
                 Operation = "trim",
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
@@ -173,10 +198,20 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
+            Successor(import1Berufsbildung, trim1Berufsbildung);
+
+            var resetIndexBerufsbildung = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "reset_index",
+                OperationId = OpIdPdSingleResetIndex
+            };
+
+            Successor(trim1Berufsbildung, resetIndexBerufsbildung);
+
             var setHeaderBerufsbildung = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = trim1Berufsbildung.ResultKey,
                 Operation = "set_header",
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
@@ -184,7 +219,8 @@ namespace PipelineService.Models.Pipeline
                     { "header_row", "0" }
                 }
             };
-            trim1Berufsbildung.Successors.Add(setHeaderBerufsbildung);
+
+            Successor(resetIndexBerufsbildung, setHeaderBerufsbildung);
 
             var dropNaBerufsbildung = new NodeSingleInput
             {
@@ -227,11 +263,18 @@ namespace PipelineService.Models.Pipeline
             };
             trim2Berufsbildung.Successors.Add(selectRowsBerufsbildung);
 
+            var import1Studenten = new NodeFileInput
+            {
+                InputObjectKey = "21311-001Z_format.csv",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_csv",
+                OperationId = OpIdPdFileInputReadCsv
+            };
             // Data Cleaning Studenten
             var trim1Studenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdChemnitzStudenten1993,
                 Operation = "trim",
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
@@ -240,10 +283,19 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
+            Successor(import1Studenten, trim1Studenten);
+
+            var resetIndexStudenten = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "reset_index",
+                OperationId = OpIdPdSingleResetIndex
+            };
+            Successor(trim1Studenten, resetIndexStudenten);
+
             var setHeaderStudenten = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                InputDatasetHash = trim1Studenten.ResultKey,
                 Operation = "set_header",
                 OperationId = OpIdPdSingleMakeColumnHeader,
                 OperationConfiguration = new Dictionary<string, string>
@@ -251,7 +303,8 @@ namespace PipelineService.Models.Pipeline
                     { "header_row", "0" }
                 }
             };
-            trim1Studenten.Successors.Add(setHeaderStudenten);
+
+            Successor(resetIndexStudenten, setHeaderStudenten);
 
             var dropNaStudenten = new NodeSingleInput
             {
@@ -293,7 +346,7 @@ namespace PipelineService.Models.Pipeline
             };
             trim2Studenten.Successors.Add(selectRowsStudenten);
 
-            var join = new DoubleInputNode
+            var join = new NodeDoubleInput
             {
                 PipelineId = pipelineId,
                 InputDatasetOneHash = selectRowsBerufsbildung.ResultKey,
@@ -326,8 +379,8 @@ namespace PipelineService.Models.Pipeline
                 Name = "Chemnitz Students and Jobs",
                 Root = new List<Node>
                 {
-                    trim1Berufsbildung,
-                    trim1Studenten
+                    import1Berufsbildung,
+                    import1Studenten
                 }
             };
         }
@@ -339,29 +392,18 @@ namespace PipelineService.Models.Pipeline
                 pipelineId = Guid.NewGuid();
             }
 
-            var trimYield = new NodeSingleInput
+            var import = new NodeFileInput
             {
+                InputObjectKey = "simulated-vine-yield-styria.xlsx",
+                InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
-                InputDatasetId = DsIdSimulatedVineYield,
-                Operation = "trim",
-                OperationId = OpIdPdSingleTrim,
+                Operation = "read_excel",
+                OperationId = OpIdPdFileInputReadExcel,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "first_n", "1" }
-                },
-            };
-
-            var setHeader = new NodeSingleInput
-            {
-                PipelineId = pipelineId,
-                Operation = "set_header",
-                OperationId = OpIdPdSingleMakeColumnHeader,
-                OperationConfiguration = new Dictionary<string, string>
-                {
-                    { "header_row", "0" }
+                    { "skiprows", "1" }
                 }
             };
-            Successor(trimYield, setHeader);
 
             var renameLabels = new NodeSingleInput
             {
@@ -370,11 +412,12 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleRename,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "mapper", "{'nan':'Jahr'}" },
+                    { "mapper", "{'Unnamed: 0':'Jahr'}" },
                     { "axis", "columns" }
                 }
             };
-            Successor(setHeader, renameLabels);
+
+            Successor(import, renameLabels);
 
             var setIndex = new NodeSingleInput
             {
@@ -386,6 +429,7 @@ namespace PipelineService.Models.Pipeline
                     { "keys", "Jahr" }
                 }
             };
+
             Successor(renameLabels, setIndex);
 
             var mean = new NodeSingleInput
@@ -407,12 +451,12 @@ namespace PipelineService.Models.Pipeline
                 Name = "Simulated Vine Yield Styria",
                 Root = new List<Node>
                 {
-                    trimYield
+                    import
                 }
             };
         }
 
-        public static Pipeline ZamgWeatherPreprocessingGraz(Guid pipelineId = default)
+        public static Pipeline ZamgWeatherPreprocessingGraz(Guid pipelineId = default, int to = 2020)
         {
             if (pipelineId == default)
             {
@@ -421,22 +465,184 @@ namespace PipelineService.Models.Pipeline
 
             var pipeline = new Pipeline
             {
-                Name = "ZAMG Weather Data Preprocessing Graz 1990-2020",
+                Name = $"ZAMG Weather Data Preprocessing Graz 1990-{to}",
                 Id = pipelineId
             };
 
-            for (var year = 1990; year <= 2020; year++)
+            var nodesToJoin = new Queue<Node>();
+            for (var year = 1990; year <= to; year++)
             {
-                pipeline.Root.Add(HardcodedNodes.ZamgWeatherPreprocessing(pipelineId, year));
+                var import = HardcodedNodes.ZamgWeatherImport(pipelineId, year);
+                var transpose = new NodeSingleInput
+                {
+                    PipelineId = pipelineId,
+                    Operation = $"transpose_{year}",
+                    OperationId = OpIdPdSingleTranspose
+                };
+                var trim = HardcodedNodes.ZamgWeatherTrim(pipelineId, year);
+                var setHeader = new NodeSingleInput
+                {
+                    PipelineId = pipelineId,
+                    Operation = $"set_header_{year}",
+                    OperationId = OpIdPdSingleMakeColumnHeader,
+                    OperationConfiguration = new Dictionary<string, string>
+                    {
+                        { "header_row", "Parameter" }
+                    }
+                };
+                var setDateIndex = new NodeSingleInput
+                {
+                    PipelineId = pipelineId,
+                    Operation = $"set_date_index_{year}",
+                    OperationId = OpIdPdSingleSetDateIndex
+                };
+                Successor(import, transpose);
+                Successor(transpose, trim);
+                Successor(trim, setHeader);
+                Successor(setHeader, setDateIndex);
+                pipeline.Root.Add(import);
+                nodesToJoin.Enqueue(setDateIndex);
             }
 
+            // join nodes
+            while (nodesToJoin.Count >= 2)
+            {
+                var nodeOne = nodesToJoin.Dequeue();
+                var nodeTwo = nodesToJoin.Dequeue();
+                var concat = new NodeDoubleInput
+                {
+                    PipelineId = pipelineId,
+                    InputDatasetOneHash = nodeOne.ResultKey,
+                    InputDatasetTwoHash = nodeTwo.ResultKey,
+                    Operation = $"concat_{nodeOne.Operation.LastChars(4)}_{nodeTwo.Operation.LastChars(4)}",
+                    OperationId = OpIdPdDoubleConcat
+                };
+                Successor(nodeOne, nodeTwo, concat);
+
+                nodesToJoin.Enqueue(concat);
+            }
+
+            var sortIndex = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "sort_index",
+                OperationId = OpIdPdSingleSortIndex
+            };
+
+            Successor(nodesToJoin.Dequeue(), sortIndex);
+
+            var replaceStrings = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "replace",
+                OperationId = OpIdPdSingleReplace,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "to_replace", "['Spuren']" },
+                    { "value", "0" }
+                }
+            };
+
+            Successor(sortIndex, replaceStrings);
+
+            var toNumeric = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "to_numeric",
+                OperationId = OpIdPdSingleDfToNumeric,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "errors", "coerce" }
+                }
+            };
+
+            Successor(replaceStrings, toNumeric);
+
+            var interpolate = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "interpolate",
+                OperationId = OpIdPdSingleInterpolate,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "axis", "0" },
+                    { "method", "time" },
+                }
+            };
+
+            Successor(toNumeric, interpolate);
+
+            var resample = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "resample",
+                OperationId = OpIdPdSingleResample,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "rule", "1Y" },
+                    { "group_by_operation", "mean" },
+                }
+            };
+
+            Successor(interpolate, resample);
+
+            // Simulated Vine Yield
+            var importVine = new NodeFileInput
+            {
+                InputObjectKey = "simulated-vine-yield-styria.xlsx",
+                InputObjectBucket = "defaultfiles",
+                PipelineId = pipelineId,
+                Operation = "read_excel",
+                OperationId = OpIdPdFileInputReadExcel,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "skiprows", "1" }
+                }
+            };
+
+            var renameLabels = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "rename",
+                OperationId = OpIdPdSingleRename,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "mapper", "{'Unnamed: 0':'Jahr'}" },
+                    { "axis", "columns" }
+                }
+            };
+
+            Successor(importVine, renameLabels);
+
+            var setIndex = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "set_index",
+                OperationId = OpIdPdSingleSetIndex,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "keys", "Jahr" }
+                }
+            };
+
+            Successor(renameLabels, setIndex);
+
+            var predict = new NodeDoubleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "predict_yield",
+                OperationId = OpIdSkLearnDoubleMlpRegr
+            };
+
+            Successor(resample, setIndex, predict);
+            pipeline.Root.Add(importVine);
             return pipeline;
         }
 
         /// <summary>
         /// Makes <code>successor</code> the successor of <code>node</code>. 
         /// </summary>
-        private static void Successor(NodeSingleInput node, NodeSingleInput successor)
+        private static void Successor(Node node, NodeSingleInput successor)
         {
             node.Successors.Add(successor);
             successor.InputDatasetHash = node.ResultKey;
@@ -449,6 +655,14 @@ namespace PipelineService.Models.Pipeline
         {
             node.Successors.Add(successor);
             successor.InputDatasetHash = node.ResultKey;
+        }
+
+        private static void Successor(Node node1, Node node2, NodeDoubleInput successor)
+        {
+            node1.Successors.Add(successor);
+            node2.Successors.Add(successor);
+            successor.InputDatasetOneHash = node1.ResultKey;
+            successor.InputDatasetTwoHash = node2.ResultKey;
         }
     }
 }

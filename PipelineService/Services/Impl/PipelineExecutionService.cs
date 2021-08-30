@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Exceptions;
+using PipelineService.Models.Dtos;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
@@ -39,17 +40,57 @@ namespace PipelineService.Services.Impl
             return await _pipelineDao.CreateDefaults();
         }
 
-        public async Task<Pipeline> GetPipeline(Guid id)
+        public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
         {
-            return await _pipelineDao.Get(id);
+            return await _pipelineDao.GetInfoDto(id);
         }
 
-        public async Task<IList<Pipeline>> GetPipelines()
+        public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
         {
-            var pipelines = await _pipelineDao.Get();
-            return pipelines
-                .OrderByDescending(p => p.CreatedOn)
-                .ToList();
+            var pipeline = await _pipelineDao.Get(pipelineId);
+            if (pipeline == null)
+            {
+                _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
+                return null;
+            }
+
+            var visDto = new PipelineVisualizationDto
+            {
+                PipelineId = pipeline.Id,
+                PipelineName = pipeline.Name
+            };
+
+            BuildArrays(visDto.Nodes, visDto.Edges, pipeline.Root);
+
+            return visDto;
+        }
+
+        private static void BuildArrays(IList<VisNode> nodesArray,
+            IList<VisEdge> edgesArray,
+            IList<Node> nodes,
+            Guid? parentId = null)
+        {
+            foreach (var node in nodes)
+            {
+                if (parentId.HasValue)
+                {
+                    // establish edge between this node and parent node
+                    edgesArray.Add(new VisEdge { Id = Guid.NewGuid(), From = parentId, To = node.Id });
+                }
+
+                // check that nodes are not added multiple times
+                if (nodesArray.FirstOrDefault(n => n.Id == node.Id) == default)
+                {
+                    nodesArray.Add(new VisNode { Id = node.Id, Label = node.Operation });
+                    // recursive call to all children
+                    BuildArrays(nodesArray, edgesArray, node.Successors, node.Id);
+                }
+            }
+        }
+
+        public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
+        {
+            return await _pipelineDao.GetDtos();
         }
 
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
@@ -120,7 +161,7 @@ namespace PipelineService.Services.Impl
                 case NodeSingleInput singleInputNode:
                     resultKey = singleInputNode.ResultKey;
                     break;
-                case DoubleInputNode doubleInputNode:
+                case NodeDoubleInput doubleInputNode:
                     resultKey = doubleInputNode.ResultKey;
                     break;
             }
@@ -243,9 +284,9 @@ namespace PipelineService.Services.Impl
                 request = ExecutionRequestFromNode(executionId, (NodeSingleInput)node);
                 await _eventBusService.PublishMessage($"execute/{node.PipelineId}/single", request);
             }
-            else if (node.GetType() == typeof(DoubleInputNode))
+            else if (node.GetType() == typeof(NodeDoubleInput))
             {
-                request = ExecutionRequestFromNode(executionId, (DoubleInputNode)node);
+                request = ExecutionRequestFromNode(executionId, (NodeDoubleInput)node);
                 await _eventBusService.PublishMessage($"execute/{node.PipelineId}/double", request);
             }
             else
@@ -400,7 +441,7 @@ namespace PipelineService.Services.Impl
             };
         }
 
-        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, DoubleInputNode node)
+        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeDoubleInput node)
         {
             // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
             if (!node.InputDatasetOneId.HasValue && string.IsNullOrEmpty(node.InputDatasetOneHash))

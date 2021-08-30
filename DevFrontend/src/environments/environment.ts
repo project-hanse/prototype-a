@@ -4,7 +4,13 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5000'
+  apiUrl: 'http://localhost:5000',
+  services: {
+    s3: {
+      name: 'S3 Storage',
+      url: 'http://localhost:4566'
+    }
+  }
 };
 
 /*

@@ -1,23 +1,16 @@
 import json
 import logging
-from io import StringIO
 
 import pandas as pd
 
 from src.exceptions.ValidationError import ValidationError
+from src.helper.operations_helper import OperationsHelper
 
 
-class OperationsCollection:
-
-    @staticmethod
-    def pd_file_input_read_csv(logger: logging, operation_name: str, operation_config: dict,
-                               file_content: str) -> pd.DataFrame:
-        """
-        Loads a csv file and returns it as a dataframe.
-        """
-        logger.info("Executing pandas operation pd_file_input_read_csv (%s)" % operation_name)
-        df = pd.read_csv(StringIO(file_content))
-        return df
+class OperationsSingleInputPandasWrappers:
+    """
+    Primarily wrappers around pandas operations.
+    """
 
     @staticmethod
     def pd_single_input_generic(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
@@ -55,6 +48,53 @@ class OperationsCollection:
             drop = operation_config["drop"]
 
         return df.set_index(keys, drop=drop)
+
+    @staticmethod
+    def pd_single_input_reset_index(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Reset the index, or a level of it. Reset the index of the DataFrame, and use the default one instead. If the
+        DataFrame has a MultiIndex, this method can remove one or more levels.
+
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.reset_index.html
+        """
+        logger.info("Executing pandas operation pd_single_input_set_index (%s)" % operation_name)
+        if "level" in operation_config:
+            level = operation_config["level"]
+        else:
+            level = None
+
+        if "drop" in operation_config:
+            drop = operation_config["drop"]
+        else:
+            drop = False
+
+        if "inplace" in operation_config:
+            inplace = operation_config['inplace']
+        else:
+            inplace = False
+
+        if "col_level" in operation_config:
+            col_level = operation_config['col_level']
+        else:
+            col_level = 0
+
+        if "col_fill" in operation_config:
+            col_fill = operation_config['col_fill']
+        else:
+            col_fill = 0
+
+        return df.reset_index(level=level, drop=drop, inplace=inplace, col_level=col_level, col_fill=col_fill)
+
+    @staticmethod
+    def pd_single_input_transpose(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+                Transpose index and columns.
+                Reflect the DataFrame over its main diagonal by writing rows as columns and vice-versa.
+                https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.transpose.html
+                """
+        logger.info("Executing pandas operation pd_single_input_transpose (%s)" % operation_name)
+
+        return df.T
 
     @staticmethod
     def pd_single_input_rename(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
@@ -140,9 +180,12 @@ class OperationsCollection:
 
         header_row = operation_config["header_row"]
 
-        df.columns = df.iloc[header_row]
-        df = df.drop(header_row)
-        df = df.reset_index(drop=True)
+        if type(header_row) == int:
+            df.columns = df.iloc[header_row]
+            df.drop(labels=header_row, axis='index', inplace=True)
+        else:
+            df.columns = df.loc[header_row]
+            df.drop(header_row, inplace=True)
         return df
 
     @staticmethod
@@ -157,7 +200,45 @@ class OperationsCollection:
         if "last_n" in operation_config:
             df = df.iloc[:operation_config["last_n"]]
 
-        return df.reset_index(drop=True)
+        return df
+
+    @staticmethod
+    def pd_single_input_replace(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Replace values given in to_replace with value.
+        Values of the DataFrame are replaced with other values dynamically.
+
+        https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.replace.html
+        """
+        logger.info("Executing pandas operation pd_single_input_replace (%s)" % operation_name)
+
+        to_replace = OperationsHelper.get_or_default(operation_config, 'to_replace', None)
+        value = OperationsHelper.get_or_default(operation_config, 'value', None)
+        limit = OperationsHelper.get_or_default(operation_config, 'limit', None)
+        regex = OperationsHelper.get_or_default(operation_config, 'regex', False)
+        method = OperationsHelper.get_or_default(operation_config, 'method', None)
+
+        return df.replace(to_replace=to_replace, value=value, limit=limit, regex=regex, method=method)
+
+    @staticmethod
+    def pd_single_input_interpolate(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Fill NaN values using an interpolation method.
+        Please note that only method='linear' is supported for DataFrame/Series with a MultiIndex.
+
+        https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.interpolate.html
+        """
+        logger.info("Executing pandas operation pd_single_input_interpolate (%s)" % operation_name)
+
+        method = OperationsHelper.get_or_default(operation_config, 'method', 'linear')
+        axis = OperationsHelper.get_or_default(operation_config, 'axis', None)
+        limit = OperationsHelper.get_or_default(operation_config, 'limit', None)
+        limit_direction = OperationsHelper.get_or_default(operation_config, 'limit_direction', None)
+        limit_area = OperationsHelper.get_or_default(operation_config, 'limit_area', None)
+        downcast = OperationsHelper.get_or_default(operation_config, 'downcast', None)
+
+        return df.interpolate(method=method, axis=axis, limit=limit, limit_direction=limit_direction,
+                              limit_area=limit_area, downcast=downcast)
 
     @staticmethod
     def pd_single_input_select_columns(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
@@ -189,6 +270,31 @@ class OperationsCollection:
         return df.loc[df[operation_config["column_name"]] == operation_config["select_value"]]
 
     @staticmethod
+    def pd_single_input_sort_index(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+        """
+        Sort object by labels (along an axis). Returns a new DataFrame sorted by label.
+        https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.sort_index.html
+        """
+        logger.info("Executing pandas operation pd_single_input_sort_index (%s)" % operation_name)
+
+        if "axis" in operation_config:
+            axis = operation_config['axis']
+        else:
+            axis = 0
+
+        if "level" in operation_config:
+            level = operation_config['level']
+        else:
+            level = None
+
+        if "ascending" in operation_config:
+            ascending = operation_config['ascending']
+        else:
+            ascending = True
+
+        return df.sort_index(axis=axis, level=level, ascending=ascending)
+
+    @staticmethod
     def pd_double_input_join(logger: logging,
                              operation_name: str,
                              operation_config: dict,
@@ -199,23 +305,56 @@ class OperationsCollection:
         """
         logger.info("Executing pandas operation pd_double_input_join (%s)" % operation_name)
 
-        if "on" not in operation_config:
-            raise ValidationError("Missing on in config")
-        join_on = operation_config["on"]
+        if "on" in operation_config:
+            join_on = operation_config["on"]
+        else:
+            join_on = None
 
         if "lsuffix" in operation_config:
             lsuffix = operation_config["lsuffix"]
         else:
-            lsuffix = "_left"
+            lsuffix = ''
 
         if "rsuffix" in operation_config:
             rsuffix = operation_config["rsuffix"]
         else:
-            rsuffix = "_right"
+            rsuffix = ''
 
         # TODO: add prefix options
-
-        df_one_reindex = df_one.set_index(join_on)
-        df_two_reindex = df_two.set_index(join_on)
+        if join_on is None:
+            df_one_reindex = df_one
+            df_two_reindex = df_two
+        else:
+            df_one_reindex = df_one.set_index(join_on)
+            df_two_reindex = df_two.set_index(join_on)
 
         return df_one_reindex.join(df_two_reindex, lsuffix=lsuffix, rsuffix=rsuffix)
+
+    @staticmethod
+    def pd_double_input_concat(logger: logging,
+                               operation_name: str,
+                               operation_config: dict,
+                               df_one: pd.DataFrame,
+                               df_two: pd.DataFrame):
+        """
+        Concatenate pandas objects along a particular axis with optional set logic along the other axes.
+        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html#pandas.concat
+        """
+        logger.info("Executing pandas operation pd_double_input_concat (%s)" % operation_name)
+
+        if "axis" in operation_config:
+            axis = operation_config["axis"]
+        else:
+            axis = 0
+
+        if "join" in operation_config:
+            join = operation_config["join"]
+        else:
+            join = 'outer'
+
+        if "ignore_index" in operation_config:
+            ignore_index = operation_config["ignore_index"]
+        else:
+            ignore_index = False
+
+        return pd.concat([df_one, df_two], axis=axis, join=join, ignore_index=ignore_index)
