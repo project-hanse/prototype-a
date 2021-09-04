@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -75,7 +76,19 @@ namespace PipelineService.Controllers
         [HttpGet("tuples/single")]
         public async Task<IActionResult> GetTuplesSingleInput()
         {
-            return Ok(await _pipelineDtoService.GetSingleInputNodeTuples());
+            var tuples = (await _pipelineDtoService.GetSingleInputNodeTuples())
+                .OrderBy(t => t.Description)
+                .ToList();
+            return Ok(tuples);
+        }
+
+        [HttpGet("tuples/single/{pipelineId:Guid}")]
+        public async Task<IActionResult> GetTuplesSingleInput(Guid pipelineId)
+        {
+            var tuples = (await _pipelineDtoService.GetSingleInputNodeTuples(pipelineId))
+                .OrderBy(t => t.Description)
+                .ToList();
+            return Ok(tuples);
         }
 
         [HttpGet("tuples/double")]

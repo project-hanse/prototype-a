@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using PipelineService.Dao;
@@ -13,6 +12,28 @@ namespace PipelineService.UnitTests.Services
     [TestFixture]
     public class PipelineDtoServiceUnitTests
     {
+        private static NodeTupleTestCase[] _getNodeTupleTestCases =
+        {
+            new()
+            {
+                Pipeline = HardcodedDefaultPipelines.MelbourneHousingPipeline(),
+                ExpectedSingleInputTuples = 3,
+                ExpectedDoubleInputTuples = 0
+            },
+            new()
+            {
+                Pipeline = HardcodedDefaultPipelines.InfluenzaInterpolation(),
+                ExpectedSingleInputTuples = 3,
+                ExpectedDoubleInputTuples = 0
+            },
+            new()
+            {
+                Pipeline = HardcodedDefaultPipelines.ChemnitzStudentAndJobsPipeline(),
+                ExpectedSingleInputTuples = 13,
+                ExpectedDoubleInputTuples = 1
+            }
+        };
+
         private IPipelineDao _pipelineDao;
         private IPipelineDtoService _pipelineDtoService;
 
@@ -24,18 +45,25 @@ namespace PipelineService.UnitTests.Services
         }
 
         [Test]
-        public async Task GetSingleInputNodeTuples_OnlySingleInputs()
+        [TestCaseSource(nameof(_getNodeTupleTestCases))]
+        public async Task GetSingleInputNodeTuples(NodeTupleTestCase testCase)
         {
             // arrange
-            await _pipelineDao.CreateDefaults(
-                new List<Pipeline> { HardcodedDefaultPipelines.MelbourneHousingPipeline() });
+            await _pipelineDao.Add(testCase.Pipeline);
 
             // act
-            var results = await _pipelineDtoService.GetSingleInputNodeTuples();
+            var results = await _pipelineDtoService.GetSingleInputNodeTuples(testCase.Pipeline.Id);
 
             // assert
             Assert.NotNull(results);
-            Assert.AreEqual(3, results.Count);
+            Assert.AreEqual(testCase.ExpectedSingleInputTuples, results.Count);
         }
+    }
+
+    public class NodeTupleTestCase
+    {
+        public Pipeline Pipeline { get; set; }
+        public int ExpectedSingleInputTuples { get; set; }
+        public int ExpectedDoubleInputTuples { get; set; }
     }
 }

@@ -47,7 +47,7 @@ namespace PipelineService.Dao.Impl
             return newDefaultPipelines;
         }
 
-        private Task Add(Pipeline pipeline)
+        public Task Add(Pipeline pipeline)
         {
             if (!Store.ContainsKey(pipeline.Id))
             {

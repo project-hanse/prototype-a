@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using PipelineService.Dao;
 using PipelineService.Models.Dtos;
@@ -28,12 +29,12 @@ namespace PipelineService.Services.Impl
             return tuples;
         }
 
-        private async Task<IEnumerable<NodeTupleSingleInput>> GetSingleInputNodeTuples(Guid pipelineId)
+        public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples(Guid pipelineId)
         {
             var pipeline = await _pipelineDao.Get(pipelineId);
             var tuples = new List<NodeTupleSingleInput>();
             BuildSingleInputTuples(pipeline.Root, tuples);
-            return tuples;
+            return tuples.Distinct().ToList();
         }
 
         private static void BuildSingleInputTuples(
@@ -58,7 +59,12 @@ namespace PipelineService.Services.Impl
             }
         }
 
-        public Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples()
+        public async Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples(Guid pipelineId)
         {
             throw new NotImplementedException();
         }

@@ -24,6 +24,12 @@ namespace PipelineService.Dao
         Task<IList<Pipeline>> CreateDefaults(IList<Pipeline> pipelines = null);
 
         /// <summary>
+        /// Adds a pipeline as is to the store.
+        /// </summary>
+        /// <param name="pipeline">The pipeline that will be stored</param>
+        public Task Add(Pipeline pipeline);
+
+        /// <summary>
         /// Loads a pipeline from the store by it's id.
         /// </summary>
         /// <param name="pipelineId">The pipeline's id</param>

@@ -8,5 +8,26 @@ namespace PipelineService.Models.Dtos
         public Guid NodeId { get; set; }
         public Guid TargetNodeId { get; set; }
         public string Description { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is NodeTupleSingleInput typed)
+            {
+                return Equals(typed);
+            }
+
+            return false;
+        }
+
+        private bool Equals(NodeTupleSingleInput other)
+        {
+            return DatasetHash == other.DatasetHash && NodeId.Equals(other.NodeId) &&
+                   TargetNodeId.Equals(other.TargetNodeId) && Description == other.Description;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(DatasetHash, NodeId, TargetNodeId, Description);
+        }
     }
 }
