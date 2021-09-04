@@ -6,8 +6,12 @@ namespace PipelineService.Models.Dtos
     {
         public string DatasetHash { get; set; }
         public Guid NodeId { get; set; }
+        public Guid OperationId { get; set; }
         public Guid TargetNodeId { get; set; }
+        public Guid TargetOperationId { get; set; }
         public string Description { get; set; }
+        public string Operation { get; set; }
+        public string TargetOperation { get; set; }
 
         public override bool Equals(object obj)
         {

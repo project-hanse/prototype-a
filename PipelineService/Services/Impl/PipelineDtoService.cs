@@ -52,7 +52,11 @@ namespace PipelineService.Services.Impl
                     {
                         DatasetHash = predecessor.ResultKey,
                         NodeId = predecessor.Id,
+                        OperationId = predecessor.OperationId,
+                        Operation = predecessor.Operation,
                         TargetNodeId = singleInputNode.Id,
+                        TargetOperationId = singleInputNode.OperationId,
+                        TargetOperation = node.Operation,
                         Description = $"{predecessor.Operation} -> {node.Operation}"
                     });
                 }
