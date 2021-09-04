@@ -19,8 +19,9 @@ namespace PipelineService.Dao
         /// <summary>
         /// Creates a bunch of default pipelines in the store.
         /// </summary>
-        /// <returns>A list oof newly created pipelines.</returns>
-        Task<IList<Pipeline>> CreateDefaults();
+        /// <param name="pipelines">The pipelines that will be stored if parameter is not null.</param>
+        /// <returns>A list of newly created pipelines.</returns>
+        Task<IList<Pipeline>> CreateDefaults(IList<Pipeline> pipelines = null);
 
         /// <summary>
         /// Loads a pipeline from the store by it's id.

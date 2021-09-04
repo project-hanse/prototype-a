@@ -15,8 +15,7 @@ namespace PipelineService.Dao.Impl
         private readonly ILogger<InMemoryPipelineDao> _logger;
         private static readonly IDictionary<Guid, Pipeline> Store = new ConcurrentDictionary<Guid, Pipeline>();
 
-        public InMemoryPipelineDao(
-            ILogger<InMemoryPipelineDao> logger)
+        public InMemoryPipelineDao(ILogger<InMemoryPipelineDao> logger)
         {
             _logger = logger;
         }
@@ -34,18 +33,18 @@ namespace PipelineService.Dao.Impl
             return Task.FromResult(defaultPipeline);
         }
 
-        public async Task<IList<Pipeline>> CreateDefaults()
+        public async Task<IList<Pipeline>> CreateDefaults(IList<Pipeline> pipelines = null)
         {
-            var pipelines = NewDefaultPipelines();
+            var newDefaultPipelines = pipelines ?? NewDefaultPipelines();
 
-            _logger.LogInformation("Creating {NewPipelines} new pipeline(s)", pipelines.Count);
+            _logger.LogInformation("Creating {NewPipelines} new pipeline(s)", newDefaultPipelines.Count);
 
-            foreach (var pipeline in pipelines)
+            foreach (var pipeline in newDefaultPipelines)
             {
                 await Add(pipeline);
             }
 
-            return pipelines;
+            return newDefaultPipelines;
         }
 
         private Task Add(Pipeline pipeline)

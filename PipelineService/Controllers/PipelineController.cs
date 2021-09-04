@@ -10,13 +10,16 @@ namespace PipelineService.Controllers
     {
         private readonly ILogger<PipelineController> _logger;
         private readonly IPipelineExecutionService _pipelineExecutionService;
+        private readonly IPipelineDtoService _pipelineDtoService;
 
         public PipelineController(
             ILogger<PipelineController> logger,
-            IPipelineExecutionService pipelineExecutionService)
+            IPipelineExecutionService pipelineExecutionService,
+            IPipelineDtoService pipelineDtoService)
         {
             _logger = logger;
             _pipelineExecutionService = pipelineExecutionService;
+            _pipelineDtoService = pipelineDtoService;
         }
 
         [HttpGet("create/defaults")]
@@ -67,6 +70,18 @@ namespace PipelineService.Controllers
                 pipelineId, execution);
 
             return Ok(execution);
+        }
+
+        [HttpGet("tuples/single")]
+        public async Task<IActionResult> GetTuplesSingleInput()
+        {
+            return Ok(await _pipelineDtoService.GetSingleInputNodeTuples());
+        }
+
+        [HttpGet("tuples/double")]
+        public async Task<IActionResult> GetTuplesDoubleInput()
+        {
+            return Ok(await _pipelineDtoService.GetDoubleInputNodeTuples());
         }
     }
 }
