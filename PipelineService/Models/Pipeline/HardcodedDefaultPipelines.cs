@@ -586,6 +586,32 @@ namespace PipelineService.Models.Pipeline
 
             Successor(interpolate, resample);
 
+            var trimFirstYears = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "trim",
+                OperationId = OpIdPdSingleTrim,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "first_n", "18" }
+                },
+            };
+
+            Successor(resample, trimFirstYears);
+
+            var dropEmptyColumns = new NodeSingleInput
+            {
+                PipelineId = pipelineId,
+                Operation = "dropna",
+                OperationId = OpIdPdSingleGeneric,
+                OperationConfiguration = new Dictionary<string, string>
+                {
+                    { "axis", "1" }
+                },
+            };
+
+            Successor(trimFirstYears, dropEmptyColumns);
+
             // Simulated Vine Yield
             var importVine = new NodeFileInput
             {
@@ -634,7 +660,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdSkLearnDoubleMlpRegr
             };
 
-            Successor(resample, setIndex, predict);
+            Successor(dropEmptyColumns, setIndex, predict);
             pipeline.Root.Add(importVine);
             return pipeline;
         }

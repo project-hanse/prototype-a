@@ -7,7 +7,7 @@ from sklearn.neural_network import MLPRegressor
 from src.helper.operations_helper import OperationsHelper
 
 
-class OperationsSingleInputSciKitWrappers:
+class OperationsDoubleInputSciKitWrappers:
     """
     Primarily wrappers around scikit operations.
     """
@@ -25,7 +25,7 @@ class OperationsSingleInputSciKitWrappers:
 
         https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPRegressor.htm
         """
-        logger.info("Executing pandas operation scikit_single_input_mlp_regressor (%s)" % operation_name)
+        logger.info("Executing scikit operation scikit_single_input_mlp_regressor (%s)" % operation_name)
 
         hidden_layer_sizes = OperationsHelper.get_or_default(operation_config, 'hidden_layer_sizes', None)
         max_iter = OperationsHelper.get_or_default(operation_config, 'max_iter', 200)
