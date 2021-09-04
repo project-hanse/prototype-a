@@ -28,6 +28,10 @@ export class PipelineNodeViewComponent implements OnInit {
       this.pipelineService.getPipelineForVisualization(this.pipelineId).subscribe(
         res => {
           this.network = this.renderGraph('mynetwork', res);
+          this.network.on('click', function(properties) {
+            const ids = properties.nodes;
+            console.log('clicked node id:', ids);
+          });
         },
         error => {
           console.error('Failed to load pipeline', error);
