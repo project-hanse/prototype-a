@@ -7,7 +7,7 @@ from sklearn.neural_network import MLPRegressor
 from src.helper.operations_helper import OperationsHelper
 
 
-class OperationsDoubleInputSciKitWrappers:
+class OperationsSingleInputSciKitWrappers:
     """
     Primarily wrappers around scikit operations.
     """
@@ -25,24 +25,18 @@ class OperationsDoubleInputSciKitWrappers:
 
         https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPRegressor.htm
         """
-        logger.info("Executing scikit operation scikit_single_input_mlp_regressor (%s)" % operation_name)
+        logger.info("Executing pandas operation scikit_single_input_mlp_regressor (%s)" % operation_name)
 
-        hidden_layer_sizes = OperationsHelper.get_or_default(operation_config, 'hidden_layer_sizes', (100,))
+        hidden_layer_sizes = OperationsHelper.get_or_default(operation_config, 'hidden_layer_sizes', None)
         max_iter = OperationsHelper.get_or_default(operation_config, 'max_iter', 200)
 
-        X_train, X_test, y_train, y_test = train_test_split(df_one, df_two)
+        X_train, X_test, y_train, y_test = train_test_split(df_one, df_two, random_state=5)
 
-        regr = MLPRegressor(max_iter=max_iter, hidden_layer_sizes=hidden_layer_sizes)
-        model = regr.fit(X_train, y_train)
-        prediction = model.predict(X_test[:1])
-        score = model.score(X_test, y_test)
+        regr = MLPRegressor(max_iter=max_iter, hidden_layer_sizes=hidden_layer_sizes).fit(X_train, y_train)
+        prediction = regr.predict(X_test[:1])
+        score = regr.score(X_test, y_test)
 
         logger.info("Prediction score %s" % str(score))
 
-        df = pd.DataFrame(data=prediction.tolist(),
-                          columns=df_two.columns)
-
-        # Sets the index of the predicted dataframe
-        df.index = X_test.index[:1]
-
-        return df
+        return pd.DataFrame(data=prediction.tolist(),
+                            columns=df_two.columns)
