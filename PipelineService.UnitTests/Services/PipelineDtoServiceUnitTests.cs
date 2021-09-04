@@ -35,6 +35,7 @@ namespace PipelineService.UnitTests.Services
 
             // assert
             Assert.NotNull(results);
+            Assert.AreEqual(3, results.Count);
         }
     }
 }
