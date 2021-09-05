@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace PipelineService.Models.Dtos
 {
@@ -12,6 +13,7 @@ namespace PipelineService.Models.Dtos
         public string Description { get; set; }
         public string Operation { get; set; }
         public string TargetOperation { get; set; }
+        public Dictionary<string, string> OperationConfiguration { get; set; }
 
         public override bool Equals(object obj)
         {

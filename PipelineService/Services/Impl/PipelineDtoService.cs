@@ -54,6 +54,7 @@ namespace PipelineService.Services.Impl
                         NodeId = predecessor.Id,
                         OperationId = predecessor.OperationId,
                         Operation = predecessor.Operation,
+                        OperationConfiguration = predecessor.OperationConfiguration,
                         TargetNodeId = singleInputNode.Id,
                         TargetOperationId = singleInputNode.OperationId,
                         TargetOperation = node.Operation,
