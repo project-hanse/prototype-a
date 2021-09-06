@@ -32,7 +32,8 @@ namespace PipelineService.Models.Pipeline
             var trimRows = new NodeSingleInput
             {
                 PipelineId = pipelineId,
-                Operation = $"trim_{year}",
+                Operation = "trim",
+                OperationDescription = $"trim_{year}",
                 OperationId = OpIdPdSingleTrim,
                 OperationConfiguration = new Dictionary<string, string>
                 {
