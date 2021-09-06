@@ -87,6 +87,17 @@ def dataset_by_hash(producing_hash: str):
         return 'OK'
 
 
+@app.route('/api/datasets/hash/describe/<producing_hash>', methods=['GET', 'POST'])
+def describe_dataset_by_hash(producing_hash: str):
+    if request.method == 'GET':
+        df = dataset_store.get_by_hash(producing_hash)
+
+        if df is None:
+            abort(404)
+
+        return my_jsonpify(df.describe())
+
+
 def my_jsonpify(df):
     return app.response_class(
         response=df.to_json(),
