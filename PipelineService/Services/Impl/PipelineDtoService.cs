@@ -11,10 +11,12 @@ namespace PipelineService.Services.Impl
     public class PipelineDtoService : IPipelineDtoService
     {
         private readonly IPipelineDao _pipelineDao;
+        private readonly IPipelineExecutionDao _pipelineExecutionDao;
 
-        public PipelineDtoService(IPipelineDao pipelineDao)
+        public PipelineDtoService(IPipelineDao pipelineDao, IPipelineExecutionDao pipelineExecutionDao)
         {
             _pipelineDao = pipelineDao;
+            _pipelineExecutionDao = pipelineExecutionDao;
         }
 
         public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples()
@@ -31,6 +33,12 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples(Guid pipelineId)
         {
+            var lastExecution = await _pipelineExecutionDao.GetLastExecutionForPipeline(pipelineId);
+            if (lastExecution?.CompletedOn == null || lastExecution.Failed.Count > 0)
+            {
+                return new List<NodeTupleSingleInput>();
+            }
+
             var pipeline = await _pipelineDao.Get(pipelineId);
             var tuples = new List<NodeTupleSingleInput>();
             BuildSingleInputTuples(pipeline.Root, tuples);
