@@ -1,17 +1,17 @@
 <ng-container *ngIf="getId() | async as id">
-  <ng-container *ngIf="getPipeline(id) | async as pipeline">
+  <div *ngIf="getPipeline(id) | async as pipeline" class="grid-container">
 
     <mat-toolbar>
-      <a mat-button routerLink="../">Back</a>
-      <button mat-raised-button (click)="executePipeline(id)">Execute</button>
+      <button mat-raised-button (click)="executePipeline(id)" color="accent">
+        <mat-icon>play_arrow</mat-icon>
+        <span>Execute Pipeline</span>
+      </button>
     </mat-toolbar>
 
-    <div class="component-wrapper">
-      <h2>{{pipeline.name}}</h2>
-      <ph-pipeline-node-view [pipelineId]="pipeline.id"></ph-pipeline-node-view>
-      <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
+    <ph-pipeline-node-view [pipelineId]="pipeline.id"></ph-pipeline-node-view>
+    <ph-pipeline-toolbox [subtitle]="pipeline.name"></ph-pipeline-toolbox>
+    <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
 
-    </div>
-  </ng-container>
+  </div>
 
 </ng-container>

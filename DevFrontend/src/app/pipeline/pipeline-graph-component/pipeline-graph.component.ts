@@ -61,6 +61,9 @@ export class PipelineGraphComponent implements OnInit {
           direction: 'LR',
           sortMethod: 'directed'
         }
+      },
+      interaction: {
+        multiselect: true
       }
     };
 
