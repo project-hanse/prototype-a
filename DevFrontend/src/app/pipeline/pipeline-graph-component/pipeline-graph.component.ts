@@ -1,17 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {Network} from 'vis-network';
-import {Options} from 'vis-network/declarations/network/Network';
 import {PipelineService} from '../_service/pipeline.service';
 import {Subscription} from 'rxjs';
 import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
-
+import {Network, DataSet, Options, Data, Node, Edge} from 'vis';
 
 @Component({
   selector: 'ph-pipeline-node-view',
-  templateUrl: './pipeline-node-view.component.html',
-  styleUrls: ['./pipeline-node-view.component.scss']
+  templateUrl: './pipeline-graph.component.html',
+  styleUrls: ['./pipeline-graph.component.scss']
 })
-export class PipelineNodeViewComponent implements OnInit {
+export class PipelineGraphComponent implements OnInit {
 
   @Input() pipelineId: string;
 
@@ -27,8 +25,8 @@ export class PipelineNodeViewComponent implements OnInit {
     this.subscriptions.add(
       this.pipelineService.getPipelineForVisualization(this.pipelineId).subscribe(
         res => {
-          this.network = this.renderGraph('mynetwork', res);
-          this.network.on('click', function(properties) {
+          this.network = this.renderGraph('network', res);
+          this.network.on('click', (properties) => {
             const ids = properties.nodes;
             console.log('clicked node id:', ids);
           });
@@ -38,23 +36,16 @@ export class PipelineNodeViewComponent implements OnInit {
         }
       )
     );
-
   }
 
   public renderGraph(id: string, pipeline: PipelineVisualizationDto): Network {
+    const nodes = new DataSet<Node>(pipeline.nodes, {});
+    const edges = new DataSet<Edge>(pipeline.edges, {});
 
-    // @ts-ignore
-    const nodes = new vis.DataSet(pipeline.nodes, {});
-
-    // create an array with edges
-    // @ts-ignore
-    const edges = new vis.DataSet(pipeline.edges, {});
-
-    // create a network
     const container = document.getElementById(id);
-    const data = {
+    const data: Data = {
       nodes,
-      edges,
+      edges
     };
     const options: Options = {
       edges: {
