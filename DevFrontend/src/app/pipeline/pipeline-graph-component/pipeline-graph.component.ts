@@ -2,7 +2,7 @@ import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {PipelineService} from '../_service/pipeline.service';
 import {Subscription} from 'rxjs';
 import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
-import {Network, DataSet, Options, Data, Node, Edge} from 'vis';
+import {Data, DataSet, Edge, Network, Node, Options} from 'vis';
 
 @Component({
   selector: 'ph-pipeline-node-view',
@@ -15,6 +15,7 @@ export class PipelineGraphComponent implements OnInit {
 
   @Output() readonly onSelectedNodeIdsChange: EventEmitter<Array<string>>;
 
+  readonly networkElementId = 'network';
   private network?: Network;
 
   private readonly subscriptions: Subscription;
@@ -28,11 +29,7 @@ export class PipelineGraphComponent implements OnInit {
     this.subscriptions.add(
       this.pipelineService.getPipelineForVisualization(this.pipelineId).subscribe(
         res => {
-          this.network = this.renderGraph('network', res);
-          this.network.on('click', (properties) => {
-            const ids = properties.nodes;
-            this.onSelectedNodeIdsChange.emit(ids);
-          });
+          this.displayPipeline(res);
         },
         error => {
           console.error('Failed to load pipeline', error);
@@ -41,11 +38,19 @@ export class PipelineGraphComponent implements OnInit {
     );
   }
 
-  public renderGraph(id: string, pipeline: PipelineVisualizationDto): Network {
+  public displayPipeline(pipeline: PipelineVisualizationDto): void {
+    this.network = this.renderGraph(pipeline);
+    this.network.on('click', (properties) => {
+      const ids = properties.nodes;
+      this.onSelectedNodeIdsChange.emit(ids);
+    });
+  }
+
+  private renderGraph(pipeline: PipelineVisualizationDto): Network {
     const nodes = new DataSet<Node>(pipeline.nodes, {});
     const edges = new DataSet<Edge>(pipeline.edges, {});
 
-    const container = document.getElementById(id);
+    const container = document.getElementById(this.networkElementId);
     const data: Data = {
       nodes,
       edges
@@ -70,7 +75,13 @@ export class PipelineGraphComponent implements OnInit {
       }
     };
 
-    return new Network(container, data, options);
+    if (this.network) {
+      this.network.setData(data);
+    } else {
+      this.network = new Network(container, data, options);
+    }
+
+    return this.network;
   }
 
 }

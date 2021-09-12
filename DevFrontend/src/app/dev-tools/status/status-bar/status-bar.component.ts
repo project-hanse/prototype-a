@@ -16,7 +16,7 @@ export class StatusBarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.$s3Status = timer(1, 3000).pipe(switchMap(() => this.httpClient.get(this.getS3Url())));
+    this.$s3Status = timer(1, 10000).pipe(switchMap(() => this.httpClient.get(this.getS3Url())));
   }
 
 

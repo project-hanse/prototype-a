@@ -56,5 +56,12 @@ namespace PipelineService.Dao
         /// </summary>
         /// <returns>A list of dtos of all pipelines.</returns>
         Task<IList<PipelineInfoDto>> GetDtos();
+
+        /// <summary>
+        /// Updates a pipeline in the store.
+        /// </summary>
+        /// <param name="pipeline">The pipeline that will be updated.</param>
+        /// <returns>The updated pipeline</returns>
+        Task<Pipeline> Update(Pipeline pipeline);
     }
 }

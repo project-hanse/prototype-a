@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using PipelineService.Models.Dtos;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
@@ -10,13 +11,16 @@ namespace PipelineService.Controllers
     {
         private readonly ILogger<NodeController> _logger;
         private readonly INodesService _nodesService;
+        private readonly IPipelineExecutionService _pipelineExecutionService;
 
         public NodeController(
             ILogger<NodeController> logger,
-            INodesService nodesService)
+            INodesService nodesService,
+            IPipelineExecutionService pipelineExecutionService)
         {
             _logger = logger;
             _nodesService = nodesService;
+            _pipelineExecutionService = pipelineExecutionService;
         }
 
         [HttpGet("{pipelineId:Guid}/{nodeId:Guid}/datasets/input")]
@@ -33,6 +37,18 @@ namespace PipelineService.Controllers
             }
 
             return Ok(result);
+        }
+
+        [HttpPost("add")]
+        public async Task<IActionResult> AddNode(AddNodeRequest request)
+        {
+            var response = await _nodesService.AddNodeToPipeline(request);
+
+            if (!response.Success) return BadRequest(response);
+
+            response.PipelineVisualizationDto =
+                await _pipelineExecutionService.GetPipelineForVisualization(response.PipelineId);
+            return Ok(response);
         }
     }
 }

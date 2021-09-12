@@ -12,7 +12,7 @@
       <mat-action-list *ngIf="getOperationDtos() | async as operations">
         <div mat-subheader>Operations</div>
         <ng-container *ngFor="let operation of operations">
-          <button mat-list-item *ngIf="isCompatibleWithSelection(operation)">
+          <button mat-list-item *ngIf="isCompatibleWithSelection(operation)" (click)="onAddOperation(operation)">
             <mat-icon mat-list-icon>add_circle_outline</mat-icon>
             <span mat-line>{{operation.operationName}}</span>
             <span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>

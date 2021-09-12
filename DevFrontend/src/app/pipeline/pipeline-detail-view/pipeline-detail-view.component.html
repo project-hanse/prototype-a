@@ -1,5 +1,5 @@
 <ng-container *ngIf="getId() | async as id">
-  <div *ngIf="getPipeline(id) | async as pipeline" class="grid-container">
+  <div *ngIf="getPipeline(id) | async as pipeline; else notFound" class="grid-container">
 
     <mat-toolbar>
       <button mat-raised-button (click)="executePipeline(id)" color="accent">
@@ -9,11 +9,23 @@
     </mat-toolbar>
 
     <ph-pipeline-node-view [pipelineId]="pipeline.id"
-                           (onSelectedNodeIdsChange)="toolbox.selectedNodeIds = $event"></ph-pipeline-node-view>
-    <ph-pipeline-toolbox [subtitle]="pipeline.name"
+                           (onSelectedNodeIdsChange)="toolbox.selectedNodeIds = $event;"
+                           #pipelineNodeView></ph-pipeline-node-view>
+    <ph-pipeline-toolbox [pipelineId]="pipeline.id"
+                         [subtitle]="pipeline.name"
+                         (onPipelineChanged)="pipelineNodeView.displayPipeline($event);"
                          #toolbox></ph-pipeline-toolbox>
     <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
 
   </div>
 
 </ng-container>
+
+<ng-template #notFound>
+  <mat-card style="margin: 1em">
+    <p>This pipeline does not exist</p>
+    <p>
+      <a routerLink="/pipeline">Go Back</a>
+    </p>
+  </mat-card>
+</ng-template>
