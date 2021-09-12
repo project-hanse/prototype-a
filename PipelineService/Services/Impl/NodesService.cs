@@ -164,6 +164,11 @@ namespace PipelineService.Services.Impl
             return response;
         }
 
+        public async Task<string> GetResultHash(Guid pipelineId, Guid nodeId)
+        {
+            return FindNodeOrDefault(nodeId, await _pipelinesDao.Get(pipelineId)).ResultKey;
+        }
+
         private static void RemoveRecursively(Guid nodeId, IList<Node> nodes)
         {
             for (var i = 0; i < nodes.Count; i++)

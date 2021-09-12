@@ -10,5 +10,6 @@ namespace PipelineService.Services
         public Task<IList<string>> GetInputDatasetIdsForNode(Guid pipelineId, Guid nodeId);
         public Task<AddNodeResponse> AddNodeToPipeline(AddNodeRequest request);
         public Task<RemoveNodesResponse> RemoveNodesFromPipeline(RemoveNodesRequest request);
+        public Task<string> GetResultHash(Guid pipelineId, Guid nodeId);
     }
 }

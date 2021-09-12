@@ -27,4 +27,12 @@ export class NodeService extends BaseHttpService {
   public removeNodes(request: RemoveNodesRequest): Observable<RemoveNodesResponse> {
     return this.httpClient.post<RemoveNodesResponse>(this.getUrl('remove'), request);
   }
+
+  public getResultHash(pipelineId: string, nodeId: string): Observable<{ hash: string }> {
+    return this.httpClient.get<{ hash: string }>(this.getUrl(pipelineId, nodeId, 'result-hash'));
+  }
+
+  public getPreviewHtml(hash: string): Observable<string> {
+    return this.httpClient.get('http://localhost:5002/api/datasets/hash/describe/html/' + hash, {responseType: 'text'});
+  }
 }

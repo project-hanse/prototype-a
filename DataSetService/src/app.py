@@ -4,6 +4,7 @@ import pandas as pd
 from flask import Flask, render_template, request, abort
 from flask_bootstrap import Bootstrap
 from flask_socketio import SocketIO
+from flask_cors import CORS
 
 from src.services.file_store import FileStore
 from src.services.import_service import ImportService
@@ -19,6 +20,7 @@ S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
 
 # Creating service instances
 app = Flask(__name__, template_folder='templates')
+CORS(app)
 socketio = SocketIO(app)
 bootstrap = Bootstrap(app)
 dataset_store = InMemoryStore()
@@ -96,6 +98,17 @@ def describe_dataset_by_hash(producing_hash: str):
             abort(404)
 
         return my_jsonpify(df.describe())
+
+
+@app.route('/api/datasets/hash/describe/html/<producing_hash>', methods=['GET', 'POST'])
+def describe_dataset_by_hash_html(producing_hash: str):
+    if request.method == 'GET':
+        df = dataset_store.get_by_hash(producing_hash)
+
+        if df is None:
+            abort(404)
+
+        return df.describe().to_html()
 
 
 def my_jsonpify(df):

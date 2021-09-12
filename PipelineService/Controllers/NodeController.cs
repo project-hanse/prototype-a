@@ -39,6 +39,12 @@ namespace PipelineService.Controllers
             return Ok(result);
         }
 
+        [HttpGet("{pipelineId:Guid}/{nodeId:Guid}/result-hash")]
+        public async Task<IActionResult> GetResultHash(Guid pipelineId, Guid nodeId)
+        {
+            return Ok(new { Hash = await _nodesService.GetResultHash(pipelineId, nodeId) });
+        }
+
         [HttpPost("add")]
         public async Task<IActionResult> AddNode(AddNodeRequest request)
         {

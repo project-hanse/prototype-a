@@ -8,6 +8,7 @@ import {CoreModule} from '../core/core.module';
 import { PipelineGraphComponent } from './pipeline-graph-component/pipeline-graph.component';
 import { PipelineExecutionLogComponent } from './pipeline-execution-log/pipeline-execution-log.component';
 import { PipelineToolboxComponent } from './pipeline-toolbox/pipeline-toolbox.component';
+import { NodeResultPreviewComponent } from './node-result-preview/node-result-preview.component';
 
 
 @NgModule({
@@ -16,7 +17,8 @@ import { PipelineToolboxComponent } from './pipeline-toolbox/pipeline-toolbox.co
     PipelineDetailViewComponent,
     PipelineGraphComponent,
     PipelineExecutionLogComponent,
-    PipelineToolboxComponent
+    PipelineToolboxComponent,
+    NodeResultPreviewComponent
   ],
     imports: [
         CommonModule,

@@ -4,6 +4,7 @@
   grid-template:
     "h h h" auto
     "c c s" auto
+    "p p s" auto
     "f f f" auto
     / 1fr 1fr 1fr;
 }
@@ -30,6 +31,10 @@ ph-pipeline-toolbox {
 
 ph-pipeline-execution-log {
   grid-area: f;
+}
+
+ph-node-result-preview {
+  grid-area: p;
 }
 
 @media screen and (max-width: 415px) {
