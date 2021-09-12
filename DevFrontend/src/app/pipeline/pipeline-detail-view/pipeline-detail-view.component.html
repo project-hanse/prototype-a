@@ -8,8 +8,10 @@
       </button>
     </mat-toolbar>
 
-    <ph-pipeline-node-view [pipelineId]="pipeline.id"></ph-pipeline-node-view>
-    <ph-pipeline-toolbox [subtitle]="pipeline.name"></ph-pipeline-toolbox>
+    <ph-pipeline-node-view [pipelineId]="pipeline.id"
+                           (onSelectedNodeIdsChange)="toolbox.selectedNodeIds = $event"></ph-pipeline-node-view>
+    <ph-pipeline-toolbox [subtitle]="pipeline.name"
+                         #toolbox></ph-pipeline-toolbox>
     <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
 
   </div>

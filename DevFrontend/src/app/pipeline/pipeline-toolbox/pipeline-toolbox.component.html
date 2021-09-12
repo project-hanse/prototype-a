@@ -8,9 +8,24 @@
     </mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-
+    <ng-container>
+      <mat-action-list *ngIf="getOperationDtos() | async as operations">
+        <div mat-subheader>Operations</div>
+        <ng-container *ngFor="let operation of operations">
+          <button mat-list-item *ngIf="isCompatibleWithSelection(operation)">
+            <mat-icon mat-list-icon>add_circle_outline</mat-icon>
+            <span mat-line>{{operation.operationName}}</span>
+            <span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
+            <a *ngIf="operation.framework === 'pandas'"
+               target="_blank"
+               [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+          </button>
+        </ng-container>
+      </mat-action-list>
+    </ng-container>
   </mat-card-content>
   <mat-card-footer>
-    <p><i>cmd + click</i> to select multiple nodes</p>
+    <p><b>Select a node</b> to add a new operation.</p>
+    <p>Use <i>cmd + click</i> to select multiple nodes.</p>
   </mat-card-footer>
 </mat-card>

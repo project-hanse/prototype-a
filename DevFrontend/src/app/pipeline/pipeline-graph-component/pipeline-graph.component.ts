@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {PipelineService} from '../_service/pipeline.service';
 import {Subscription} from 'rxjs';
 import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
@@ -13,12 +13,15 @@ export class PipelineGraphComponent implements OnInit {
 
   @Input() pipelineId: string;
 
+  @Output() readonly onSelectedNodeIdsChange: EventEmitter<Array<string>>;
+
   private network?: Network;
 
   private readonly subscriptions: Subscription;
 
   constructor(private pipelineService: PipelineService) {
     this.subscriptions = new Subscription();
+    this.onSelectedNodeIdsChange = new EventEmitter<Array<string>>();
   }
 
   ngOnInit(): void {
@@ -28,7 +31,7 @@ export class PipelineGraphComponent implements OnInit {
           this.network = this.renderGraph('network', res);
           this.network.on('click', (properties) => {
             const ids = properties.nodes;
-            console.log('clicked node id:', ids);
+            this.onSelectedNodeIdsChange.emit(ids);
           });
         },
         error => {
