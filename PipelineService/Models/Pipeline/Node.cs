@@ -23,6 +23,11 @@ namespace PipelineService.Models.Pipeline
         public string Operation { get; set; }
 
         /// <summary>
+        /// A textual description displayed to the user (developer).
+        /// </summary>
+        public string OperationDescription { get; set; }
+
+        /// <summary>
         /// The id of the operation that will be performed on the input dataset.
         /// </summary>
         public Guid OperationId { get; set; }

@@ -56,13 +56,14 @@ namespace PipelineService
             services.AddTransient<IHashService, HashService>();
             services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
             services.AddTransient<INodeService, NodeService>();
+            services.AddTransient<IPipelineDtoService, PipelineDtoService>();
 
             services.AddHostedService<HostedSubscriptionService>();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "Pipeline Service", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pipeline Service", Version = "v1" });
             });
         }
 

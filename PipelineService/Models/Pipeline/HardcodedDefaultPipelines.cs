@@ -47,10 +47,10 @@ namespace PipelineService.Models.Pipeline
                 PipelineId = pipelineId,
                 InputDatasetHash = cleanUp.ResultKey,
                 Operation = "select_columns",
-                OperationId = Guid.Parse("7b0bb47f-f997-43d8-acb1-c31f2a22475d"),
+                OperationId = OpIdPdSingleSelectColumns,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "0", "['Price', 'YearBuilt', 'BuildingArea', 'Landsize']" }
+                    { "columns", "['Price', 'YearBuilt', 'BuildingArea', 'Landsize']" }
                 }
             };
 
@@ -101,9 +101,10 @@ namespace PipelineService.Models.Pipeline
             {
                 PipelineId = pipelineId,
                 Operation = "interpolate",
-                OperationId = OpIdPdSingleGeneric,
+                OperationId = OpIdPdSingleInterpolate,
                 OperationConfiguration = new Dictionary<string, string>
                 {
+                    { "axis", "0" },
                     { "method", "linear" }
                 },
             };
@@ -116,7 +117,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleSelectColumns,
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "0", "['year', 'week', 'weekly_infections']" }
+                    { "columns", "['year', 'week', 'weekly_infections']" }
                 }
             };
 
@@ -476,14 +477,16 @@ namespace PipelineService.Models.Pipeline
                 var transpose = new NodeSingleInput
                 {
                     PipelineId = pipelineId,
-                    Operation = $"transpose_{year}",
+                    Operation = "transpose",
+                    OperationDescription = $"transpose_{year}",
                     OperationId = OpIdPdSingleTranspose
                 };
                 var trim = HardcodedNodes.ZamgWeatherTrim(pipelineId, year);
                 var setHeader = new NodeSingleInput
                 {
                     PipelineId = pipelineId,
-                    Operation = $"set_header_{year}",
+                    Operation = "set_header",
+                    OperationDescription = $"set_header_{year}",
                     OperationId = OpIdPdSingleMakeColumnHeader,
                     OperationConfiguration = new Dictionary<string, string>
                     {
@@ -493,7 +496,8 @@ namespace PipelineService.Models.Pipeline
                 var setDateIndex = new NodeSingleInput
                 {
                     PipelineId = pipelineId,
-                    Operation = $"set_date_index_{year}",
+                    Operation = "set_date_index",
+                    OperationDescription = $"set_date_index_{year}",
                     OperationId = OpIdPdSingleSetDateIndex
                 };
                 Successor(import, transpose);
@@ -514,7 +518,8 @@ namespace PipelineService.Models.Pipeline
                     PipelineId = pipelineId,
                     InputDatasetOneHash = nodeOne.ResultKey,
                     InputDatasetTwoHash = nodeTwo.ResultKey,
-                    Operation = $"concat_{nodeOne.Operation.LastChars(4)}_{nodeTwo.Operation.LastChars(4)}",
+                    Operation = "concat",
+                    OperationDescription = $"concat_{nodeOne.Operation.LastChars(4)}_{nodeTwo.Operation.LastChars(4)}",
                     OperationId = OpIdPdDoubleConcat
                 };
                 Successor(nodeOne, nodeTwo, concat);

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Optional
 
 import chardet
 import pandas as pd
@@ -49,7 +50,7 @@ class InMemoryStore:
         else:
             return None
 
-    def get_by_hash(self, producing_hash):
+    def get_by_hash(self, producing_hash) -> Optional[pd.DataFrame]:
         self.log.info("Loading dataset by hash %s" % str(producing_hash))
 
         if self.store.keys().__contains__(producing_hash):
