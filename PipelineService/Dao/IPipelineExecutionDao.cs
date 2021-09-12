@@ -29,5 +29,12 @@ namespace PipelineService.Dao
         /// <param name="execution">The execution record to be updated.</param>
         /// <returns></returns>
         Task<PipelineExecutionRecord> Update(PipelineExecutionRecord execution);
+
+        /// <summary>
+        /// Loads the last execution record available for a given pipeline. 
+        /// </summary>
+        /// <param name="pipelineId"></param>
+        /// <returns>The execution record if available; otherwise null</returns>
+        Task<PipelineExecutionRecord> GetLastExecutionForPipeline(Guid pipelineId);
     }
 }

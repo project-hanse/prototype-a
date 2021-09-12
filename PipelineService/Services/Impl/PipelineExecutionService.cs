@@ -330,6 +330,8 @@ namespace PipelineService.Services.Impl
             execution.InExecution.Remove(block);
             execution.Executed.Add(block);
 
+            CheckIfCompleted(execution);
+
             await _pipelineExecutionDao.Update(execution);
 
             return execution.InExecution.Count > 0;
@@ -376,7 +378,18 @@ namespace PipelineService.Services.Impl
                 execution.Failed.Add(failedBlock);
             }
 
+            CheckIfCompleted(execution);
+
             await _pipelineExecutionDao.Update(execution);
+        }
+
+        // TODO: could be done in an extension methode
+        private static void CheckIfCompleted(PipelineExecutionRecord execution)
+        {
+            if (execution.InExecution.Count == 0 && execution.ToBeExecuted.Count == 0)
+            {
+                execution.CompletedOn = DateTime.UtcNow;
+            }
         }
 
         private static IList<Guid> GetAllSuccessorIds(IList<Node> blockSuccessors, List<Guid> ids = default)

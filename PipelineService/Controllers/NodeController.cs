@@ -19,7 +19,7 @@ namespace PipelineService.Controllers
             _nodeService = nodeService;
         }
 
-        [HttpGet("{pipelineId}/{nodeId}/datasets/input")]
+        [HttpGet("{pipelineId:Guid}/{nodeId:Guid}/datasets/input")]
         public async Task<IActionResult> GetInputDatasetIds(Guid pipelineId, Guid nodeId)
         {
             _logger.LogInformation("Loading input datasets for {NodeId} of pipeline {PipelineId}",

@@ -12,7 +12,9 @@
     {% for id in data.dataset_ids %}
         <li>
             <a href="api/datasets/{{ id }}" target="_blank">{{ id }}</a>
-            (<a href="api/datasets/html/{{ id }}" target="_blank">html</a>, <a href="api/datasets/csv/{{ id }}" target="_blank">csv</a>)
+            (<a href="api/datasets/html/{{ id }}" target="_blank">html</a>,
+            <a href="api/datasets/csv/{{ id }}" target="_blank">csv</a>,
+            <a href="api/datasets/hash/describe{{ id }}" target="_blank">describe</a>)
         </li>
     {% endfor %}
 </ul>

@@ -6,7 +6,7 @@ import pandas as pd
 from src.services.operations_file_input import OperationsFileInputCollection
 from src.services.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
 from src.services.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
-from src.services.operations_single_input_scikit_wrappers import OperationsSingleInputSciKitWrappers
+from src.services.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
 
 
 class OperationService:
@@ -69,7 +69,7 @@ class OperationService:
 
         # SkLearn Operations
         self.local_operations[
-            "2878ca36-8e03-4825-8afa-552064686337"] = OperationsSingleInputSciKitWrappers.sklearn_double_input_predict
+            "2878ca36-8e03-4825-8afa-552064686337"] = OperationsDoubleInputSciKitWrappers.sklearn_double_input_predict
 
         # Custom Operations
         self.local_operations[

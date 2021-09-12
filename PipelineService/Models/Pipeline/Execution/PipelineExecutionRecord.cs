@@ -16,10 +16,10 @@ namespace PipelineService.Models.Pipeline.Execution
 
         public IList<NodeExecutionRecord> ToBeExecuted { get; set; } = new List<NodeExecutionRecord>();
 
-        public IList<NodeExecutionRecord> InExecution { get; set; } = new List<NodeExecutionRecord>();
+        public IList<NodeExecutionRecord> InExecution { get; } = new List<NodeExecutionRecord>();
 
-        public IList<NodeExecutionRecord> Executed { get; set; } = new List<NodeExecutionRecord>();
+        public IList<NodeExecutionRecord> Executed { get; } = new List<NodeExecutionRecord>();
 
-        public IList<NodeExecutionRecord> Failed { get; set; } = new List<NodeExecutionRecord>();
+        public IList<NodeExecutionRecord> Failed { get; } = new List<NodeExecutionRecord>();
     }
 }
