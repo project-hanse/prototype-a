@@ -6,6 +6,7 @@ import {map} from 'rxjs/operators';
 import {NodeService} from '../_service/node.service';
 import {AddNodeRequest} from '../_model/add-node-request';
 import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
+import {RemoveNodesRequest} from '../_model/remove-nodes-request';
 
 @Component({
   selector: 'ph-pipeline-toolbox',
@@ -64,7 +65,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  onAddOperation(operation: OperationDto): void {
+  onAddNode(operation: OperationDto): void {
     const request: AddNodeRequest = {
       pipelineId: this.pipelineId,
       operation,
@@ -81,4 +82,19 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
     );
   }
 
+  onRemoveNodes(): void {
+    const request: RemoveNodesRequest = {
+      pipelineId: this.pipelineId,
+      nodeIdsToBeRemoved: this.selectedNodeIds
+    };
+    this.subscriptions.add(
+      this.nodeService.removeNodes(request).subscribe(
+        response => {
+          this.onPipelineChanged.emit(response.pipelineVisualizationDto);
+        },
+        error => {
+          console.error('Failed to add node', error);
+        })
+    );
+  }
 }

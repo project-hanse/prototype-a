@@ -50,5 +50,17 @@ namespace PipelineService.Controllers
                 await _pipelineExecutionService.GetPipelineForVisualization(response.PipelineId);
             return Ok(response);
         }
+
+        [HttpPost("remove")]
+        public async Task<IActionResult> RemoveNodes(RemoveNodesRequest request)
+        {
+            var response = await _nodesService.RemoveNodesFromPipeline(request);
+
+            if (!response.Success) return BadRequest(response);
+
+            response.PipelineVisualizationDto =
+                await _pipelineExecutionService.GetPipelineForVisualization(response.PipelineId);
+            return Ok(response);
+        }
     }
 }

@@ -4,6 +4,8 @@ import {BaseHttpService} from '../../core/_service/base-http.service';
 import {Observable} from 'rxjs';
 import {AddNodeRequest} from '../_model/add-node-request';
 import {AddNodeResponse} from '../_model/add-node-response';
+import {RemoveNodesRequest} from '../_model/remove-nodes-request';
+import {RemoveNodesResponse} from '../_model/remove-nodes-response';
 
 @Injectable({
   providedIn: 'root'
@@ -20,5 +22,9 @@ export class NodeService extends BaseHttpService {
 
   public addNode(addNodeRequest: AddNodeRequest): Observable<AddNodeResponse> {
     return this.httpClient.post<AddNodeResponse>(this.getUrl('add'), addNodeRequest);
+  }
+
+  public removeNodes(request: RemoveNodesRequest): Observable<RemoveNodesResponse> {
+    return this.httpClient.post<RemoveNodesResponse>(this.getUrl('remove'), request);
   }
 }

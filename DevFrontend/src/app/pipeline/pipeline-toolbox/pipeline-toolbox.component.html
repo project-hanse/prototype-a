@@ -10,7 +10,7 @@
       <mat-action-list *ngIf="getOperationDtos() | async as operations" [disabled]="selectedNodeIds.length === 0">
         <div mat-subheader>Operations</div>
         <ng-container *ngFor="let operation of operations">
-          <button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddOperation(operation)">
+          <button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)">
             <mat-icon mat-list-icon>add_circle_outline</mat-icon>
             <span mat-line>{{operation.operationName}}</span>
             <span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
@@ -25,7 +25,9 @@
     <!-- Other Actions -->
     <mat-toolbar>
       <mat-toolbar-row>
-        <button mat-button color="warn">
+        <button mat-stroked-button color="warn"
+                [disabled]="selectedNodeIds.length === 0"
+                (click)="onRemoveNodes()">
           <mat-icon>
             remove_circle_outline
           </mat-icon>

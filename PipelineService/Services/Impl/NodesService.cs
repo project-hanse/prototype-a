@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -90,11 +89,9 @@ namespace PipelineService.Services.Impl
             Node newNode;
             if (request.PredecessorNodeIds.Count == 1)
             {
-                var predecessor = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline.Root);
+                var predecessor = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline);
                 if (predecessor == default)
                 {
-                    _logger.LogInformation("Could not find node {NotFoundId} in pipeline {PipelineId}",
-                        request.PredecessorNodeIds[0], pipeline.Id);
                     response.StatusCode = HttpStatusCode.NotFound;
                     return response;
                 }
@@ -103,13 +100,10 @@ namespace PipelineService.Services.Impl
             }
             else
             {
-                var predecessor1 = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline.Root);
-                var predecessor2 = FindNodeOrDefault(request.PredecessorNodeIds[1], pipeline.Root);
+                var predecessor1 = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline);
+                var predecessor2 = FindNodeOrDefault(request.PredecessorNodeIds[1], pipeline);
                 if (predecessor1 == default || predecessor2 == default)
                 {
-                    _logger.LogInformation("Could not find node {NotFoundId} in pipeline {PipelineId}",
-                        predecessor1 == null ? request.PredecessorNodeIds[0] : request.PredecessorNodeIds[1],
-                        pipeline.Id);
                     response.StatusCode = HttpStatusCode.NotFound;
                     return response;
                 }
@@ -131,6 +125,69 @@ namespace PipelineService.Services.Impl
             response.PipelineId = pipeline.Id;
             response.Success = true;
             return response;
+        }
+
+        public async Task<RemoveNodesResponse> RemoveNodesFromPipeline(RemoveNodesRequest request)
+        {
+            _logger.LogDebug("Removing nodes from pipeline for request {@RemoveNodesRequest}", request);
+
+            var response = new RemoveNodesResponse
+            {
+                Success = false
+            };
+            var pipeline = await _pipelinesDao.Get(request.PipelineId);
+
+            if (pipeline == null)
+            {
+                _logger.LogDebug("Cannot add node to unavailable pipeline");
+                response.StatusCode = HttpStatusCode.NotFound;
+                response.Errors.Add(new Error
+                {
+                    Message = "Pipeline not found",
+                    Code = "P404"
+                });
+                return response;
+            }
+
+            foreach (var nodeId in request.NodeIdsToBeRemoved)
+            {
+                RemoveRecursively(nodeId, pipeline.Root);
+            }
+
+            pipeline = await _pipelinesDao.Update(pipeline);
+
+            response.Success = true;
+            response.PipelineId = pipeline.Id;
+
+            _logger.LogInformation("Removed {RemovedCount} nodes from pipeline {PipelineId}",
+                request.NodeIdsToBeRemoved.Count, pipeline.Id);
+            return response;
+        }
+
+        private static void RemoveRecursively(Guid nodeId, IList<Node> nodes)
+        {
+            for (var i = 0; i < nodes.Count; i++)
+            {
+                if (nodes[i].Id == nodeId)
+                {
+                    nodes.RemoveAt(i);
+                    return;
+                }
+
+                RemoveRecursively(nodeId, nodes[i].Successors);
+            }
+        }
+
+        private Node FindNodeOrDefault(Guid nodeId, Pipeline pipeline)
+        {
+            var node = FindNodeOrDefault(nodeId, pipeline.Root);
+            if (node == default)
+            {
+                _logger.LogInformation("Could not find node {NotFoundId} in pipeline {PipelineId}",
+                    nodeId, pipeline.Id);
+            }
+
+            return node;
         }
 
         private static Node FindNodeOrDefault(Guid nodeId, IEnumerable<Node> nodes)
