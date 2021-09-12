@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace PipelineService.Services
 {
-    public interface INodeService
+    public interface INodesService
     {
         public Task<IList<string>> GetInputDatasetIdsForNode(Guid pipelineId, Guid nodeId);
     }

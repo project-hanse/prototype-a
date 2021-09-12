@@ -8,22 +8,22 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
 {
-    public class NodeService : INodeService
+    public class NodesService : INodesService
     {
-        private readonly ILogger<NodeService> _logger;
-        private readonly IPipelineDao _pipelineDao;
+        private readonly ILogger<NodesService> _logger;
+        private readonly IPipelinesDao _pipelinesDao;
 
-        public NodeService(
-            ILogger<NodeService> logger,
-            IPipelineDao pipelineDao)
+        public NodesService(
+            ILogger<NodesService> logger,
+            IPipelinesDao pipelinesDao)
         {
             _logger = logger;
-            _pipelineDao = pipelineDao;
+            _pipelinesDao = pipelinesDao;
         }
 
         public async Task<IList<string>> GetInputDatasetIdsForNode(Guid pipelineId, Guid nodeId)
         {
-            var pipeline = await _pipelineDao.Get(pipelineId);
+            var pipeline = await _pipelinesDao.Get(pipelineId);
 
             if (pipeline == null)
             {

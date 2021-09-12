@@ -11,15 +11,15 @@ using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Dao.Impl
 {
-    public class InMemoryPipelineExecutionDao : IPipelineExecutionDao
+    public class InMemoryPipelinesExecutionDao : IPipelinesExecutionDao
     {
-        private readonly ILogger<InMemoryPipelineExecutionDao> _logger;
+        private readonly ILogger<InMemoryPipelinesExecutionDao> _logger;
 
         private static readonly IDictionary<Guid, PipelineExecutionRecord> Store =
             new ConcurrentDictionary<Guid, PipelineExecutionRecord>();
 
 
-        public InMemoryPipelineExecutionDao(ILogger<InMemoryPipelineExecutionDao> logger)
+        public InMemoryPipelinesExecutionDao(ILogger<InMemoryPipelinesExecutionDao> logger)
         {
             _logger = logger;
         }

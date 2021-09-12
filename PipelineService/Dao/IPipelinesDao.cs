@@ -7,7 +7,7 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao
 {
-    public interface IPipelineDao
+    public interface IPipelinesDao
     {
         /// <summary>
         /// Creates a default pipeline and stores it.

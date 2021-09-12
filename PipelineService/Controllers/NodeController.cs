@@ -9,14 +9,14 @@ namespace PipelineService.Controllers
     public class NodeController : BaseController
     {
         private readonly ILogger<NodeController> _logger;
-        private readonly INodeService _nodeService;
+        private readonly INodesService _nodesService;
 
         public NodeController(
             ILogger<NodeController> logger,
-            INodeService nodeService)
+            INodesService nodesService)
         {
             _logger = logger;
-            _nodeService = nodeService;
+            _nodesService = nodesService;
         }
 
         [HttpGet("{pipelineId:Guid}/{nodeId:Guid}/datasets/input")]
@@ -25,7 +25,7 @@ namespace PipelineService.Controllers
             _logger.LogInformation("Loading input datasets for {NodeId} of pipeline {PipelineId}",
                 nodeId, pipelineId);
 
-            var result = await _nodeService.GetInputDatasetIdsForNode(pipelineId, nodeId);
+            var result = await _nodesService.GetInputDatasetIdsForNode(pipelineId, nodeId);
 
             if (result == null)
             {
