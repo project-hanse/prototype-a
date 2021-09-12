@@ -57,6 +57,7 @@ namespace PipelineService
             services.AddTransient<IPipelineExecutionService, PipelinesExecutionService>();
             services.AddTransient<INodesService, NodesService>();
             services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
+            services.AddTransient<IOperationsService, OperationsService>();
 
             services.AddHostedService<HostedSubscriptionService>();
 

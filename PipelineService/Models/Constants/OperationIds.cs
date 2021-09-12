@@ -4,8 +4,8 @@ namespace PipelineService.Models.Constants
 {
     public static class OperationIds
     {
-        public static readonly Guid OpIdPdFileInputReadCsv = Guid.Parse("dfbca055-69f1-40df-9639-023ec6363bac");
-        public static readonly Guid OpIdPdFileInputReadExcel = Guid.Parse("2413f0d5-c3c0-4ce6-b1f3-5837b296ab92");
+        public static readonly Guid OpIdPdFileReadCsv = Guid.Parse("dfbca055-69f1-40df-9639-023ec6363bac");
+        public static readonly Guid OpIdPdFileReadExcel = Guid.Parse("2413f0d5-c3c0-4ce6-b1f3-5837b296ab92");
         public static readonly Guid OpIdPdSingleGeneric = Guid.Parse("0759dede-2cee-433c-b314-10a8fa456e62");
         public static readonly Guid OpIdPdSingleTranspose = Guid.Parse("0ebc4dd5-6a81-48e7-8abd-3488c608020f");
         public static readonly Guid OpIdPdSingleSetIndex = Guid.Parse("de26c7a0-0444-414d-826f-458cd3b8979c");
@@ -26,6 +26,6 @@ namespace PipelineService.Models.Constants
         public static readonly Guid OpIdPdSingleDfToNumeric = Guid.Parse("e8877645-b0b6-43c9-84ed-79c6565b6f28");
         public static readonly Guid OpIdPdSingleDfGroupBy = Guid.Parse("1991ccdb-c8ba-4a71-a325-420e48471379");
         public static readonly Guid OpIdPdSingleResample = Guid.Parse("0fc78290-88c8-49b0-878e-a25a3f6452c1");
-        public static readonly Guid OpIdSkLearnDoubleMlpRegr = Guid.Parse("2878ca36-8e03-4825-8afa-552064686337");
+        public static readonly Guid OpIdSklearnDoubleMlpRegr = Guid.Parse("2878ca36-8e03-4825-8afa-552064686337");
     }
 }

@@ -24,7 +24,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv,
+                OperationId = OpIdPdFileReadCsv,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "header", "0" }
@@ -90,7 +90,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv,
+                OperationId = OpIdPdFileReadCsv,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "header", "0" }
@@ -184,7 +184,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv
+                OperationId = OpIdPdFileReadCsv
             };
 
             // Data cleaning Berufsbildung
@@ -270,7 +270,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv
+                OperationId = OpIdPdFileReadCsv
             };
             // Data Cleaning Studenten
             var trim1Studenten = new NodeSingleInput
@@ -399,7 +399,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_excel",
-                OperationId = OpIdPdFileInputReadExcel,
+                OperationId = OpIdPdFileReadExcel,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "skiprows", "1" }
@@ -624,7 +624,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_excel",
-                OperationId = OpIdPdFileInputReadExcel,
+                OperationId = OpIdPdFileReadExcel,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "skiprows", "1" }
@@ -662,7 +662,7 @@ namespace PipelineService.Models.Pipeline
             {
                 PipelineId = pipelineId,
                 Operation = "predict_yield",
-                OperationId = OpIdSkLearnDoubleMlpRegr
+                OperationId = OpIdSklearnDoubleMlpRegr
             };
 
             Successor(dropEmptyColumns, setIndex, predict);
