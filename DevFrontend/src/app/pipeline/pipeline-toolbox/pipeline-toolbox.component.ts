@@ -51,9 +51,9 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
     return this.$operationDtosGrouped;
   }
 
-  isCompatibleWithSelection(operation: OperationDto): boolean {
+  showInAvailable(operation: OperationDto): boolean {
     if (this.selectedNodeIds.length === 0) {
-      return false;
+      return true;
     }
     if (operation.operationInputType === OperationInputTypes.Single && this.selectedNodeIds.length === 1) {
       return true;

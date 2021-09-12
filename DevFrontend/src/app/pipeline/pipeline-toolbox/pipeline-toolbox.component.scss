@@ -1,8 +1,11 @@
 mat-card-content {
-  height: 300px;
-  overflow: auto;
 }
 
 mat-card-footer {
   padding: 0 1em;
+}
+
+.operations-wrapper {
+  height: 300px;
+  overflow: auto;
 }

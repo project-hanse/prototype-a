@@ -1,18 +1,16 @@
 <mat-card>
   <mat-card-header>
-    <mat-card-title>
-      Toolbox
-    </mat-card-title>
-    <mat-card-subtitle *ngIf="subtitle">
+    <mat-card-title *ngIf="subtitle">
       {{subtitle}}
-    </mat-card-subtitle>
+    </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <ng-container>
-      <mat-action-list *ngIf="getOperationDtos() | async as operations">
+    <!-- Operations -->
+    <div class="operations-wrapper">
+      <mat-action-list *ngIf="getOperationDtos() | async as operations" [disabled]="selectedNodeIds.length === 0">
         <div mat-subheader>Operations</div>
         <ng-container *ngFor="let operation of operations">
-          <button mat-list-item *ngIf="isCompatibleWithSelection(operation)" (click)="onAddOperation(operation)">
+          <button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddOperation(operation)">
             <mat-icon mat-list-icon>add_circle_outline</mat-icon>
             <span mat-line>{{operation.operationName}}</span>
             <span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
@@ -22,7 +20,21 @@
           </button>
         </ng-container>
       </mat-action-list>
-    </ng-container>
+    </div>
+
+    <!-- Other Actions -->
+    <mat-toolbar>
+      <mat-toolbar-row>
+        <button mat-button color="warn">
+          <mat-icon>
+            remove_circle_outline
+          </mat-icon>
+          <span>
+            Remove
+          </span>
+        </button>
+      </mat-toolbar-row>
+    </mat-toolbar>
   </mat-card-content>
   <mat-card-footer>
     <p><b>Select a node</b> to add a new operation.</p>

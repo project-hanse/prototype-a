@@ -91,12 +91,29 @@ namespace PipelineService.Services.Impl
             if (request.PredecessorNodeIds.Count == 1)
             {
                 var predecessor = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline.Root);
+                if (predecessor == default)
+                {
+                    _logger.LogInformation("Could not find node {NotFoundId} in pipeline {PipelineId}",
+                        request.PredecessorNodeIds[0], pipeline.Id);
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    return response;
+                }
+
                 newNode = PipelineConstructionHelpers.Successor(predecessor, new NodeSingleInput());
             }
             else
             {
                 var predecessor1 = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline.Root);
                 var predecessor2 = FindNodeOrDefault(request.PredecessorNodeIds[1], pipeline.Root);
+                if (predecessor1 == default || predecessor2 == default)
+                {
+                    _logger.LogInformation("Could not find node {NotFoundId} in pipeline {PipelineId}",
+                        predecessor1 == null ? request.PredecessorNodeIds[0] : request.PredecessorNodeIds[1],
+                        pipeline.Id);
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    return response;
+                }
+
                 newNode = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, new NodeDoubleInput());
             }
 
@@ -116,11 +133,14 @@ namespace PipelineService.Services.Impl
             return response;
         }
 
-        private static Node FindNodeOrDefault(Guid nodeId, IList<Node> nodes)
+        private static Node FindNodeOrDefault(Guid nodeId, IEnumerable<Node> nodes)
         {
-            var node = nodes.FirstOrDefault(n => n.Id == nodeId);
+            foreach (var node in nodes)
+            {
+                return node.Id == nodeId ? node : FindNodeOrDefault(nodeId, node.Successors);
+            }
 
-            return node ?? nodes.Select(block => FindNodeOrDefault(nodeId, block.Successors)).FirstOrDefault();
+            return default;
         }
     }
 }
