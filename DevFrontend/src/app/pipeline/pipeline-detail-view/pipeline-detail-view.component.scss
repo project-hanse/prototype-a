@@ -3,10 +3,11 @@
   grid-row-gap: 16px;
   grid-template:
     "h h h" auto
-    "c c s" auto
-    "p p s" auto
+    "v v t" auto
+    "p p c" auto
     "f f f" auto
     / 1fr 1fr 1fr;
+  margin-bottom: 1em;
 }
 
 .grid-container > * {
@@ -22,19 +23,23 @@ mat-toolbar {
 }
 
 ph-pipeline-node-view {
-  grid-area: c;
+  grid-area: v;
 }
 
 ph-pipeline-toolbox {
-  grid-area: s;
+  grid-area: t;
 }
 
-ph-pipeline-execution-log {
-  grid-area: f;
+ph-node-config-editor {
+  grid-area: c;
 }
 
 ph-node-result-preview {
   grid-area: p;
+}
+
+ph-pipeline-execution-log {
+  grid-area: f;
 }
 
 @media screen and (max-width: 415px) {
@@ -50,5 +55,9 @@ ph-node-result-preview {
 
   .grid-container > mat-toolbar {
     margin: 0;
+  }
+
+  ph-pipeline-node-view {
+    height: 350px;
   }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -67,6 +68,26 @@ namespace PipelineService.Controllers
             response.PipelineVisualizationDto =
                 await _pipelineExecutionService.GetPipelineForVisualization(response.PipelineId);
             return Ok(response);
+        }
+
+        [HttpGet("{pipelineId:Guid}/{nodeId:Guid}/config")]
+        public async Task<IActionResult> GetConfiguration(Guid pipelineId, Guid nodeId)
+        {
+            var config = await _nodesService.GetConfig(pipelineId, nodeId);
+            if (config == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(config);
+        }
+
+        [HttpPost("{pipelineId:Guid}/{nodeId:Guid}/config")]
+        public async Task<IActionResult> UpdateConfiguration(
+            Guid pipelineId, Guid nodeId, Dictionary<string, string> config)
+        {
+            var success = await _nodesService.UpdateConfig(pipelineId, nodeId, config);
+            return success ? Ok() : BadRequest();
         }
     }
 }

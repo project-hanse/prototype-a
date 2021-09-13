@@ -1,0 +1,14 @@
+<ng-container *ngIf="nodeIds">
+  <ng-container *ngFor="let nodeId of nodeIds">
+    <mat-card *ngIf="getConfig(nodeId) | async as config">
+      <mat-card-header>
+        <mat-card-title>
+          Node Configuration
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        {{stringify(config)}}
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+</ng-container>

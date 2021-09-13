@@ -9,6 +9,7 @@ import { PipelineGraphComponent } from './pipeline-graph-component/pipeline-grap
 import { PipelineExecutionLogComponent } from './pipeline-execution-log/pipeline-execution-log.component';
 import { PipelineToolboxComponent } from './pipeline-toolbox/pipeline-toolbox.component';
 import { NodeResultPreviewComponent } from './node-result-preview/node-result-preview.component';
+import { NodeConfigEditorComponent } from './node-config-editor/node-config-editor.component';
 
 
 @NgModule({
@@ -18,7 +19,8 @@ import { NodeResultPreviewComponent } from './node-result-preview/node-result-pr
     PipelineGraphComponent,
     PipelineExecutionLogComponent,
     PipelineToolboxComponent,
-    NodeResultPreviewComponent
+    NodeResultPreviewComponent,
+    NodeConfigEditorComponent
   ],
     imports: [
         CommonModule,

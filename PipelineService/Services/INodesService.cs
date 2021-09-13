@@ -11,5 +11,7 @@ namespace PipelineService.Services
         public Task<AddNodeResponse> AddNodeToPipeline(AddNodeRequest request);
         public Task<RemoveNodesResponse> RemoveNodesFromPipeline(RemoveNodesRequest request);
         public Task<string> GetResultHash(Guid pipelineId, Guid nodeId);
+        public Task<Dictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId);
+        public Task<bool> UpdateConfig(Guid pipelineId, Guid nodeId, Dictionary<string, string> config);
     }
 }

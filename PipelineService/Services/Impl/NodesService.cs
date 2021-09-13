@@ -169,6 +169,42 @@ namespace PipelineService.Services.Impl
             return FindNodeOrDefault(nodeId, await _pipelinesDao.Get(pipelineId)).ResultKey;
         }
 
+        public async Task<Dictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
+        {
+            var node = await FindNodeOrDefault(pipelineId, nodeId);
+            if (node == null)
+            {
+                _logger.LogDebug("Node with id {NotFoundId} not found", pipelineId);
+            }
+
+            return node?.OperationConfiguration;
+        }
+
+        public async Task<bool> UpdateConfig(Guid pipelineId, Guid nodeId, Dictionary<string, string> config)
+        {
+            var pipeline = await _pipelinesDao.Get(pipelineId);
+            if (pipeline == null)
+            {
+                _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);
+                return false;
+            }
+
+            var node = FindNodeOrDefault(nodeId, pipeline);
+            if (node == null)
+            {
+                _logger.LogDebug("Node with id {NotFoundId} not found", nodeId);
+                return false;
+            }
+
+            node.OperationConfiguration = config;
+            pipeline = await _pipelinesDao.Update(pipeline);
+
+            _logger.LogInformation("Updated configuration for node {NodeId} in pipeline {PipelineId}",
+                node.Id, pipeline.Id);
+
+            return true;
+        }
+
         private static void RemoveRecursively(Guid nodeId, IList<Node> nodes)
         {
             for (var i = 0; i < nodes.Count; i++)
@@ -181,6 +217,17 @@ namespace PipelineService.Services.Impl
 
                 RemoveRecursively(nodeId, nodes[i].Successors);
             }
+        }
+
+        private async Task<Node> FindNodeOrDefault(Guid pipelineId, Guid nodeId)
+        {
+            var pipeline = await _pipelinesDao.Get(pipelineId);
+            if (pipeline == null)
+            {
+                _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);
+            }
+
+            return pipeline == null ? default : FindNodeOrDefault(nodeId, pipeline.Root);
         }
 
         private Node FindNodeOrDefault(Guid nodeId, Pipeline pipeline)

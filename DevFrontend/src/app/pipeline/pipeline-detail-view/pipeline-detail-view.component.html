@@ -9,13 +9,18 @@
     </mat-toolbar>
 
     <ph-pipeline-node-view [pipelineId]="pipeline.id"
-                           (onSelectedNodeIdsChange)="toolbox.selectedNodeIds = $event; nodeResultPreview.nodeIds = $event"
+                           (onSelectedNodeIdsChange)="toolbox.selectedNodeIds = $event; nodeResultPreview.nodeIds = $event; nodeConfigEditor.nodeIds = $event"
                            #pipelineNodeView></ph-pipeline-node-view>
+
+    <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
+
     <ph-pipeline-toolbox [pipelineId]="pipeline.id"
                          [subtitle]="pipeline.name"
                          (onPipelineChanged)="pipelineNodeView.displayPipeline($event);"
                          #toolbox></ph-pipeline-toolbox>
-    <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
+
+    <ph-node-config-editor [pipelineId]="pipeline.id"
+                           #nodeConfigEditor></ph-node-config-editor>
 
     <ph-node-result-preview [pipelineId]="pipeline.id"
                             #nodeResultPreview></ph-node-result-preview>
