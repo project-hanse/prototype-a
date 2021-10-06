@@ -3,7 +3,13 @@ export interface OperationDto {
   operationName: string;
   operationFullName: string;
   framework: string;
+  description: string;
   operationInputType: OperationInputTypes;
+}
+
+export interface OperationDtoGroup {
+  sectionTitle: string;
+  operations: Array<OperationDto>;
 }
 
 export enum OperationInputTypes {

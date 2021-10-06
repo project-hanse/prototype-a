@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {BaseHttpService} from '../../core/_service/base-http.service';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {OperationDto} from '../_model/operation-dto';
+import {OperationDto, OperationDtoGroup} from '../_model/operation-dto';
 
 @Injectable({
   providedIn: 'root'
@@ -15,5 +15,9 @@ export class OperationsService extends BaseHttpService {
 
   public getOperations(): Observable<Array<OperationDto>> {
     return super.get();
+  }
+
+  public getOperationsGroups(): Observable<Array<OperationDtoGroup>> {
+    return super.get('grouped');
   }
 }

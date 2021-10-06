@@ -16,7 +16,9 @@ namespace PipelineService.UnitTests.Services
         [SetUp]
         public void Setup()
         {
-            _operationsService = new OperationsService(GeneralHelper.CreateLogger<OperationsService>());
+            _operationsService = new OperationsService(
+                GeneralHelper.CreateLogger<OperationsService>(),
+                GeneralHelper.EmptyConfiguration());
         }
 
         [Test]
@@ -27,7 +29,7 @@ namespace PipelineService.UnitTests.Services
 
             // assert
             Assert.NotNull(operations);
-            Assert.AreEqual(typeof(OperationIds).GetFields(BindingFlags.Static | BindingFlags.Public).Length,
+            Assert.GreaterOrEqual(typeof(OperationIds).GetFields(BindingFlags.Static | BindingFlags.Public).Length,
                 operations.Count);
         }
     }

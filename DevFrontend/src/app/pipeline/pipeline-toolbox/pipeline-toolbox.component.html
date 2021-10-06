@@ -7,19 +7,22 @@
   <mat-card-content>
     <!-- Operations -->
     <div class="operations-wrapper">
-      <mat-action-list *ngIf="getOperationDtos() | async as operations" [disabled]="selectedNodeIds.length === 0">
-        <div mat-subheader>Operations</div>
-        <ng-container *ngFor="let operation of operations">
-          <button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)">
-            <mat-icon mat-list-icon>add_circle_outline</mat-icon>
-            <span mat-line>{{operation.operationName}}</span>
-            <span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
-            <a *ngIf="operation.framework === 'pandas'"
-               target="_blank"
-               [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
-          </button>
-        </ng-container>
-      </mat-action-list>
+      <ng-container *ngIf="getOperationDtos() | async as operationsGroups">
+        <mat-action-list *ngFor="let operationsGroup of operationsGroups" [disabled]="selectedNodeIds.length === 0">
+          <div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
+          <ng-container *ngFor="let operation of operationsGroup.operations">
+            <button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"
+                    [matTooltip]="operation.description">
+              <mat-icon mat-list-icon>add_circle_outline</mat-icon>
+              <span mat-line>{{operation.operationName}}</span>
+              <span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
+              <a *ngIf="operation.framework === 'pandas'"
+                 target="_blank"
+                 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+            </button>
+          </ng-container>
+        </mat-action-list>
+      </ng-container>
     </div>
 
     <!-- Other Actions -->

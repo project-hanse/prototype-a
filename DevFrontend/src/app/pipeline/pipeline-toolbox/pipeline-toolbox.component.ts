@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {OperationsService} from '../_service/operations.service';
 import {Observable, Subscription} from 'rxjs';
-import {OperationDto, OperationInputTypes} from '../_model/operation-dto';
+import {OperationDto, OperationDtoGroup, OperationInputTypes} from '../_model/operation-dto';
 import {map} from 'rxjs/operators';
 import {NodeService} from '../_service/node.service';
 import {AddNodeRequest} from '../_model/add-node-request';
@@ -27,7 +27,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
   @Output()
   public readonly onPipelineChanged: EventEmitter<PipelineVisualizationDto>;
 
-  private $operationDtosGrouped?: Observable<Array<OperationDto>>;
+  private $operationDtosGroups?: Observable<Array<OperationDtoGroup>>;
 
   private readonly subscriptions: Subscription;
 
@@ -44,12 +44,19 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  getOperationDtos(): Observable<Array<OperationDto>> {
-    if (!this.$operationDtosGrouped) {
-      this.$operationDtosGrouped = this.operationsService.getOperations()
-        .pipe(map(operations => operations.filter(operation => operation.operationInputType != OperationInputTypes.File)));
+  getOperationDtos(): Observable<Array<OperationDtoGroup>> {
+    if (!this.$operationDtosGroups) {
+      this.$operationDtosGroups = this.operationsService.getOperationsGroups()
+        .pipe(
+          map(operationGroups => {
+            for (const opGroup of operationGroups) {
+              opGroup.operations = opGroup.operations.filter(operation => operation.operationInputType !== OperationInputTypes.File);
+            }
+            return operationGroups;
+          }),
+        );
     }
-    return this.$operationDtosGrouped;
+    return this.$operationDtosGroups;
   }
 
   showInAvailable(operation: OperationDto): boolean {
