@@ -82,6 +82,28 @@ namespace PipelineService.Services.Impl
                     operationDto.Signature.Contains("other") // TODO: this should check the parameters type
                         ? OperationInputTypes.Double
                         : OperationInputTypes.Single;
+                if (operationDto.DefaultConfig == null)
+                {
+                    operationDto.DefaultConfig = new Dictionary<string, string>();
+                    var arguments = operationDto.Signature
+                        .Substring(operationDto.Signature.IndexOf('(') + 1)
+                        .Replace(")", "")
+                        .Split(", ");
+
+                    foreach (var argument in arguments)
+                    {
+                        var split = argument.Split("=");
+                        if (split.Length == 1)
+                        {
+                            operationDto.DefaultConfig.Add(split[0], "NO_DEFAULT_FOUND");
+                        }
+
+                        if (split.Length == 2)
+                        {
+                            operationDto.DefaultConfig.Add(split[0], split[1]);
+                        }
+                    }
+                }
             }
 
             return operations;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using PipelineService.Models.Enums;
 
 namespace PipelineService.Models.Dtos
@@ -19,5 +20,6 @@ namespace PipelineService.Models.Dtos
         public string Returns { get; set; }
         public string ReturnsDescription { get; set; }
         public string SourceUrl { get; set; }
+        public Dictionary<string, string> DefaultConfig { get; set; }
     }
 }

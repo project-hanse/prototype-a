@@ -114,6 +114,7 @@ namespace PipelineService.Services.Impl
             newNode.PipelineId = pipeline.Id;
             newNode.OperationId = request.Operation.OperationId;
             newNode.Operation = request.Operation.OperationName;
+            newNode.OperationConfiguration = request.Operation.DefaultConfig;
 
             pipeline = await _pipelinesDao.Update(pipeline);
 

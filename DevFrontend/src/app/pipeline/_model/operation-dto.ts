@@ -6,6 +6,7 @@ export interface OperationDto {
   description: string;
   operationInputType: OperationInputTypes;
   signature: string;
+  defaultConfig: Map<string, string>;
 }
 
 export interface OperationDtoGroup {
