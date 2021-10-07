@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
+using PipelineService.Exceptions;
 using PipelineService.Helper;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
@@ -220,12 +221,21 @@ namespace PipelineService.Services.Impl
             }
         }
 
-        private async Task<Node> FindNodeOrDefault(Guid pipelineId, Guid nodeId)
+        public async Task<Node> FindNodeOrDefault(Guid pipelineId, Guid nodeId)
         {
-            var pipeline = await _pipelinesDao.Get(pipelineId);
-            if (pipeline == null)
+            Pipeline pipeline;
+            try
             {
-                _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);
+                pipeline = await _pipelinesDao.Get(pipelineId);
+                if (pipeline == null)
+                {
+                    _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);
+                }
+            }
+            catch (NotFoundException e)
+            {
+                _logger.LogDebug("Pipeline with id {NotFoundId} not found - {ErrorMessage}", pipelineId, e.Message);
+                return null;
             }
 
             return pipeline == null ? default : FindNodeOrDefault(nodeId, pipeline.Root);
@@ -243,11 +253,20 @@ namespace PipelineService.Services.Impl
             return node;
         }
 
-        private static Node FindNodeOrDefault(Guid nodeId, IEnumerable<Node> nodes)
+        private static Node FindNodeOrDefault(Guid nodeId, IList<Node> nodes)
         {
             foreach (var node in nodes)
             {
-                return node.Id == nodeId ? node : FindNodeOrDefault(nodeId, node.Successors);
+                if (node.Id == nodeId)
+                {
+                    return node;
+                }
+
+                var n = FindNodeOrDefault(nodeId, node.Successors);
+                if (n != default)
+                {
+                    return n;
+                }
             }
 
             return default;
