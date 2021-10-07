@@ -5,6 +5,7 @@ export interface OperationDto {
   framework: string;
   description: string;
   operationInputType: OperationInputTypes;
+  signature: string;
 }
 
 export interface OperationDtoGroup {

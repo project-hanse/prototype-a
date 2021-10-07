@@ -30,6 +30,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
   private $operationDtosGroups?: Observable<Array<OperationDtoGroup>>;
 
   private readonly subscriptions: Subscription;
+  searchText?: string;
 
   constructor(private operationsService: OperationsService,
               private nodeService: NodeService) {
@@ -60,6 +61,13 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
   }
 
   showInAvailable(operation: OperationDto): boolean {
+    if (this.searchText) {
+      const searchIn = [operation.operationName, operation.operationFullName, operation.description];
+      const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
+      if (!searchInText.includes(this.searchText.replace(' ', '').toLowerCase())) {
+        return false;
+      }
+    }
     if (this.selectedNodeIds.length === 0) {
       return true;
     }

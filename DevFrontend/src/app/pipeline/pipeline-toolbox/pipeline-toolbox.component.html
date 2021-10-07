@@ -5,6 +5,15 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
+    <!-- Search Bar -->
+    <mat-form-field class="search-field" appearance="fill">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search for operations</mat-label>
+      <input matInput type="text" [(ngModel)]="searchText">
+      <button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
     <!-- Operations -->
     <div class="operations-wrapper">
       <ng-container *ngIf="getOperationDtos() | async as operationsGroups">
