@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using PipelineService.Extensions;
 using PipelineService.Models.Constants;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
@@ -79,7 +80,8 @@ namespace PipelineService.Services.Impl
                 operationDto.OperationFullName = operationDto.Title;
                 operationDto.OperationId = OperationIds.OpIdPdSingleGeneric;
                 operationDto.OperationInputType =
-                    operationDto.Signature.Contains("other") // TODO: this should check the parameters type
+                    operationDto.Signature.Contains("other") ||
+                    operationDto.Signature.Contains("right") // TODO: this should check the parameters type
                         ? OperationInputTypes.Double
                         : OperationInputTypes.Single;
                 if (operationDto.DefaultConfig == null)
@@ -87,7 +89,7 @@ namespace PipelineService.Services.Impl
                     operationDto.DefaultConfig = new Dictionary<string, string>();
                     var arguments = operationDto.Signature
                         .Substring(operationDto.Signature.IndexOf('(') + 1)
-                        .Replace(")", "")
+                        .ReplaceLastOccurenceOf(")", "")
                         .Split(", ");
 
                     foreach (var argument in arguments)
@@ -95,12 +97,12 @@ namespace PipelineService.Services.Impl
                         var split = argument.Split("=");
                         if (split.Length == 1)
                         {
-                            operationDto.DefaultConfig.Add(split[0], "NO_DEFAULT_FOUND");
+                            operationDto.DefaultConfig.Add(argument, "");
                         }
 
                         if (split.Length == 2)
                         {
-                            operationDto.DefaultConfig.Add(split[0], split[1]);
+                            operationDto.DefaultConfig.Add(split[0], split[1].Replace("'", ""));
                         }
                     }
                 }
@@ -139,6 +141,11 @@ namespace PipelineService.Services.Impl
                 };
 
                 operation.OperationName = string.Join("_", split, 2, split.Length - 2).ToLower();
+
+                operation.DefaultConfig = new Dictionary<string, string>();
+                operation.Returns = "DataFrame";
+                operation.Title = operation.OperationFullName;
+                operation.SectionTitle = "Custom Operations";
 
                 fromIds.Add(operation);
             }

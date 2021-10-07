@@ -62,7 +62,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
   showInAvailable(operation: OperationDto): boolean {
     if (this.searchText) {
-      const searchIn = [operation.operationName, operation.operationFullName, operation.description];
+      const searchIn = [operation.operationName, operation.operationFullName, operation.description, operation.sectionTitle];
       const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
       if (!searchInText.includes(this.searchText.replace(' ', '').toLowerCase())) {
         return false;
