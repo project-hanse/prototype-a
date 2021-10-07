@@ -36,7 +36,11 @@ export class NodeService extends BaseHttpService {
     return this.httpClient.get('http://localhost:5002/api/datasets/hash/describe/html/' + hash, {responseType: 'text'});
   }
 
-  public getConfig(pipelineId: string, nodeId: string): Observable<any> {
-    return this.httpClient.get(this.getUrl(pipelineId, nodeId, 'config'));
+  public getConfig(pipelineId: string, nodeId: string): Observable<Map<string, string>> {
+    return this.httpClient.get<Map<string, string>>(this.getUrl(pipelineId, nodeId, 'config'));
+  }
+
+  public updateConfig(pipelineId: string, nodeId: string, config: Map<string, string>): Observable<any> {
+    return this.httpClient.post(this.getUrl(pipelineId, nodeId, 'config'), config);
   }
 }
