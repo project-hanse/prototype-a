@@ -25,7 +25,7 @@
     "keycharm": "^0.4.0",
     "ngx-mqtt": "^9.0.5",
     "node-polyfill-webpack-plugin": "^1.1.4",
-    "rxjs": "~6.6.7",
+    "rxjs": "~7.4.0",
     "tslib": "^2.3.1",
     "vis-data": "^7.1.2",
     "vis-network": "^9.1.0",
