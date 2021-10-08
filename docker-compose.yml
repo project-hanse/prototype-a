@@ -27,7 +27,7 @@ services:
     depends_on:
       - message-broker
 
-  # Node Worker 1
+  # Node Worker
   node-worker:
     build:
       context: ./NodeWorker
@@ -39,6 +39,9 @@ services:
     depends_on:
       - message-broker
       - localstack-s3
+    deploy:
+      mode: replicated
+      replicas: 2
 
   # Dataset Store
   dataset-service:
