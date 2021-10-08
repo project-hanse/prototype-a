@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Protocol;
 using Newtonsoft.Json;
 using PipelineService.Models.MqttMessages;
 
@@ -45,8 +46,7 @@ namespace PipelineService.Services.Impl
             var mqttMessage = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(JsonConvert.SerializeObject(payload))
-                .WithQualityOfServiceLevel(0)
-                .WithRetainFlag()
+                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
                 .Build();
 
             await Client.PublishAsync(mqttMessage);
@@ -60,7 +60,7 @@ namespace PipelineService.Services.Impl
 
             var topicFilter = new MqttTopicFilterBuilder()
                 .WithTopic(topic)
-                .WithQualityOfServiceLevel(0)
+                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
                 .Build();
 
             await Client.SubscribeAsync(topicFilter);
