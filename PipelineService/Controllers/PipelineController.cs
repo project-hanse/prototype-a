@@ -11,16 +11,16 @@ namespace PipelineService.Controllers
     {
         private readonly ILogger<PipelineController> _logger;
         private readonly IPipelineExecutionService _pipelineExecutionService;
-        private readonly IPipelineDtoService _pipelineDtoService;
+        private readonly IPipelinesDtoService _pipelinesDtoService;
 
         public PipelineController(
             ILogger<PipelineController> logger,
             IPipelineExecutionService pipelineExecutionService,
-            IPipelineDtoService pipelineDtoService)
+            IPipelinesDtoService pipelinesDtoService)
         {
             _logger = logger;
             _pipelineExecutionService = pipelineExecutionService;
-            _pipelineDtoService = pipelineDtoService;
+            _pipelinesDtoService = pipelinesDtoService;
         }
 
         [HttpGet("create/defaults")]
@@ -76,7 +76,7 @@ namespace PipelineService.Controllers
         [HttpGet("tuples/single")]
         public async Task<IActionResult> GetTuplesSingleInput()
         {
-            var tuples = (await _pipelineDtoService.GetSingleInputNodeTuples())
+            var tuples = (await _pipelinesDtoService.GetSingleInputNodeTuples())
                 .OrderBy(t => t.Description)
                 .ToList();
             return Ok(tuples);
@@ -85,7 +85,7 @@ namespace PipelineService.Controllers
         [HttpGet("tuples/single/{pipelineId:Guid}")]
         public async Task<IActionResult> GetTuplesSingleInput(Guid pipelineId)
         {
-            var tuples = (await _pipelineDtoService.GetSingleInputNodeTuples(pipelineId))
+            var tuples = (await _pipelinesDtoService.GetSingleInputNodeTuples(pipelineId))
                 .OrderBy(t => t.Description)
                 .ToList();
             return Ok(tuples);
@@ -94,7 +94,7 @@ namespace PipelineService.Controllers
         [HttpGet("tuples/double")]
         public async Task<IActionResult> GetTuplesDoubleInput()
         {
-            return Ok(await _pipelineDtoService.GetDoubleInputNodeTuples());
+            return Ok(await _pipelinesDtoService.GetDoubleInputNodeTuples());
         }
     }
 }

@@ -11,13 +11,13 @@ namespace PipelineService.UnitTests.Services
     [TestFixture]
     public class PipelineExecutionDaoUnitTests
     {
-        private IPipelineExecutionDao _pipelineExecutionDao;
+        private IPipelinesExecutionDao _pipelinesExecutionDao;
 
         [SetUp]
         public void SetUp()
         {
-            _pipelineExecutionDao =
-                new InMemoryPipelineExecutionDao(GeneralHelper.CreateLogger<InMemoryPipelineExecutionDao>());
+            _pipelinesExecutionDao =
+                new InMemoryPipelinesExecutionDao(GeneralHelper.CreateLogger<InMemoryPipelinesExecutionDao>());
         }
 
         [Test]
@@ -27,7 +27,7 @@ namespace PipelineService.UnitTests.Services
             var pipeline = ModelHelper.NewDefaultPipeline();
 
             // act
-            var result = await _pipelineExecutionDao.Create(pipeline);
+            var result = await _pipelinesExecutionDao.Create(pipeline);
 
             // assert
             Assert.NotNull(result);
@@ -40,7 +40,7 @@ namespace PipelineService.UnitTests.Services
         [Test]
         public void GetById_NoExecutionExists_ShouldThrow()
         {
-            Assert.ThrowsAsync<NotFoundException>(async () => await _pipelineExecutionDao.Get(Guid.NewGuid()));
+            Assert.ThrowsAsync<NotFoundException>(async () => await _pipelinesExecutionDao.Get(Guid.NewGuid()));
         }
 
         [Test]
@@ -48,10 +48,10 @@ namespace PipelineService.UnitTests.Services
         {
             // arrange
             var pipeline = ModelHelper.NewDefaultPipeline();
-            var executionRecord = await _pipelineExecutionDao.Create(pipeline);
+            var executionRecord = await _pipelinesExecutionDao.Create(pipeline);
 
             // act
-            var result = await _pipelineExecutionDao.Get(executionRecord.Id);
+            var result = await _pipelinesExecutionDao.Get(executionRecord.Id);
 
             // assert
             Assert.NotNull(result);

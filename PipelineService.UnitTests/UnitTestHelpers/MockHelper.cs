@@ -6,9 +6,9 @@ namespace PipelineService.UnitTests.UnitTestHelpers
 {
     public static class MockHelper
     {
-        public static IPipelineDao PipelineServiceMock()
+        public static IPipelinesDao PipelineServiceMock()
         {
-            var mock = new Mock<IPipelineDao>();
+            var mock = new Mock<IPipelinesDao>();
 
             return mock.Object;
         }

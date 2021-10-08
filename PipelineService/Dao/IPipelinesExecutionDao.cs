@@ -6,7 +6,7 @@ using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Dao
 {
-    public interface IPipelineExecutionDao
+    public interface IPipelinesExecutionDao
     {
         /// <summary>
         /// Creates a new <code>PipelineExecutionRecord</code> for a given pipeline.

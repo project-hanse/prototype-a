@@ -17,6 +17,7 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
 
   private $pipeline: Observable<PipelineInfoDto>;
   private $rootInputDatasets: Observable<string[]>;
+  lastSelectedNodeIds?: Array<string>;
 
   constructor(private route: ActivatedRoute, private pipelineService: PipelineService, private nodeService: NodeService) {
     this.subscriptions = new Subscription();

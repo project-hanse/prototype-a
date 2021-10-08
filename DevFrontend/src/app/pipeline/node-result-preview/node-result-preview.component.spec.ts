@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PipelineNodeViewComponent } from './pipeline-node-view.component';
+import { NodeResultPreviewComponent } from './node-result-preview.component';
 
-describe('PipelineNodeViewComponent', () => {
-  let component: PipelineNodeViewComponent;
-  let fixture: ComponentFixture<PipelineNodeViewComponent>;
+describe('NodeResultPreviewComponent', () => {
+  let component: NodeResultPreviewComponent;
+  let fixture: ComponentFixture<NodeResultPreviewComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PipelineNodeViewComponent ]
+      declarations: [ NodeResultPreviewComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PipelineNodeViewComponent);
+    fixture = TestBed.createComponent(NodeResultPreviewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

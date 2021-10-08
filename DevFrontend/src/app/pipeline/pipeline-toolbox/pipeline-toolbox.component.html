@@ -1,0 +1,57 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title *ngIf="subtitle">
+      {{subtitle}}
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <!-- Search Bar -->
+    <mat-form-field class="search-field" appearance="fill">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search for operations</mat-label>
+      <input matInput type="text" [(ngModel)]="searchText" autocomplete="off">
+      <button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+    <!-- Operations -->
+    <div class="operations-wrapper">
+      <ng-container *ngIf="getOperationDtos() | async as operationsGroups">
+        <mat-action-list *ngFor="let operationsGroup of operationsGroups" [disabled]="selectedNodeIds.length === 0">
+          <div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
+          <ng-container *ngFor="let operation of operationsGroup.operations">
+            <button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"
+                    [matTooltip]="operation.description">
+              <mat-icon mat-list-icon>add_circle_outline</mat-icon>
+              <span mat-line>{{operation.operationName}}</span>
+              <span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
+              <a *ngIf="operation.framework === 'pandas'"
+                 target="_blank"
+                 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+            </button>
+          </ng-container>
+        </mat-action-list>
+      </ng-container>
+    </div>
+
+    <!-- Other Actions -->
+    <mat-toolbar>
+      <mat-toolbar-row>
+        <button mat-stroked-button color="warn"
+                [disabled]="selectedNodeIds.length === 0"
+                (click)="onRemoveNodes()">
+          <mat-icon>
+            remove_circle_outline
+          </mat-icon>
+          <span>
+            Remove
+          </span>
+        </button>
+      </mat-toolbar-row>
+    </mat-toolbar>
+  </mat-card-content>
+  <mat-card-footer>
+    <p><b>Select a node</b> to add a new operation.</p>
+    <p>Use <i>cmd + click</i> to select multiple nodes.</p>
+  </mat-card-footer>
+</mat-card>

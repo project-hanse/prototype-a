@@ -5,7 +5,7 @@ using PipelineService.Models.Dtos;
 
 namespace PipelineService.Services
 {
-    public interface IPipelineDtoService
+    public interface IPipelinesDtoService
     {
         public Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples();
         public Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples(Guid pipelineId);

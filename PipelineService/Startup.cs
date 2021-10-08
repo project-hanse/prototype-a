@@ -49,14 +49,15 @@ namespace PipelineService
             services.AddSingleton<EdgeEventBusService>();
 
             // Registering DAOs
-            services.AddSingleton<IPipelineExecutionDao, InMemoryPipelineExecutionDao>();
-            services.AddSingleton<IPipelineDao, InMemoryPipelineDao>();
+            services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
+            services.AddSingleton<IPipelinesDao, InMemoryPipelinesDao>();
 
             // Registering transient services
             services.AddTransient<IHashService, HashService>();
-            services.AddTransient<IPipelineExecutionService, PipelineExecutionService>();
-            services.AddTransient<INodeService, NodeService>();
-            services.AddTransient<IPipelineDtoService, PipelineDtoService>();
+            services.AddTransient<IPipelineExecutionService, PipelinesExecutionService>();
+            services.AddTransient<INodesService, NodesService>();
+            services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
+            services.AddTransient<IOperationsService, OperationsService>();
 
             services.AddHostedService<HostedSubscriptionService>();
 

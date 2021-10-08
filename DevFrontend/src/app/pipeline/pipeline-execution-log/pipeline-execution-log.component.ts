@@ -1,7 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {MqttService} from 'ngx-mqtt';
 import {Observable} from 'rxjs';
-import {groupBy, map, scan, take} from 'rxjs/operators';
+import {map, scan} from 'rxjs/operators';
 import {FrontendExecutionNotification} from '../_model/frontend-execution-notification';
 
 @Component({

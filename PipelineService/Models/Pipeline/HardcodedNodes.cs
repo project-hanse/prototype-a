@@ -14,7 +14,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv,
+                OperationId = OpIdPdFileReadCsv,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "header", "0" },
