@@ -1,17 +1,38 @@
 <ng-container *ngIf="getId() | async as id">
-  <ng-container *ngIf="getPipeline(id) | async as pipeline">
+  <div *ngIf="getPipeline(id) | async as pipeline; else notFound" class="grid-container">
 
     <mat-toolbar>
-      <a mat-button routerLink="../">Back</a>
-      <button mat-raised-button (click)="executePipeline(id)">Execute</button>
+      <button mat-raised-button (click)="executePipeline(id)" color="accent">
+        <mat-icon>play_arrow</mat-icon>
+        <span>Execute Pipeline</span>
+      </button>
     </mat-toolbar>
 
-    <div class="component-wrapper">
-      <h2>{{pipeline.name}}</h2>
-      <ph-pipeline-node-view [pipelineId]="pipeline.id"></ph-pipeline-node-view>
-      <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
+    <ph-pipeline-node-view [pipelineId]="pipeline.id"
+                           (onSelectedNodeIdsChange)="toolbox.selectedNodeIds = $event; nodeResultPreview.nodeIds = $event; nodeConfigEditor.nodeIds = $event"
+                           #pipelineNodeView></ph-pipeline-node-view>
 
-    </div>
-  </ng-container>
+    <ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
+
+    <ph-pipeline-toolbox [pipelineId]="pipeline.id"
+                         [subtitle]="pipeline.name"
+                         (onPipelineChanged)="pipelineNodeView.displayPipeline($event);"
+                         #toolbox></ph-pipeline-toolbox>
+
+    <ph-node-config-editor [pipelineId]="pipeline.id"
+                           #nodeConfigEditor></ph-node-config-editor>
+
+    <ph-node-result-preview [pipelineId]="pipeline.id"
+                            #nodeResultPreview></ph-node-result-preview>
+  </div>
 
 </ng-container>
+
+<ng-template #notFound>
+  <mat-card style="margin: 1em">
+    <p>This pipeline does not exist</p>
+    <p>
+      <a routerLink="/pipeline">Go Back</a>
+    </p>
+  </mat-card>
+</ng-template>

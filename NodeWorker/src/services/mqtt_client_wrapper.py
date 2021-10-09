@@ -79,7 +79,7 @@ class MqttClientWrapper:
 
         self.logging.debug("Publishing to topic %s with payload %s" % (topic, payload_serialized))
 
-        client.publish(topic, payload=payload_serialized, qos=0)
+        client.publish(topic, payload=payload_serialized, qos=2)
 
     def publish_error_message(self, message: str):
         self.logging.debug("Publishing error '%s' to event bus" % message)

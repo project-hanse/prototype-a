@@ -37,24 +37,24 @@ namespace PipelineService.UnitTests.Services
             }
         };
 
-        private IPipelineDao _pipelineDao;
-        private IPipelineExecutionDao _pipelineExecutionDao;
-        private IPipelineDtoService _pipelineDtoService;
+        private IPipelinesDao _pipelinesDao;
+        private IPipelinesExecutionDao _pipelinesExecutionDao;
+        private IPipelinesDtoService _pipelinesDtoService;
 
         [SetUp]
         public void SetUp()
         {
-            var mock = new Mock<IPipelineExecutionDao>();
+            var mock = new Mock<IPipelinesExecutionDao>();
             mock.Setup(dao => dao.GetLastExecutionForPipeline(It.IsAny<Guid>()))
                 .ReturnsAsync((Guid pipelineId) => new PipelineExecutionRecord
                 {
                     PipelineId = pipelineId,
                     CompletedOn = DateTime.UtcNow
                 });
-            _pipelineExecutionDao = mock.Object;
+            _pipelinesExecutionDao = mock.Object;
 
-            _pipelineDao = new InMemoryPipelineDao(GeneralHelper.CreateLogger<InMemoryPipelineDao>());
-            _pipelineDtoService = new PipelineDtoService(_pipelineDao, _pipelineExecutionDao);
+            _pipelinesDao = new InMemoryPipelinesDao(GeneralHelper.CreateLogger<InMemoryPipelinesDao>());
+            _pipelinesDtoService = new PipelinesDtoService(_pipelinesDao, _pipelinesExecutionDao);
         }
 
         [Test]
@@ -62,10 +62,10 @@ namespace PipelineService.UnitTests.Services
         public async Task GetSingleInputNodeTuples_ExecutedPipeline(NodeTupleTestCase testCase)
         {
             // arrange
-            await _pipelineDao.Add(testCase.Pipeline);
+            await _pipelinesDao.Add(testCase.Pipeline);
 
             // act
-            var results = await _pipelineDtoService.GetSingleInputNodeTuples(testCase.Pipeline.Id);
+            var results = await _pipelinesDtoService.GetSingleInputNodeTuples(testCase.Pipeline.Id);
 
             // assert
             Assert.NotNull(results);

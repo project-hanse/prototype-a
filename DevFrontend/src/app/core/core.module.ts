@@ -8,6 +8,8 @@ import {MatListModule} from '@angular/material/list';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatInputModule} from '@angular/material/input';
+import {FormsModule} from '@angular/forms';
 
 
 @NgModule({
@@ -21,7 +23,9 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     MatListModule,
     MatProgressBarModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatInputModule,
+    FormsModule
   ],
   exports: [
     MatDividerModule,
@@ -31,7 +35,9 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     MatListModule,
     MatProgressBarModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatInputModule,
+    FormsModule
   ]
 })
 export class CoreModule {

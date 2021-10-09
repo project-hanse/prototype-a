@@ -13,41 +13,41 @@ using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Services.Impl
 {
-    public class PipelineExecutionService : IPipelineExecutionService
+    public class PipelinesExecutionService : IPipelineExecutionService
     {
-        private readonly ILogger<PipelineExecutionService> _logger;
-        private readonly IPipelineDao _pipelineDao;
-        private readonly IPipelineExecutionDao _pipelineExecutionDao;
+        private readonly ILogger<PipelinesExecutionService> _logger;
+        private readonly IPipelinesDao _pipelinesDao;
+        private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
         private readonly EventBusService _eventBusService;
         private readonly EdgeEventBusService _edgeEventBusService;
 
-        public PipelineExecutionService(
-            ILogger<PipelineExecutionService> logger,
-            IPipelineDao pipelineDao,
-            IPipelineExecutionDao pipelineExecutionDao,
+        public PipelinesExecutionService(
+            ILogger<PipelinesExecutionService> logger,
+            IPipelinesDao pipelinesDao,
+            IPipelinesExecutionDao pipelinesExecutionDao,
             EventBusService eventBusService,
             EdgeEventBusService edgeEventBusService)
         {
             _logger = logger;
-            _pipelineDao = pipelineDao;
-            _pipelineExecutionDao = pipelineExecutionDao;
+            _pipelinesDao = pipelinesDao;
+            _pipelinesExecutionDao = pipelinesExecutionDao;
             _eventBusService = eventBusService;
             _edgeEventBusService = edgeEventBusService;
         }
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
         {
-            return await _pipelineDao.CreateDefaults();
+            return await _pipelinesDao.CreateDefaults();
         }
 
         public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
         {
-            return await _pipelineDao.GetInfoDto(id);
+            return await _pipelinesDao.GetInfoDto(id);
         }
 
         public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
         {
-            var pipeline = await _pipelineDao.Get(pipelineId);
+            var pipeline = await _pipelinesDao.Get(pipelineId);
             if (pipeline == null)
             {
                 _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
@@ -90,20 +90,20 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
         {
-            return await _pipelineDao.GetDtos();
+            return await _pipelinesDao.GetDtos();
         }
 
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
         {
             _logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
-            var pipeline = await _pipelineDao.Get(pipelineId);
+            var pipeline = await _pipelinesDao.Get(pipelineId);
 
             if (pipeline == null)
             {
                 throw new NotFoundException("No pipeline with provided id found");
             }
 
-            var execution = await _pipelineExecutionDao.Create(pipeline);
+            var execution = await _pipelinesExecutionDao.Create(pipeline);
 
             await EnqueueNextNodes(execution, pipeline);
 
@@ -133,8 +133,8 @@ namespace PipelineService.Services.Impl
             }
             else
             {
-                var execution = await _pipelineExecutionDao.Get(response.ExecutionId);
-                var pipeline = await _pipelineDao.Get(response.PipelineId);
+                var execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
+                var pipeline = await _pipelinesDao.Get(response.PipelineId);
 
                 await EnqueueNextNodes(execution, pipeline);
             }
@@ -145,7 +145,7 @@ namespace PipelineService.Services.Impl
         // TODO this method should be independent of response type -> no switch for types
         private async Task NotifyFrontend(NodeExecutionResponse response)
         {
-            var executionRecord = await _pipelineExecutionDao.Get(response.ExecutionId);
+            var executionRecord = await _pipelinesExecutionDao.Get(response.ExecutionId);
             var blockExecutionRecord = executionRecord.Executed.FirstOrDefault(b => b.NodeId == response.NodeId);
             if (blockExecutionRecord == null)
             {
@@ -213,7 +213,7 @@ namespace PipelineService.Services.Impl
             PipelineExecutionRecord executionRecord;
             try
             {
-                executionRecord = await _pipelineExecutionDao.Get(executionId);
+                executionRecord = await _pipelinesExecutionDao.Get(executionId);
             }
             catch (NotFoundException e)
             {
@@ -307,7 +307,7 @@ namespace PipelineService.Services.Impl
             PipelineExecutionRecord execution;
             try
             {
-                execution = await _pipelineExecutionDao.Get(executionId);
+                execution = await _pipelinesExecutionDao.Get(executionId);
             }
             catch (NotFoundException e)
             {
@@ -332,7 +332,7 @@ namespace PipelineService.Services.Impl
 
             CheckIfCompleted(execution);
 
-            await _pipelineExecutionDao.Update(execution);
+            await _pipelinesExecutionDao.Update(execution);
 
             return execution.InExecution.Count > 0;
         }
@@ -342,7 +342,7 @@ namespace PipelineService.Services.Impl
             PipelineExecutionRecord execution;
             try
             {
-                execution = await _pipelineExecutionDao.Get(responseExecutionId);
+                execution = await _pipelinesExecutionDao.Get(responseExecutionId);
             }
             catch (NotFoundException e)
             {
@@ -380,7 +380,7 @@ namespace PipelineService.Services.Impl
 
             CheckIfCompleted(execution);
 
-            await _pipelineExecutionDao.Update(execution);
+            await _pipelinesExecutionDao.Update(execution);
         }
 
         // TODO: could be done in an extension methode

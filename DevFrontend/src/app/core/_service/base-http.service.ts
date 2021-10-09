@@ -11,7 +11,11 @@ export class BaseHttpService {
   constructor(private basePath: string, private http: HttpClient) {
   }
 
-  public get<T>(path: string = ''): Observable<T> {
-    return this.http.get<T>(environment.apiUrl + '/' + this.basePath + (path !== '' ? ('/' + path) : ''));
+  protected getUrl(...endpoint: string[]): string {
+    return `${environment.apiUrl}/${this.basePath}/${endpoint.join('/')}`;
+  }
+
+  public get<T>(...endpoint: string[]): Observable<T> {
+    return this.http.get<T>(this.getUrl(...endpoint));
   }
 }

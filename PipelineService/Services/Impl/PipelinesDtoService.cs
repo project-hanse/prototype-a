@@ -8,21 +8,21 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
 {
-    public class PipelineDtoService : IPipelineDtoService
+    public class PipelinesDtoService : IPipelinesDtoService
     {
-        private readonly IPipelineDao _pipelineDao;
-        private readonly IPipelineExecutionDao _pipelineExecutionDao;
+        private readonly IPipelinesDao _pipelinesDao;
+        private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
 
-        public PipelineDtoService(IPipelineDao pipelineDao, IPipelineExecutionDao pipelineExecutionDao)
+        public PipelinesDtoService(IPipelinesDao pipelinesDao, IPipelinesExecutionDao pipelinesExecutionDao)
         {
-            _pipelineDao = pipelineDao;
-            _pipelineExecutionDao = pipelineExecutionDao;
+            _pipelinesDao = pipelinesDao;
+            _pipelinesExecutionDao = pipelinesExecutionDao;
         }
 
         public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples()
         {
             var tuples = new List<NodeTupleSingleInput>();
-            var pipelines = await _pipelineDao.GetDtos();
+            var pipelines = await _pipelinesDao.GetDtos();
             foreach (var pipelineInfoDto in pipelines)
             {
                 tuples.AddRange(await GetSingleInputNodeTuples(pipelineInfoDto.Id));
@@ -33,13 +33,13 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples(Guid pipelineId)
         {
-            var lastExecution = await _pipelineExecutionDao.GetLastExecutionForPipeline(pipelineId);
+            var lastExecution = await _pipelinesExecutionDao.GetLastExecutionForPipeline(pipelineId);
             if (lastExecution?.CompletedOn == null || lastExecution.Failed.Count > 0)
             {
                 return new List<NodeTupleSingleInput>();
             }
 
-            var pipeline = await _pipelineDao.Get(pipelineId);
+            var pipeline = await _pipelinesDao.Get(pipelineId);
             var tuples = new List<NodeTupleSingleInput>();
             BuildSingleInputTuples(pipeline.Root, tuples);
             return tuples.Distinct().ToList();
@@ -72,12 +72,12 @@ namespace PipelineService.Services.Impl
             }
         }
 
-        public async Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples()
+        public Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples()
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples(Guid pipelineId)
+        public Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples(Guid pipelineId)
         {
             throw new NotImplementedException();
         }

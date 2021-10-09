@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PipelineService.Extensions;
+using PipelineService.Helper;
 using static PipelineService.Models.Constants.DatasetIds;
 using static PipelineService.Models.Constants.OperationIds;
 
@@ -24,7 +25,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv,
+                OperationId = OpIdPdFileReadCsv,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "header", "0" }
@@ -62,9 +63,9 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleGeneric,
             };
 
-            Successor(import, cleanUp);
-            Successor(cleanUp, select);
-            Successor(select, describe);
+            PipelineConstructionHelpers.Successor(import, cleanUp);
+            PipelineConstructionHelpers.Successor(cleanUp, select);
+            PipelineConstructionHelpers.Successor(select, describe);
 
             return new Pipeline
             {
@@ -90,7 +91,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv,
+                OperationId = OpIdPdFileReadCsv,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "header", "0" }
@@ -129,9 +130,9 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleGeneric,
             };
 
-            Successor(import, interpolate);
-            Successor(interpolate, select);
-            Successor(select, describe);
+            PipelineConstructionHelpers.Successor(import, interpolate);
+            PipelineConstructionHelpers.Successor(interpolate, select);
+            PipelineConstructionHelpers.Successor(select, describe);
 
             return new Pipeline
             {
@@ -184,7 +185,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv
+                OperationId = OpIdPdFileReadCsv
             };
 
             // Data cleaning Berufsbildung
@@ -199,7 +200,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            Successor(import1Berufsbildung, trim1Berufsbildung);
+            PipelineConstructionHelpers.Successor(import1Berufsbildung, trim1Berufsbildung);
 
             var resetIndexBerufsbildung = new NodeSingleInput
             {
@@ -208,7 +209,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleResetIndex
             };
 
-            Successor(trim1Berufsbildung, resetIndexBerufsbildung);
+            PipelineConstructionHelpers.Successor(trim1Berufsbildung, resetIndexBerufsbildung);
 
             var setHeaderBerufsbildung = new NodeSingleInput
             {
@@ -221,7 +222,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(resetIndexBerufsbildung, setHeaderBerufsbildung);
+            PipelineConstructionHelpers.Successor(resetIndexBerufsbildung, setHeaderBerufsbildung);
 
             var dropNaBerufsbildung = new NodeSingleInput
             {
@@ -270,7 +271,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_csv",
-                OperationId = OpIdPdFileInputReadCsv
+                OperationId = OpIdPdFileReadCsv
             };
             // Data Cleaning Studenten
             var trim1Studenten = new NodeSingleInput
@@ -284,7 +285,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            Successor(import1Studenten, trim1Studenten);
+            PipelineConstructionHelpers.Successor(import1Studenten, trim1Studenten);
 
             var resetIndexStudenten = new NodeSingleInput
             {
@@ -292,7 +293,7 @@ namespace PipelineService.Models.Pipeline
                 Operation = "reset_index",
                 OperationId = OpIdPdSingleResetIndex
             };
-            Successor(trim1Studenten, resetIndexStudenten);
+            PipelineConstructionHelpers.Successor(trim1Studenten, resetIndexStudenten);
 
             var setHeaderStudenten = new NodeSingleInput
             {
@@ -305,7 +306,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(resetIndexStudenten, setHeaderStudenten);
+            PipelineConstructionHelpers.Successor(resetIndexStudenten, setHeaderStudenten);
 
             var dropNaStudenten = new NodeSingleInput
             {
@@ -399,7 +400,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_excel",
-                OperationId = OpIdPdFileInputReadExcel,
+                OperationId = OpIdPdFileReadExcel,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "skiprows", "1" }
@@ -418,7 +419,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(import, renameLabels);
+            PipelineConstructionHelpers.Successor(import, renameLabels);
 
             var setIndex = new NodeSingleInput
             {
@@ -431,7 +432,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(renameLabels, setIndex);
+            PipelineConstructionHelpers.Successor(renameLabels, setIndex);
 
             var mean = new NodeSingleInput
             {
@@ -444,7 +445,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(setIndex, mean);
+            PipelineConstructionHelpers.Successor(setIndex, mean);
 
             return new Pipeline
             {
@@ -500,10 +501,10 @@ namespace PipelineService.Models.Pipeline
                     OperationDescription = $"set_date_index_{year}",
                     OperationId = OpIdPdSingleSetDateIndex
                 };
-                Successor(import, transpose);
-                Successor(transpose, trim);
-                Successor(trim, setHeader);
-                Successor(setHeader, setDateIndex);
+                PipelineConstructionHelpers.Successor(import, transpose);
+                PipelineConstructionHelpers.Successor(transpose, trim);
+                PipelineConstructionHelpers.Successor(trim, setHeader);
+                PipelineConstructionHelpers.Successor(setHeader, setDateIndex);
                 pipeline.Root.Add(import);
                 nodesToJoin.Enqueue(setDateIndex);
             }
@@ -522,7 +523,7 @@ namespace PipelineService.Models.Pipeline
                     OperationDescription = $"concat_{nodeOne.Operation.LastChars(4)}_{nodeTwo.Operation.LastChars(4)}",
                     OperationId = OpIdPdDoubleConcat
                 };
-                Successor(nodeOne, nodeTwo, concat);
+                PipelineConstructionHelpers.Successor(nodeOne, nodeTwo, concat);
 
                 nodesToJoin.Enqueue(concat);
             }
@@ -534,7 +535,7 @@ namespace PipelineService.Models.Pipeline
                 OperationId = OpIdPdSingleSortIndex
             };
 
-            Successor(nodesToJoin.Dequeue(), sortIndex);
+            PipelineConstructionHelpers.Successor(nodesToJoin.Dequeue(), sortIndex);
 
             var replaceStrings = new NodeSingleInput
             {
@@ -548,7 +549,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(sortIndex, replaceStrings);
+            PipelineConstructionHelpers.Successor(sortIndex, replaceStrings);
 
             var toNumeric = new NodeSingleInput
             {
@@ -561,7 +562,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(replaceStrings, toNumeric);
+            PipelineConstructionHelpers.Successor(replaceStrings, toNumeric);
 
             var interpolate = new NodeSingleInput
             {
@@ -575,7 +576,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(toNumeric, interpolate);
+            PipelineConstructionHelpers.Successor(toNumeric, interpolate);
 
             var resample = new NodeSingleInput
             {
@@ -589,7 +590,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(interpolate, resample);
+            PipelineConstructionHelpers.Successor(interpolate, resample);
 
             var trimFirstYears = new NodeSingleInput
             {
@@ -602,7 +603,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            Successor(resample, trimFirstYears);
+            PipelineConstructionHelpers.Successor(resample, trimFirstYears);
 
             var dropEmptyColumns = new NodeSingleInput
             {
@@ -615,7 +616,7 @@ namespace PipelineService.Models.Pipeline
                 },
             };
 
-            Successor(trimFirstYears, dropEmptyColumns);
+            PipelineConstructionHelpers.Successor(trimFirstYears, dropEmptyColumns);
 
             // Simulated Vine Yield
             var importVine = new NodeFileInput
@@ -624,7 +625,7 @@ namespace PipelineService.Models.Pipeline
                 InputObjectBucket = "defaultfiles",
                 PipelineId = pipelineId,
                 Operation = "read_excel",
-                OperationId = OpIdPdFileInputReadExcel,
+                OperationId = OpIdPdFileReadExcel,
                 OperationConfiguration = new Dictionary<string, string>
                 {
                     { "skiprows", "1" }
@@ -643,7 +644,7 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(importVine, renameLabels);
+            PipelineConstructionHelpers.Successor(importVine, renameLabels);
 
             var setIndex = new NodeSingleInput
             {
@@ -656,44 +657,18 @@ namespace PipelineService.Models.Pipeline
                 }
             };
 
-            Successor(renameLabels, setIndex);
+            PipelineConstructionHelpers.Successor(renameLabels, setIndex);
 
             var predict = new NodeDoubleInput
             {
                 PipelineId = pipelineId,
                 Operation = "predict_yield",
-                OperationId = OpIdSkLearnDoubleMlpRegr
+                OperationId = OpIdSklearnDoubleMlpRegr
             };
 
-            Successor(dropEmptyColumns, setIndex, predict);
+            PipelineConstructionHelpers.Successor(dropEmptyColumns, setIndex, predict);
             pipeline.Root.Add(importVine);
             return pipeline;
-        }
-
-        /// <summary>
-        /// Makes <code>successor</code> the successor of <code>node</code>. 
-        /// </summary>
-        private static void Successor(Node node, NodeSingleInput successor)
-        {
-            node.Successors.Add(successor);
-            successor.InputDatasetHash = node.ResultKey;
-        }
-
-        /// <summary>
-        /// Makes <code>successor</code> the successor of <code>node</code>. 
-        /// </summary>
-        private static void Successor(NodeFileInput node, NodeSingleInput successor)
-        {
-            node.Successors.Add(successor);
-            successor.InputDatasetHash = node.ResultKey;
-        }
-
-        private static void Successor(Node node1, Node node2, NodeDoubleInput successor)
-        {
-            node1.Successors.Add(successor);
-            node2.Successors.Add(successor);
-            successor.InputDatasetOneHash = node1.ResultKey;
-            successor.InputDatasetTwoHash = node2.ResultKey;
         }
     }
 }

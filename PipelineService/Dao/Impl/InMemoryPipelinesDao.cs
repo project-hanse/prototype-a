@@ -10,12 +10,12 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao.Impl
 {
-    public class InMemoryPipelineDao : IPipelineDao
+    public class InMemoryPipelinesDao : IPipelinesDao
     {
-        private readonly ILogger<InMemoryPipelineDao> _logger;
+        private readonly ILogger<InMemoryPipelinesDao> _logger;
         private static readonly IDictionary<Guid, Pipeline> Store = new ConcurrentDictionary<Guid, Pipeline>();
 
-        public InMemoryPipelineDao(ILogger<InMemoryPipelineDao> logger)
+        public InMemoryPipelinesDao(ILogger<InMemoryPipelinesDao> logger)
         {
             _logger = logger;
         }
@@ -117,6 +117,26 @@ namespace PipelineService.Dao.Impl
                 .OrderByDescending(p => p.CreatedOn)
                 .Select(MapToDto)
                 .ToList();
+        }
+
+        public Task<Pipeline> Update(Pipeline pipeline)
+        {
+            _logger.LogDebug("Updating pipeline {PipelineId}", pipeline.Id);
+            pipeline.ChangedOn = DateTime.UtcNow;
+
+            if (!Store.ContainsKey(pipeline.Id))
+            {
+                _logger.LogWarning(
+                    "Pipeline {PipelineId} does not exist in store, but update was called - storing it anyways",
+                    pipeline.Id);
+            }
+            else
+            {
+                Store.Remove(pipeline.Id);
+            }
+
+            Store.Add(pipeline.Id, pipeline);
+            return Task.FromResult(pipeline);
         }
 
         private static IList<Pipeline> NewDefaultPipelines()
