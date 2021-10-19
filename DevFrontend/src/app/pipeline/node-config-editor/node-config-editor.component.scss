@@ -1,12 +1,12 @@
 form {
-  display: flex;
-  flex-wrap: wrap;
+	display: flex;
+	flex-wrap: wrap;
 }
 
 form > mat-form-field {
-  width: 100%;
+	width: 100%;
 }
 
 form > button {
-  margin-left: auto;
+	margin-left: auto;
 }
