@@ -1,5 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
+import {environment} from '../../../environments/environment';
 import {NodeService} from '../_service/node.service';
 
 @Component({
@@ -34,5 +35,9 @@ export class NodeResultPreviewComponent implements OnInit {
 			this.$previewHtml[hash] = this.nodeService.getPreviewHtml(hash);
 		}
 		return this.$previewHtml[hash];
+	}
+
+	getDatasetLink(hash: string): string {
+		return `${environment.datasetApi}/api/datasets/html/${hash}`;
 	}
 }

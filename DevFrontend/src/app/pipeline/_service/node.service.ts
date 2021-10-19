@@ -1,6 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import {environment} from '../../../environments/environment';
 import {BaseHttpService} from '../../core/_service/base-http.service';
 import {AddNodeRequest} from '../_model/add-node-request';
 import {AddNodeResponse} from '../_model/add-node-response';
@@ -33,7 +34,7 @@ export class NodeService extends BaseHttpService {
 	}
 
 	public getPreviewHtml(hash: string): Observable<string> {
-		return this.httpClient.get('http://localhost:5002/api/datasets/hash/describe/html/' + hash, {responseType: 'text'});
+		return this.httpClient.get(`${environment.datasetApi}/api/datasets/hash/describe/html/${hash}`, {responseType: 'text'});
 	}
 
 	public getConfig(pipelineId: string, nodeId: string): Observable<Map<string, string>> {

@@ -30,6 +30,6 @@ export class StatusBarComponent implements OnInit {
 	}
 
 	getApiUrl(): string {
-		return `${environment.apiUrl}/health`;
+		return `${environment.pipelineApi}/health`;
 	}
 }

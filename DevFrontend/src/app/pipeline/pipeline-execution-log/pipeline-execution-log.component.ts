@@ -2,6 +2,7 @@ import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {MqttService} from 'ngx-mqtt';
 import {Observable} from 'rxjs';
 import {map, scan} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
 import {FrontendExecutionNotification} from '../_model/frontend-execution-notification';
 
 @Component({
@@ -83,5 +84,9 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 		return events.sort((a, b) => {
 			return new Date(a.CompletedAt).getTime() - new Date(b.CompletedAt).getTime();
 		});
+	}
+
+	public getHtmlLinkToDataset(ResultDatasetKey: string): string {
+		return `${environment.datasetApi}/api/datasets/html/${ResultDatasetKey}`;
 	}
 }

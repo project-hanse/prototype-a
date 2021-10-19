@@ -12,7 +12,7 @@ export class BaseHttpService {
 	}
 
 	protected getUrl(...endpoint: string[]): string {
-		return `${environment.apiUrl}/${this.basePath}/${endpoint.join('/')}`;
+		return `${environment.pipelineApi}/${this.basePath}/${endpoint.join('/')}`;
 	}
 
 	public get<T>(...endpoint: string[]): Observable<T> {

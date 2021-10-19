@@ -1,4 +1,5 @@
 import {Component} from '@angular/core';
+import {environment} from '../environments/environment';
 
 @Component({
 	selector: 'ph-root',
@@ -8,7 +9,12 @@ import {Component} from '@angular/core';
 export class AppComponent {
 	title = 'DevFrontend';
 
+
 	getYear(): Date {
 		return new Date();
+	}
+
+	getDatasetUrl(): string {
+		return environment.datasetApi;
 	}
 }

@@ -1,4 +1,5 @@
 export const environment = {
 	production: true,
-	apiUrl: 'http://localhost:5000'
+	pipelineApi: 'http://localhost:5000',
+	datasetApi: 'http://localhost:5002'
 };

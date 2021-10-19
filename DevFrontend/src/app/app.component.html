@@ -10,16 +10,10 @@
 				</a>
 			</nav>
 			<nav>
-				<a mat-stroked-button href="http://localhost:5002" target="_blank">
+				<a mat-stroked-button [href]="getDatasetUrl()" target="_blank">
 					Dataset Store
 				</a>
 			</nav>
-			<nav>
-				<a mat-stroked-button routerLink="dev/status">
-					Status
-				</a>
-			</nav>
-
 			<ph-status-bar style="margin-left: auto"></ph-status-bar>
 		</mat-toolbar-row>
 	</mat-toolbar>
