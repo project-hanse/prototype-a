@@ -18,6 +18,6 @@ export class AppComponent {
 	}
 
 	getDatasetUrl(): string {
-		return environment.datasetApi;
+		return `${environment.datasetApi}/index.html`;
 	}
 }
