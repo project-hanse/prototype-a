@@ -19,8 +19,9 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	constructor() {
 		this.mqttService = new MqttService({
 			connectOnCreate: false,
-			hostname: 'localhost',
-			port: 9002,
+			hostname: environment.messageBrokerHost,
+			path: environment.messageBrokerPath,
+			port: environment.messageBrokerPort,
 			protocol: 'ws',
 			clientId: 'some-dev-frontend'
 		});

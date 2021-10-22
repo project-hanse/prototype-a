@@ -5,7 +5,10 @@
 export const environment = {
 	production: false,
 	pipelineApi: 'http://localhost:5000',
-	datasetApi: 'http://localhost:5002'
+	datasetApi: 'http://localhost:5002',
+	messageBrokerHost: 'localhost',
+	messageBrokerPath: '',
+	messageBrokerPort: 9002,
 };
 
 /*

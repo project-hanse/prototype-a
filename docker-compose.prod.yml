@@ -23,9 +23,6 @@ services:
     image: eclipse-mosquitto
     networks:
       - default
-    ports:
-      - "1884:1883"
-      - "9002:9001"
     volumes:
       - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
 
