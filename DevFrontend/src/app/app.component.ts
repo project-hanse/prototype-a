@@ -9,6 +9,9 @@ import {environment} from '../environments/environment';
 export class AppComponent {
 	title = 'DevFrontend';
 
+	isProd(): boolean {
+		return environment.production;
+	}
 
 	getYear(): Date {
 		return new Date();

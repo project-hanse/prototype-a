@@ -31,9 +31,7 @@ services:
 
   # Development Frontend
   dev-frontend:
-    build:
-      context: ./DevFrontend
-      dockerfile: ./Dockerfile
+    image: ghcr.io/project-hanse/prototype-a/dev-frontend:latest  
     networks:
       - default
     depends_on:
@@ -41,9 +39,7 @@ services:
 
   # Pipeline Service
   pipeline-service:
-    build:
-      context: ./PipelineService
-      dockerfile: ./Dockerfile
+    image: ghcr.io/project-hanse/prototype-a/pipeline-service:latest
     environment:
       Logging__LogLevel__Default: Information
       ASPNETCORE_ENVIRONMENT: Development
@@ -57,9 +53,7 @@ services:
 
   # Dataset Store
   dataset-service:
-    build:
-      context: ./DataSetService
-      dockerfile: ./Dockerfile
+    image: ghcr.io/project-hanse/prototype-a/dataset-service:latest
     networks:
       - default
     environment:
@@ -70,9 +64,7 @@ services:
 
   # Node Worker
   node-worker:
-    build:
-      context: ./NodeWorker
-      dockerfile: ./Dockerfile
+    image: ghcr.io/project-hanse/prototype-a/node-worker:latest
     networks:
       - default
     environment:
