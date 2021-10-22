@@ -1,13 +1,20 @@
 server {
     server_name ${NGINX_HOST};
     location / {
-        proxy_pass      http://dev-frontend;
+        proxy_pass      http://dev-frontend:80;
     }
 }
 
 server { 
     server_name pipeline.${NGINX_HOST};
     location / {
-        proxy_pass      http://pipeline-service;
+        proxy_pass      http://pipeline-service:80;
+    }
+}
+
+server { 
+    server_name data.${NGINX_HOST};
+    location / {
+        proxy_pass      http://dataset-service:5000;
     }
 }

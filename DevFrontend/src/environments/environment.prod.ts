@@ -1,5 +1,5 @@
 export const environment = {
 	production: true,
-	pipelineApi: 'http://localhost:5000',
-	datasetApi: 'http://localhost:5002'
+	pipelineApi: 'http://pipeline.hanse.allteams.at',
+	datasetApi: 'http://data.hanse.allteams.at'
 };
