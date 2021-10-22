@@ -9,6 +9,7 @@ services:
     volumes:
       - ./volumes/edge-server/templates:/etc/nginx/templates
       - ./volumes/edge-server/logs:/var/log/nginx
+      - ./volumes/edge-server/etc/apache2:/etc/apache2
     ports:
       - "80:80"
     environment:

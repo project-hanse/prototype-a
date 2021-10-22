@@ -1,5 +1,7 @@
 server {
     server_name ${NGINX_HOST};
+    auth_basic           "Administrator’s Area";
+    auth_basic_user_file /etc/apache2/.htpasswd; 
     
     location /mqtt {
         proxy_pass      http://edge-message-broker:9001;
