@@ -1,0 +1,40 @@
+version: '3.8'
+
+volumes:
+  db_data:
+    driver: convoy
+  app_data:
+    driver: convoy
+
+services:
+  # NGINX Reverse Proxy
+  edge:
+    image: nginx:latest
+    volumes:
+      - ./volumes/edge-server/templates:/etc/nginx/templates
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=hanse.allteams.at
+
+  # Development Frontend
+  dev-frontend:
+    build:
+      context: ./DevFrontend
+      dockerfile: ./Dockerfile
+
+  # Pipeline Service
+  pipeline-service:
+    build:
+      context: ./PipelineService
+      dockerfile: ./Dockerfile
+    environment:
+      Logging__LogLevel__Default: Information
+      ASPNETCORE_ENVIRONMENT: Development
+      EVENT_BUS__MQTT_HOST: message-broker
+      EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+      EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+      EDGE_EVENT_BUS__MQTT_PORT: 1883
+      EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+    depends_on:
+      - message-broker

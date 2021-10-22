@@ -1,0 +1,13 @@
+server {
+    server_name ${NGINX_HOST};
+    location / {
+        proxy_pass      http://dev-frontend;
+    }
+}
+
+server { 
+    server_name pipeline.${NGINX_HOST};
+    location / {
+        proxy_pass      http://pipeline-service;
+    }
+}
