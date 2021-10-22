@@ -1,4 +1,4 @@
 export interface BasePersistentModel {
-  id: string;
-  createdOn: Date;
+	id: string;
+	createdOn: Date;
 }

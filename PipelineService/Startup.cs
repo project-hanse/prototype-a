@@ -13,88 +13,95 @@ using PipelineService.Services.Impl;
 
 namespace PipelineService
 {
-    public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+	public class Startup
+	{
+		public Startup(IConfiguration configuration)
+		{
+			Configuration = configuration;
+		}
 
-        public IConfiguration Configuration { get; }
+		public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAnyCorsPolicy",
-                    policy => policy
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
-            });
+		// This method gets called by the runtime. Use this method to add services to the container.
+		public void ConfigureServices(IServiceCollection services)
+		{
+			services.AddCors(options =>
+			{
+				options.AddPolicy("AllowAnyCorsPolicy",
+					policy => policy
+						.AllowAnyOrigin()
+						.AllowAnyMethod()
+						.AllowAnyHeader());
+			});
 
-            // Configuring Hangfire services
-            services.AddHangfire(configuration =>
-            {
-                configuration
-                    .UseSimpleAssemblyNameTypeSerializer()
-                    .UseRecommendedSerializerSettings()
-                    .UseLiteDbStorage("hangfire.db");
-            });
-            services.AddHangfireServer();
+			// Configuring Hangfire services
+			services.AddHangfire(configuration =>
+			{
+				configuration
+					.UseSimpleAssemblyNameTypeSerializer()
+					.UseRecommendedSerializerSettings()
+					.UseLiteDbStorage("hangfire.db");
+			});
+			services.AddHangfireServer();
 
-            // Registering singleton services
-            services.AddSingleton<EventBusService>();
-            services.AddSingleton<EdgeEventBusService>();
+			// Registering singleton services
+			services.AddSingleton<EventBusService>();
+			services.AddSingleton<EdgeEventBusService>();
 
-            // Registering DAOs
-            services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
-            services.AddSingleton<IPipelinesDao, InMemoryPipelinesDao>();
+			// Registering DAOs
+			services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
+			services.AddSingleton<IPipelinesDao, InMemoryPipelinesDao>();
 
-            // Registering transient services
-            services.AddTransient<IHashService, HashService>();
-            services.AddTransient<IPipelineExecutionService, PipelinesExecutionService>();
-            services.AddTransient<INodesService, NodesService>();
-            services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
-            services.AddTransient<IOperationsService, OperationsService>();
+			// Registering transient services
+			services.AddTransient<IHashService, HashService>();
+			services.AddTransient<IPipelineExecutionService, PipelinesExecutionService>();
+			services.AddTransient<INodesService, NodesService>();
+			services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
+			services.AddTransient<IOperationsService, OperationsService>();
 
-            services.AddHostedService<HostedSubscriptionService>();
+			services.AddHostedService<HostedSubscriptionService>();
 
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pipeline Service", Version = "v1" });
-            });
-        }
+			// TODO: Add health checks to required services: https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks
+			services.AddHealthChecks();
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PipelineDao v1");
-                    // swagger UI at root
-                    c.RoutePrefix = string.Empty;
-                });
-                app.UseHangfireDashboard();
-            }
-            else
-            {
-                app.UseHttpsRedirection();
-            }
+			services.AddControllers();
+			services.AddSwaggerGen(c =>
+			{
+				c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pipeline Service", Version = "v1" });
+			});
+		}
 
-            app.UseRouting();
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		{
+			if (env.IsDevelopment())
+			{
+				app.UseDeveloperExceptionPage();
+				app.UseSwagger();
+				app.UseSwaggerUI(c =>
+				{
+					c.SwaggerEndpoint("/swagger/v1/swagger.json", "PipelineDao v1");
+					// swagger UI at root
+					c.RoutePrefix = string.Empty;
+				});
+				app.UseHangfireDashboard();
+			}
+			else
+			{
+				app.UseHttpsRedirection();
+			}
 
-            app.UseCors("AllowAnyCorsPolicy");
+			app.UseRouting();
 
-            app.UseAuthorization();
+			app.UseCors("AllowAnyCorsPolicy");
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-        }
-    }
+			app.UseAuthorization();
+
+			app.UseEndpoints(endpoints =>
+			{
+				endpoints.MapControllers();
+				endpoints.MapHealthChecks("/health");
+			});
+		}
+	}
 }

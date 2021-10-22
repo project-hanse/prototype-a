@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # NGINX Reverse Proxy
+  edge:
+    image: nginx:latest
+    networks:
+      - default
+    volumes:
+      - ./volumes/edge-server/templates:/etc/nginx/templates
+      - ./volumes/edge-server/logs:/var/log/nginx
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=hanse.allteams.at
+    depends_on:
+      - dev-frontend
+      - pipeline-service
+      - dataset-service
+
+  # Edge Message Broker
+  edge-message-broker:
+    image: eclipse-mosquitto
+    networks:
+      - default
+    volumes:
+      - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
+
+  # Development Frontend
+  dev-frontend:
+    image: ghcr.io/project-hanse/prototype-a/dev-frontend:latest  
+    networks:
+      - default
+    depends_on:
+      - pipeline-service
+
+  # Pipeline Service
+  pipeline-service:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-service:latest
+    environment:
+      Logging__LogLevel__Default: Information
+      ASPNETCORE_ENVIRONMENT: Development
+      EVENT_BUS__MQTT_HOST: message-broker
+      EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+      EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+      EDGE_EVENT_BUS__MQTT_PORT: 1883
+      EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+    depends_on:
+      - message-broker
+
+  # Dataset Store
+  dataset-service:
+    image: ghcr.io/project-hanse/prototype-a/dataset-service:latest
+    networks:
+      - default
+    environment:
+      - S3_HOST=localstack-s3
+      - S3_PORT=4566
+    depends_on:
+      - localstack-s3
+
+  # Node Worker
+  node-worker:
+    image: ghcr.io/project-hanse/prototype-a/node-worker:latest
+    networks:
+      - default
+    environment:
+      - MQTT_HOST=message-broker
+      - DATASET_HOST=dataset-service
+      - DATASET_PORT=5000
+    depends_on:
+      - message-broker
+      - localstack-s3
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  # Message Broker
+  message-broker:
+    image: eclipse-mosquitto
+    networks:
+      - default
+    volumes:
+      - ./volumes/event-bus/mosquitto/config:/mosquitto/config
+
+  # S3 Bucket
+  localstack-s3:
+    image: localstack/localstack:0.12.18
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=eu-west-2
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    #  - EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:8080
+    # volumes:
+    #   - ./volumes/localstack-data:/tmp/localstack

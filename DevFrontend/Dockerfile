@@ -12,7 +12,7 @@ RUN npm ci
 
 COPY . /app
 
-RUN ng build --output-path=./dist/out  --output-hashing=all
+RUN ng build --output-path=./dist/out  --output-hashing=all --configuration production
 
 # Deployment
 

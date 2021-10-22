@@ -1,10 +1,8 @@
 export const environment = {
-  production: true,
-  apiUrl: 'http://localhost:5000',
-  services: {
-    s3: {
-      name: 'S3 Storage',
-      url: 'http://localhost:4566'
-    }
-  }
+	production: true,
+	pipelineApi: 'http://pipeline.hanse.allteams.at',
+	datasetApi: 'http://data.hanse.allteams.at',
+	messageBrokerHost: 'hanse.allteams.at',
+	messageBrokerPath: '/mqtt',
+	messageBrokerPort: 80
 };

@@ -1,41 +1,36 @@
 <header>
-  <mat-toolbar color="primary" class="mat-elevation-z4">
-    <mat-toolbar-row>
-      <h1>Development Frontend</h1>
-    </mat-toolbar-row>
-    <mat-toolbar-row class="nav-row">
-      <nav>
-        <a mat-stroked-button routerLink="pipeline">
-          Pipelines
-        </a>
-      </nav>
-      <nav>
-        <a mat-stroked-button href="http://localhost:5002" target="_blank">
-          Dataset Store
-        </a>
-      </nav>
-      <nav>
-        <a mat-stroked-button routerLink="dev/status">
-          Status
-        </a>
-      </nav>
-
-      <ph-status-bar style="margin-left: auto"></ph-status-bar>
-    </mat-toolbar-row>
-  </mat-toolbar>
+	<mat-toolbar color="primary" class="mat-elevation-z4">
+		<mat-toolbar-row>
+			<h1>Development Frontend</h1>
+			<span *ngIf="!isProd()"> - Dev</span>
+		</mat-toolbar-row>
+		<mat-toolbar-row class="nav-row">
+			<nav>
+				<a mat-stroked-button routerLink="pipeline">
+					Pipelines
+				</a>
+			</nav>
+			<nav>
+				<a mat-stroked-button [href]="getDatasetUrl()" target="_blank">
+					Dataset Store
+				</a>
+			</nav>
+			<ph-status-bar style="margin-left: auto"></ph-status-bar>
+		</mat-toolbar-row>
+	</mat-toolbar>
 </header>
 
 
 <mat-divider></mat-divider>
 
 <main>
-  <router-outlet></router-outlet>
+	<router-outlet></router-outlet>
 </main>
 
 <footer>
-  <mat-toolbar>
+	<mat-toolbar>
     <span style="font-size: 0.75em; font-weight: normal; opacity: 0.75">
       Project Hanse {{ getYear() | date: 'yyyy' }}
     </span>
-  </mat-toolbar>
+	</mat-toolbar>
 </footer>

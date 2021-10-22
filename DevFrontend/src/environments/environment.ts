@@ -3,14 +3,12 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5000',
-  services: {
-    s3: {
-      name: 'S3 Storage',
-      url: 'http://localhost:4566'
-    }
-  }
+	production: false,
+	pipelineApi: 'http://localhost:5000',
+	datasetApi: 'http://localhost:5002',
+	messageBrokerHost: 'localhost',
+	messageBrokerPath: '',
+	messageBrokerPort: 9002,
 };
 
 /*
