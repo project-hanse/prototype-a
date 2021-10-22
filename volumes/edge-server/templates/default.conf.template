@@ -13,16 +13,16 @@ server {
         proxy_pass      http://dev-frontend:80;
     }
     
-    location /pipelineApi {
+    location /api/pipeline {
         proxy_pass          http://pipeline-service:80;
-        rewrite             /pipelineApi/(.*) /$1 break;
+        rewrite             /api/pipeline/(.*) /$1 break;
         proxy_redirect      off;
         proxy_set_header    Host $host;
     }
         
-    location /datasetApi {
+    location /api/dataset {
         proxy_pass          http://dataset-service:5000;
-        rewrite             /datasetApi/(.*) /$1 break;
+        rewrite             /api/dataset/(.*) /$1 break;
         proxy_redirect      off;
         proxy_set_header    Host $host;
     }
