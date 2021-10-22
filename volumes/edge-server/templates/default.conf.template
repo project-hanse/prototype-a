@@ -12,18 +12,18 @@ server {
     location / {
         proxy_pass      http://dev-frontend:80;
     }
-}
-
-server { 
-    server_name pipeline.${NGINX_HOST};
-    location / {
-        proxy_pass      http://pipeline-service:80;
+    
+    location /pipelineApi {
+        proxy_pass          http://pipeline-service:80;
+        rewrite             /pipelineApi/(.*) /$1 break;
+        proxy_redirect      off;
+        proxy_set_header    Host $host;
     }
-}
-
-server { 
-    server_name data.${NGINX_HOST};
-    location / {
-        proxy_pass      http://dataset-service:5000;
+        
+    location /datasetApi {
+        proxy_pass          http://dataset-service:5000;
+        rewrite             /datasetApi/(.*) /$1 break;
+        proxy_redirect      off;
+        proxy_set_header    Host $host;
     }
 }
