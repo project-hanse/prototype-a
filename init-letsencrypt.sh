@@ -39,7 +39,7 @@ docker-compose -f "$docker_compose_file" run --rm --entrypoint "\
 echo
 
 echo "### Starting nginx ..."
-docker-compose -f "$docker_compose_file" up --force-recreate -d nginx
+docker-compose -f "$docker_compose_file" up --force-recreate -d edge-nginx
 echo
 
 echo "### Deleting dummy certificate for $domains ..."
@@ -76,4 +76,4 @@ docker-compose -f "$docker_compose_file" run --rm --entrypoint "\
 echo
 
 echo "### Reloading nginx ..."
-docker-compose -f "$docker_compose_file" exec nginx nginx -s reload
+docker-compose -f "$docker_compose_file" exec edge-nginx nginx -s reload
