@@ -10,14 +10,23 @@ services:
       - ./volumes/edge-server/templates:/etc/nginx/templates
       - ./volumes/edge-server/logs:/var/log/nginx
       - ./volumes/edge-server/etc/apache2:/etc/apache2
+      - ./volumes/edge-server/certbot/conf:/etc/letsencrypt
+      - ./volumes/edge-server/certbot/www:/var/www/certbot
     ports:
       - "80:80"
+      - "443:443"
     environment:
       - NGINX_HOST=hanse.allteams.at
     depends_on:
       - dev-frontend
       - pipeline-service
       - dataset-service
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./volumes/edge-server/certbot/conf:/etc/letsencrypt
+      - ./volumes/edge-server/certbot/www:/var/www/certbot
 
   # Edge Message Broker
   edge-message-broker:
@@ -29,7 +38,7 @@ services:
 
   # Development Frontend
   dev-frontend:
-    image: ghcr.io/project-hanse/prototype-a/dev-frontend:latest  
+    image: ghcr.io/project-hanse/prototype-a/dev-frontend:latest
     networks:
       - default
     depends_on:
