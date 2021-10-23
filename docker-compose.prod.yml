@@ -21,6 +21,7 @@ services:
       - dev-frontend
       - pipeline-service
       - dataset-service
+      - edge-message-broker
 
   certbot:
     image: certbot/certbot
