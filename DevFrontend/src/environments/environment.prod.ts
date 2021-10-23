@@ -4,5 +4,5 @@ export const environment = {
 	datasetApi: '/api/dataset',
 	messageBrokerHost: 'hanse.allteams.at',
 	messageBrokerPath: '/mqtt',
-	messageBrokerPort: 80
+	messageBrokerPort: 443
 };
