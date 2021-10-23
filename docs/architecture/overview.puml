@@ -6,13 +6,16 @@ title "Components Overview"
 'Definitions'
 
 rectangle "Frontend" {
-    component #line.dashed "Pipeline Editor" << Angular Frontend>> as pipeline_editor
     component "Development Frontend" << Angular Frontend >> as development_frontend
 }
 
 rectangle "Edge Services" {
-    component #line.dashed "API Gateway" << Ocelot Gateway>> as api_gateway
-    component "Edge Event Bus" << MQTT Broker >> as message_broker_edge
+    component "Reverse Proxy" << NGINX >> as reverse_proxy
+}
+
+rectangle "Event Bus"{
+    component "Edge Broker" << MQTT Broker >> as message_broker_edge
+    component "Internal Broker" << MQTT Broker >> as message_broker_internal
 }
 
 rectangle "Mid Level Services" {
@@ -42,20 +45,15 @@ rectangle "Low Level Services" {
     '/
 }
 
-component "Event Bus" << MQTT Broker >> as message_broker {
-    queue "Node Execution Queue" as node_execution_queue
-    queue "Node Executed Queue" as node_executed_queue
-}
-
 'Interaction'
 
-pipeline_editor --> api_gateway
-development_frontend --> message_broker_edge
-development_frontend --> pipeline_service
+development_frontend <--> reverse_proxy
 
-api_gateway --> pipeline_service 
-api_gateway --> suggestion_service
-api_gateway --> dataset_service
+reverse_proxy --> pipeline_service 
+reverse_proxy --> suggestion_service
+reverse_proxy --> dataset_service
+reverse_proxy <--> message_broker_edge
+
 
 pipeline_store --> pipeline_db
 dataset_store --> dataset_db
@@ -67,10 +65,10 @@ operation_store --> operation_db
 event_logging --> event_db
 '/
 
-pipeline_service --> node_execution_queue
-node_execution_queue --> worker 
-pipeline_service <-- node_executed_queue
-node_executed_queue <-- worker 
+pipeline_service --> message_broker_internal
+message_broker_internal --> worker 
+pipeline_service <-- message_broker_internal
+message_broker_internal <-- worker 
 
 'message_broker --> event_logging
 
@@ -88,5 +86,4 @@ pipeline_service --> pipeline_store
 dataset_service --> dataset_store
 
 pipeline_service <--> message_broker_edge
-pipeline_editor <--> message_broker_edge
 @enduml
