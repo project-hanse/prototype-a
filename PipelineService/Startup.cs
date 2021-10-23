@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using PipelineService.Context;
 using PipelineService.Dao;
 using PipelineService.Dao.Impl;
 using PipelineService.Services;
@@ -43,6 +44,9 @@ namespace PipelineService
 					.UseLiteDbStorage("hangfire.db");
 			});
 			services.AddHangfireServer();
+
+			// Add Database
+			services.AddDbContext<PipelineContext>();
 
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();

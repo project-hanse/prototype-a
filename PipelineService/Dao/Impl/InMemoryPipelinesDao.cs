@@ -35,7 +35,7 @@ namespace PipelineService.Dao.Impl
 
         public async Task<IList<Pipeline>> CreateDefaults(IList<Pipeline> pipelines = null)
         {
-            var newDefaultPipelines = pipelines ?? NewDefaultPipelines();
+            var newDefaultPipelines = pipelines ?? HardcodedDefaultPipelines.NewDefaultPipelines();
 
             _logger.LogInformation("Creating {NewPipelines} new pipeline(s)", newDefaultPipelines.Count);
 
@@ -137,20 +137,6 @@ namespace PipelineService.Dao.Impl
 
             Store.Add(pipeline.Id, pipeline);
             return Task.FromResult(pipeline);
-        }
-
-        private static IList<Pipeline> NewDefaultPipelines()
-        {
-            return new List<Pipeline>
-            {
-                HardcodedDefaultPipelines.MelbourneHousingPipeline(),
-                HardcodedDefaultPipelines.InfluenzaInterpolation(),
-                HardcodedDefaultPipelines.MelbourneHousingPipelineWithError(),
-                HardcodedDefaultPipelines.ChemnitzStudentAndJobsPipeline(),
-                HardcodedDefaultPipelines.SimulatedVineYieldPipeline(),
-                HardcodedDefaultPipelines.ZamgWeatherPreprocessingGraz(),
-                HardcodedDefaultPipelines.ZamgWeatherPreprocessingGraz(Guid.NewGuid(), 1991)
-            };
         }
     }
 }
