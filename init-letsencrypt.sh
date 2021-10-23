@@ -11,7 +11,7 @@ docker_compose_file="docker-compose.prod.yml"
 rsa_key_size=4096
 data_path="./volumes/edge-server/certbot"
 email="k.struempf@icloud.com"  # Adding a valid address is strongly recommended
-staging=1 # Set to 1 if you're testing your setup to avoid hitting request limits
+staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
 
 if [ -d "$data_path" ]; then
   read -p "Existing data found for $domains. Continue and replace existing certificate? (y/N) " decision
@@ -77,3 +77,5 @@ echo
 
 echo "### Reloading nginx ..."
 docker-compose -f "$docker_compose_file" exec edge-nginx nginx -s reload
+
+if [ $staging != "0" ]; then echo "WARNING: This was a staging run"; fi
