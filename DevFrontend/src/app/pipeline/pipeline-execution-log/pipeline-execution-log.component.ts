@@ -22,7 +22,7 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 			hostname: environment.messageBrokerHost,
 			path: environment.messageBrokerPath,
 			port: environment.messageBrokerPort,
-			protocol: 'ws',
+			protocol: environment.production ? 'wss' : 'ws',
 			clientId: 'some-dev-frontend'
 		});
 		this.mqttService.onConnect.subscribe(e => {
