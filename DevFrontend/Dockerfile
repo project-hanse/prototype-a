@@ -3,8 +3,6 @@ FROM node:16-alpine as build-step
 
 RUN npm install -g @angular/cli
 
-RUN mkdir -p /app
-
 WORKDIR /app
 
 COPY package.json /app
@@ -14,11 +12,11 @@ RUN npm ci
 
 COPY . /app
 
-RUN ng build --output-path=./dist/out  --output-hashing=all
+RUN ng build --output-path=./dist/out  --output-hashing=all --configuration production
 
 # Deployment
 
-FROM nginx:1.19-alpine
+FROM nginx:1.19-alpine as run-step
 
 # Replacing default config with Angular specific
 RUN rm /etc/nginx/conf.d/default.conf

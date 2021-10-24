@@ -1,39 +1,35 @@
+import {HttpClient} from '@angular/common/http';
 import {Component, OnInit} from '@angular/core';
 import {Observable, timer} from 'rxjs';
-import {environment} from '../../../../environments/environment';
-import {HttpClient} from '@angular/common/http';
 import {switchMap} from 'rxjs/operators';
+import {environment} from '../../../../environments/environment';
 
 @Component({
-  selector: 'ph-status-bar',
-  templateUrl: './status-bar.component.html',
-  styleUrls: ['./status-bar.component.scss']
+	selector: 'ph-status-bar',
+	templateUrl: './status-bar.component.html',
+	styleUrls: ['./status-bar.component.scss']
 })
 export class StatusBarComponent implements OnInit {
-  $s3Status: Observable<any>;
+	$apiHealthStatus: Observable<any>;
 
-  constructor(private httpClient: HttpClient) {
-  }
+	constructor(private httpClient: HttpClient) {
+	}
 
-  ngOnInit(): void {
-    this.$s3Status = timer(1, 10000).pipe(switchMap(() => this.httpClient.get(this.getS3Url())));
-  }
+	ngOnInit(): void {
+		this.$apiHealthStatus = timer(1, 5000).pipe(switchMap(() => this.httpClient.get(this.getApiUrl(), {responseType: 'text' as const})));
+	}
 
+	getIcon(status: string | undefined): string {
+		if (status === 'Healthy') {
+			return 'thumb_up_alt';
+		}
+		if (status === 'Degraded') {
+			return 'pending';
+		}
+		return 'thumb_down_alt';
+	}
 
-  getIcon(status: any | undefined): string {
-    if (!status?.services?.s3 || !status?.features?.persistence) {
-      return 'thumb_down_alt';
-    }
-    if (status.services.s3 === 'running' && status.features.persistence !== 'initialized') {
-      return 'pending';
-    }
-    if (status.services.s3 === 'running' && status.features.persistence === 'initialized') {
-      return 'thumb_up_alt';
-    }
-    return 'help_outline';
-  }
-
-  getS3Url(): string {
-    return `${environment.services.s3.url}/health`;
-  }
+	getApiUrl(): string {
+		return `${environment.pipelineApi}/health`;
+	}
 }

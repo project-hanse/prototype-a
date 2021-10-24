@@ -1,2 +1,4 @@
 ./mosquitto/log
 ./mosquitto/data
+./edge-server/logs
+./edge-server/etc/apache2/.htpasswd
