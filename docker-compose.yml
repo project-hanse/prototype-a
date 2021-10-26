@@ -94,3 +94,10 @@ services:
       - "4571:4571"
     # volumes:
     #   - ./volumes/localstack-data:/tmp/localstack
+
+  orchestration:
+    build:
+      context: ./OrchestrationService
+      dockerfile: ./Dockerfile
+    ports:
+      - "5003:5000"
