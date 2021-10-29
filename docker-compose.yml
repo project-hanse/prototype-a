@@ -94,3 +94,11 @@ services:
       - "4571:4571"
     # volumes:
     #   - ./volumes/localstack-data:/tmp/localstack
+
+  # Dgraph Pipeline Store
+  pipeline-store:
+    image: dgraph/standalone:v21.03.2
+    ports:
+      - "8081:8080"
+      - "9080:9080"
+      - "8000:8000"
