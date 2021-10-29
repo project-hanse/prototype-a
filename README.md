@@ -12,6 +12,34 @@ software tool that will be developed should make professional data science tools
 like [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/) and potentially others available to them without
 the need to learn how to code.
 
+## Coding Guidelines
+
+Commit message should follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification
+starting November 1st, 2021.
+
+Recommended tooling for developers:
+
+* JetBrains Plugin [Conventional Commit](https://plugins.jetbrains.com/plugin/13389-conventional-commit)
+  by [Edoardo Luppi](https://github.com/lppedd)
+* Visual Studio
+  Plugin [Conventional Commits](https://marketplace.visualstudio.com/items?itemName=vivaxy.vscode-conventional-commits)
+  by [vivaxy](https://marketplace.visualstudio.com/publishers/vivaxy)
+
+**Example commit message**
+
+```
+fix: prevent racing of requests
+
+Introduce a request id and a reference to latest request. Dismiss
+incoming responses other than from latest request.
+
+Remove timeouts which were used to mitigate the racing issue but are
+obsolete now.
+
+Reviewed-by: Z
+Refs: #123
+```
+
 ## Concept
 
 In order to accomplish this goal a node based tool (similar to shader nodes
@@ -52,12 +80,6 @@ be implemented.
 
 The following sections will be adapted and extended as the project progresses.
 
-### Sequence Diagram Iteration 1
-
-The first iteration, implementing the execution of a pipeline, follows this diagram:
-
-![Sequence Diagram Iteration 1](./docs/sequence-diagrams/pipeline-execution.png)
-
 ## Implementation
 
 The code for the proof of concept is stored in this git
@@ -73,7 +95,7 @@ used. For the `Event Bus` a [MQTT](https://mqtt.org/) message broker like [Eclip
 will be used. This can be replaced by a more scalable technology like [RabbitMQ](https://www.rabbitmq.com/) in the
 future. All services will be [dockerized](https://www.docker.com/) to allow for a simple deployment.
 
-### How to use
+### How to get started
 
 An installation of [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) is required
 for running the prototype. Please checkout the installation guides
