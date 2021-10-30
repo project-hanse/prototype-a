@@ -95,10 +95,16 @@ services:
     # volumes:
     #   - ./volumes/localstack-data:/tmp/localstack
 
-  # Dgraph Pipeline Store
-  pipeline-store:
-    image: dgraph/standalone:v21.03.2
+  # Neo4j Pipeline Database
+  pipeline-database:
+    image: neo4j:3.5
+    environment:
+      - NEO4J_AUTH=neo4j/test
     ports:
-      - "8081:8080"
-      - "9080:9080"
-      - "8000:8000"
+      - "7474:7474" # HTTP
+      - "7473:7473" # HTTPS
+      - "7687:7687" # Bolt
+    volumes:
+      - ./volumes/neo4j/data:/data
+      - ./volumes/neo4j/logs:/logs
+      

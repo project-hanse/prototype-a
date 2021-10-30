@@ -1,3 +1,4 @@
+using System;
 using Hangfire;
 using Hangfire.LiteDB;
 using Microsoft.AspNetCore.Builder;
@@ -6,9 +7,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Neo4jClient;
 using PipelineService.Dao;
 using PipelineService.Dao.Impl;
+using PipelineService.Extensions;
+using PipelineService.Models;
 using PipelineService.Services;
+using PipelineService.Services.HealthChecks;
 using PipelineService.Services.Impl;
 
 namespace PipelineService
@@ -44,6 +49,16 @@ namespace PipelineService
 			});
 			services.AddHangfireServer();
 
+			// configuring Neo4j connection
+			services.AddSingleton<IGraphClient>(new GraphClient(
+				Configuration.GetValueOrThrow<Uri>("NeoServerConfiguration:RootUri"),
+				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Username"),
+				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Password")
+			));
+
+			services.AddNeo4jAnnotations<PipelineContext>();
+
+
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();
 			services.AddSingleton<EdgeEventBusService>();
@@ -62,7 +77,7 @@ namespace PipelineService
 			services.AddHostedService<HostedSubscriptionService>();
 
 			// TODO: Add health checks to required services: https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks
-			services.AddHealthChecks();
+			services.AddHealthChecks().AddCheck<Neo4JHealthCheck>("neo4j_health_check");
 
 			services.AddControllers();
 			services.AddSwaggerGen(c =>

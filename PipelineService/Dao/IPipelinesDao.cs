@@ -12,7 +12,7 @@ namespace PipelineService.Dao
         /// <summary>
         /// Creates a default pipeline and stores it.
         /// </summary>
-        /// <param name="id">The pipeline's id the new pipeline will be created withh</param>
+        /// <param name="id">The pipeline's id the new pipeline will be created with</param>
         /// <returns>The default pipeline.</returns>
         public Task<Pipeline> Create(Guid id);
 
