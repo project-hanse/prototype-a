@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace PipelineService.Models.Pipeline
 {
@@ -8,6 +10,7 @@ namespace PipelineService.Models.Pipeline
 	/// A <code>Node</code> describes an operation performed on one or more input datasets and produces one dataset.
 	/// A <code>Node</code> can have no, one or multiple successor Blocks.
 	/// </summary>
+	[Table(nameof(Node))]
 	public abstract record Node : BasePersistentModel
 	{
 		/// <summary>
@@ -15,6 +18,10 @@ namespace PipelineService.Models.Pipeline
 		/// </summary>
 		public Guid PipelineId { get; set; }
 
+		/// <summary>
+		/// The nodes successors.
+		/// </summary>
+		[JsonIgnore]
 		public IList<Node> Successors { get; set; } = new List<Node>();
 
 		/// <summary>
@@ -35,6 +42,8 @@ namespace PipelineService.Models.Pipeline
 		/// <summary>
 		/// The configuration of the operation (usually corresponds to function parameters).
 		/// </summary>
+		[Column("HAS_CONFIGURATION")]
+		[JsonIgnore]
 		public Dictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
 
 		public abstract string ResultKey { get; }

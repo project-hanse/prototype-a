@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.LiteDB;
 using Microsoft.AspNetCore.Builder;
@@ -65,7 +66,8 @@ namespace PipelineService
 
 			// Registering DAOs
 			services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
-			services.AddSingleton<IPipelinesDao, InMemoryPipelinesDao>();
+			services.AddSingleton<IPipelinesDao, Neo4JPipelineDao>();
+			services.AddSingleton<Neo4JPipelineDao>();
 
 			// Registering transient services
 			services.AddTransient<IHashService, HashService>();
@@ -87,7 +89,7 @@ namespace PipelineService
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Neo4JPipelineDao pipelineDao)
 		{
 			if (env.IsDevelopment())
 			{
@@ -117,6 +119,8 @@ namespace PipelineService
 				endpoints.MapControllers();
 				endpoints.MapHealthChecks("/health");
 			});
+
+			Task.WhenAll(pipelineDao.Setup());
 		}
 	}
 }
