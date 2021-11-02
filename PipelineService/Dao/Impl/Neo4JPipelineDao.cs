@@ -57,12 +57,22 @@ namespace PipelineService.Dao.Impl
 
 			await CreatePipeline(newPipeline);
 
-			foreach (var node in newPipeline.Root)
+			foreach (var rootNode in newPipeline.Root)
 			{
-				await CreateRootNode(newPipeline.Id, node);
+				await CreateRootNode(newPipeline.Id, rootNode);
+				await CreateSuccessors(rootNode, rootNode.Successors);
 			}
 
 			_logger.LogInformation("Added pipeline {PipelineId} to database", newPipeline.Id);
+		}
+
+		private async Task CreateSuccessors<TP, TS>(TP node, IEnumerable<TS> successors) where TP : Node where TS : Node
+		{
+			foreach (var successor in successors)
+			{
+				await CreateSuccessor<TP, TS>(node.Id, successor);
+				await CreateSuccessors(successor, successor.Successors);
+			}
 		}
 
 		public async Task<Pipeline> Get(Guid pipelineId)
@@ -135,9 +145,10 @@ namespace PipelineService.Dao.Impl
 		/// Ignores all <c>Node</c>s provided in this object (use <c>CreateRoot</c> for adding root nodes to a pipeline).
 		/// </remarks>
 		/// <param name="pipeline">An object with values that will be persisted.</param>
-		public async Task<Pipeline> CreatePipeline(Pipeline pipeline)
+		public async Task CreatePipeline(Pipeline pipeline)
 		{
 			_logger.LogDebug("Creating pipeline {PipelineId}", pipeline.Id);
+
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			var results = (await _graphClient.WithAnnotations<PipelineContext>().Tx.Cypher
@@ -151,11 +162,9 @@ namespace PipelineService.Dao.Impl
 			{
 				_logger.LogInformation("Created pipeline {PipelineId}", pipeline.Id);
 			}
-
-			return results.FirstOrDefault();
 		}
 
-		public async Task CreateRootNode(Guid pipelineId, Node root)
+		public async Task CreateRootNode<TN>(Guid pipelineId, TN root) where TN : Node
 		{
 			_logger.LogDebug("Creating root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
 
@@ -169,18 +178,47 @@ namespace PipelineService.Dao.Impl
 
 			// TODO: Merge this into a single db call using annotations
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Merge(path => path.Pattern<Node>("rootNode").Constrain(rootNode => rootNode.Id == root.Id))
+				.Merge(path => path.Pattern<TN>("node").Constrain(node => node.Id == root.Id))
 				.OnCreate()
-				.Set("rootNode", () => root)
+				.Set("node", () => root)
 				.ExecuteWithoutResultsAsync();
 
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Match(path => path.Pattern<Node>("rootNode").Constrain(rootNode => rootNode.Id == root.Id))
+				.Match(path => path.Pattern<TN>("rootNode").Constrain(rootNode => rootNode.Id == root.Id))
 				.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == pipelineId))
-				.Create("(pipeline)-[r:HAS_ROOT_NODE]->(rootNode)")
+				.CreateUnique("(pipeline)-[r:HAS_ROOT_NODE]->(rootNode)")
 				.ExecuteWithoutResultsAsync();
 
 			_logger.LogInformation("Created root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
+		}
+
+		public async Task CreateSuccessor<TP, TS>(Guid predecessorId, TS successor) where TP : Node where TS : Node
+		{
+			_logger.LogDebug("Making {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			// await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			// 	.Match(
+			// 		path => path.Pattern<Node>("predNode").Constrain(predNode => predNode.Id == predecessorId),
+			// 		path2 => path2.Pattern<Node>("sucNode").Constrain(sucNode => sucNode.Id == successor.Id))
+			// 	.Create(path => path.Pattern((Node predNode) => predNode.Successors, "sucNode"))
+			// 	.ExecuteWithoutResultsAsync();
+
+			// TODO: Merge this into a single db call using annotations
+			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Merge(path => path.Pattern<TS>("node").Constrain(node => node.Id == successor.Id))
+				.OnCreate()
+				.Set("node", () => successor)
+				.ExecuteWithoutResultsAsync();
+
+			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(path => path.Pattern<TP>("predNode").Constrain(predNode => predNode.Id == predecessorId))
+				.Match(path => path.Pattern<TS>("sucNode").Constrain(sucNode => sucNode.Id == successor.Id))
+				.CreateUnique("(predNode)-[r:HAS_SUCCESSOR]->(sucNode)")
+				.ExecuteWithoutResultsAsync();
+
+			_logger.LogInformation("Made {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
 		}
 	}
 }

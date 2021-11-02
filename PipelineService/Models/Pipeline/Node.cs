@@ -21,7 +21,7 @@ namespace PipelineService.Models.Pipeline
 		/// <summary>
 		/// The nodes successors.
 		/// </summary>
-		[JsonIgnore]
+		[Column("HAS_SUCCESSOR")]
 		public IList<Node> Successors { get; set; } = new List<Node>();
 
 		/// <summary>
@@ -42,7 +42,6 @@ namespace PipelineService.Models.Pipeline
 		/// <summary>
 		/// The configuration of the operation (usually corresponds to function parameters).
 		/// </summary>
-		[Column("HAS_CONFIGURATION")]
 		[JsonIgnore]
 		public Dictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
 
