@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Neo4jClient;
+using Neo4jClient.DataAnnotations;
+using PipelineService.Models;
+using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.HealthChecks
 {
@@ -29,10 +32,9 @@ namespace PipelineService.Services.HealthChecks
 
 			try
 			{
-				// TODO change to pipeline
-				var query = _graphClient.Cypher
-					.Match("(c:Company)")
-					.Return(c => c.As<string>())
+				var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+					.Match(path => path.Pattern<Pipeline>("pipeline"))
+					.Return(pipeline => pipeline.As<Pipeline>())
 					.Limit(1);
 
 				var text = query.Query.DebugQueryText;

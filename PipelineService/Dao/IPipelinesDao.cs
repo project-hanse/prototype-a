@@ -10,7 +10,7 @@ namespace PipelineService.Dao
 	public interface IPipelinesDao
 	{
 		/// <summary>
-		/// Creates a bunch of default pipelines in the store.
+		/// A convenience method that creates a bunch of default pipelines in the store.
 		/// </summary>
 		/// <param name="pipelines">The pipelines that will be stored if parameter is not null.</param>
 		/// <returns>A list of newly created pipelines.</returns>
@@ -20,7 +20,16 @@ namespace PipelineService.Dao
 		/// Adds a pipeline as is to the store.
 		/// </summary>
 		/// <param name="pipeline">The pipeline that will be stored</param>
+		[Obsolete("")]
 		public Task Add(Pipeline pipeline);
+
+		/// <summary>
+		/// Updates a pipeline in the store.
+		/// </summary>
+		/// <param name="pipeline">The pipeline that will be updated.</param>
+		/// <returns>The updated pipeline</returns>
+		[Obsolete()]
+		Task<Pipeline> Update(Pipeline pipeline);
 
 		/// <summary>
 		/// Loads a pipeline from the store by it's id.
@@ -44,12 +53,5 @@ namespace PipelineService.Dao
 		/// </summary>
 		/// <returns>A list of dtos of all pipelines.</returns>
 		Task<IList<PipelineInfoDto>> GetDtos();
-
-		/// <summary>
-		/// Updates a pipeline in the store.
-		/// </summary>
-		/// <param name="pipeline">The pipeline that will be updated.</param>
-		/// <returns>The updated pipeline</returns>
-		Task<Pipeline> Update(Pipeline pipeline);
 	}
 }

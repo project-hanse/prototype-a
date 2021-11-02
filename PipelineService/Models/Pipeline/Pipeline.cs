@@ -6,14 +6,10 @@ namespace PipelineService.Models.Pipeline
 	[Table(nameof(Pipeline))]
 	public record Pipeline : BasePersistentModel
 	{
-
-		public PipelinesRoot PipelinesRoot { get; set; }
-
 		/// <summary>
 		/// The first (root) node in the pipeline.
 		/// </summary>
-		[Column("HAS_ROOT_NODE")]
-		[InverseProperty(nameof(Pipeline))]
+		[Column("HAS_ROOT")]
 		public IList<Node> Root { get; set; } = new List<Node>();
 
 		/// <summary>

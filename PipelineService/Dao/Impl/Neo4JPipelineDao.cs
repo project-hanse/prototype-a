@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -30,13 +28,6 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Merge(path => path.Pattern<PipelinesRoot>("root")
-					.Constrain(root => root.Id == PipelinesRoot.Identifier))
-				.OnCreate()
-				.Set("root", () => new PipelinesRoot())
-				.ExecuteWithoutResultsAsync();
-
 			_logger.LogInformation("Neo4j database setup complete");
 		}
 
@@ -64,31 +55,11 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Merge(path => path.Pattern<Pipeline>("pipeline")
-					.Constrain(pipeline => pipeline.Id == newPipeline.Id))
-				.OnCreate()
-				.Set("pipeline", () => newPipeline)
-				.ExecuteWithoutResultsAsync();
-
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Match(path => path.Pattern<PipelinesRoot>("root").Constrain(r => r.Id == PipelinesRoot.Identifier))
-				.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == newPipeline.Id))
-				.Create("(root)-[r:EXISTS]->(pipeline)")
-				.ExecuteWithoutResultsAsync();
+			await CreatePipeline(newPipeline);
 
 			foreach (var node in newPipeline.Root)
 			{
-				await _graphClient.WithAnnotations<PipelineContext>().Cypher
-					.Merge(path => path.Pattern<Node>("rootNode").Constrain(rootNode => rootNode.Id == node.Id))
-					.Set("rootNode", () => node)
-					.ExecuteWithoutResultsAsync();
-
-				await _graphClient.WithAnnotations<PipelineContext>().Cypher
-					.Match(path => path.Pattern<Node>("rootNode").Constrain(rootNode => rootNode.Id == node.Id))
-					.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == newPipeline.Id))
-					.Create("(pipeline)-[r:HAS_ROOT_NODE]->(rootNode)")
-					.ExecuteWithoutResultsAsync();
+				await CreateRootNode(newPipeline.Id, node);
 			}
 
 			_logger.LogInformation("Added pipeline {PipelineId} to database", newPipeline.Id);
@@ -139,7 +110,6 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-
 			var results = await _graphClient
 				.WithAnnotations<PipelineContext>().Cypher
 				.Match(path => path.Pattern<Pipeline>("pipeline"))
@@ -155,6 +125,62 @@ namespace PipelineService.Dao.Impl
 		public Task<Pipeline> Update(Pipeline pipeline)
 		{
 			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Creates a new pipeline in the store if it not already exists.
+		/// </summary>
+		/// <remarks>
+		/// If a pipeline with the same id already exists, values will be merged.
+		/// Ignores all <c>Node</c>s provided in this object (use <c>CreateRoot</c> for adding root nodes to a pipeline).
+		/// </remarks>
+		/// <param name="pipeline">An object with values that will be persisted.</param>
+		public async Task<Pipeline> CreatePipeline(Pipeline pipeline)
+		{
+			_logger.LogDebug("Creating pipeline {PipelineId}", pipeline.Id);
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var results = (await _graphClient.WithAnnotations<PipelineContext>().Tx.Cypher
+				.Merge(path => path.Pattern<Pipeline>("ppln").Constrain(ppl => ppl.Id == pipeline.Id))
+				.OnCreate()
+				.Set("ppln", () => pipeline)
+				.Return(ppln => ppln.As<Pipeline>())
+				.ResultsAsync).ToArray();
+
+			if (results.Length > 0)
+			{
+				_logger.LogInformation("Created pipeline {PipelineId}", pipeline.Id);
+			}
+
+			return results.FirstOrDefault();
+		}
+
+		public async Task CreateRootNode(Guid pipelineId, Node root)
+		{
+			_logger.LogDebug("Creating root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			// await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			// 	.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == pipelineId))
+			// 	.Create(path => path.Pattern((Pipeline pipeline) => pipeline.Root, "root")
+			// 		.Prop(null, () => root))
+			// 	.ExecuteWithoutResultsAsync();
+
+			// TODO: Merge this into a single db call using annotations
+			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Merge(path => path.Pattern<Node>("rootNode").Constrain(rootNode => rootNode.Id == root.Id))
+				.OnCreate()
+				.Set("rootNode", () => root)
+				.ExecuteWithoutResultsAsync();
+
+			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(path => path.Pattern<Node>("rootNode").Constrain(rootNode => rootNode.Id == root.Id))
+				.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == pipelineId))
+				.Create("(pipeline)-[r:HAS_ROOT_NODE]->(rootNode)")
+				.ExecuteWithoutResultsAsync();
+
+			_logger.LogInformation("Created root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
 		}
 	}
 }
