@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using PipelineService.Dao;
+using PipelineService.Dao.Impl;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
 
@@ -10,10 +10,10 @@ namespace PipelineService.Services.Impl
 {
     public class PipelinesDtoService : IPipelinesDtoService
     {
-        private readonly IPipelinesDao _pipelinesDao;
+        private readonly Neo4JPipelineDao _pipelinesDao;
         private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
 
-        public PipelinesDtoService(IPipelinesDao pipelinesDao, IPipelinesExecutionDao pipelinesExecutionDao)
+        public PipelinesDtoService(Neo4JPipelineDao pipelinesDao, IPipelinesExecutionDao pipelinesExecutionDao)
         {
             _pipelinesDao = pipelinesDao;
             _pipelinesExecutionDao = pipelinesExecutionDao;
@@ -21,28 +21,8 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples()
         {
-            var tuples = new List<NodeTupleSingleInput>();
-            var pipelines = await _pipelinesDao.GetDtos();
-            foreach (var pipelineInfoDto in pipelines)
-            {
-                tuples.AddRange(await GetSingleInputNodeTuples(pipelineInfoDto.Id));
-            }
-
-            return tuples;
-        }
-
-        public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples(Guid pipelineId)
-        {
-            var lastExecution = await _pipelinesExecutionDao.GetLastExecutionForPipeline(pipelineId);
-            if (lastExecution?.CompletedOn == null || lastExecution.Failed.Count > 0)
-            {
-                return new List<NodeTupleSingleInput>();
-            }
-
-            var pipeline = await _pipelinesDao.Get(pipelineId);
-            var tuples = new List<NodeTupleSingleInput>();
-            BuildSingleInputTuples(pipeline.Root, tuples);
-            return tuples.Distinct().ToList();
+	        // TODO: check if pipeline has been successfully executed
+            return await _pipelinesDao.GetTuplesSingleInput();
         }
 
         private static void BuildSingleInputTuples(

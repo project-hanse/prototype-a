@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Neo4jClient;
+using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
+using Node = PipelineService.Models.Pipeline.Node;
 
 namespace PipelineService.Dao.Impl
 {
@@ -27,6 +29,9 @@ namespace PipelineService.Dao.Impl
 			_logger.LogDebug("Setting up Neo4j database");
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			_graphClient.WithAnnotations<PipelineContext>().Cypher.CreateUniqueConstraint<Node>(n => n.Id);
+			_graphClient.WithAnnotations<PipelineContext>().Cypher.CreateUniqueConstraint<Pipeline>(n => n.Id);
 
 			_logger.LogInformation("Neo4j database setup complete");
 		}
@@ -231,6 +236,44 @@ namespace PipelineService.Dao.Impl
 				.ExecuteWithoutResultsAsync();
 
 			_logger.LogInformation("Made {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
+		}
+
+		public async Task<Pipeline> GetPipelineWithNodes(Guid pipelineId)
+		{
+			throw new NotImplementedException();
+		}
+
+		public async Task<IList<NodeTupleSingleInput>> GetTuplesSingleInput()
+		{
+			_logger.LogDebug("Loading all tuples of single input operations");
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var results = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+					.Match(path => path.Pattern<NodeSingleInput, NodeSingleInput>("node", "successor"))
+					.Return(() => new
+					{
+						node = Return.As<NodeSingleInput>("node"),
+						successor = Return.As<NodeSingleInput>("successor"),
+					})
+					.ResultsAsync)
+				.Select(tuple => new NodeTupleSingleInput
+				{
+					Description = $"{tuple.node.Operation} -> {tuple.successor.Operation}",
+					NodeId = tuple.node.Id,
+					DatasetHash = tuple.node.InputDatasetHash,
+					OperationId = tuple.node.OperationId,
+					Operation = tuple.node.Operation,
+					OperationConfiguration = tuple.node.OperationConfiguration,
+					TargetNodeId = tuple.successor.Id,
+					TargetOperation = tuple.successor.Operation,
+					TargetOperationId = tuple.successor.OperationId
+				})
+				.ToList();
+
+			_logger.LogInformation("Loaded {TupleCount} tuples of single input operations", results.Count);
+
+			return results;
 		}
 	}
 }

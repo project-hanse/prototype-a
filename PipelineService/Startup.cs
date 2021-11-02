@@ -66,7 +66,7 @@ namespace PipelineService
 
 			// Registering DAOs
 			services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
-			services.AddSingleton<IPipelinesDao, Neo4JPipelineDao>();
+			services.AddSingleton<IPipelinesDao, InMemoryPipelinesDao>();
 			services.AddSingleton<Neo4JPipelineDao>();
 
 			// Registering transient services

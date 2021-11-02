@@ -36,12 +36,12 @@ namespace PipelineService.UnitTests.Services
             var edgeMqttServiceMock = new Mock<EdgeEventBusService>();
             _edgeEventBusService = edgeMqttServiceMock.Object;
 
-            _pipelineExecutionService = new PipelinesExecutionService(
-                GeneralHelper.CreateLogger<PipelinesExecutionService>(),
-                _pipelinesDao,
-                _pipelinesExecutionDao,
-                _eventBusService,
-                _edgeEventBusService);
+            // _pipelineExecutionService = new PipelinesExecutionService(
+            //     GeneralHelper.CreateLogger<PipelinesExecutionService>(),
+            //     _pipelinesDao,
+            //     _pipelinesExecutionDao,
+            //     _eventBusService,
+            //     _edgeEventBusService);
         }
     }
 }
