@@ -11,7 +11,7 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao.Impl
 {
-	public class Neo4JPipelineDao : IPipelinesDao
+	public class Neo4JPipelineDao
 	{
 		private readonly ILogger<Neo4JPipelineDao> _logger;
 		private readonly IGraphClient _graphClient;
@@ -49,7 +49,7 @@ namespace PipelineService.Dao.Impl
 			return pipelines;
 		}
 
-		public async Task Add(Pipeline newPipeline)
+		private async Task Add(Pipeline newPipeline)
 		{
 			_logger.LogDebug("Adding pipeline {PipelineId}", newPipeline.Id);
 
@@ -59,29 +59,23 @@ namespace PipelineService.Dao.Impl
 
 			foreach (var rootNode in newPipeline.Root)
 			{
-				await CreateRootNode(newPipeline.Id, rootNode);
-				await CreateSuccessors(rootNode, rootNode.Successors);
+				await CreateRootNodeGetType(newPipeline.Id, rootNode);
+				await CreateSuccessorsGetType(rootNode, rootNode.Successors);
 			}
 
 			_logger.LogInformation("Added pipeline {PipelineId} to database", newPipeline.Id);
 		}
 
-		private async Task CreateSuccessors<TP, TS>(TP node, IEnumerable<TS> successors) where TP : Node where TS : Node
+		/// <summary>
+		/// Helper method for creating successors for default pipelines.
+		/// </summary>
+		private async Task CreateSuccessorsGetType<TP>(TP node, IEnumerable<Node> successors) where TP : Node
 		{
 			foreach (var successor in successors)
 			{
-				await CreateSuccessor<TP, TS>(node.Id, successor);
-				await CreateSuccessors(successor, successor.Successors);
+				await CreateSuccessorGetType<TP>(node.Id, successor);
+				await CreateSuccessorsGetType(successor, successor.Successors);
 			}
-		}
-
-		public async Task<Pipeline> Get(Guid pipelineId)
-		{
-			_logger.LogDebug("Getting pipeline {PipelineId}", pipelineId);
-
-			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
-
-			throw new NotImplementedException();
 		}
 
 		public async Task<PipelineInfoDto> GetInfoDto(Guid pipelineId)
@@ -109,11 +103,6 @@ namespace PipelineService.Dao.Impl
 			return pipeline;
 		}
 
-		public Task<IList<Pipeline>> Get()
-		{
-			throw new NotImplementedException();
-		}
-
 		public async Task<IList<PipelineInfoDto>> GetDtos()
 		{
 			_logger.LogDebug("Getting all pipeline dtos");
@@ -130,11 +119,6 @@ namespace PipelineService.Dao.Impl
 
 			_logger.LogInformation("Loaded {PipelineCount} pipeline dtos", pipelineInfoDtos.Count);
 			return pipelineInfoDtos;
-		}
-
-		public Task<Pipeline> Update(Pipeline pipeline)
-		{
-			throw new NotImplementedException();
 		}
 
 		/// <summary>
@@ -164,6 +148,20 @@ namespace PipelineService.Dao.Impl
 			}
 		}
 
+		/// <summary>
+		/// Helper for creating defaults.
+		/// </summary>
+		private async Task CreateRootNodeGetType(Guid pipelineId, Node node)
+		{
+			if (node.GetType() == typeof(NodeSingleInput))
+				await CreateRootNode(pipelineId, (NodeSingleInput)node);
+			else if (node.GetType() == typeof(NodeDoubleInput))
+				await CreateRootNode(pipelineId, (NodeDoubleInput)node);
+			else if (node.GetType() == typeof(NodeFileInput))
+				await CreateRootNode(pipelineId, (NodeFileInput)node);
+			else throw new InvalidOperationException($"Type {nameof(Node)} not supported");
+		}
+
 		public async Task CreateRootNode<TN>(Guid pipelineId, TN root) where TN : Node
 		{
 			_logger.LogDebug("Creating root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
@@ -190,6 +188,20 @@ namespace PipelineService.Dao.Impl
 				.ExecuteWithoutResultsAsync();
 
 			_logger.LogInformation("Created root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
+		}
+
+		/// <summary>
+		/// Helper for creating defaults.
+		/// </summary>
+		private async Task CreateSuccessorGetType<TP>(Guid predecessorId, Node successor) where TP : Node
+		{
+			if (successor.GetType() == typeof(NodeSingleInput))
+				await CreateSuccessor<TP, NodeSingleInput>(predecessorId, (NodeSingleInput)successor);
+			else if (successor.GetType() == typeof(NodeDoubleInput))
+				await CreateSuccessor<TP, NodeDoubleInput>(predecessorId, (NodeDoubleInput)successor);
+			else if (successor.GetType() == typeof(NodeFileInput))
+				await CreateSuccessor<TP, NodeFileInput>(predecessorId, (NodeFileInput)successor);
+			else throw new InvalidOperationException($"Type {nameof(Node)} not supported");
 		}
 
 		public async Task CreateSuccessor<TP, TS>(Guid predecessorId, TS successor) where TP : Node where TS : Node
