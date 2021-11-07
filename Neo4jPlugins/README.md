@@ -2,7 +2,7 @@
 
 **Based on https://github.com/neo4j-examples/neo4j-procedure-template.**
 
-This project is an example you can use to build user defined procedures, functions and aggregation functions in Neo4j.
+This project is an hanse you can use to build user defined procedures, functions and aggregation functions in Neo4j.
 It contains two procedures, for reading and updating a full-text index.
 
 To try this out, simply clone this repository and have a look at the source and test code (including Test-Server-Setup).
@@ -14,36 +14,36 @@ This project requires a Neo4j {branch}.x dependency.
 
 The user defined procedure allows you to get the incoming and outgoing relationships for a given node.
 
-See link:{root}/main/java/example/GetRelationshipTypes.java[`GetRelationshipTypes.java`] and the link:
-{root}/test/java/example/GetRelationshipTypesTests.java[`GetRelationshipTypesTests.java`].
+See link:{root}/main/java/hanse/GetRelationshipTypes.java[`GetRelationshipTypes.java`] and the link:
+{root}/test/java/hanse/GetRelationshipTypesTests.java[`GetRelationshipTypesTests.java`].
 
 ```cypher
 MATCH (n:Person)
-CALL example.getRelationshipTypes(n);
+CALL hanse.getRelationshipTypes(n);
 ```
 
 ### User Defined Function
 
 The user defined function is a simple join function that joins a list of strings using a delimiter.
 
-See link:{root}/main/java/example/Join.java[`Join.java`] and the link:
-{root}/test/java/example/JoinTest.java[`JoinTest.java`].
+See link:{root}/main/java/hanse/Join.java[`Join.java`] and the link:
+{root}/test/java/hanse/JoinTest.java[`JoinTest.java`].
 
 ```cypher
-RETURN example.join(['A','quick','brown','fox'],' ') as sentence
+RETURN hanse.join(['A','quick','brown','fox'],' ') as sentence
 ```
 
 === User Defined Aggregation Function
 
-The aggregation function `example.last` returns the last row of an aggregation.
+The aggregation function `hanse.last` returns the last row of an aggregation.
 
 ```cypher
 MATCH (n:Person)
-WITH n ORDER BY n.born RETURN n.born, example.last(n) as last
+WITH n ORDER BY n.born RETURN n.born, hanse.last(n) as last
 ```
 
-See link:{root}/main/java/example/Last.java[`Last.java`] and the link:
-{root}/test/java/example/LastTest.java[`LastTest.java`].
+See link:{root}/main/java/hanse/Last.java[`Last.java`] and the link:
+{root}/test/java/hanse/LastTest.java[`LastTest.java`].
 
 ## Building
 

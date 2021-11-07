@@ -1,4 +1,4 @@
-package example;
+package hanse;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,6 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.harness.Neo4j;
 import org.neo4j.harness.Neo4jBuilders;
-
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,14 +32,14 @@ public class LastTest {
     public void shouldAllowReturningTheLastValue() {
 
         // This is in a try-block, to make sure we close the driver after the test
-        try(Driver driver = GraphDatabase.driver(embeddedDatabaseServer.boltURI(), driverConfig);
-            Session session = driver.session()) {
+        try (Driver driver = GraphDatabase.driver(embeddedDatabaseServer.boltURI(), driverConfig);
+             Session session = driver.session()) {
 
             // When
-            Long result = session.run( "UNWIND range(1,10) as value RETURN example.last(value) AS last").single().get("last").asLong();
+            Long result = session.run("UNWIND range(1,10) as value RETURN hanse.last(value) AS last").single().get("last").asLong();
 
             // Then
-            assertThat(result).isEqualTo( 10L );
+            assertThat(result).isEqualTo(10L);
         }
     }
 }

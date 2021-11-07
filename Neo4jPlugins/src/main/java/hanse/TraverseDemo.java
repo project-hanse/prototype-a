@@ -1,4 +1,4 @@
-package example;
+package hanse;
 
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;

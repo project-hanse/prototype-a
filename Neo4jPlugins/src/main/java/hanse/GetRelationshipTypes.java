@@ -1,4 +1,4 @@
-package example;
+package hanse;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -31,7 +31,7 @@ public class GetRelationshipTypes {
      * @param node The node to get the relationships for
      * @return A RelationshipTypes instance with the relations (incoming and outgoing) for a given node.
      */
-    @Procedure(value = "example.getRelationshipTypes")
+    @Procedure(value = "hanse.getRelationshipTypes")
     @Description("Get the different relationships going in and out of a node.")
     public Stream<RelationshipTypes> getRelationshipTypes(@Name("node") Node node) {
         List<String> outgoing = new ArrayList<>();

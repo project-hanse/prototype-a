@@ -1,4 +1,4 @@
-package example;
+package hanse;
 
 import org.neo4j.procedure.*;
 
@@ -7,8 +7,8 @@ import org.neo4j.procedure.*;
  */
 public class Last {
 
-    @UserAggregationFunction("example.last")
-    @Description("example.last(value) - returns last non-null row")
+    @UserAggregationFunction("hanse.last")
+    @Description("hanse.last(value) - returns last non-null row")
     public LastFunction last() {
         return new LastFunction();
     }

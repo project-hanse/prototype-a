@@ -1,4 +1,4 @@
-package example;
+package hanse;
 
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -12,7 +12,7 @@ import java.util.List;
 public class Join {
 
     @UserFunction
-    @Description("example.join(['s1','s2',...], delimiter) - join the given strings with the given delimiter.")
+    @Description("hanse.join(['s1','s2',...], delimiter) - join the given strings with the given delimiter.")
     public String join(
             @Name("strings") List<String> strings,
             @Name(value = "delimiter", defaultValue = ",") String delimiter) {

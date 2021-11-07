@@ -1,4 +1,4 @@
-package example;
+package hanse;
 
 import org.junit.jupiter.api.*;
 import org.neo4j.driver.*;
@@ -21,12 +21,12 @@ public class GetRelationshipTypesTests {
                 .withProcedure(GetRelationshipTypes.class)
                 .build();
 
-        this.driver = GraphDatabase.driver(embeddedDatabaseServer.boltURI(), driverConfig);
+        driver = GraphDatabase.driver(embeddedDatabaseServer.boltURI(), driverConfig);
     }
 
     @AfterAll
     void closeDriver() {
-        this.driver.close();
+        driver.close();
         this.embeddedDatabaseServer.close();
     }
 
@@ -52,7 +52,7 @@ public class GetRelationshipTypesTests {
             session.run(String.format("CREATE (:Person)-[:%s]->(:Movie {id:1})-[:%s]->(:Person)", expectedIncoming, expectedOutgoing));
 
             //Execute our procedure against it.
-            Record record = session.run("MATCH (u:Movie {id:1}) CALL example.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
+            Record record = session.run("MATCH (u:Movie {id:1}) CALL hanse.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
 
             //Get the incoming / outgoing relationships from the result
             assertThat(record.get("incoming").asList(x -> x.asString())).containsOnly(expectedIncoming);
@@ -72,7 +72,7 @@ public class GetRelationshipTypesTests {
             session.run(String.format("CREATE (:Person)-[:%s]->(:Movie {id:1})<-[:%s]-(:Person)", expectedIncoming, expectedIncoming));
             session.run(String.format("MATCH (m:Movie {id:1}) CREATE (:Person)<-[:%s]-(m)-[:%s]->(:Person)", expectedOutgoing, expectedOutgoing));
 
-            Record record = session.run("MATCH (u:Movie {id:1}) CALL example.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
+            Record record = session.run("MATCH (u:Movie {id:1}) CALL hanse.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
 
             assertThat(record.get("incoming").asList(x -> x.asString())).containsOnly(expectedIncoming);
             assertThat(record.get("outgoing").asList(x -> x.asString())).containsOnly(expectedOutgoing);
@@ -93,7 +93,7 @@ public class GetRelationshipTypesTests {
             session.run(String.format("CREATE (:Person)-[:%s]->(:Movie {id:1})", expectedIncoming));
 
             //Execute our procedure against it.
-            Record record = session.run("MATCH (u:Movie {id:1}) CALL example.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
+            Record record = session.run("MATCH (u:Movie {id:1}) CALL hanse.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
 
             //Get the incoming / outgoing relationships from the result
             assertThat(record.get("incoming").asList(x -> x.asString())).containsOnly(expectedIncoming);
@@ -113,7 +113,7 @@ public class GetRelationshipTypesTests {
             session.run("CREATE (:Movie {id:1})");
 
             //Execute our procedure against it.
-            Record record = session.run("MATCH (u:Movie {id:1}) CALL example.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
+            Record record = session.run("MATCH (u:Movie {id:1}) CALL hanse.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
 
             //Get the incoming / outgoing relationships from the result
             assertThat(record.get("incoming").asList(x -> x.asString())).isEmpty();
@@ -135,7 +135,7 @@ public class GetRelationshipTypesTests {
             session.run(String.format("CREATE (:Movie {id:1})-[:%s]->(:Person)", expectedOutgoing));
 
             //Execute our procedure against it.
-            Record record = session.run("MATCH (u:Movie {id:1}) CALL example.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
+            Record record = session.run("MATCH (u:Movie {id:1}) CALL hanse.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
 
             //Get the incoming / outgoing relationships from the result
             assertThat(record.get("incoming").asList(x -> x.asString())).isEmpty();
@@ -149,7 +149,7 @@ public class GetRelationshipTypesTests {
     @Test
     public void shouldReturnEmptyStreamIfInputNodeIsNull() {
         try (Session session = driver.session()) {
-            Result result = session.run("MATCH (u:Movie {id:1}) CALL example.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming");
+            Result result = session.run("MATCH (u:Movie {id:1}) CALL hanse.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming");
             assertThat(result.hasNext()).isFalse();
         }
     }
@@ -172,7 +172,7 @@ public class GetRelationshipTypesTests {
             session.run(String.format("MATCH (m:Movie {id:1}) CREATE (:Person)<-[:%s]-(m)-[:%s]->(:Person)", expectedOutgoing_1, expectedOutgoing_2));
 
             //Execute our procedure against it.
-            Record record = session.run("MATCH (u:Movie {id:1}) CALL example.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
+            Record record = session.run("MATCH (u:Movie {id:1}) CALL hanse.getRelationshipTypes(u) YIELD outgoing, incoming RETURN outgoing, incoming").single();
 
             assertThat(record.get("incoming").asList(x -> x.asString())).containsOnly(expectedIncoming_1, expectedIncoming_2);
             assertThat(record.get("outgoing").asList(x -> x.asString())).containsOnly(expectedOutgoing_1, expectedOutgoing_2);
