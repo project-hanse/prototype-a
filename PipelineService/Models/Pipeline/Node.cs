@@ -6,9 +6,9 @@ using Newtonsoft.Json;
 namespace PipelineService.Models.Pipeline
 {
 	/// <summary>
-	/// A <code>Node</code> is part of a pipeline.
-	/// A <code>Node</code> describes an operation performed on one or more input datasets and produces one dataset.
-	/// A <code>Node</code> can have no, one or multiple successor Blocks.
+	/// A <c>Node</c> is part of a pipeline.
+	/// A <c>Node</c> describes an operation performed on one or more input datasets and produces one dataset.
+	/// A <c>Node</c> can have no, one or multiple successor Blocks.
 	/// </summary>
 	[Table(nameof(Node))]
 	public abstract record Node : BasePersistentModel

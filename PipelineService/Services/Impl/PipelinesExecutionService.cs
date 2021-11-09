@@ -48,45 +48,14 @@ namespace PipelineService.Services.Impl
 
         public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
         {
-            var pipeline = await _pipelinesDao.GetPipelineWithNodes(pipelineId);
-            if (pipeline == null)
+            var dto = await _pipelinesDao.GetVisDto(pipelineId);
+            if (dto == null)
             {
                 _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
                 return null;
             }
 
-            var visDto = new PipelineVisualizationDto
-            {
-                PipelineId = pipeline.Id,
-                PipelineName = pipeline.Name
-            };
-
-            BuildArrays(visDto.Nodes, visDto.Edges, pipeline.Root);
-
-            return visDto;
-        }
-
-        private static void BuildArrays(IList<VisNode> nodesArray,
-            IList<VisEdge> edgesArray,
-            IList<Node> nodes,
-            Guid? parentId = null)
-        {
-            foreach (var node in nodes)
-            {
-                if (parentId.HasValue)
-                {
-                    // establish edge between this node and parent node
-                    edgesArray.Add(new VisEdge { Id = Guid.NewGuid(), From = parentId, To = node.Id });
-                }
-
-                // check that nodes are not added multiple times
-                if (nodesArray.FirstOrDefault(n => n.Id == node.Id) == default)
-                {
-                    nodesArray.Add(new VisNode { Id = node.Id, Label = node.Operation });
-                    // recursive call to all children
-                    BuildArrays(nodesArray, edgesArray, node.Successors, node.Id);
-                }
-            }
+            return dto;
         }
 
         public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
@@ -97,14 +66,14 @@ namespace PipelineService.Services.Impl
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
         {
             _logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
-            var pipeline = await _pipelinesDao.GetPipelineWithNodes(pipelineId);
+            // var pipeline = await _pipelinesDao.GetPipelineWithNodes(pipelineId);
+            //
+            // if (pipeline == null)
+            // {
+            //     throw new NotFoundException("No pipeline with provided id found");
+            // }
 
-            if (pipeline == null)
-            {
-                throw new NotFoundException("No pipeline with provided id found");
-            }
-
-            var execution = await _pipelinesExecutionDao.Create(pipeline);
+            var execution = await _pipelinesExecutionDao.Create(pipelineId);
 
             await EnqueueNextNodes(execution, pipelineId);
 

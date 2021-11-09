@@ -55,7 +55,10 @@ namespace PipelineService
 				Configuration.GetValueOrThrow<Uri>("NeoServerConfiguration:RootUri"),
 				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Username"),
 				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Password")
-			));
+			)
+			{
+				DefaultDatabase = Configuration.GetValue("NeoServerConfiguration:DefaultDatabase", "neo4j")
+			});
 
 			services.AddNeo4jAnnotations<PipelineContext>();
 

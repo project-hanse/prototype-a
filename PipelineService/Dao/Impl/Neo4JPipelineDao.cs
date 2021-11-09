@@ -189,7 +189,7 @@ namespace PipelineService.Dao.Impl
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
 				.Match(path => path.Pattern<TN>("rootNode").Constrain(rootNode => rootNode.Id == root.Id))
 				.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == pipelineId))
-				.CreateUnique("(pipeline)-[r:HAS_ROOT_NODE]->(rootNode)")
+				.Merge("(pipeline)-[r:HAS_ROOT_NODE]->(rootNode)")
 				.ExecuteWithoutResultsAsync();
 
 			_logger.LogInformation("Created root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
@@ -232,16 +232,45 @@ namespace PipelineService.Dao.Impl
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
 				.Match(path => path.Pattern<TP>("predNode").Constrain(predNode => predNode.Id == predecessorId))
 				.Match(path => path.Pattern<TS>("sucNode").Constrain(sucNode => sucNode.Id == successor.Id))
-				.CreateUnique("(predNode)-[r:HAS_SUCCESSOR]->(sucNode)")
+				.Merge("(predNode)-[r:HAS_SUCCESSOR]->(sucNode)")
 				.ExecuteWithoutResultsAsync();
 
 			_logger.LogInformation("Made {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
 		}
-
-		public async Task<Pipeline> GetPipelineWithNodes(Guid pipelineId)
-		{
-			throw new NotImplementedException();
-		}
+		//
+		// public async Task<Pipeline> GetPipelineWithNodes(Guid pipelineId)
+		// {
+		// 	if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+		//
+		// 	var pipeline = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+		// 		.Match(path => path.Pattern<Pipeline>("pipeline"))
+		// 		.Return(pipeline => pipeline.As<Pipeline>())
+		// 		.ResultsAsync).FirstOrDefault();
+		//
+		// 	if (pipeline == null)
+		// 	{
+		// 		_logger.LogInformation("No pipeline with id {IdNotFound} found", pipelineId);
+		// 		return null;
+		// 	}
+		//
+		// 	foreach (var rootNode in await _graphClient.WithAnnotations<PipelineContext>().Cypher
+		// 		.Match("(ppln:Pipeline)-[:HAS_ROOT_NODE]->(node)")
+		// 		.Where((Pipeline ppln) => ppln.Id == pipelineId)
+		// 		.Return(node => node.As<NodeSingleInput>()).ResultsAsync)
+		// 	{
+		// 		pipeline.Root.Add(rootNode);
+		//
+		// 		foreach (var successor in await _graphClient.WithAnnotations<PipelineContext>().Cypher
+		// 			.Match("(node:Node)-[:HAS_SUCCESSOR]->(successor:Node)")
+		// 			.Where((Node node) => node.Id == rootNode.Id)
+		// 			.Return(() => Return.As<NodeSingleInput>("successor")).ResultsAsync)
+		// 		{
+		// 			rootNode.Successors.Add(successor);
+		// 		}
+		// 	}
+		//
+		// 	return pipeline;
+		// }
 
 		public async Task<IList<NodeTupleSingleInput>> GetTuplesSingleInput()
 		{
@@ -274,6 +303,48 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Loaded {TupleCount} tuples of single input operations", results.Count);
 
 			return results;
+		}
+
+		public async Task<PipelineVisualizationDto> GetVisDto(Guid pipelineId)
+		{
+			_logger.LogDebug("Loading pipeline {PipelineId} for visualization", pipelineId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var infoDto = await GetInfoDto(pipelineId);
+			if (infoDto == null)
+			{
+				return null;
+			}
+
+			var dto = new PipelineVisualizationDto
+			{
+				PipelineId = infoDto.Id,
+				PipelineName = infoDto.Name
+			};
+
+			var results = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+					.Match(path => path.Pattern<Node, Node>("node", "successor"))
+					.Where((Node node, Node successor) => node.PipelineId == pipelineId && successor.PipelineId == pipelineId)
+					.Return(() => new
+					{
+						NodeId = Return.As<Guid>("node.Id"),
+						NodeOperation = Return.As<string>("node.Operation"),
+						SuccessorId = Return.As<Guid>("successor.Id"),
+						SuccessorOperation = Return.As<string>("successor.Operation")
+					})
+					.ResultsAsync
+				).ToArray();
+
+			foreach (var result in results)
+			{
+				dto.Nodes.Add(new VisNode { Id = result.NodeId, Label = result.NodeOperation });
+				dto.Nodes.Add(new VisNode { Id = result.SuccessorId, Label = result.SuccessorOperation });
+				dto.Edges.Add(new VisEdge { Id = Guid.NewGuid(), From = result.NodeId, To = result.SuccessorId });
+			}
+
+			_logger.LogInformation("Loaded pipeline {PipelineId} for visualization", pipelineId);
+			return dto;
 		}
 	}
 }

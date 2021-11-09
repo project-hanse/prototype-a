@@ -26,7 +26,8 @@ namespace PipelineService.Services.HealthChecks
 		{
 			if (!_graphClient.IsConnected)
 			{
-				_logger.LogDebug("Connecting to neo4j for health check");
+				_logger.LogDebug("Connecting to neo4j database '{Neo4JDefaultDatabase}' for health check",
+					_graphClient.DefaultDatabase);
 				await _graphClient.ConnectAsync();
 			}
 
