@@ -75,11 +75,10 @@ namespace PipelineService.Dao.Impl
 					PipelineId = Return.As<Guid>("n.PipelineId"),
 					Level = Return.As<int>("n._level"),
 					Name = Return.As<string>("n.Operation")
-				});
+				})
+				.OrderByDescending("n._level");
 
-			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync)
-				.OrderBy(r => r.Level)
-				.ToList();
+			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync).ToList();
 
 			foreach (var nodeExecutionRecord in nodeExecutionRecords)
 			{

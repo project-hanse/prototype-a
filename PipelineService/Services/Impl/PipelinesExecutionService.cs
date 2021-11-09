@@ -254,9 +254,9 @@ namespace PipelineService.Services.Impl
         /// TODO: This method must become thread safe (case: multiple node finish execution at the same time -> when updating data might get lost).
         /// </summary>
         /// <param name="executionId">The execution's id a node has been executed in.</param>
-        /// <param name="blockId">The node that will be moved from status in execution to executed.</param>
+        /// <param name="nodeId">The node that will be moved from status in execution to executed.</param>
         /// <returns>True if there are still blocks in status in_execution.</returns>
-        private async Task<bool> MarkNodeAsExecuted(Guid executionId, Guid blockId)
+        private async Task<bool> MarkNodeAsExecuted(Guid executionId, Guid nodeId)
         {
             PipelineExecutionRecord execution;
             try
@@ -268,7 +268,7 @@ namespace PipelineService.Services.Impl
                 throw new InvalidOperationException("Can not move node for non existent execution", e);
             }
 
-            var block = execution.InExecution.FirstOrDefault(b => b.NodeId == blockId);
+            var block = execution.InExecution.FirstOrDefault(b => b.NodeId == nodeId);
 
             if (block == null)
             {
@@ -277,7 +277,7 @@ namespace PipelineService.Services.Impl
 
             _logger.LogDebug(
                 "Moving node {NodeId} in execution {ExecutionId} from status in_execution to executed",
-                blockId, executionId);
+                nodeId, executionId);
 
             block.ExecutionCompletedAt = DateTime.UtcNow;
 
