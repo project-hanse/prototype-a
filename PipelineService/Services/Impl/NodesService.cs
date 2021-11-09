@@ -171,7 +171,7 @@ namespace PipelineService.Services.Impl
             return FindNodeOrDefault(nodeId, await _pipelinesDao.Get(pipelineId)).ResultKey;
         }
 
-        public async Task<Dictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
+        public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
         {
             var node = await FindNodeOrDefault(pipelineId, nodeId);
             if (node == null)

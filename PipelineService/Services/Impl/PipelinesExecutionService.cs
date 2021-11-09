@@ -121,20 +121,6 @@ namespace PipelineService.Services.Impl
                 blockExecutionRecord = executionRecord.Failed.FirstOrDefault(b => b.NodeId == response.NodeId);
             }
 
-            string resultKey = null;
-            switch (blockExecutionRecord?.Node)
-            {
-                case NodeFileInput fileInput:
-                    resultKey = fileInput.ResultKey;
-                    break;
-                case NodeSingleInput singleInputNode:
-                    resultKey = singleInputNode.ResultKey;
-                    break;
-                case NodeDoubleInput doubleInputNode:
-                    resultKey = doubleInputNode.ResultKey;
-                    break;
-            }
-
             await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
                 new FrontendExecutionNotification
                 {
@@ -150,7 +136,7 @@ namespace PipelineService.Services.Impl
                     NodesInExecution = executionRecord.InExecution.Count,
                     NodesToBeExecuted = executionRecord.ToBeExecuted.Count,
                     NodesFailedToExecute = executionRecord.Failed.Count,
-                    ResultDatasetKey = resultKey
+                    ResultDatasetKey = blockExecutionRecord?.ResultKey
                 });
         }
 
@@ -163,7 +149,7 @@ namespace PipelineService.Services.Impl
 
             foreach (var block in toBeEnqueued)
             {
-                await EnqueueNode(execution.Id, block);
+                await EnqueueNode(execution.Id, block.NodeId);
             }
         }
 
@@ -177,7 +163,7 @@ namespace PipelineService.Services.Impl
         /// <param name="executionId">The execution's id.</param>
         /// <param name="pipelineId">The pipeline that is being executed.</param>
         /// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
-        private async Task<IList<Node>> SelectNextNodes(Guid executionId, Guid pipelineId)
+        private async Task<List<NodeExecutionRecord>> SelectNextNodes(Guid executionId, Guid pipelineId)
         {
             PipelineExecutionRecord executionRecord;
             try
@@ -198,13 +184,13 @@ namespace PipelineService.Services.Impl
             if (executionRecord.InExecution.Count != 0)
             {
                 _logger.LogInformation("Blocks in execution -> no blocks can be selected");
-                return new List<Node>();
+                return new List<NodeExecutionRecord>();
             }
 
             if (executionRecord.ToBeExecuted.Count == 0)
             {
                 _logger.LogInformation("No more blocks to execute");
-                return new List<Node>();
+                return new List<NodeExecutionRecord>();
             }
 
             var currentLevel = executionRecord.ToBeExecuted[0].Level;
@@ -227,18 +213,17 @@ namespace PipelineService.Services.Impl
                 executionRecord.InExecution.Add(nextBlock);
             }
 
-            return nextBlocks
-                .Select(b => b.Node)
-                .ToList();
+            return nextBlocks;
         }
 
         /// <summary>
         /// Enqueues a node to be executed by the appropriate worker.
         /// </summary>
         /// <param name="executionId">The execution this node belongs to.</param>
-        /// <param name="node">The node to be executed.</param>
-        private async Task EnqueueNode(Guid executionId, Node node)
+        /// <param name="nodeId">The node to be executed.</param>
+        private async Task EnqueueNode(Guid executionId, Guid nodeId)
         {
+	        	var node = await _pipelinesDao.GetNode(nodeId);
             _logger.LogInformation("Enqueuing node ({NodeId}) with operation {Operation}", node.Id, node.Operation);
 
             NodeExecutionRequest request;
@@ -334,18 +319,13 @@ namespace PipelineService.Services.Impl
             execution.InExecution.Remove(block);
             execution.Failed.Add(block);
 
-            _logger.LogDebug("Moving all operations following failed to operation to failed state");
-
-            var successorIds = GetAllSuccessorIds(block.Node.Successors);
-            var failedBlocks = execution.ToBeExecuted
-                .Where(e => successorIds.Contains(e.NodeId))
-                .ToList();
-
-            foreach (var failedBlock in failedBlocks)
+            _logger.LogDebug("Moving all enqueued operations to failed state");
+            // Optimization: Only move enqueued execution operations records to failed state if they depend on the failed execution (see implementations before 2021/11/09).
+            foreach (var failedBlock in execution.ToBeExecuted)
             {
-                execution.ToBeExecuted.Remove(failedBlock);
                 execution.Failed.Add(failedBlock);
             }
+            execution.ToBeExecuted.Clear();
 
             CheckIfCompleted(execution);
 

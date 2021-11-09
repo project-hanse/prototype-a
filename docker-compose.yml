@@ -83,7 +83,7 @@ services:
 
   # S3 Bucket
   localstack-s3:
-    image: localstack/localstack:0.12.18
+    image: localstack/localstack:0.12.20
     environment:
       - SERVICES=s3
       - DEFAULT_REGION=eu-west-2

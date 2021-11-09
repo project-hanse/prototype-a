@@ -43,7 +43,13 @@ namespace PipelineService.Models.Pipeline
 		/// The configuration of the operation (usually corresponds to function parameters).
 		/// </summary>
 		[JsonIgnore]
-		public Dictionary<string, string> OperationConfiguration { get; set; } = new Dictionary<string, string>();
+		public IDictionary<string, string> OperationConfiguration
+		{
+			get => JsonConvert.DeserializeObject<Dictionary<string, string>>(OperationConfigurationSerialized);
+			set => OperationConfigurationSerialized = JsonConvert.SerializeObject(value);
+		}
+
+		public string OperationConfigurationSerialized { get; set; } = "{}";
 
 		public abstract string ResultKey { get; }
 

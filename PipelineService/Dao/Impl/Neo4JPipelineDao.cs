@@ -237,40 +237,51 @@ namespace PipelineService.Dao.Impl
 
 			_logger.LogInformation("Made {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
 		}
-		//
-		// public async Task<Pipeline> GetPipelineWithNodes(Guid pipelineId)
-		// {
-		// 	if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
-		//
-		// 	var pipeline = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
-		// 		.Match(path => path.Pattern<Pipeline>("pipeline"))
-		// 		.Return(pipeline => pipeline.As<Pipeline>())
-		// 		.ResultsAsync).FirstOrDefault();
-		//
-		// 	if (pipeline == null)
-		// 	{
-		// 		_logger.LogInformation("No pipeline with id {IdNotFound} found", pipelineId);
-		// 		return null;
-		// 	}
-		//
-		// 	foreach (var rootNode in await _graphClient.WithAnnotations<PipelineContext>().Cypher
-		// 		.Match("(ppln:Pipeline)-[:HAS_ROOT_NODE]->(node)")
-		// 		.Where((Pipeline ppln) => ppln.Id == pipelineId)
-		// 		.Return(node => node.As<NodeSingleInput>()).ResultsAsync)
-		// 	{
-		// 		pipeline.Root.Add(rootNode);
-		//
-		// 		foreach (var successor in await _graphClient.WithAnnotations<PipelineContext>().Cypher
-		// 			.Match("(node:Node)-[:HAS_SUCCESSOR]->(successor:Node)")
-		// 			.Where((Node node) => node.Id == rootNode.Id)
-		// 			.Return(() => Return.As<NodeSingleInput>("successor")).ResultsAsync)
-		// 		{
-		// 			rootNode.Successors.Add(successor);
-		// 		}
-		// 	}
-		//
-		// 	return pipeline;
-		// }
+
+		public async Task<Node> GetNode(Guid nodeId)
+		{
+			_logger.LogDebug("Loading node {NodeId} (autoresolving type)", nodeId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var labels = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				             .Match(path => path.Pattern<Node>("n").Constrain(node => node.Id == nodeId))
+				             .Return(() => Return.As<List<string>>("distinct labels(n)")).ResultsAsync).FirstOrDefault() ??
+			             new List<string>();
+
+			if (labels.Contains(nameof(NodeFileInput)))
+			{
+				return await GetNode<NodeFileInput>(nodeId);
+			}
+
+			if (labels.Contains(nameof(NodeSingleInput)))
+			{
+				return await GetNode<NodeSingleInput>(nodeId);
+			}
+
+			if (labels.Contains(nameof(NodeDoubleInput)))
+			{
+				return await GetNode<NodeDoubleInput>(nodeId);
+			}
+
+			throw new InvalidOperationException($"Autoresolving type {nameof(Node)} not supported");
+		}
+
+		public async Task<T> GetNode<T>(Guid nodeId) where T : Node
+		{
+			_logger.LogDebug("Loading node {NodeId}", nodeId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var node = await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(path => path.Pattern<T>("node").Constrain(node => node.Id == nodeId))
+				.Return<T>("node")
+				.ResultsAsync;
+
+			_logger.LogInformation("Loaded node {NodeId}", nodeId);
+
+			return node.FirstOrDefault();
+		}
 
 		public async Task<IList<NodeTupleSingleInput>> GetTuplesSingleInput()
 		{
@@ -338,8 +349,10 @@ namespace PipelineService.Dao.Impl
 
 			foreach (var result in results)
 			{
-				dto.Nodes.Add(new VisNode { Id = result.NodeId, Label = result.NodeOperation });
-				dto.Nodes.Add(new VisNode { Id = result.SuccessorId, Label = result.SuccessorOperation });
+				if (dto.Nodes.All(n => n.Id != result.NodeId))
+					dto.Nodes.Add(new VisNode { Id = result.NodeId, Label = result.NodeOperation });
+				if (dto.Nodes.All(n => n.Id != result.SuccessorId))
+					dto.Nodes.Add(new VisNode { Id = result.SuccessorId, Label = result.SuccessorOperation });
 				dto.Edges.Add(new VisEdge { Id = Guid.NewGuid(), From = result.NodeId, To = result.SuccessorId });
 			}
 

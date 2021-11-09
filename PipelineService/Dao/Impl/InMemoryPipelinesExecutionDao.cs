@@ -40,7 +40,7 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var request = _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var partitionRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
 				.Match("(n:Node)")
 				.Where("n.PipelineId=$pipeline_id").WithParam("pipeline_id", pipelineId)
 				.AndWhere("NOT (n)-[:HAS_SUCCESSOR]->()")
@@ -53,9 +53,9 @@ namespace PipelineService.Dao.Impl
 					VisitedStamp = Return.As<string>("visitedStamp")
 				});
 
-			_logger.LogDebug("Cypher Request: {CypherRequest}", request.Query.DebugQueryText);
+			_logger.LogDebug("Cypher Request: {CypherRequest}", partitionRequest.Query.DebugQueryText);
 
-			var partitionResult = (await request.ResultsAsync).FirstOrDefault();
+			var partitionResult = (await partitionRequest.ResultsAsync).FirstOrDefault();
 			if (partitionResult == null)
 			{
 				throw new NullReferenceException(
@@ -65,8 +65,28 @@ namespace PipelineService.Dao.Impl
 			_logger.LogDebug("Partitioned graph of pipeline {PipelineId} into {PartitionCount} partitions",
 				pipelineId, partitionResult.MaxLevel);
 
+			var executionRecordsRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match("(n:Node)")
+				.Where("n._visited=$visited_stamp").WithParam("visited_stamp", partitionResult.VisitedStamp)
+				.Return(() => new NodeExecutionRecord
+				{
+					ResultKey = Return.As<string>("n.ResultKey"),
+					NodeId = Return.As<Guid>("n.Id"),
+					PipelineId = Return.As<Guid>("n.PipelineId"),
+					Level = Return.As<int>("n._level"),
+					Name = Return.As<string>("n.Operation")
+				});
 
-			// TODO query predecessors
+			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync)
+				.OrderBy(r => r.Level)
+				.ToList();
+
+			foreach (var nodeExecutionRecord in nodeExecutionRecords)
+			{
+				nodeExecutionRecord.Level = partitionResult.MaxLevel - nodeExecutionRecord.Level;
+			}
+
+			executionRecord.ToBeExecuted = nodeExecutionRecords;
 
 			Store.Add(executionRecord.Id, executionRecord);
 

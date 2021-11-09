@@ -41,7 +41,6 @@ namespace PipelineService.Helper
             {
                 PipelineId = node.PipelineId,
                 NodeId = node.Id,
-                Node = node,
                 Name = $"{node.Operation}:{JsonSerializer.Serialize(node.OperationConfiguration)}",
                 Level = level
             });

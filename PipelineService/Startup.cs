@@ -54,8 +54,7 @@ namespace PipelineService
 			services.AddSingleton<IGraphClient>(new GraphClient(
 				Configuration.GetValueOrThrow<Uri>("NeoServerConfiguration:RootUri"),
 				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Username"),
-				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Password")
-			)
+				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Password"))
 			{
 				DefaultDatabase = Configuration.GetValue("NeoServerConfiguration:DefaultDatabase", "neo4j")
 			});

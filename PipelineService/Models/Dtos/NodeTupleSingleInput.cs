@@ -10,7 +10,7 @@ namespace PipelineService.Models.Dtos
 		public Guid NodeId { get; set; }
 		public Guid OperationId { get; set; }
 		public string Operation { get; set; }
-		public Dictionary<string, string> OperationConfiguration { get; set; }
+		public IDictionary<string, string> OperationConfiguration { get; set; }
 		public Guid TargetNodeId { get; set; }
 		public Guid TargetOperationId { get; set; }
 		public string TargetOperation { get; set; }
