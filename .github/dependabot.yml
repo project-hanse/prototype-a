@@ -59,3 +59,12 @@ updates:
       interval: "daily"
     assignees:
       - "SirPumpkinHead"
+      
+  # Neo4j Plugins
+  - package-ecosystem: "maven"
+    directory: "/Neo4jPlugins"
+    target-branch: "dev"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "SirPumpkinHead"

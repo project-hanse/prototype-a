@@ -26,6 +26,7 @@ services:
       - "5000:80"
     depends_on:
       - message-broker
+      - pipeline-database
 
   # Node Worker
   node-worker:
@@ -97,7 +98,9 @@ services:
 
   # Neo4j Pipeline Database
   pipeline-database:
-    image: neo4j:3.5
+    build:
+      context: ./Neo4jPlugins
+      dockerfile: ./Dockerfile
     environment:
       - NEO4J_AUTH=neo4j/test
     ports:
@@ -107,4 +110,4 @@ services:
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
-      
+        
