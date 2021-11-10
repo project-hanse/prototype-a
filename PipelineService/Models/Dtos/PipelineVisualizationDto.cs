@@ -7,8 +7,8 @@ namespace PipelineService.Models.Dtos
     {
         public Guid PipelineId { get; set; }
         public string PipelineName { get; set; }
-        public IList<VisNode> Nodes { get; } = new List<VisNode>();
-        public IList<VisEdge> Edges { get; } = new List<VisEdge>();
+        public ISet<VisNode> Nodes { get; } = new HashSet<VisNode>();
+        public ISet<VisEdge> Edges { get; } = new HashSet<VisEdge>();
     }
 
     public class VisNode

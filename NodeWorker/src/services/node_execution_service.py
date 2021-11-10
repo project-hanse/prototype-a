@@ -229,6 +229,8 @@ class NodeExecutionService:
                             cleaned_str = config[key].replace("'", '"')
                             parsed = json.loads(cleaned_str)
                             config[key] = NodeExecutionService.preprocess_operation_config(parsed)
+                        elif config[key].strip() == 'None':
+                            config[key] = None
                         else:
                             raise ValueError
                     except ValueError:

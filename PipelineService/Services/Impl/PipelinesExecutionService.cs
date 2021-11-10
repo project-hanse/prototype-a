@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Exceptions;
+using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
@@ -16,20 +17,20 @@ namespace PipelineService.Services.Impl
     public class PipelinesExecutionService : IPipelineExecutionService
     {
         private readonly ILogger<PipelinesExecutionService> _logger;
-        private readonly IPipelinesDao _pipelinesDao;
+        private readonly IPipelinesDao _pipelinesesDao;
         private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
         private readonly EventBusService _eventBusService;
         private readonly EdgeEventBusService _edgeEventBusService;
 
         public PipelinesExecutionService(
             ILogger<PipelinesExecutionService> logger,
-            IPipelinesDao pipelinesDao,
+            IPipelinesDao pipelinesesDao,
             IPipelinesExecutionDao pipelinesExecutionDao,
             EventBusService eventBusService,
             EdgeEventBusService edgeEventBusService)
         {
             _logger = logger;
-            _pipelinesDao = pipelinesDao;
+            _pipelinesesDao = pipelinesesDao;
             _pipelinesExecutionDao = pipelinesExecutionDao;
             _eventBusService = eventBusService;
             _edgeEventBusService = edgeEventBusService;
@@ -37,75 +38,38 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
         {
-            return await _pipelinesDao.CreateDefaults();
+            return await _pipelinesesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
         }
 
         public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
         {
-            return await _pipelinesDao.GetInfoDto(id);
+            return await _pipelinesesDao.GetInfoDto(id);
         }
 
         public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
         {
-            var pipeline = await _pipelinesDao.Get(pipelineId);
-            if (pipeline == null)
+            var dto = await _pipelinesesDao.GetVisDto(pipelineId);
+            if (dto == null)
             {
                 _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
                 return null;
             }
 
-            var visDto = new PipelineVisualizationDto
-            {
-                PipelineId = pipeline.Id,
-                PipelineName = pipeline.Name
-            };
-
-            BuildArrays(visDto.Nodes, visDto.Edges, pipeline.Root);
-
-            return visDto;
-        }
-
-        private static void BuildArrays(IList<VisNode> nodesArray,
-            IList<VisEdge> edgesArray,
-            IList<Node> nodes,
-            Guid? parentId = null)
-        {
-            foreach (var node in nodes)
-            {
-                if (parentId.HasValue)
-                {
-                    // establish edge between this node and parent node
-                    edgesArray.Add(new VisEdge { Id = Guid.NewGuid(), From = parentId, To = node.Id });
-                }
-
-                // check that nodes are not added multiple times
-                if (nodesArray.FirstOrDefault(n => n.Id == node.Id) == default)
-                {
-                    nodesArray.Add(new VisNode { Id = node.Id, Label = node.Operation });
-                    // recursive call to all children
-                    BuildArrays(nodesArray, edgesArray, node.Successors, node.Id);
-                }
-            }
+            return dto;
         }
 
         public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
         {
-            return await _pipelinesDao.GetDtos();
+            return await _pipelinesesDao.GetDtos();
         }
 
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
         {
             _logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
-            var pipeline = await _pipelinesDao.Get(pipelineId);
 
-            if (pipeline == null)
-            {
-                throw new NotFoundException("No pipeline with provided id found");
-            }
+            var execution = await _pipelinesExecutionDao.Create(pipelineId);
 
-            var execution = await _pipelinesExecutionDao.Create(pipeline);
-
-            await EnqueueNextNodes(execution, pipeline);
+            await EnqueueNextNodes(execution, pipelineId);
 
             return execution.Id;
         }
@@ -134,15 +98,13 @@ namespace PipelineService.Services.Impl
             else
             {
                 var execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
-                var pipeline = await _pipelinesDao.Get(response.PipelineId);
 
-                await EnqueueNextNodes(execution, pipeline);
+                await EnqueueNextNodes(execution, response.PipelineId);
             }
 
             await NotifyFrontend(response);
         }
 
-        // TODO this method should be independent of response type -> no switch for types
         private async Task NotifyFrontend(NodeExecutionResponse response)
         {
             var executionRecord = await _pipelinesExecutionDao.Get(response.ExecutionId);
@@ -150,20 +112,6 @@ namespace PipelineService.Services.Impl
             if (blockExecutionRecord == null)
             {
                 blockExecutionRecord = executionRecord.Failed.FirstOrDefault(b => b.NodeId == response.NodeId);
-            }
-
-            string resultKey = null;
-            switch (blockExecutionRecord?.Node)
-            {
-                case NodeFileInput fileInput:
-                    resultKey = fileInput.ResultKey;
-                    break;
-                case NodeSingleInput singleInputNode:
-                    resultKey = singleInputNode.ResultKey;
-                    break;
-                case NodeDoubleInput doubleInputNode:
-                    resultKey = doubleInputNode.ResultKey;
-                    break;
             }
 
             await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
@@ -181,20 +129,20 @@ namespace PipelineService.Services.Impl
                     NodesInExecution = executionRecord.InExecution.Count,
                     NodesToBeExecuted = executionRecord.ToBeExecuted.Count,
                     NodesFailedToExecute = executionRecord.Failed.Count,
-                    ResultDatasetKey = resultKey
+                    ResultDatasetKey = blockExecutionRecord?.ResultKey
                 });
         }
 
-        private async Task EnqueueNextNodes(PipelineExecutionRecord execution, Pipeline pipeline)
+        private async Task EnqueueNextNodes(PipelineExecutionRecord execution, Guid pipelineId)
         {
-            var toBeEnqueued = await SelectNextNodes(execution.Id, pipeline);
+            var toBeEnqueued = await SelectNextNodes(execution.Id, pipelineId);
 
             _logger.LogDebug("Enqueueing {ToBeEnqueued} blocks for execution {ExecutionId} of pipeline {PipelineId}",
-                toBeEnqueued.Count, execution.Id, pipeline.Id);
+                toBeEnqueued.Count, execution.Id, pipelineId);
 
             foreach (var block in toBeEnqueued)
             {
-                await EnqueueNode(execution.Id, block);
+                await EnqueueNode(execution.Id, block.NodeId);
             }
         }
 
@@ -202,13 +150,13 @@ namespace PipelineService.Services.Impl
         /// Selects the next blocks to be executed for a given execution of a pipeline.
         /// Might return empty list if no blocks need to be executed at the moment.
         /// </summary>
-        /// 
+        ///
         /// <exception cref="InvalidOperationException">If no execution for a given execution id exists.</exception>
         /// <exception cref="ArgumentException">If the execution does not match the pipeline.</exception>
         /// <param name="executionId">The execution's id.</param>
-        /// <param name="pipeline">The pipeline that is being executed.</param>
+        /// <param name="pipelineId">The pipeline that is being executed.</param>
         /// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
-        private async Task<IList<Node>> SelectNextNodes(Guid executionId, Pipeline pipeline)
+        private async Task<List<NodeExecutionRecord>> SelectNextNodes(Guid executionId, Guid pipelineId)
         {
             PipelineExecutionRecord executionRecord;
             try
@@ -220,7 +168,7 @@ namespace PipelineService.Services.Impl
                 throw new InvalidOperationException("Can not select blocks for non existent execution", e);
             }
 
-            if (executionRecord.PipelineId != pipeline.Id)
+            if (executionRecord.PipelineId != pipelineId)
             {
                 throw new ArgumentException("Pipeline id in loaded execution does not match pipeline id",
                     nameof(executionId));
@@ -229,13 +177,13 @@ namespace PipelineService.Services.Impl
             if (executionRecord.InExecution.Count != 0)
             {
                 _logger.LogInformation("Blocks in execution -> no blocks can be selected");
-                return new List<Node>();
+                return new List<NodeExecutionRecord>();
             }
 
             if (executionRecord.ToBeExecuted.Count == 0)
             {
                 _logger.LogInformation("No more blocks to execute");
-                return new List<Node>();
+                return new List<NodeExecutionRecord>();
             }
 
             var currentLevel = executionRecord.ToBeExecuted[0].Level;
@@ -258,22 +206,21 @@ namespace PipelineService.Services.Impl
                 executionRecord.InExecution.Add(nextBlock);
             }
 
-            return nextBlocks
-                .Select(b => b.Node)
-                .ToList();
+            return nextBlocks;
         }
 
         /// <summary>
-        /// Enqueues a node to be executed by the appropriate worker. 
+        /// Enqueues a node to be executed by the appropriate worker.
         /// </summary>
         /// <param name="executionId">The execution this node belongs to.</param>
-        /// <param name="node">The node to be executed.</param>
-        private async Task EnqueueNode(Guid executionId, Node node)
+        /// <param name="nodeId">The node to be executed.</param>
+        private async Task EnqueueNode(Guid executionId, Guid nodeId)
         {
+	        	var node = await _pipelinesesDao.GetNode(nodeId);
             _logger.LogInformation("Enqueuing node ({NodeId}) with operation {Operation}", node.Id, node.Operation);
 
             NodeExecutionRequest request;
-            // TODO: This can be solved in a nicer way by implementing eg the Visitor pattern 
+            // TODO: This can be solved in a nicer way by implementing eg the Visitor pattern
             if (node.GetType() == typeof(NodeFileInput))
             {
                 request = ExecutionRequestFromNode(executionId, (NodeFileInput)node);
@@ -300,9 +247,9 @@ namespace PipelineService.Services.Impl
         /// TODO: This method must become thread safe (case: multiple node finish execution at the same time -> when updating data might get lost).
         /// </summary>
         /// <param name="executionId">The execution's id a node has been executed in.</param>
-        /// <param name="blockId">The node that will be moved from status in execution to executed.</param>
+        /// <param name="nodeId">The node that will be moved from status in execution to executed.</param>
         /// <returns>True if there are still blocks in status in_execution.</returns>
-        private async Task<bool> MarkNodeAsExecuted(Guid executionId, Guid blockId)
+        private async Task<bool> MarkNodeAsExecuted(Guid executionId, Guid nodeId)
         {
             PipelineExecutionRecord execution;
             try
@@ -314,7 +261,7 @@ namespace PipelineService.Services.Impl
                 throw new InvalidOperationException("Can not move node for non existent execution", e);
             }
 
-            var block = execution.InExecution.FirstOrDefault(b => b.NodeId == blockId);
+            var block = execution.InExecution.FirstOrDefault(b => b.NodeId == nodeId);
 
             if (block == null)
             {
@@ -323,7 +270,7 @@ namespace PipelineService.Services.Impl
 
             _logger.LogDebug(
                 "Moving node {NodeId} in execution {ExecutionId} from status in_execution to executed",
-                blockId, executionId);
+                nodeId, executionId);
 
             block.ExecutionCompletedAt = DateTime.UtcNow;
 
@@ -365,18 +312,10 @@ namespace PipelineService.Services.Impl
             execution.InExecution.Remove(block);
             execution.Failed.Add(block);
 
-            _logger.LogDebug("Moving all operations following failed to operation to failed state");
-
-            var successorIds = GetAllSuccessorIds(block.Node.Successors);
-            var failedBlocks = execution.ToBeExecuted
-                .Where(e => successorIds.Contains(e.NodeId))
-                .ToList();
-
-            foreach (var failedBlock in failedBlocks)
-            {
-                execution.ToBeExecuted.Remove(failedBlock);
-                execution.Failed.Add(failedBlock);
-            }
+            _logger.LogDebug("Moving all enqueued operations to failed state");
+            // Optimization: Only move enqueued execution operations records to failed state if they depend on the failed execution (see implementations before 2021/11/09).
+            execution.Failed.AddAll(execution.ToBeExecuted);
+            execution.ToBeExecuted.Clear();
 
             CheckIfCompleted(execution);
 
@@ -392,23 +331,9 @@ namespace PipelineService.Services.Impl
             }
         }
 
-        private static IList<Guid> GetAllSuccessorIds(IList<Node> blockSuccessors, List<Guid> ids = default)
-        {
-            ids ??= new List<Guid>();
-
-            ids.AddRange(blockSuccessors.Select(b => b.Id));
-
-            foreach (var blockSuccessor in blockSuccessors)
-            {
-                GetAllSuccessorIds(blockSuccessor.Successors, ids);
-            }
-
-            return ids;
-        }
-
         private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeFileInput node)
         {
-            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
+            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
             if (string.IsNullOrEmpty(node.InputObjectKey) && string.IsNullOrEmpty(node.InputObjectBucket))
             {
                 _logger.LogWarning("Node {NodeId} has no input object key or bucket defined",
@@ -432,7 +357,7 @@ namespace PipelineService.Services.Impl
 
         private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeSingleInput node)
         {
-            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
+            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
             if (!node.InputDatasetId.HasValue && string.IsNullOrEmpty(node.InputDatasetHash))
             {
                 _logger.LogWarning("Node {NodeId} has neither an input dataset id nor a producing node hash",
@@ -456,7 +381,7 @@ namespace PipelineService.Services.Impl
 
         private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeDoubleInput node)
         {
-            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution) 
+            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
             if (!node.InputDatasetOneId.HasValue && string.IsNullOrEmpty(node.InputDatasetOneHash))
             {
                 _logger.LogWarning(

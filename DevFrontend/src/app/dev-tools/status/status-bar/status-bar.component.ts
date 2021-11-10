@@ -16,7 +16,7 @@ export class StatusBarComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
-		this.$apiHealthStatus = timer(1, 5000).pipe(switchMap(() => this.httpClient.get(this.getApiUrl(), {responseType: 'text' as const})));
+		this.$apiHealthStatus = timer(1, 15000).pipe(switchMap(() => this.httpClient.get(this.getApiUrl(), {responseType: 'text' as const})));
 	}
 
 	getIcon(status: string | undefined): string {

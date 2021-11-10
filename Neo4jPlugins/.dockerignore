@@ -1,0 +1,40 @@
+######################### JETBRAINS ############################################
+# https://raw.githubusercontent.com/erdaltsksn/dockerignore/main/templates/JetBrains.dockerignore
+################################################################################
+
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+
+# macOS (optional)
+.DS_Store
+
+# Visual Studio Code (optional)
+.vscode
+
+# Directory-based project format
+.idea
+
+# File-based (Legacy) project format
+*.ipr
+*.iml
+*.iws
+
+target
+.mvn
+mvnw.cmd
+mvnw

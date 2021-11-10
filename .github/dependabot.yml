@@ -3,6 +3,8 @@
 # Please see the documentation for all configuration options:
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
+# TODO: update dependabot to use conventional commits https://dev.to/kengotoda/a-complete-guide-to-use-dependabot-with-semantic-release-and-vercel-ncc-for-github-actions-230p
+
 version: 2
 updates:
 
@@ -54,6 +56,15 @@ updates:
   # Dev Frontend
   - package-ecosystem: "npm"
     directory: "/DevFrontend"
+    target-branch: "dev"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "SirPumpkinHead"
+
+  # Neo4j Plugins
+  - package-ecosystem: "maven"
+    directory: "/Neo4jPlugins"
     target-branch: "dev"
     schedule:
       interval: "daily"

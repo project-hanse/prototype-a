@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
-using PipelineService.Exceptions;
 using PipelineService.Helper;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
@@ -26,15 +25,7 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<string>> GetInputDatasetIdsForNode(Guid pipelineId, Guid nodeId)
         {
-            var pipeline = await _pipelinesDao.Get(pipelineId);
-
-            if (pipeline == null)
-            {
-                _logger.LogDebug("Cannot load node of unknown pipeline");
-                return null;
-            }
-
-            var node = FindNodeOrDefault(nodeId, pipeline.Root);
+	        var node = await _pipelinesDao.GetNode(nodeId);
 
             if (node == null)
             {
@@ -59,21 +50,6 @@ namespace PipelineService.Services.Impl
             {
                 Success = false
             };
-            var pipeline = await _pipelinesDao.Get(request.PipelineId);
-
-            if (pipeline == null)
-            {
-                _logger.LogDebug("Cannot add node to unavailable pipeline");
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.Errors.Add(new Error
-                {
-                    Message = "Pipeline not found",
-                    Code = "P404"
-                });
-                return response;
-            }
-
-            // TODO: verify that operation id exists
 
             if (request.PredecessorNodeIds.Count is < 1 or > 2)
             {
@@ -90,19 +66,19 @@ namespace PipelineService.Services.Impl
             Node newNode;
             if (request.PredecessorNodeIds.Count == 1)
             {
-                var predecessor = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline);
-                if (predecessor == default)
-                {
+	            var predecessor = await _pipelinesDao.GetNode(request.PredecessorNodeIds[0]);
+                if (predecessor == null){
                     response.StatusCode = HttpStatusCode.NotFound;
                     return response;
                 }
 
                 newNode = PipelineConstructionHelpers.Successor(predecessor, new NodeSingleInput());
+                await _pipelinesDao.CreateSuccessor(request.PredecessorNodeIds, (NodeSingleInput)newNode);
             }
             else
             {
-                var predecessor1 = FindNodeOrDefault(request.PredecessorNodeIds[0], pipeline);
-                var predecessor2 = FindNodeOrDefault(request.PredecessorNodeIds[1], pipeline);
+                var predecessor1 = await _pipelinesDao.GetNode(request.PredecessorNodeIds[0]);
+                var predecessor2 =  await _pipelinesDao.GetNode(request.PredecessorNodeIds[1]);
                 if (predecessor1 == default || predecessor2 == default)
                 {
                     response.StatusCode = HttpStatusCode.NotFound;
@@ -110,21 +86,22 @@ namespace PipelineService.Services.Impl
                 }
 
                 newNode = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, new NodeDoubleInput());
+                await _pipelinesDao.CreateSuccessor(request.PredecessorNodeIds, (NodeDoubleInput) newNode);
             }
 
-            newNode.PipelineId = pipeline.Id;
+            newNode.PipelineId = request.PipelineId;
             newNode.OperationId = request.Operation.OperationId;
             newNode.Operation = request.Operation.OperationName;
             newNode.OperationConfiguration = request.Operation.DefaultConfig;
 
-            pipeline = await _pipelinesDao.Update(pipeline);
+            await _pipelinesDao.UpdateNode(newNode);
 
             _logger.LogDebug(
                 "Added node {NodeId} with operation {OperationName} ({OperationId}) to pipeline {PipelineId}",
-                newNode.Id, newNode.Operation, newNode.OperationId, pipeline.Id);
+                newNode.Id, newNode.Operation, newNode.OperationId, request.PipelineId);
 
             response.NodeId = newNode.Id;
-            response.PipelineId = pipeline.Id;
+            response.PipelineId = request.PipelineId;
             response.Success = true;
             return response;
         }
@@ -137,41 +114,26 @@ namespace PipelineService.Services.Impl
             {
                 Success = false
             };
-            var pipeline = await _pipelinesDao.Get(request.PipelineId);
-
-            if (pipeline == null)
-            {
-                _logger.LogDebug("Cannot add node to unavailable pipeline");
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.Errors.Add(new Error
-                {
-                    Message = "Pipeline not found",
-                    Code = "P404"
-                });
-                return response;
-            }
 
             foreach (var nodeId in request.NodeIdsToBeRemoved)
             {
-                RemoveRecursively(nodeId, pipeline.Root);
+	           await _pipelinesDao.DeleteNode(nodeId);
             }
 
-            pipeline = await _pipelinesDao.Update(pipeline);
-
             response.Success = true;
-            response.PipelineId = pipeline.Id;
+            response.PipelineId = request.PipelineId;
 
             _logger.LogInformation("Removed {RemovedCount} nodes from pipeline {PipelineId}",
-                request.NodeIdsToBeRemoved.Count, pipeline.Id);
+                request.NodeIdsToBeRemoved.Count, request.PipelineId);
             return response;
         }
 
         public async Task<string> GetResultHash(Guid pipelineId, Guid nodeId)
         {
-            return FindNodeOrDefault(nodeId, await _pipelinesDao.Get(pipelineId)).ResultKey;
+            return (await _pipelinesDao.GetNode(nodeId)).ResultKey;
         }
 
-        public async Task<Dictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
+        public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
         {
             var node = await FindNodeOrDefault(pipelineId, nodeId);
             if (node == null)
@@ -184,14 +146,7 @@ namespace PipelineService.Services.Impl
 
         public async Task<bool> UpdateConfig(Guid pipelineId, Guid nodeId, Dictionary<string, string> config)
         {
-            var pipeline = await _pipelinesDao.Get(pipelineId);
-            if (pipeline == null)
-            {
-                _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);
-                return false;
-            }
-
-            var node = FindNodeOrDefault(nodeId, pipeline);
+	          var node = await _pipelinesDao.GetNode(nodeId);
             if (node == null)
             {
                 _logger.LogDebug("Node with id {NotFoundId} not found", nodeId);
@@ -199,77 +154,18 @@ namespace PipelineService.Services.Impl
             }
 
             node.OperationConfiguration = config;
-            pipeline = await _pipelinesDao.Update(pipeline);
+
+            await _pipelinesDao.UpdateNode(node);
 
             _logger.LogInformation("Updated configuration for node {NodeId} in pipeline {PipelineId}",
-                node.Id, pipeline.Id);
+                node.Id, pipelineId);
 
             return true;
         }
 
-        private static void RemoveRecursively(Guid nodeId, IList<Node> nodes)
-        {
-            for (var i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i].Id == nodeId)
-                {
-                    nodes.RemoveAt(i);
-                    return;
-                }
-
-                RemoveRecursively(nodeId, nodes[i].Successors);
-            }
-        }
-
         public async Task<Node> FindNodeOrDefault(Guid pipelineId, Guid nodeId)
         {
-            Pipeline pipeline;
-            try
-            {
-                pipeline = await _pipelinesDao.Get(pipelineId);
-                if (pipeline == null)
-                {
-                    _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);
-                }
-            }
-            catch (NotFoundException e)
-            {
-                _logger.LogDebug("Pipeline with id {NotFoundId} not found - {ErrorMessage}", pipelineId, e.Message);
-                return null;
-            }
-
-            return pipeline == null ? default : FindNodeOrDefault(nodeId, pipeline.Root);
-        }
-
-        private Node FindNodeOrDefault(Guid nodeId, Pipeline pipeline)
-        {
-            var node = FindNodeOrDefault(nodeId, pipeline.Root);
-            if (node == default)
-            {
-                _logger.LogInformation("Could not find node {NotFoundId} in pipeline {PipelineId}",
-                    nodeId, pipeline.Id);
-            }
-
-            return node;
-        }
-
-        private static Node FindNodeOrDefault(Guid nodeId, IList<Node> nodes)
-        {
-            foreach (var node in nodes)
-            {
-                if (node.Id == nodeId)
-                {
-                    return node;
-                }
-
-                var n = FindNodeOrDefault(nodeId, node.Successors);
-                if (n != default)
-                {
-                    return n;
-                }
-            }
-
-            return default;
+	        return await _pipelinesDao.GetNode(nodeId);
         }
     }
 }
