@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
-using PipelineService.Dao.Impl;
 using PipelineService.Exceptions;
+using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
@@ -17,14 +17,14 @@ namespace PipelineService.Services.Impl
     public class PipelinesExecutionService : IPipelineExecutionService
     {
         private readonly ILogger<PipelinesExecutionService> _logger;
-        private readonly Neo4JPipelineDao _pipelinesDao;
+        private readonly IPipelineDao _pipelinesDao;
         private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
         private readonly EventBusService _eventBusService;
         private readonly EdgeEventBusService _edgeEventBusService;
 
         public PipelinesExecutionService(
             ILogger<PipelinesExecutionService> logger,
-            Neo4JPipelineDao pipelinesDao,
+            IPipelineDao pipelinesDao,
             IPipelinesExecutionDao pipelinesExecutionDao,
             EventBusService eventBusService,
             EdgeEventBusService edgeEventBusService)
@@ -38,7 +38,7 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
         {
-            return await _pipelinesDao.CreateDefaults();
+            return await _pipelinesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
         }
 
         public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
@@ -66,12 +66,6 @@ namespace PipelineService.Services.Impl
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
         {
             _logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
-            // var pipeline = await _pipelinesDao.GetPipelineWithNodes(pipelineId);
-            //
-            // if (pipeline == null)
-            // {
-            //     throw new NotFoundException("No pipeline with provided id found");
-            // }
 
             var execution = await _pipelinesExecutionDao.Create(pipelineId);
 
@@ -111,7 +105,6 @@ namespace PipelineService.Services.Impl
             await NotifyFrontend(response);
         }
 
-        // TODO this method should be independent of response type -> no switch for types
         private async Task NotifyFrontend(NodeExecutionResponse response)
         {
             var executionRecord = await _pipelinesExecutionDao.Get(response.ExecutionId);
@@ -321,10 +314,7 @@ namespace PipelineService.Services.Impl
 
             _logger.LogDebug("Moving all enqueued operations to failed state");
             // Optimization: Only move enqueued execution operations records to failed state if they depend on the failed execution (see implementations before 2021/11/09).
-            foreach (var failedBlock in execution.ToBeExecuted)
-            {
-                execution.Failed.Add(failedBlock);
-            }
+            execution.Failed.AddAll(execution.ToBeExecuted);
             execution.ToBeExecuted.Clear();
 
             CheckIfCompleted(execution);
@@ -339,20 +329,6 @@ namespace PipelineService.Services.Impl
             {
                 execution.CompletedOn = DateTime.UtcNow;
             }
-        }
-
-        private static IList<Guid> GetAllSuccessorIds(IList<Node> blockSuccessors, List<Guid> ids = default)
-        {
-            ids ??= new List<Guid>();
-
-            ids.AddRange(blockSuccessors.Select(b => b.Id));
-
-            foreach (var blockSuccessor in blockSuccessors)
-            {
-                GetAllSuccessorIds(blockSuccessor.Successors, ids);
-            }
-
-            return ids;
         }
 
         private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeFileInput node)

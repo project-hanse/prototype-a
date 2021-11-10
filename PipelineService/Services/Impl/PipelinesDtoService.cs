@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Dao;
-using PipelineService.Dao.Impl;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
 
@@ -10,10 +9,10 @@ namespace PipelineService.Services.Impl
 {
     public class PipelinesDtoService : IPipelinesDtoService
     {
-        private readonly Neo4JPipelineDao _pipelinesDao;
+        private readonly IPipelineDao _pipelinesDao;
         private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
 
-        public PipelinesDtoService(Neo4JPipelineDao pipelinesDao, IPipelinesExecutionDao pipelinesExecutionDao)
+        public PipelinesDtoService(IPipelineDao pipelinesDao, IPipelinesExecutionDao pipelinesExecutionDao)
         {
             _pipelinesDao = pipelinesDao;
             _pipelinesExecutionDao = pipelinesExecutionDao;

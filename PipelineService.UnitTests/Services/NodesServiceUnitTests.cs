@@ -13,14 +13,14 @@ namespace PipelineService.UnitTests.Services
     [TestFixture]
     public class NodesServiceUnitTests
     {
-        private IPipelinesDao _pipelinesDao;
+        private IPipelinesDaoInMemory _pipelinesDaoInMemory;
         private INodesService _nodesService;
 
         [SetUp]
         public void Setup()
         {
-            _pipelinesDao = new InMemoryPipelinesDao(GeneralHelper.CreateLogger<InMemoryPipelinesDao>());
-            _nodesService = new NodesService(GeneralHelper.CreateLogger<NodesService>(), _pipelinesDao);
+            _pipelinesDaoInMemory = new InMemoryPipelinesDaoInMemory(GeneralHelper.CreateLogger<InMemoryPipelinesDaoInMemory>());
+            _nodesService = new NodesService(GeneralHelper.CreateLogger<NodesService>(), _pipelinesDaoInMemory);
         }
 
         [Test]
@@ -40,7 +40,7 @@ namespace PipelineService.UnitTests.Services
         {
             // arrange
             var pipeline = HardcodedDefaultPipelines.MelbourneHousingPipeline();
-            await _pipelinesDao.Add(pipeline);
+            await _pipelinesDaoInMemory.Add(pipeline);
 
             // act
             var node = await _nodesService.FindNodeOrDefault(pipeline.Id, Guid.NewGuid());
@@ -55,7 +55,7 @@ namespace PipelineService.UnitTests.Services
             // arrange
             var pipeline = HardcodedDefaultPipelines.MelbourneHousingPipeline();
             var node = pipeline.Root[0].Successors[0];
-            await _pipelinesDao.Add(pipeline);
+            await _pipelinesDaoInMemory.Add(pipeline);
 
             // act
             var result = await _nodesService.FindNodeOrDefault(pipeline.Id, node.Id);
@@ -79,7 +79,7 @@ namespace PipelineService.UnitTests.Services
 
             pipeline.Root[0].Successors.Add(node);
 
-            await _pipelinesDao.Add(pipeline);
+            await _pipelinesDaoInMemory.Add(pipeline);
 
             // act
             var result = await _nodesService.FindNodeOrDefault(pipeline.Id, node.Id);

@@ -10,12 +10,12 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao.Impl
 {
-	public class InMemoryPipelinesDao : IPipelinesDao
+	public class InMemoryPipelinesDaoInMemory : IPipelinesDaoInMemory
 	{
-		private readonly ILogger<InMemoryPipelinesDao> _logger;
+		private readonly ILogger<InMemoryPipelinesDaoInMemory> _logger;
 		private static readonly IDictionary<Guid, Pipeline> Store = new ConcurrentDictionary<Guid, Pipeline>();
 
-		public InMemoryPipelinesDao(ILogger<InMemoryPipelinesDao> logger)
+		public InMemoryPipelinesDaoInMemory(ILogger<InMemoryPipelinesDaoInMemory> logger)
 		{
 			_logger = logger;
 		}

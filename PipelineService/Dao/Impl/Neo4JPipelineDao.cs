@@ -13,7 +13,7 @@ using Node = PipelineService.Models.Pipeline.Node;
 
 namespace PipelineService.Dao.Impl
 {
-	public class Neo4JPipelineDao
+	public class Neo4JPipelineDao : IPipelineDao
 	{
 		private readonly ILogger<Neo4JPipelineDao> _logger;
 		private readonly IGraphClient _graphClient;
@@ -36,11 +36,9 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Neo4j database setup complete");
 		}
 
-		public async Task<IList<Pipeline>> CreateDefaults(IList<Pipeline> pipelines = null)
+		public async Task<IList<Pipeline>> CreatePipelines(IList<Pipeline> pipelines)
 		{
-			_logger.LogDebug("Creating default pipelines");
-
-			pipelines ??= HardcodedDefaultPipelines.NewDefaultPipelines();
+			_logger.LogDebug("Creating {PipelineCount} pipelines", pipelines.Count);
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
@@ -126,14 +124,6 @@ namespace PipelineService.Dao.Impl
 			return pipelineInfoDtos;
 		}
 
-		/// <summary>
-		/// Creates a new pipeline in the store if it not already exists.
-		/// </summary>
-		/// <remarks>
-		/// If a pipeline with the same id already exists, values will be merged.
-		/// Ignores all <c>Node</c>s provided in this object (use <c>CreateRoot</c> for adding root nodes to a pipeline).
-		/// </remarks>
-		/// <param name="pipeline">An object with values that will be persisted.</param>
 		public async Task CreatePipeline(Pipeline pipeline)
 		{
 			_logger.LogDebug("Creating pipeline {PipelineId}", pipeline.Id);
@@ -173,12 +163,6 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			// await _graphClient.WithAnnotations<PipelineContext>().Cypher
-			// 	.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == pipelineId))
-			// 	.Create(path => path.Pattern((Pipeline pipeline) => pipeline.Root, "root")
-			// 		.Prop(null, () => root))
-			// 	.ExecuteWithoutResultsAsync();
-
 			// TODO: Merge this into a single db call using annotations
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
 				.Merge(path => path.Pattern<TN>("node").Constrain(node => node.Id == root.Id))
@@ -214,13 +198,6 @@ namespace PipelineService.Dao.Impl
 			_logger.LogDebug("Making {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
-
-			// await _graphClient.WithAnnotations<PipelineContext>().Cypher
-			// 	.Match(
-			// 		path => path.Pattern<Node>("predNode").Constrain(predNode => predNode.Id == predecessorId),
-			// 		path2 => path2.Pattern<Node>("sucNode").Constrain(sucNode => sucNode.Id == successor.Id))
-			// 	.Create(path => path.Pattern((Node predNode) => predNode.Successors, "sucNode"))
-			// 	.ExecuteWithoutResultsAsync();
 
 			// TODO: Merge this into a single db call using annotations
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher

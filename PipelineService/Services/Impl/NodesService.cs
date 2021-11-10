@@ -14,19 +14,19 @@ namespace PipelineService.Services.Impl
     public class NodesService : INodesService
     {
         private readonly ILogger<NodesService> _logger;
-        private readonly IPipelinesDao _pipelinesDao;
+        private readonly IPipelinesDaoInMemory _pipelinesDaoInMemory;
 
         public NodesService(
             ILogger<NodesService> logger,
-            IPipelinesDao pipelinesDao)
+            IPipelinesDaoInMemory pipelinesDaoInMemory)
         {
             _logger = logger;
-            _pipelinesDao = pipelinesDao;
+            _pipelinesDaoInMemory = pipelinesDaoInMemory;
         }
 
         public async Task<IList<string>> GetInputDatasetIdsForNode(Guid pipelineId, Guid nodeId)
         {
-            var pipeline = await _pipelinesDao.Get(pipelineId);
+            var pipeline = await _pipelinesDaoInMemory.Get(pipelineId);
 
             if (pipeline == null)
             {
@@ -59,7 +59,7 @@ namespace PipelineService.Services.Impl
             {
                 Success = false
             };
-            var pipeline = await _pipelinesDao.Get(request.PipelineId);
+            var pipeline = await _pipelinesDaoInMemory.Get(request.PipelineId);
 
             if (pipeline == null)
             {
@@ -117,7 +117,7 @@ namespace PipelineService.Services.Impl
             newNode.Operation = request.Operation.OperationName;
             newNode.OperationConfiguration = request.Operation.DefaultConfig;
 
-            pipeline = await _pipelinesDao.Update(pipeline);
+            pipeline = await _pipelinesDaoInMemory.Update(pipeline);
 
             _logger.LogDebug(
                 "Added node {NodeId} with operation {OperationName} ({OperationId}) to pipeline {PipelineId}",
@@ -137,7 +137,7 @@ namespace PipelineService.Services.Impl
             {
                 Success = false
             };
-            var pipeline = await _pipelinesDao.Get(request.PipelineId);
+            var pipeline = await _pipelinesDaoInMemory.Get(request.PipelineId);
 
             if (pipeline == null)
             {
@@ -156,7 +156,7 @@ namespace PipelineService.Services.Impl
                 RemoveRecursively(nodeId, pipeline.Root);
             }
 
-            pipeline = await _pipelinesDao.Update(pipeline);
+            pipeline = await _pipelinesDaoInMemory.Update(pipeline);
 
             response.Success = true;
             response.PipelineId = pipeline.Id;
@@ -168,7 +168,7 @@ namespace PipelineService.Services.Impl
 
         public async Task<string> GetResultHash(Guid pipelineId, Guid nodeId)
         {
-            return FindNodeOrDefault(nodeId, await _pipelinesDao.Get(pipelineId)).ResultKey;
+            return FindNodeOrDefault(nodeId, await _pipelinesDaoInMemory.Get(pipelineId)).ResultKey;
         }
 
         public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
@@ -184,7 +184,7 @@ namespace PipelineService.Services.Impl
 
         public async Task<bool> UpdateConfig(Guid pipelineId, Guid nodeId, Dictionary<string, string> config)
         {
-            var pipeline = await _pipelinesDao.Get(pipelineId);
+            var pipeline = await _pipelinesDaoInMemory.Get(pipelineId);
             if (pipeline == null)
             {
                 _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);
@@ -199,7 +199,7 @@ namespace PipelineService.Services.Impl
             }
 
             node.OperationConfiguration = config;
-            pipeline = await _pipelinesDao.Update(pipeline);
+            pipeline = await _pipelinesDaoInMemory.Update(pipeline);
 
             _logger.LogInformation("Updated configuration for node {NodeId} in pipeline {PipelineId}",
                 node.Id, pipeline.Id);
@@ -226,7 +226,7 @@ namespace PipelineService.Services.Impl
             Pipeline pipeline;
             try
             {
-                pipeline = await _pipelinesDao.Get(pipelineId);
+                pipeline = await _pipelinesDaoInMemory.Get(pipelineId);
                 if (pipeline == null)
                 {
                     _logger.LogDebug("Pipeline with id {NotFoundId} not found", pipelineId);

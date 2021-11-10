@@ -3,11 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
 using PipelineService.Exceptions;
+using PipelineService.Extensions;
 using PipelineService.Models;
 using PipelineService.Models.Pipeline.Execution;
 
@@ -17,14 +19,18 @@ namespace PipelineService.Dao.Impl
 	{
 		private readonly ILogger<InMemoryPipelinesExecutionDao> _logger;
 		private readonly IGraphClient _graphClient;
+		private readonly IConfiguration _configuration;
 
 		private static readonly IDictionary<Guid, PipelineExecutionRecord> Store =
 			new ConcurrentDictionary<Guid, PipelineExecutionRecord>();
 
-		public InMemoryPipelinesExecutionDao(ILogger<InMemoryPipelinesExecutionDao> logger, IGraphClient graphClient)
+		public InMemoryPipelinesExecutionDao(ILogger<InMemoryPipelinesExecutionDao> logger,
+			IGraphClient graphClient,
+			IConfiguration configuration)
 		{
 			_logger = logger;
 			_graphClient = graphClient;
+			_configuration = configuration;
 		}
 
 		public async Task<PipelineExecutionRecord> Create(Guid pipelineId)
@@ -45,7 +51,8 @@ namespace PipelineService.Dao.Impl
 				.Where("n.PipelineId=$pipeline_id").WithParam("pipeline_id", pipelineId)
 				.AndWhere("NOT (n)-[:HAS_SUCCESSOR]->()")
 				.With("collect(n) AS nodesList")
-				.Call("hanse.markPartitions(nodesList, 'HAS_SUCCESSOR', 25)")
+				.Call("hanse.markPartitions(nodesList, 'HAS_SUCCESSOR', $max_depth)").WithParam("max_depth",
+					_configuration.GetValue("MaxSearchDepthPartitioning", 100))
 				.Yield("maxLevel, visitedStamp")
 				.Return(() => new
 				{
@@ -85,7 +92,7 @@ namespace PipelineService.Dao.Impl
 				nodeExecutionRecord.Level = partitionResult.MaxLevel - nodeExecutionRecord.Level;
 			}
 
-			executionRecord.ToBeExecuted = nodeExecutionRecords;
+			executionRecord.ToBeExecuted.AddAll(nodeExecutionRecords);
 
 			Store.Add(executionRecord.Id, executionRecord);
 

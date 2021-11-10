@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace PipelineService.Extensions
 {
-	public static class IConfigurationExtensions
+	public static class ConfigurationExtensions
 	{
 		public static T GetValueOrThrow<T>(this IConfiguration configuration, string key)
 		{

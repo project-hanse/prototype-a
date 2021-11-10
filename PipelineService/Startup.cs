@@ -68,8 +68,8 @@ namespace PipelineService
 
 			// Registering DAOs
 			services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
-			services.AddSingleton<IPipelinesDao, InMemoryPipelinesDao>();
-			services.AddSingleton<Neo4JPipelineDao>();
+			services.AddSingleton<IPipelinesDaoInMemory, InMemoryPipelinesDaoInMemory>();
+			services.AddSingleton<IPipelineDao, Neo4JPipelineDao>();
 
 			// Registering transient services
 			services.AddTransient<IHashService, HashService>();
@@ -91,7 +91,7 @@ namespace PipelineService
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Neo4JPipelineDao pipelineDao)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IPipelineDao pipelineDao)
 		{
 			if (env.IsDevelopment())
 			{

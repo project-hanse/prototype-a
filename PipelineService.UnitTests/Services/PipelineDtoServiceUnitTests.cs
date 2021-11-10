@@ -37,7 +37,7 @@ namespace PipelineService.UnitTests.Services
             }
         };
 
-        private IPipelinesDao _pipelinesDao;
+        private IPipelinesDaoInMemory _pipelinesDaoInMemory;
         private IPipelinesExecutionDao _pipelinesExecutionDao;
         private IPipelinesDtoService _pipelinesDtoService;
 
@@ -53,8 +53,8 @@ namespace PipelineService.UnitTests.Services
                 });
             _pipelinesExecutionDao = mock.Object;
 
-            _pipelinesDao = new InMemoryPipelinesDao(GeneralHelper.CreateLogger<InMemoryPipelinesDao>());
-            _pipelinesDtoService = new PipelinesDtoService(_pipelinesDao, _pipelinesExecutionDao);
+            _pipelinesDaoInMemory = new InMemoryPipelinesDaoInMemory(GeneralHelper.CreateLogger<InMemoryPipelinesDaoInMemory>());
+            _pipelinesDtoService = new PipelinesDtoService(_pipelinesDaoInMemory, _pipelinesExecutionDao);
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace PipelineService.UnitTests.Services
         public async Task GetSingleInputNodeTuples_ExecutedPipeline(NodeTupleTestCase testCase)
         {
             // arrange
-            await _pipelinesDao.Add(testCase.Pipeline);
+            await _pipelinesDaoInMemory.Add(testCase.Pipeline);
 
             // act
             var results = await _pipelinesDtoService.GetSingleInputNodeTuples(testCase.Pipeline.Id);

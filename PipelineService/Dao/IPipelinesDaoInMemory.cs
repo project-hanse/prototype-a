@@ -7,7 +7,8 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao
 {
-	public interface IPipelinesDao
+	[Obsolete]
+	public interface IPipelinesDaoInMemory
 	{
 		/// <summary>
 		/// A convenience method that creates a bunch of default pipelines in the store.
@@ -20,7 +21,6 @@ namespace PipelineService.Dao
 		/// Adds a pipeline as is to the store.
 		/// </summary>
 		/// <param name="pipeline">The pipeline that will be stored</param>
-		[Obsolete("")]
 		public Task Add(Pipeline pipeline);
 
 		/// <summary>
@@ -28,7 +28,6 @@ namespace PipelineService.Dao
 		/// </summary>
 		/// <param name="pipeline">The pipeline that will be updated.</param>
 		/// <returns>The updated pipeline</returns>
-		[Obsolete()]
 		Task<Pipeline> Update(Pipeline pipeline);
 
 		/// <summary>
@@ -37,7 +36,6 @@ namespace PipelineService.Dao
 		/// <param name="pipelineId">The pipeline's id</param>
 		/// <exception cref="NotFoundException">If no pipeline with this id exists.</exception>
 		/// <returns>The pipeline</returns>
-		[Obsolete("Very inefficient, should operate directly on pipeline nodes")]
 		public Task<Pipeline> Get(Guid pipelineId);
 
 		/// <summary>

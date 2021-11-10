@@ -14,7 +14,7 @@ namespace PipelineService.UnitTests.Services
     public class PipelineExecutionServiceUnitTests
     {
         private IPipelineExecutionService _pipelineExecutionService;
-        private IPipelinesDao _pipelinesDao;
+        private IPipelinesDaoInMemory _pipelinesDaoInMemory;
         private IPipelinesExecutionDao _pipelinesExecutionDao;
         private EventBusService _eventBusService;
         private EdgeEventBusService _edgeEventBusService;
@@ -22,11 +22,11 @@ namespace PipelineService.UnitTests.Services
         [SetUp]
         public void SetUp()
         {
-            var pipelineDaoMock = new Mock<IPipelinesDao>();
+            var pipelineDaoMock = new Mock<IPipelinesDaoInMemory>();
             pipelineDaoMock
                 .Setup(p => p.Get(It.IsAny<Guid>()))
                 .Returns<Guid>(pipelineId => Task.FromResult(ModelHelper.NewDefaultPipeline(pipelineId)));
-            _pipelinesDao = pipelineDaoMock.Object;
+            _pipelinesDaoInMemory = pipelineDaoMock.Object;
 
             _pipelinesExecutionDao =
                 new InMemoryPipelinesExecutionDao(GeneralHelper.CreateLogger<InMemoryPipelinesExecutionDao>());
