@@ -1,10 +1,3 @@
----
-title: "Project Hanse"
-author: "Konstantin Strümpf"
-date: "March 10, 2021"
-geometry: "left=3cm,right=3cm,top=2cm,bottom=2cm"
----
-
 # Project Hanse
 
 The goal of this project is to build a platform that allows non-technical experts to gain insights from data. The
