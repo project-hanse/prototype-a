@@ -42,7 +42,7 @@ services:
       - localstack-s3
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
 
   # Dataset Store
   dataset-service:

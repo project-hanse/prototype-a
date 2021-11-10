@@ -64,6 +64,7 @@ services:
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     depends_on:
       - message-broker
+      - pipeline-database
 
   # Dataset Store
   dataset-service:
@@ -92,7 +93,16 @@ services:
       - localstack-s3
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
+
+  # Neo4j Pipeline Database
+  pipeline-database:
+    image: ghcr.io/project-hanse/prototype-a/hanse-neo4j:latest
+    environment:
+      - NEO4J_AUTH=neo4j/test
+    volumes:
+      - ./volumes/neo4j/data:/data
+      - ./volumes/neo4j/logs:/logs
 
   # Message Broker
   message-broker:
