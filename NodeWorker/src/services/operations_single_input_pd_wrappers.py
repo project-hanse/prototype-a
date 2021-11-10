@@ -21,7 +21,12 @@ class OperationsSingleInputPandasWrappers:
         exec(command, globals(), loc)
         resulting_dataset = loc['resulting_dataset']
 
-        logger.debug("Resulting dataset %s" % str(resulting_dataset))
+        # TODO: remove this conversion once pd.Series is supported as datatype
+        if isinstance(resulting_dataset, pd.Series):
+            logger.info('Converting series to dataframe')
+            resulting_dataset = resulting_dataset.to_frame()
+
+        logger.debug("Resulting dataset \n%s" % str(resulting_dataset))
 
         return resulting_dataset
 
