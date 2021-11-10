@@ -21,7 +21,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 Operation = "dropna",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "axis", "0" }
+                    {"axis", "0"}
                 },
             };
 
@@ -32,7 +32,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "0", "['Rooms', 'Bathroom', 'Landsize']" }
+                    {"0", "['Rooms', 'Bathroom', 'Landsize']"}
                 }
             };
 
@@ -43,7 +43,7 @@ namespace PipelineService.UnitTests.UnitTestHelpers
                 Operation = "select_columns",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    { "0", "['Lattitude', 'Longtitude']" }
+                    {"0", "['Lattitude', 'Longtitude']"}
                 }
             };
 

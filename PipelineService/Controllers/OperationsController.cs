@@ -5,26 +5,26 @@ using PipelineService.Services;
 
 namespace PipelineService.Controllers
 {
-	public class OperationsController : BaseController
-	{
-		private readonly IOperationsService _operationsService;
+    public class OperationsController : BaseController
+    {
+        private readonly IOperationsService _operationsService;
 
-		public OperationsController(IOperationsService operationsService)
-		{
-			_operationsService = operationsService;
-		}
+        public OperationsController(IOperationsService operationsService)
+        {
+            _operationsService = operationsService;
+        }
 
-		[HttpGet]
-		public async Task<IActionResult> GetOperations()
-		{
-			return Ok(await _operationsService.GetOperationDtos());
-		}
+        [HttpGet]
+        public async Task<IActionResult> GetOperations()
+        {
+            return Ok(await _operationsService.GetOperationDtos());
+        }
 
-		[HttpGet("grouped")]
-		public async Task<IActionResult> GetOperationsGrouped()
-		{
-			return Ok((await _operationsService.GetOperationDtos())
-				.GroupBy(op => op.SectionTitle, (key, group) => new { SectionTitle = key, Operations = group.ToList() }));
-		}
-	}
+        [HttpGet("grouped")]
+        public async Task<IActionResult> GetOperationsGrouped()
+        {
+            return Ok((await _operationsService.GetOperationDtos())
+                .GroupBy(op => op.SectionTitle, (key, group) => new { SectionTitle = key, Operations = group.ToList() }));
+        }
+    }
 }
