@@ -51,6 +51,7 @@ namespace PipelineService.Models.Pipeline
 
 		public string OperationConfigurationSerialized { get; set; } = "{}";
 
+		[JsonIgnore]
 		public abstract string ResultKey { get; }
 
 		/// <summary>

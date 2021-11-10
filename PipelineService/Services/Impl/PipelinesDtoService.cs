@@ -9,19 +9,19 @@ namespace PipelineService.Services.Impl
 {
     public class PipelinesDtoService : IPipelinesDtoService
     {
-        private readonly IPipelineDao _pipelinesDao;
+        private readonly IPipelinesDao _pipelinesesDao;
         private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
 
-        public PipelinesDtoService(IPipelineDao pipelinesDao, IPipelinesExecutionDao pipelinesExecutionDao)
+        public PipelinesDtoService(IPipelinesDao pipelinesesDao, IPipelinesExecutionDao pipelinesExecutionDao)
         {
-            _pipelinesDao = pipelinesDao;
+            _pipelinesesDao = pipelinesesDao;
             _pipelinesExecutionDao = pipelinesExecutionDao;
         }
 
         public async Task<IList<NodeTupleSingleInput>> GetSingleInputNodeTuples()
         {
 	        // TODO: check if pipeline has been successfully executed
-            return await _pipelinesDao.GetTuplesSingleInput();
+            return await _pipelinesesDao.GetTuplesSingleInput();
         }
 
         private static void BuildSingleInputTuples(

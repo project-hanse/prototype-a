@@ -13,12 +13,12 @@ using Node = PipelineService.Models.Pipeline.Node;
 
 namespace PipelineService.Dao.Impl
 {
-	public class Neo4JPipelineDao : IPipelineDao
+	public class Neo4JPipelinesDao : IPipelinesDao
 	{
-		private readonly ILogger<Neo4JPipelineDao> _logger;
+		private readonly ILogger<Neo4JPipelinesDao> _logger;
 		private readonly IGraphClient _graphClient;
 
-		public Neo4JPipelineDao(ILogger<Neo4JPipelineDao> logger, IGraphClient graphClient)
+		public Neo4JPipelinesDao(ILogger<Neo4JPipelinesDao> logger, IGraphClient graphClient)
 		{
 			_logger = logger;
 			_graphClient = graphClient;
@@ -63,22 +63,36 @@ namespace PipelineService.Dao.Impl
 			foreach (var rootNode in newPipeline.Root)
 			{
 				await CreateRootNodeGetType(newPipeline.Id, rootNode);
-				await CreateSuccessorsGetType(rootNode, rootNode.Successors);
+				await CreateSuccessorsGetType(rootNode);
 			}
 
 			_logger.LogInformation("Added pipeline {PipelineId} to database", newPipeline.Id);
 		}
 
 		/// <summary>
-		/// Helper method for creating successors for default pipelines.
+		/// Helper method for recursively creating all successor nodes for a node.
 		/// </summary>
-		private async Task CreateSuccessorsGetType<TP>(TP node, IEnumerable<Node> successors) where TP : Node
+		private async Task CreateSuccessorsGetType<TP>(TP node) where TP : Node
 		{
-			foreach (var successor in successors)
+			foreach (var successor in node.Successors)
 			{
-				await CreateSuccessorGetType<TP>(node.Id, successor);
-				await CreateSuccessorsGetType(successor, successor.Successors);
+				await CreateSuccessorGetType(node.Id, successor);
+				await CreateSuccessorsGetType(successor);
 			}
+		}
+
+		/// <summary>
+		/// Helper for creating defaults.
+		/// </summary>
+		private async Task CreateSuccessorGetType(Guid predecessorId, Node successor)
+		{
+			if (successor.GetType() == typeof(NodeSingleInput))
+				await CreateSuccessor(new List<Guid> { predecessorId }, (NodeSingleInput)successor);
+			else if (successor.GetType() == typeof(NodeDoubleInput))
+				await CreateSuccessor(new List<Guid> { predecessorId }, (NodeDoubleInput)successor);
+			else if (successor.GetType() == typeof(NodeFileInput))
+				await CreateSuccessor(new List<Guid> { predecessorId }, (NodeFileInput)successor);
+			else throw new InvalidOperationException($"Type {nameof(Node)} not supported");
 		}
 
 		public async Task<PipelineInfoDto> GetInfoDto(Guid pipelineId)
@@ -179,40 +193,29 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Created root node {NodeId} for pipeline {PipelineId}", root.Id, pipelineId);
 		}
 
-		/// <summary>
-		/// Helper for creating defaults.
-		/// </summary>
-		private async Task CreateSuccessorGetType<TP>(Guid predecessorId, Node successor) where TP : Node
+		public async Task CreateSuccessor<TNode>(IList<Guid> predecessorIds, TNode successor) where TNode : Node
 		{
-			if (successor.GetType() == typeof(NodeSingleInput))
-				await CreateSuccessor<TP, NodeSingleInput>(predecessorId, (NodeSingleInput)successor);
-			else if (successor.GetType() == typeof(NodeDoubleInput))
-				await CreateSuccessor<TP, NodeDoubleInput>(predecessorId, (NodeDoubleInput)successor);
-			else if (successor.GetType() == typeof(NodeFileInput))
-				await CreateSuccessor<TP, NodeFileInput>(predecessorId, (NodeFileInput)successor);
-			else throw new InvalidOperationException($"Type {nameof(Node)} not supported");
-		}
-
-		public async Task CreateSuccessor<TP, TS>(Guid predecessorId, TS successor) where TP : Node where TS : Node
-		{
-			_logger.LogDebug("Making {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
+			_logger.LogDebug("Making {SuccessorNodeId} successor of {@PredecessorNodeIds}", successor.Id, predecessorIds);
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			// TODO: Merge this into a single db call using annotations
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Merge(path => path.Pattern<TS>("node").Constrain(node => node.Id == successor.Id))
+				.Merge(path => path.Pattern<TNode>("node").Constrain(node => node.Id == successor.Id))
 				.OnCreate()
 				.Set("node", () => successor)
 				.ExecuteWithoutResultsAsync();
 
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Match(path => path.Pattern<TP>("predNode").Constrain(predNode => predNode.Id == predecessorId))
-				.Match(path => path.Pattern<TS>("sucNode").Constrain(sucNode => sucNode.Id == successor.Id))
-				.Merge("(predNode)-[r:HAS_SUCCESSOR]->(sucNode)")
-				.ExecuteWithoutResultsAsync();
+			foreach (var predecessorId in predecessorIds)
+			{
+				await _graphClient.WithAnnotations<PipelineContext>().Cypher
+					.Match(path => path.Pattern<Node>("predNode").Constrain(predNode => predNode.Id == predecessorId))
+					.Match(path => path.Pattern<Node>("sucNode").Constrain(sucNode => sucNode.Id == successor.Id))
+					.Merge("(predNode)-[r:HAS_SUCCESSOR]->(sucNode)")
+					.ExecuteWithoutResultsAsync();
+			}
 
-			_logger.LogInformation("Made {SuccessorNodeId} successor of {PredecessorNodeId}", successor.Id, predecessorId);
+			_logger.LogInformation("Made {SuccessorNodeId} successor of {@PredecessorNodeId}", successor.Id, predecessorIds);
 		}
 
 		public async Task<Node> GetNode(Guid nodeId)
@@ -258,6 +261,33 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Loaded node {NodeId}", nodeId);
 
 			return node.FirstOrDefault();
+		}
+
+		public async Task UpdateNode<TNode>(TNode node) where TNode : Node
+		{
+			_logger.LogDebug("Updating node {NodeId}", node.Id);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+			node.ChangedOn = DateTime.UtcNow;
+
+			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Merge(path => path.Pattern<TNode>("n").Constrain(n => n.Id == node.Id))
+				.Set("n", () => node)
+				.ExecuteWithoutResultsAsync();
+
+			_logger.LogInformation("Updated node {NodeId}", node.Id);
+		}
+
+		public async Task DeleteNode(Guid nodeId)
+		{
+			_logger.LogDebug("Deleting node {NodeId}", nodeId);
+
+			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(path => path.Pattern<Node>("node").Constrain(node => node.Id == nodeId))
+				.DetachDelete("node")
+				.ExecuteWithoutResultsAsync();
+
+			_logger.LogInformation("Deleted node {NodeId}", nodeId);
 		}
 
 		public async Task<IList<NodeTupleSingleInput>> GetTuplesSingleInput()

@@ -6,7 +6,7 @@ using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao
 {
-	public interface IPipelineDao
+	public interface IPipelinesDao
 	{
 		/// <summary>
 		/// Sets up indices for the pipelines database.
@@ -35,9 +35,15 @@ namespace PipelineService.Dao
 		/// <param name="pipeline">An object with values that will be persisted.</param>
 		Task CreatePipeline(Pipeline pipeline);
 
-		Task CreateRootNode<TN>(Guid pipelineId, TN root) where TN : Node;
+		Task CreateRootNode<TNode>(Guid pipelineId, TNode root) where TNode : Node;
 
-		Task CreateSuccessor<TP, TS>(Guid predecessorId, TS successor) where TP : Node where TS : Node;
+		/// <summary>
+		/// Creates a new node if it does not already exist and marks it as the successor of a set of other nodes.
+		/// </summary>
+		/// <param name="predecessorIds">The node ids of the new nodes predecessors.</param>
+		/// <param name="successor">The node that will be created.</param>
+		/// <typeparam name="TNode">The node's type.</typeparam>
+		Task CreateSuccessor<TNode>(IList<Guid> predecessorIds, TNode successor) where TNode : Node;
 
 		/// <summary>
 		/// Loads a node from the database.
@@ -54,9 +60,13 @@ namespace PipelineService.Dao
 		/// Loads a node of a specific type from the database.
 		/// </summary>
 		/// <param name="nodeId">The node's id.</param>
-		/// <typeparam name="T">The specific type of the node to be loaded.</typeparam>
+		/// <typeparam name="TNode">The specific type of the node to be loaded.</typeparam>
 		/// <returns>The node or null if no node with a given id is found.</returns>
-		Task<T> GetNode<T>(Guid nodeId) where T : Node;
+		Task<TNode> GetNode<TNode>(Guid nodeId) where TNode : Node;
+
+		Task UpdateNode<TNode>(TNode node) where TNode : Node;
+
+		Task DeleteNode(Guid nodeId);
 
 		Task<IList<NodeTupleSingleInput>> GetTuplesSingleInput();
 

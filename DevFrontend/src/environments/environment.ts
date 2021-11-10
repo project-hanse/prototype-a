@@ -4,7 +4,7 @@
 
 export const environment = {
 	production: false,
-	pipelineApi: 'http://localhost:5000',
+	pipelineApi: 'https://localhost:5001',
 	datasetApi: 'http://localhost:5002',
 	messageBrokerHost: 'localhost',
 	messageBrokerPath: '',

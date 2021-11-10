@@ -17,20 +17,20 @@ namespace PipelineService.Services.Impl
     public class PipelinesExecutionService : IPipelineExecutionService
     {
         private readonly ILogger<PipelinesExecutionService> _logger;
-        private readonly IPipelineDao _pipelinesDao;
+        private readonly IPipelinesDao _pipelinesesDao;
         private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
         private readonly EventBusService _eventBusService;
         private readonly EdgeEventBusService _edgeEventBusService;
 
         public PipelinesExecutionService(
             ILogger<PipelinesExecutionService> logger,
-            IPipelineDao pipelinesDao,
+            IPipelinesDao pipelinesesDao,
             IPipelinesExecutionDao pipelinesExecutionDao,
             EventBusService eventBusService,
             EdgeEventBusService edgeEventBusService)
         {
             _logger = logger;
-            _pipelinesDao = pipelinesDao;
+            _pipelinesesDao = pipelinesesDao;
             _pipelinesExecutionDao = pipelinesExecutionDao;
             _eventBusService = eventBusService;
             _edgeEventBusService = edgeEventBusService;
@@ -38,17 +38,17 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
         {
-            return await _pipelinesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
+            return await _pipelinesesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
         }
 
         public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
         {
-            return await _pipelinesDao.GetInfoDto(id);
+            return await _pipelinesesDao.GetInfoDto(id);
         }
 
         public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
         {
-            var dto = await _pipelinesDao.GetVisDto(pipelineId);
+            var dto = await _pipelinesesDao.GetVisDto(pipelineId);
             if (dto == null)
             {
                 _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
@@ -60,7 +60,7 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
         {
-            return await _pipelinesDao.GetDtos();
+            return await _pipelinesesDao.GetDtos();
         }
 
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
@@ -216,7 +216,7 @@ namespace PipelineService.Services.Impl
         /// <param name="nodeId">The node to be executed.</param>
         private async Task EnqueueNode(Guid executionId, Guid nodeId)
         {
-	        	var node = await _pipelinesDao.GetNode(nodeId);
+	        	var node = await _pipelinesesDao.GetNode(nodeId);
             _logger.LogInformation("Enqueuing node ({NodeId}) with operation {Operation}", node.Id, node.Operation);
 
             NodeExecutionRequest request;
