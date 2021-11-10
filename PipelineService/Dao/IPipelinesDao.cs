@@ -1,67 +1,81 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PipelineService.Exceptions;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao
 {
-    public interface IPipelinesDao
-    {
-        /// <summary>
-        /// Creates a default pipeline and stores it.
-        /// </summary>
-        /// <param name="id">The pipeline's id the new pipeline will be created withh</param>
-        /// <returns>The default pipeline.</returns>
-        public Task<Pipeline> Create(Guid id);
+	public interface IPipelinesDao
+	{
+		/// <summary>
+		/// Sets up indices for the pipelines database.
+		/// </summary>
+		Task Setup();
 
-        /// <summary>
-        /// Creates a bunch of default pipelines in the store.
-        /// </summary>
-        /// <param name="pipelines">The pipelines that will be stored if parameter is not null.</param>
-        /// <returns>A list of newly created pipelines.</returns>
-        Task<IList<Pipeline>> CreateDefaults(IList<Pipeline> pipelines = null);
+		/// <summary>
+		/// Creates a pipeline with all its nodes in the database.
+		/// </summary>
+		/// <remarks><b>Warning:</b> The current implementation is very ineffective and takes quiet some time.</remarks>
+		/// <param name="pipelines">The pipeline records that will be persistently stored.</param>
+		/// <returns>A list of all pipelines that have been created.</returns>
+		Task<IList<Pipeline>> CreatePipelines(IList<Pipeline> pipelines);
 
-        /// <summary>
-        /// Adds a pipeline as is to the store.
-        /// </summary>
-        /// <param name="pipeline">The pipeline that will be stored</param>
-        public Task Add(Pipeline pipeline);
+		Task<PipelineInfoDto> GetInfoDto(Guid pipelineId);
 
-        /// <summary>
-        /// Loads a pipeline from the store by it's id.
-        /// </summary>
-        /// <param name="pipelineId">The pipeline's id</param>
-        /// <exception cref="NotFoundException">If no pipeline with this id exists.</exception>
-        /// <returns>The pipeline</returns>
-        public Task<Pipeline> Get(Guid pipelineId);
+		Task<IList<PipelineInfoDto>> GetDtos();
 
-        /// <summary>
-        /// Loads a pipeline dto by it's id.
-        /// </summary>
-        /// <param name="pipelineId">The pipeline's id</param>
-        /// <exception cref="NotFoundException">If no pipeline with this id exists.</exception>
-        /// <returns>The pipeline's dto if the pipeline exists, otherwise null.</returns>
-        Task<PipelineInfoDto> GetInfoDto(Guid pipelineId);
+		/// <summary>
+		/// Creates a new pipeline in the store if it not already exists.
+		/// </summary>
+		/// <remarks>
+		/// If a pipeline with the same id already exists, values will be merged.
+		/// Ignores all <c>Node</c>s provided in this object (use <c>CreateRoot</c> for adding root nodes to a pipeline).
+		/// </remarks>
+		/// <param name="pipeline">An object with values that will be persisted.</param>
+		Task CreatePipeline(Pipeline pipeline);
 
-        /// <summary>
-        /// Loads all available pipelines.
-        /// </summary>
-        /// <returns>A list of all pipelines</returns>
-        public Task<IList<Pipeline>> Get();
+		Task CreateRootNode<TNode>(Guid pipelineId, TNode root) where TNode : Node;
 
-        /// <summary>
-        /// Loads dtos for all available pipelines
-        /// </summary>
-        /// <returns>A list of dtos of all pipelines.</returns>
-        Task<IList<PipelineInfoDto>> GetDtos();
+		/// <summary>
+		/// Creates a new node if it does not already exist and marks it as the successor of a set of other nodes.
+		/// </summary>
+		/// <param name="predecessorIds">The node ids of the new nodes predecessors.</param>
+		/// <param name="successor">The node that will be created.</param>
+		/// <typeparam name="TNode">The node's type.</typeparam>
+		Task CreateSuccessor<TNode>(IList<Guid> predecessorIds, TNode successor) where TNode : Node;
 
-        /// <summary>
-        /// Updates a pipeline in the store.
-        /// </summary>
-        /// <param name="pipeline">The pipeline that will be updated.</param>
-        /// <returns>The updated pipeline</returns>
-        Task<Pipeline> Update(Pipeline pipeline);
-    }
+		/// <summary>
+		/// Loads a node from the database.
+		/// The node's type will be automatically detected.
+		/// </summary>
+		/// <remarks>
+		/// Hint: if you want to load a node of a specific type, use <c>LoadNode&lt;TN&gt;</c> instead.
+		/// </remarks>
+		/// <param name="nodeId">The node's id.</param>
+		/// <returns>The node or null if no node with a given id is found.</returns>
+		Task<Node> GetNode(Guid nodeId);
+
+		/// <summary>
+		/// Loads a node of a specific type from the database.
+		/// </summary>
+		/// <param name="nodeId">The node's id.</param>
+		/// <typeparam name="TNode">The specific type of the node to be loaded.</typeparam>
+		/// <returns>The node or null if no node with a given id is found.</returns>
+		Task<TNode> GetNode<TNode>(Guid nodeId) where TNode : Node;
+
+		Task UpdateNode<TNode>(TNode node) where TNode : Node;
+
+		Task DeleteNode(Guid nodeId);
+
+		Task<IList<NodeTupleSingleInput>> GetTuplesSingleInput();
+
+		/// <summary>
+		/// Loads a dto representing a pipeline in a format that can be directly plugged into the
+		/// <a href="https://visjs.github.io/vis-network/docs/network/">vis.js</a> visualization library.
+		/// </summary>
+		/// <param name="pipelineId">The pipeline's id.</param>
+		/// <returns>A dto holding visualization information for the pipeline.</returns>
+		Task<PipelineVisualizationDto> GetVisDto(Guid pipelineId);
+	}
 }

@@ -27,7 +27,7 @@ rectangle "Mid Level Services" {
 
 rectangle "Low Level Services" {
     component #line.dashed "Pipeline Store" << .NET REST API >> as pipeline_store
-    database #line.dashed "Pipeline Database" << GraphDB >> as pipeline_db
+    database "Pipeline Database" << neo4j >> as pipeline_db
     
     component #line.dashed "Execution Store" << .NET REST API >> as execution_store
     database #line.dashed "Execution Database" << MongoDB >> as execution_db
@@ -55,7 +55,7 @@ reverse_proxy --> dataset_service
 reverse_proxy <--> message_broker_edge
 
 
-pipeline_store --> pipeline_db
+pipeline_service --> pipeline_db
 dataset_store --> dataset_db
 dataset_store --> file_store
 execution_store --> execution_db 

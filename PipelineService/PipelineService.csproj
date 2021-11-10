@@ -7,6 +7,8 @@
     <ItemGroup>
         <PackageReference Include="Hangfire.LiteDB" Version="0.4.1" />
         <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.0.17" />
+        <PackageReference Include="Neo4jClient" Version="4.1.18" />
+        <PackageReference Include="Neo4jClient.DataAnnotations" Version="2.2.2" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="Hangfire.AspNetCore" Version="1.7.27" />
     </ItemGroup>

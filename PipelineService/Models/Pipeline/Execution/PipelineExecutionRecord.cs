@@ -14,7 +14,7 @@ namespace PipelineService.Models.Pipeline.Execution
 
         public DateTime CompletedOn { get; set; }
 
-        public IList<NodeExecutionRecord> ToBeExecuted { get; set; } = new List<NodeExecutionRecord>();
+        public IList<NodeExecutionRecord> ToBeExecuted { get; } = new List<NodeExecutionRecord>();
 
         public IList<NodeExecutionRecord> InExecution { get; } = new List<NodeExecutionRecord>();
 

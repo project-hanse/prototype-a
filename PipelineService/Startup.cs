@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.LiteDB;
 using Microsoft.AspNetCore.Builder;
@@ -6,9 +8,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Neo4jClient;
 using PipelineService.Dao;
 using PipelineService.Dao.Impl;
+using PipelineService.Extensions;
+using PipelineService.Models;
 using PipelineService.Services;
+using PipelineService.Services.HealthChecks;
 using PipelineService.Services.Impl;
 
 namespace PipelineService
@@ -44,13 +50,26 @@ namespace PipelineService
 			});
 			services.AddHangfireServer();
 
+			// configuring Neo4j connection
+			services.AddSingleton<IGraphClient>(new GraphClient(
+				Configuration.GetValueOrThrow<Uri>("NeoServerConfiguration:RootUri"),
+				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Username"),
+				Configuration.GetValueOrThrow<string>("NeoServerConfiguration:Password"))
+			{
+				DefaultDatabase = Configuration.GetValue("NeoServerConfiguration:DefaultDatabase", "neo4j")
+			});
+
+			services.AddNeo4jAnnotations<PipelineContext>();
+
+
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();
 			services.AddSingleton<EdgeEventBusService>();
 
 			// Registering DAOs
 			services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
-			services.AddSingleton<IPipelinesDao, InMemoryPipelinesDao>();
+			services.AddSingleton<IPipelinesDaoInMemory, InMemoryPipelinesDaoInMemory>();
+			services.AddSingleton<IPipelinesDao, Neo4JPipelinesDao>();
 
 			// Registering transient services
 			services.AddTransient<IHashService, HashService>();
@@ -62,7 +81,7 @@ namespace PipelineService
 			services.AddHostedService<HostedSubscriptionService>();
 
 			// TODO: Add health checks to required services: https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks
-			services.AddHealthChecks();
+			services.AddHealthChecks().AddCheck<Neo4JHealthCheck>("neo4j_health_check");
 
 			services.AddControllers();
 			services.AddSwaggerGen(c =>
@@ -72,7 +91,7 @@ namespace PipelineService
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IPipelinesDao pipelinesDao)
 		{
 			if (env.IsDevelopment())
 			{
@@ -102,6 +121,8 @@ namespace PipelineService
 				endpoints.MapControllers();
 				endpoints.MapHealthChecks("/health");
 			});
+
+			Task.WhenAll(pipelinesDao.Setup());
 		}
 	}
 }

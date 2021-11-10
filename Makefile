@@ -1,17 +1,17 @@
 start:
-	docker-compose build && docker-compose up -d
+	docker-compose -f docker-compose.yml build && docker-compose -f docker-compose.yml up -d
 
 stop:
-	docker-compose stop
+	docker-compose -f docker-compose.yml stop
 
 down:
-	docker-compose down
+	docker-compose -f docker-compose.yml down
 	
 restart:
-	docker-compose restart
+	docker-compose -f docker-compose.yml restart
 
 build:
-	docker-compose build
+	docker-compose -f docker-compose.yml build
 
 purge:
-	docker-compose down -v --rmi all --remove-orphans
+	docker-compose -f docker-compose.yml down -v --rmi all --remove-orphans
