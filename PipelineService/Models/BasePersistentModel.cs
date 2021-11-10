@@ -2,12 +2,12 @@ using System;
 
 namespace PipelineService.Models
 {
-    public abstract record BasePersistentModel
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
+	public abstract record BasePersistentModel
+	{
+		public Guid Id { get; set; } = Guid.NewGuid();
 
-        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+		public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
-        public DateTime? ChangedOn { get; set; }
-    }
+		public DateTime? ChangedOn { get; set; }
+	}
 }

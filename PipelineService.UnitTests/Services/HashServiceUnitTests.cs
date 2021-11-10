@@ -35,7 +35,7 @@ namespace PipelineService.UnitTests.Services
                 Operation = "dropna",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 }
             };
 
@@ -46,7 +46,7 @@ namespace PipelineService.UnitTests.Services
                 Operation = "dropna",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 }
             };
 
@@ -71,7 +71,7 @@ namespace PipelineService.UnitTests.Services
                 Operation = "dropna",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 }
             };
 
@@ -82,7 +82,7 @@ namespace PipelineService.UnitTests.Services
                 Operation = "dropna",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 }
             };
 
@@ -107,7 +107,7 @@ namespace PipelineService.UnitTests.Services
                 Operation = "dropna",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 }
             };
 
@@ -118,7 +118,7 @@ namespace PipelineService.UnitTests.Services
                 Operation = "dropna",
                 OperationConfiguration = new Dictionary<string, string>
                 {
-                    {"axis", "0"}
+                    { "axis", "0" }
                 }
             };
 
