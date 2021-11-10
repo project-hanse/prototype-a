@@ -53,4 +53,4 @@ Thumbs.db
 node_modules
 .git
 .gitignorenpm
-.angular
+.angular/**/*
