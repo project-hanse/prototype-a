@@ -11,9 +11,22 @@ env:
   REPOSITORY_NAME: ${{ github.repository }}
 
 jobs:
+  # Get Version from previous tag and commit messages
+  get-version:
+    name: 'Get Version'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v5.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
   # Dataset Service
   build-dataset-service:
     name: 'Build Dataset Service'
+    needs: [ get-version ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -46,7 +59,7 @@ jobs:
           context: ./DataSetService
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.tag_version.outputs.new_tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
@@ -54,6 +67,7 @@ jobs:
   # Dev Frontend
   build-dev-frontend:
     name: 'Build Dev Frontend'
+    needs: [ get-version ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -86,7 +100,7 @@ jobs:
           context: ./DevFrontend
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.tag_version.outputs.new_tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
@@ -94,6 +108,7 @@ jobs:
   # Node Worker
   build-node-worker:
     name: 'Build Node Worker'
+    needs: [ get-version ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -126,7 +141,7 @@ jobs:
           context: ./NodeWorker
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.tag_version.outputs.new_tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
@@ -134,6 +149,7 @@ jobs:
   # Pipeline Service        
   build-pipeline-service:
     name: 'Build Pipeline Service'
+    needs: [ get-version ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -166,14 +182,15 @@ jobs:
           context: ./PipelineService
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.tag_version.outputs.new_tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
-          
+
   # Hanse Neo4j      
   build-plugins-neo4j:
     name: 'Build Neo4j Plugins + Hanse Neo4j Docker Image'
+    needs: [ get-version ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -206,7 +223,21 @@ jobs:
           context: ./Neo4jPlugins
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.tag_version.outputs.new_tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
+  # Get Version from previous tag and commit messages
+  create-release:
+    name: 'Create Release'
+    needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
