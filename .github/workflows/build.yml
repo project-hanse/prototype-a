@@ -15,8 +15,6 @@ jobs:
   get-version:
     name: 'Get Version'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v2
       - name: Bump version and push tag
@@ -236,8 +234,6 @@ jobs:
     needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
