@@ -2,7 +2,7 @@ name: Docker Build Pipeline
 
 on:
   push:
-    branches: [ 'main', 'chore/ci' ]
+    branches: [ 'main' ]
   pull_request:
     branches: [ 'main','dev' ]
 
@@ -229,3 +229,19 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
+  # Get Version from previous tag and commit messages
+  create-release:
+    name: 'Create Release'
+    needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service ]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
