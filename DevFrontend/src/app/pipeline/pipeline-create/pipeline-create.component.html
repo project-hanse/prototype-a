@@ -1,0 +1,17 @@
+<mat-form-field appearance="fill" style="width: 100%">
+	<mat-label>Select an template</mat-label>
+	<mat-select [(value)]="selectedTemplate">
+		<ng-container *ngIf="$templates | async as templates">
+			<mat-option *ngFor="let template of templates" [value]="template">{{template.name}}</mat-option>
+		</ng-container>
+	</mat-select>
+</mat-form-field>
+
+<button mat-raised-button color="primary"
+				[disabled]="selectedTemplate === undefined || loading"
+				(click)="createButtonClicked(selectedTemplate)">
+	<span>Create&nbsp;</span>
+	<span *ngIf="selectedTemplate">{{selectedTemplate?.name}}</span>
+</button>
+
+<mat-progress-bar *ngIf="loading" mode="indeterminate" style="margin-top: 1em"></mat-progress-bar>
