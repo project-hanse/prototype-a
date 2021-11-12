@@ -23,7 +23,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: main
-          pre_release_branches: dev
+          pre_release_branches: pre-release
 
   # Dataset Service
   build-dataset-service:
