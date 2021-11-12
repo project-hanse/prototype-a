@@ -17,6 +17,14 @@ updates:
     assignees:
       - "SirPumpkinHead"
 
+  - package-ecosystem: "docker"
+    directory: "/PipelineService"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "SirPumpkinHead"
+
   # Pipeline Service (Unit Tests)
   - package-ecosystem: "nuget" # See documentation for possible values
     directory: "/PipelineService.UnitTests" # Location of package manifests
@@ -26,12 +34,20 @@ updates:
     assignees:
       - "SirPumpkinHead"
 
-  # Block Worker 
+  # Node Worker 
   - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/BlockWorker" # Location of package manifests
+    directory: "/NodeWorker" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    assignees:
+      - "SirPumpkinHead"
+
+  - package-ecosystem: "docker" # See documentation for possible values
+    directory: "/NodeWorker" # Location of package manifests
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
 
@@ -40,16 +56,15 @@ updates:
     directory: "/DataSetService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
-
-  # Dataset Service
-  - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/OperationStore" # Location of package manifests
+      
+  - package-ecosystem: "docker" # See documentation for possible values
+    directory: "/DataSetService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
 
@@ -61,12 +76,28 @@ updates:
       interval: "daily"
     assignees:
       - "SirPumpkinHead"
-
+  
+  - package-ecosystem: "docker"
+    directory: "/DevFrontend"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "SirPumpkinHead"
+  
   # Neo4j Plugins
   - package-ecosystem: "maven"
     directory: "/Neo4jPlugins"
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    assignees:
+      - "SirPumpkinHead"
+
+  - package-ecosystem: "docker"
+    directory: "/Neo4jPlugins"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
