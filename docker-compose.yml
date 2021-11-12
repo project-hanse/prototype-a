@@ -93,8 +93,8 @@ services:
     ports:
       - "4566:4566"
       - "4571:4571"
-    # volumes:
-    #   - ./volumes/localstack-data:/tmp/localstack
+    volumes:
+      - ./volumes/localstack/data:/tmp/localstack
 
   # Neo4j Pipeline Database
   pipeline-database:
