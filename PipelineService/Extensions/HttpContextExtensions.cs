@@ -9,7 +9,9 @@ namespace PipelineService.Extensions
 	{
 		public static string GetUsernameFromBasicAuthHeader(this HttpContext httpContext)
 		{
-			var authHeader = AuthenticationHeaderValue.Parse(httpContext.Request.Headers["Authorization"]);
+			if (!httpContext.Request.Headers.TryGetValue("Authorization", out var authHeaderValue)) return null;
+
+			var authHeader = AuthenticationHeaderValue.Parse(authHeaderValue);
 			var credentialBytes = Convert.FromBase64String(authHeader.Parameter ?? throw new InvalidOperationException());
 			var credentials = Encoding.UTF8.GetString(credentialBytes).Split(new[] { ':' }, 2);
 			return credentials[0];
