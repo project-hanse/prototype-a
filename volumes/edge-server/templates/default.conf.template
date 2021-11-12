@@ -38,6 +38,9 @@ server {
         rewrite             /api/pipeline/(.*) /$1 break;
         proxy_redirect      off;
         proxy_set_header    Host $host;
+        proxy_set_header    X-Real-IP          $remote_addr;
+        proxy_set_header    X-Forwarded-Proto  $scheme;
+        proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
     }
         
     location /api/dataset {
@@ -45,5 +48,18 @@ server {
         rewrite             /api/dataset/(.*) /$1 break;
         proxy_redirect      off;
         proxy_set_header    Host $host;
+        proxy_set_header    X-Real-IP          $remote_addr;
+        proxy_set_header    X-Forwarded-Proto  $scheme;
+        proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
+    }
+    
+    location /db/pipeline {
+        proxy_pass          http://pipeline-database:7474;
+        rewrite             /db/pipeline/(.*) /$1 break;
+        proxy_redirect      off;
+        proxy_set_header    Host $host;
+        proxy_set_header    X-Real-IP          $remote_addr;
+        proxy_set_header    X-Forwarded-Proto  $scheme;
+        proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
     }
 }

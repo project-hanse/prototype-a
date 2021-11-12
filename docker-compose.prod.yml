@@ -21,6 +21,7 @@ services:
     depends_on:
       - dev-frontend
       - pipeline-service
+      - pipeline-database
       - dataset-service
       - edge-message-broker
 
@@ -122,6 +123,5 @@ services:
       - DEFAULT_REGION=eu-west-2
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock
-    #  - EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:8080
-    # volumes:
-    #   - ./volumes/localstack-data:/tmp/localstack
+    volumes:
+      - ./volumes/localstack/data:/tmp/localstack/data
