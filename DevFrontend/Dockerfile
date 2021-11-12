@@ -16,7 +16,7 @@ RUN ng build --output-path=./dist/out  --output-hashing=all --configuration prod
 
 # Deployment
 
-FROM nginx:1.19-alpine as run-step
+FROM nginx:1.21.0-alpine as run-step
 
 # Replacing default config with Angular specific
 RUN rm /etc/nginx/conf.d/default.conf
