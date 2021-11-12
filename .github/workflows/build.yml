@@ -14,6 +14,7 @@ jobs:
   # Get Version from previous tag and commit messages
   get-version:
     name: 'Get Version'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
