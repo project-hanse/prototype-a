@@ -1,20 +1,23 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using PipelineService.Extensions;
+using PipelineService.Models.Dtos;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
 {
-	public class PipelineController : BaseController
+	public class PipelinesController : BaseController
 	{
-		private readonly ILogger<PipelineController> _logger;
+		private readonly ILogger<PipelinesController> _logger;
 		private readonly IPipelineExecutionService _pipelineExecutionService;
 		private readonly IPipelinesDtoService _pipelinesDtoService;
 
-		public PipelineController(
-			ILogger<PipelineController> logger,
+		public PipelinesController(
+			ILogger<PipelinesController> logger,
 			IPipelineExecutionService pipelineExecutionService,
 			IPipelinesDtoService pipelinesDtoService)
 		{
@@ -29,10 +32,23 @@ namespace PipelineService.Controllers
 			return (await _pipelineExecutionService.CreateDefaultPipelines()).Count;
 		}
 
+		[HttpGet("templates")]
+		public async Task<IList<PipelineInfoDto>> GetTemplates()
+		{
+			return await _pipelineExecutionService.GetTemplateInfoDtos();
+		}
+
+		[HttpPost("create/from/template")]
+		public async Task<CreateFromTemplateResponse> CreatePipelineFromTemplate(CreateFromTemplateRequest request)
+		{
+			request.UserIdentifier = HttpContext.GetUsernameFromBasicAuthHeader();
+			return await _pipelineExecutionService.CreatePipelineFromTemplate(request);
+		}
+
 		[HttpGet]
 		public async Task<IActionResult> GetPipelineDtos()
 		{
-			return Ok(await _pipelineExecutionService.GetPipelineDtos());
+			return Ok(await _pipelineExecutionService.GetPipelineDtos(HttpContext.GetUsernameFromBasicAuthHeader()));
 		}
 
 		[HttpGet("{pipelineId:Guid}")]

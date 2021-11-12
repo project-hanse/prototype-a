@@ -5,20 +5,23 @@ import {CoreModule} from '../core/core.module';
 import {DevToolsRoutingModule} from './dev-tools-routing.module';
 import {StatusBarComponent} from './status/status-bar/status-bar.component';
 import {StatusComponent} from './status/status.component';
+import {UsernameComponent} from './username/username.component';
 
 
 @NgModule({
 	declarations: [
 		StatusComponent,
-		StatusBarComponent
+		StatusBarComponent,
+		UsernameComponent
 	],
 	exports: [
-		StatusBarComponent
+		StatusBarComponent,
+		UsernameComponent
 	],
 	imports: [
+		CoreModule,
 		CommonModule,
 		DevToolsRoutingModule,
-		CoreModule
 	]
 })
 export class DevToolsModule {

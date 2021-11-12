@@ -23,7 +23,7 @@ namespace PipelineService.Dao
 
 		Task<PipelineInfoDto> GetInfoDto(Guid pipelineId);
 
-		Task<IList<PipelineInfoDto>> GetDtos();
+		Task<IList<PipelineInfoDto>> GetDtos(string userIdentifier = default);
 
 		/// <summary>
 		/// Creates a new pipeline in the store if it not already exists.

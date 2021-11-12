@@ -16,5 +16,7 @@ namespace PipelineService.Models.Pipeline
 		/// The pipeline's name.
 		/// </summary>
 		public string Name { get; set; }
+
+		public string UserIdentifier { get; set; }
 	}
 }

@@ -17,20 +17,20 @@ namespace PipelineService.Services.Impl
     public class PipelinesExecutionService : IPipelineExecutionService
     {
         private readonly ILogger<PipelinesExecutionService> _logger;
-        private readonly IPipelinesDao _pipelinesesDao;
+        private readonly IPipelinesDao _pipelinesDao;
         private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
         private readonly EventBusService _eventBusService;
         private readonly EdgeEventBusService _edgeEventBusService;
 
         public PipelinesExecutionService(
             ILogger<PipelinesExecutionService> logger,
-            IPipelinesDao pipelinesesDao,
+            IPipelinesDao pipelinesDao,
             IPipelinesExecutionDao pipelinesExecutionDao,
             EventBusService eventBusService,
             EdgeEventBusService edgeEventBusService)
         {
             _logger = logger;
-            _pipelinesesDao = pipelinesesDao;
+            _pipelinesDao = pipelinesDao;
             _pipelinesExecutionDao = pipelinesExecutionDao;
             _eventBusService = eventBusService;
             _edgeEventBusService = edgeEventBusService;
@@ -38,17 +38,32 @@ namespace PipelineService.Services.Impl
 
         public async Task<IList<Pipeline>> CreateDefaultPipelines()
         {
-            return await _pipelinesesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
+            return await _pipelinesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
+        }
+
+        public Task<IList<PipelineInfoDto>> GetTemplateInfoDtos()
+        {
+	        _logger.LogDebug("Loading available pipeline templates");
+
+	        var templates = HardcodedDefaultPipelines.PipelineTemplates()
+		        .Select(p => new PipelineInfoDto
+		        {
+							Id = p.Id,
+							Name = p.Name
+		        })
+		        .ToList();
+
+	        return Task.FromResult<IList<PipelineInfoDto>>(templates);
         }
 
         public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
         {
-            return await _pipelinesesDao.GetInfoDto(id);
+            return await _pipelinesDao.GetInfoDto(id);
         }
 
         public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
         {
-            var dto = await _pipelinesesDao.GetVisDto(pipelineId);
+            var dto = await _pipelinesDao.GetVisDto(pipelineId);
             if (dto == null)
             {
                 _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
@@ -58,9 +73,10 @@ namespace PipelineService.Services.Impl
             return dto;
         }
 
-        public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
+        public async Task<IList<PipelineInfoDto>> GetPipelineDtos(string userIdentifier)
         {
-            return await _pipelinesesDao.GetDtos();
+
+            return (await _pipelinesDao.GetDtos(userIdentifier)).OrderByDescending(p => p.CreatedOn).ToList();
         }
 
         public async Task<Guid> ExecutePipeline(Guid pipelineId)
@@ -103,6 +119,42 @@ namespace PipelineService.Services.Impl
             }
 
             await NotifyFrontend(response);
+        }
+
+        public async Task<CreateFromTemplateResponse> CreatePipelineFromTemplate(CreateFromTemplateRequest request)
+        {
+	        _logger.LogDebug("Creating a new pipeline for user {UserIdentifier} from template {PipelineTemplateId}",
+		        request.UserIdentifier, request.TemplateId);
+
+	        var response = new CreateFromTemplateResponse();
+
+	        var template = HardcodedDefaultPipelines.PipelineTemplates().SingleOrDefault(t => t.Id == request.TemplateId);
+	        if (template == null)
+	        {
+		        response.Success = false;
+		        return response;
+	        }
+
+	        template.Id = Guid.NewGuid();
+	        SetPipelineId(template.Id, template.Root);
+	        template.UserIdentifier = request.UserIdentifier;
+	        template.CreatedOn = DateTime.UtcNow;
+
+	        await _pipelinesDao.CreatePipelines(new List<Pipeline>{template});
+
+	        response.PipelineId = template.Id;
+	        response.Success = true;
+
+	        return response;
+        }
+
+        private static void SetPipelineId(Guid pipelineId, IList<Node> templateRoot)
+        {
+	        foreach (var node in templateRoot)
+	        {
+		        node.PipelineId = pipelineId;
+		        SetPipelineId(pipelineId, node.Successors);
+	        }
         }
 
         private async Task NotifyFrontend(NodeExecutionResponse response)
@@ -216,7 +268,7 @@ namespace PipelineService.Services.Impl
         /// <param name="nodeId">The node to be executed.</param>
         private async Task EnqueueNode(Guid executionId, Guid nodeId)
         {
-	        	var node = await _pipelinesesDao.GetNode(nodeId);
+	        	var node = await _pipelinesDao.GetNode(nodeId);
             _logger.LogInformation("Enqueuing node ({NodeId}) with operation {Operation}", node.Id, node.Operation);
 
             NodeExecutionRequest request;

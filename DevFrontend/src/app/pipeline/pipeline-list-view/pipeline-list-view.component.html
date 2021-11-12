@@ -1,12 +1,20 @@
 <mat-card>
+	<ph-pipeline-create></ph-pipeline-create>
+</mat-card>
+
+<mat-card>
 	<mat-list *ngIf="getPipelines() | async as pipelines">
-		<div mat-subheader>Pipelines</div>
+		<div mat-subheader>My Pipelines</div>
 		<mat-list-item *ngFor="let pipeline of pipelines">
 			<mat-icon mat-list-icon>account_tree</mat-icon>
 			<div mat-line>
 				<a [routerLink]="[pipeline.id]">{{pipeline.name}}</a>
 			</div>
 			<div mat-line> {{pipeline.createdOn | date: 'medium'}} </div>
+		</mat-list-item>
+
+		<mat-list-item *ngIf="pipelines.length === 0">
+			<p>You do not have any pipeline - select a template to get started.</p>
 		</mat-list-item>
 	</mat-list>
 </mat-card>
