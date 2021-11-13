@@ -14,7 +14,7 @@ rectangle "Edge Services" {
     component "Edge Message Broker" << MQTT Broker >> as message_broker_edge
 }
 
-rectangle "Event Bus"{
+rectangle "Event Bus" {
     component "Internal Message Broker" << MQTT Broker >> as message_broker_internal
 }
 
@@ -22,12 +22,12 @@ rectangle "Service Layer" {
     component "Pipeline Service" << .NET REST API >> as pipeline_service
     collections  "Node Worker" <<Python Worker>> as worker
     component #line.dashed "Suggestion Service" << Python REST API >> as suggestion_service
-    component #line.dashed "File Service" << Python REST API >> as file_service
+    component "File Service" << .NET REST API >> as file_service
 }
 
 rectangle "Persistence Layer" {
     database "Pipeline Database" << neo4j >> as pipeline_db
-        
+
     component "Dataset Store" << Python REST API >> as dataset_store
     node "File Store" << S3 Bucket >> as file_store
     database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
@@ -38,7 +38,7 @@ rectangle "Persistence Layer" {
 development_frontend <--> reverse_proxy
 development_frontend --> reverse_proxy
 
-reverse_proxy --> pipeline_service 
+reverse_proxy --> pipeline_service
 reverse_proxy --> suggestion_service
 suggestion_service <--> message_broker_internal
 reverse_proxy --> file_service
@@ -48,7 +48,7 @@ pipeline_service --> pipeline_db
 dataset_store --> dataset_db
 file_service --> file_store
 pipeline_service <--> message_broker_internal
-message_broker_internal <--> worker 
+message_broker_internal <--> worker
 
 worker --> dataset_store
 worker --> file_store
@@ -57,4 +57,6 @@ message_broker_edge <--> pipeline_service
 
 'TODO: This connection should no longer exist'
 reverse_proxy --> dataset_store
+'TODO: Default files should be seeded from file service PH-213'
+dataset_store --> file_store
 @enduml
