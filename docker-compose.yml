@@ -8,6 +8,8 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "8080:80"
+    depends_on:
+      - pipeline-service
 
   # Pipeline Service
   pipeline-service:
@@ -24,9 +26,21 @@ services:
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     ports:
       - "5000:80"
+
+  # File Service
+  file-service:
+    build:
+      context: ./FileService
+      dockerfile: ./Dockerfile
+    environment:
+      Logging__LogLevel__Default: Information
+      ASPNETCORE_ENVIRONMENT: Development
+      S3_HOST: localstack-s3
+      S3_PORT: 4566
+    ports:
+      - "5004:80"
     depends_on:
-      - message-broker
-      - pipeline-database
+      - localstack-s3
 
   # Node Worker
   node-worker:
@@ -110,4 +124,3 @@ services:
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
-        
