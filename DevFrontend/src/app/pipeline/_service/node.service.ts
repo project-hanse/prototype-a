@@ -22,15 +22,15 @@ export class NodeService extends BaseHttpService {
 	}
 
 	public addNode(addNodeRequest: AddNodeRequest): Observable<AddNodeResponse> {
-		return this.httpClient.post<AddNodeResponse>(this.getUrl('add'), addNodeRequest);
+		return this.httpClient.post<AddNodeResponse>(this.getPipelinesUrl('add'), addNodeRequest);
 	}
 
 	public removeNodes(request: RemoveNodesRequest): Observable<RemoveNodesResponse> {
-		return this.httpClient.post<RemoveNodesResponse>(this.getUrl('remove'), request);
+		return this.httpClient.post<RemoveNodesResponse>(this.getPipelinesUrl('remove'), request);
 	}
 
 	public getResultHash(pipelineId: string, nodeId: string): Observable<{ hash: string }> {
-		return this.httpClient.get<{ hash: string }>(this.getUrl(pipelineId, nodeId, 'result-hash'));
+		return this.httpClient.get<{ hash: string }>(this.getPipelinesUrl(pipelineId, nodeId, 'result-hash'));
 	}
 
 	public getPreviewHtml(hash: string): Observable<string> {
@@ -38,10 +38,10 @@ export class NodeService extends BaseHttpService {
 	}
 
 	public getConfig(pipelineId: string, nodeId: string): Observable<Map<string, string>> {
-		return this.httpClient.get<Map<string, string>>(this.getUrl(pipelineId, nodeId, 'config'));
+		return this.httpClient.get<Map<string, string>>(this.getPipelinesUrl(pipelineId, nodeId, 'config'));
 	}
 
 	public updateConfig(pipelineId: string, nodeId: string, config: Map<string, string>): Observable<any> {
-		return this.httpClient.post(this.getUrl(pipelineId, nodeId, 'config'), config);
+		return this.httpClient.post(this.getPipelinesUrl(pipelineId, nodeId, 'config'), config);
 	}
 }

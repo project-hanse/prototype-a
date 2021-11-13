@@ -41,6 +41,6 @@ export class PipelineService extends BaseHttpService {
 	}
 
 	public createFromTemplate(request: CreateFromTemplateRequest): Observable<CreateFromTemplateResponse> {
-		return this.httpClient.post<CreateFromTemplateResponse>(this.getUrl('create', 'from', 'template'), request);
+		return this.httpClient.post<CreateFromTemplateResponse>(this.getPipelinesUrl('create', 'from', 'template'), request);
 	}
 }

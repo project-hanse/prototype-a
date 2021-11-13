@@ -6,13 +6,13 @@ import {BaseHttpService} from '../../core/_service/base-http.service';
 @Injectable({
 	providedIn: 'root'
 })
-export class UsersService extends BaseHttpService {
+export class FilesService extends BaseHttpService {
 
 	constructor(public httpClient: HttpClient) {
-		super('api/v1/users', httpClient);
+		super('api/v1/files', httpClient);
 	}
 
-	public getCurrentUserInfo(): Observable<{ username: string }> {
-		return this.httpClient.get<{ username: string }>(this.getPipelinesUrl('current', 'info'));
+	public uploadFiles(formData: FormData): Observable<any> {
+		return this.httpClient.post(this.getFilesUrl('upload'), formData);
 	}
 }

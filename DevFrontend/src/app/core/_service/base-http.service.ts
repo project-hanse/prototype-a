@@ -11,11 +11,15 @@ export class BaseHttpService {
 	constructor(private basePath: string, private http: HttpClient) {
 	}
 
-	protected getUrl(...endpoint: string[]): string {
+	protected getPipelinesUrl(...endpoint: string[]): string {
 		return `${environment.pipelineApi}/${this.basePath}/${endpoint.join('/')}`;
 	}
 
+	protected getFilesUrl(...endpoint: string[]): string {
+		return `${environment.filesApi}/${this.basePath}/${endpoint.join('/')}`;
+	}
+
 	public get<T>(...endpoint: string[]): Observable<T> {
-		return this.http.get<T>(this.getUrl(...endpoint));
+		return this.http.get<T>(this.getPipelinesUrl(...endpoint));
 	}
 }
