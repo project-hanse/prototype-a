@@ -126,10 +126,11 @@ services:
 
   # S3 Bucket
   localstack-s3:
-    image: localstack/localstack:0.12.20
+    image: localstack/localstack:0.13.0
     restart: unless-stopped
     environment:
       - SERVICES=s3
+      - EAGER_SERVICE_LOADING=1
       - DEFAULT_REGION=eu-west-2
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock
