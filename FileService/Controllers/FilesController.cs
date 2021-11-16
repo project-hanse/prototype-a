@@ -1,39 +1,37 @@
-using System;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using FileService.Extensions;
+using FileService.Models.Requests;
+using FileService.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FileService.Controllers
 {
 	public class FilesController : BaseController
 	{
-		[HttpPost("upload")]
-		public async Task<IActionResult> Upload([FromForm] FileForm multipartForm)
+		private readonly S3FilesService _filesService;
+
+		public FilesController(S3FilesService filesService)
 		{
-			var folderName = Path.Combine("Resources", "Images");
-			var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
+			_filesService = filesService;
+		}
 
-			if (multipartForm?.File != null)
+		[HttpGet("info")]
+		public async Task<IActionResult> GetInfosForUser()
+		{
+			return Ok(await _filesService.GetFileInfosForUser(HttpContext.GetUsernameFromBasicAuthHeader()));
+		}
+
+		[HttpPost("upload")]
+		public async Task<IActionResult> Upload([FromForm] UploadFileRequest request)
+		{
+			request.UserIdentifier = HttpContext.GetUsernameFromBasicAuthHeader();
+
+			if (request.File != null)
 			{
-				var fullPath = Path.Combine(pathToSave, multipartForm.File.FileName);
-
-				using (var stream = new FileStream(fullPath, FileMode.Create))
-				{
-					// TODO store in S3 bucket
-					// 	await multipartForm.File.CopyToAsync(stream);
-				}
-
-				return Ok();
+				return Ok(await _filesService.UploadFile(request));
 			}
 
 			return BadRequest();
-		}
-
-		public class FileForm
-		{
-			public DateTime? LastModified { get; set; }
-			public IFormFile File { get; set; }
 		}
 	}
 }

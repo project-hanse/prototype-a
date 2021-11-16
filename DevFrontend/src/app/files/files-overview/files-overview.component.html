@@ -1,3 +1,19 @@
 <div class="container">
-	<ph-files-upload></ph-files-upload>
+	<ph-files-upload (fileUploaded)="onFileUploaded($event)"></ph-files-upload>
+
+	<mat-card style="margin-top: 1em">
+		<mat-list *ngIf="getUserFiles() | async as userFiles">
+			<div mat-subheader>My Files</div>
+			<mat-list-item *ngFor="let userFile of userFiles">
+				<mat-icon mat-list-icon>note</mat-icon>
+				<div mat-line>
+					<span>{{userFile.fileName}}</span>
+				</div>
+				<div mat-line>
+					<span>{{userFile.lastModified | date: 'MMM dd, YYYY, HH:mm'}}</span>
+					<span *ngIf="userFile.size" style="opacity: 0.6">&nbsp;({{toReadablyBytes(userFile.size)}})</span>
+				</div>
+			</mat-list-item>
+		</mat-list>
+	</mat-card>
 </div>

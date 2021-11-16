@@ -1,6 +1,7 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
 import {NgxFileDropEntry} from 'ngx-file-drop';
 import {Subscription} from 'rxjs';
+import {FileInfoDto} from '../../files/_model/file-info-dto';
 import {FilesService} from '../_services/files.service';
 
 @Component({
@@ -9,6 +10,9 @@ import {FilesService} from '../_services/files.service';
 	styleUrls: ['./files-upload.component.scss']
 })
 export class FilesUploadComponent implements OnInit, OnDestroy {
+	@Output()
+	readonly fileUploaded: EventEmitter<FileInfoDto> = new EventEmitter<FileInfoDto>();
+
 	uploading: number = 0;
 	files: NgxFileDropEntry[] = [];
 
@@ -42,16 +46,16 @@ export class FilesUploadComponent implements OnInit, OnDestroy {
 						formData.append('lastModified', new Date(file.lastModified).toISOString());
 					}
 					formData.append('file', file, droppedFile.relativePath);
+					formData.append('fileName', file.name);
 
 					this.subscriptions.add(
-						this.filesService.uploadFiles(formData).subscribe(
+						this.filesService.uploadFile(formData).subscribe(
 							next => {
 								this.uploading--;
-								console.log(next);
+								this.fileUploaded.next(next);
 							},
 							error => {
 								this.uploading--;
-								console.log(error);
 							}
 						));
 				});

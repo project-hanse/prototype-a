@@ -1,4 +1,6 @@
+using Amazon.Runtime;
 using Amazon.S3;
+using FileService.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -33,19 +35,26 @@ namespace FileService
 			services.AddControllers();
 			services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "FileService", Version = "v1" }); });
 
-			var config = new AmazonS3Config
+			services.AddScoped<S3FilesService>(); // TODO add interface
+
+			var s3Config = new AmazonS3Config
 			{
 				ForcePathStyle = Configuration.GetValue("S3Configuration:ForcePathStyle", true),
 				ServiceURL =
 					$"{Configuration.GetValue("S3Configuration:Protocol", "http")}://{Configuration.GetValue("S3Configuration:Host", "localstack-s3")}:{Configuration.GetValue("S3Configuration:Port", 4566)}"
 			};
+			var awsCredentials = new BasicAWSCredentials(
+				Configuration.GetValue<string>("S3Configuration:AccessKey", null),
+				Configuration.GetValue<string>("S3Configuration:SecretKey", null));
+
+			services.AddScoped<IAmazonS3>(_ => new AmazonS3Client(awsCredentials, s3Config));
 
 			services.AddHealthChecks().AddS3(options =>
 			{
-				options.S3Config = config;
+				options.S3Config = s3Config;
 				options.BucketName = Configuration.GetValue("S3Configuration:DefaultBucketName", "defaultfiles");
-				options.AccessKey = Configuration.GetValue<string>("S3Configuration:AccessKey", null);
-				options.SecretKey = Configuration.GetValue<string>("S3Configuration:SecretKey", null);
+				options.AccessKey = awsCredentials.GetCredentials().AccessKey;
+				options.SecretKey = awsCredentials.GetCredentials().SecretKey;
 			});
 		}
 
