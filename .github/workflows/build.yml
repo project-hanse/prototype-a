@@ -148,7 +148,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
 
-  # Pipeline Service        
+  # Pipeline Service
   build-pipeline-service:
     name: 'Build Pipeline Service'
     needs: [ get-version ]
@@ -189,7 +189,48 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
 
-  # Hanse Neo4j      
+  # File Service
+  build-file-service:
+    name: 'Build File Service'
+    needs: [ get-version ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY_NAME }}/file-service
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./FileService
+          builder: ${{ steps.buildx.outputs.name }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.tag_version.outputs.new_version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
+  # Hanse Neo4j
   build-plugins-neo4j:
     name: 'Build Neo4j Plugins + Hanse Neo4j Docker Image'
     needs: [ get-version ]
@@ -233,7 +274,7 @@ jobs:
   # Get Version from previous tag and commit messages
   create-release:
     name: 'Create Release'
-    needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service ]
+    needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service, build-file-service ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:

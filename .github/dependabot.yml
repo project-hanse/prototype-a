@@ -34,7 +34,24 @@ updates:
     assignees:
       - "SirPumpkinHead"
 
-  # Node Worker 
+  # File Service
+  - package-ecosystem: "nuget" # See documentation for possible values
+    directory: "/FileService" # Location of package manifests
+    target-branch: "dev"
+    schedule:
+      interval: "daily"
+    assignees:
+      - "SirPumpkinHead"
+
+  - package-ecosystem: "docker"
+    directory: "/FileService"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "SirPumpkinHead"
+
+  # Node Worker
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/NodeWorker" # Location of package manifests
     target-branch: "dev"
@@ -59,7 +76,7 @@ updates:
       interval: "weekly"
     assignees:
       - "SirPumpkinHead"
-      
+
   - package-ecosystem: "docker" # See documentation for possible values
     directory: "/DataSetService" # Location of package manifests
     target-branch: "dev"
@@ -76,7 +93,7 @@ updates:
       interval: "daily"
     assignees:
       - "SirPumpkinHead"
-  
+
   - package-ecosystem: "docker"
     directory: "/DevFrontend"
     target-branch: "dev"
@@ -84,7 +101,7 @@ updates:
       interval: "weekly"
     assignees:
       - "SirPumpkinHead"
-  
+
   # Neo4j Plugins
   - package-ecosystem: "maven"
     directory: "/Neo4jPlugins"

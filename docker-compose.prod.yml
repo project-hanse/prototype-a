@@ -57,7 +57,6 @@ services:
     restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Information
-      ASPNETCORE_ENVIRONMENT: Development
       EVENT_BUS__MQTT_HOST: message-broker
       EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
@@ -66,6 +65,17 @@ services:
     depends_on:
       - message-broker
       - pipeline-database
+
+  # File Service
+  file-service:
+    image: ghcr.io/project-hanse/prototype-a/file-service:main
+    restart: unless-stopped
+    environment:
+      Logging__LogLevel__Default: Information
+      S3_HOST: localstack-s3
+      S3_PORT: 4566
+    depends_on:
+      - localstack-s3
 
   # Dataset Store
   dataset-service:
@@ -116,10 +126,11 @@ services:
 
   # S3 Bucket
   localstack-s3:
-    image: localstack/localstack:0.12.20
+    image: localstack/localstack:0.13.0
     restart: unless-stopped
     environment:
       - SERVICES=s3
+      - EAGER_SERVICE_LOADING=1
       - DEFAULT_REGION=eu-west-2
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock

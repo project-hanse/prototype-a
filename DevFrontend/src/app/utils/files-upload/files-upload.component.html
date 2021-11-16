@@ -1,0 +1,11 @@
+<ngx-file-drop dropZoneLabel="Drop files here"
+							 (onFileDrop)="dropped($event)"
+							 (onFileOver)="fileOver($event)"
+							 (onFileLeave)="fileLeave($event)">
+	<ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+		<span>Drop files here so they can be used in your pipelines.</span>
+		<span>&nbsp;</span>
+		<button type="button" (click)="openFileSelector()">Browse Files</button>
+	</ng-template>
+</ngx-file-drop>
+<mat-progress-bar *ngIf="uploading > 0" mode="indeterminate" style="margin-top: 1em"></mat-progress-bar>

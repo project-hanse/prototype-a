@@ -13,6 +13,6 @@ export class UsersService extends BaseHttpService {
 	}
 
 	public getCurrentUserInfo(): Observable<{ username: string }> {
-		return this.httpClient.get<{ username: string }>(this.getUrl('current', 'info'));
+		return this.httpClient.get<{ username: string }>(this.getPipelinesUrl('current', 'info'));
 	}
 }

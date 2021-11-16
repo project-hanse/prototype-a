@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.LiteDB;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +12,6 @@ using Neo4jClient;
 using PipelineService.Dao;
 using PipelineService.Dao.Impl;
 using PipelineService.Extensions;
-using PipelineService.Helper;
 using PipelineService.Models;
 using PipelineService.Services;
 using PipelineService.Services.HealthChecks;
@@ -33,6 +31,7 @@ namespace PipelineService
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			// TODO this should be stricter
 			services.AddCors(options =>
 			{
 				options.AddPolicy("AllowAnyCorsPolicy",
