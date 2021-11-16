@@ -17,8 +17,7 @@ services:
       context: ./PipelineService
       dockerfile: ./Dockerfile
     environment:
-      Logging__LogLevel__Default: Information
-      ASPNETCORE_ENVIRONMENT: Development
+      Logging__LogLevel__Default: Debug
       EVENT_BUS__MQTT_HOST: message-broker
       EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
@@ -34,7 +33,6 @@ services:
       dockerfile: ./Dockerfile
     environment:
       Logging__LogLevel__Default: Information
-      ASPNETCORE_ENVIRONMENT: Development
       S3_HOST: localstack-s3
       S3_PORT: 4566
     ports:
