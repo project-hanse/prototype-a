@@ -191,7 +191,7 @@ jobs:
 
   # File Service
   build-file-service:
-    name: 'Build Pipeline Service'
+    name: 'Build File Service'
     needs: [ get-version ]
     runs-on: ubuntu-latest
     permissions:
@@ -274,7 +274,7 @@ jobs:
   # Get Version from previous tag and commit messages
   create-release:
     name: 'Create Release'
-    needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service ]
+    needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service, build-file-service ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
