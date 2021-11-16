@@ -1,6 +1,8 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {Observable, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
+import {FileInfoDto} from '../../files/_model/file-info-dto';
+import {FilesService} from '../../utils/_services/files.service';
 import {AddNodeRequest} from '../_model/add-node-request';
 import {OperationDto, OperationDtoGroup, OperationInputTypes} from '../_model/operation-dto';
 import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
@@ -28,11 +30,13 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	public readonly pipelineChanged: EventEmitter<PipelineVisualizationDto>;
 
 	private $operationDtosGroups?: Observable<Array<OperationDtoGroup>>;
+	private $userFiles?: Observable<Array<FileInfoDto>>;
 
 	private readonly subscriptions: Subscription;
-	searchText?: string;
+	operationsSearchText?: string;
+	filesSearchText?: string;
 
-	constructor(private operationsService: OperationsService, private nodeService: NodeService) {
+	constructor(private operationsService: OperationsService, private nodeService: NodeService, private filesService: FilesService) {
 		this.subscriptions = new Subscription();
 		this.pipelineChanged = new EventEmitter<PipelineVisualizationDto>();
 	}
@@ -60,10 +64,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	showInAvailable(operation: OperationDto): boolean {
-		if (this.searchText) {
+		if (this.operationsSearchText) {
 			const searchIn = [operation.operationName, operation.operationFullName, operation.description, operation.sectionTitle];
 			const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
-			if (!searchInText.includes(this.searchText.replace(' ', '').toLowerCase())) {
+			if (!searchInText.includes(this.operationsSearchText.replace(' ', '').toLowerCase())) {
 				return false;
 			}
 		}
@@ -110,5 +114,26 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 					console.error('Failed to add node', error);
 				})
 		);
+	}
+
+	addFile(userFile: FileInfoDto): void {
+		// TODO: implement me
+	}
+
+	getUserFiles(): Observable<Array<FileInfoDto>> {
+		if (!this.$userFiles) {
+			this.$userFiles = this.filesService.getUserFileInfos();
+		}
+		return this.$userFiles;
+	}
+
+	showFile(userFile: FileInfoDto): boolean {
+		if (!this.filesSearchText) {
+			return true;
+		}
+		if (!userFile?.fileName) {
+			return true;
+		}
+		return userFile.fileName.toLowerCase().includes(this.filesSearchText.toLowerCase());
 	}
 }
