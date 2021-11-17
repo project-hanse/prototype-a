@@ -5,34 +5,65 @@
 		</mat-card-title>
 	</mat-card-header>
 	<mat-card-content>
-		<!-- Search Bar -->
-		<mat-form-field class="search-field" appearance="fill">
-			<mat-icon matPrefix>search</mat-icon>
-			<mat-label>Search for operations</mat-label>
-			<input matInput type="text" [(ngModel)]="searchText" autocomplete="off">
-			<button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="searchText=''">
-				<mat-icon>close</mat-icon>
-			</button>
-		</mat-form-field>
-		<!-- Operations -->
-		<div class="operations-wrapper">
-			<ng-container *ngIf="getOperationDtos() | async as operationsGroups">
-				<mat-action-list *ngFor="let operationsGroup of operationsGroups" [disabled]="selectedNodeIds.length === 0">
-					<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
-					<ng-container *ngFor="let operation of operationsGroup.operations">
-						<button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"
-										[matTooltip]="operation.description">
-							<mat-icon mat-list-icon>add_circle_outline</mat-icon>
-							<span mat-line>{{operation.operationName}}</span>
-							<span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
-							<a *ngIf="operation.framework === 'pandas'"
-								 target="_blank"
-								 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+		<mat-tab-group>
+			<mat-tab label="Operations">
+				<!-- Operations Search Bar -->
+				<mat-form-field class="search-field" appearance="fill">
+					<mat-icon matPrefix>search</mat-icon>
+					<mat-label>Search for operations</mat-label>
+					<input matInput type="text" [(ngModel)]="operationsSearchText" autocomplete="off">
+					<button *ngIf="operationsSearchText" matSuffix mat-icon-button aria-label="Clear"
+									(click)="operationsSearchText=''">
+						<mat-icon>close</mat-icon>
+					</button>
+				</mat-form-field>
+				<!-- Operations -->
+				<div class="scrollable-content-wrapper">
+					<ng-container *ngIf="getOperationDtos() | async as operationsGroups">
+						<mat-action-list *ngFor="let operationsGroup of operationsGroups" [disabled]="selectedNodeIds.length === 0">
+							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
+							<ng-container *ngFor="let operation of operationsGroup.operations">
+								<button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"
+												[matTooltip]="operation.description">
+									<mat-icon mat-list-icon>add_circle_outline</mat-icon>
+									<span mat-line>{{operation.operationName}}</span>
+									<span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
+									<a *ngIf="operation.framework === 'pandas'"
+										 target="_blank"
+										 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+								</button>
+							</ng-container>
+						</mat-action-list>
+					</ng-container>
+				</div>
+			</mat-tab>
+
+			<mat-tab label="Files">
+				<!-- Files Search Bar -->
+				<mat-form-field class="search-field" appearance="fill">
+					<mat-icon matPrefix>search</mat-icon>
+					<mat-label>Search for files</mat-label>
+					<input matInput type="text" [(ngModel)]="filesSearchText" autocomplete="off">
+					<button *ngIf="filesSearchText" matSuffix mat-icon-button aria-label="Clear" (click)="filesSearchText=''">
+						<mat-icon>close</mat-icon>
+					</button>
+				</mat-form-field>
+				<!-- File -->
+				<mat-action-list *ngIf="getUserFiles() | async as userFiles" class="scrollable-content-wrapper">
+					<ng-container *ngFor="let userFile of userFiles">
+						<button mat-list-item *ngIf="showFile(userFile)" (click)="addFile(userFile)">
+							<mat-icon mat-list-icon>note</mat-icon>
+							<div mat-line>
+								<span>{{userFile.fileName}}</span>
+							</div>
+							<div mat-line>
+								<span>{{userFile.lastModified | date: 'MMM dd, YYYY, HH:mm'}}</span>
+							</div>
 						</button>
 					</ng-container>
 				</mat-action-list>
-			</ng-container>
-		</div>
+			</mat-tab>
+		</mat-tab-group>
 
 		<!-- Other Actions -->
 		<mat-toolbar>

@@ -13,7 +13,7 @@ updates:
     directory: "/PipelineService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
 
@@ -30,7 +30,7 @@ updates:
     directory: "/PipelineService.UnitTests" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
 
@@ -39,7 +39,7 @@ updates:
     directory: "/FileService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
 
@@ -90,7 +90,7 @@ updates:
     directory: "/DevFrontend"
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
 

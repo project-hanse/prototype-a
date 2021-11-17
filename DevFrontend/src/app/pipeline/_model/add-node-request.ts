@@ -5,4 +5,5 @@ export interface AddNodeRequest extends BaseRequest {
 	pipelineId: string;
 	predecessorNodeIds: Array<string>;
 	operation: OperationDto;
+	options?: any;
 }
