@@ -10,7 +10,7 @@ RUN dotnet restore
 COPY . ./
 RUN dotnet publish -c Release -o out
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0
+FROM mcr.microsoft.com/dotnet/aspnet:6.0.0
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
 WORKDIR /app
