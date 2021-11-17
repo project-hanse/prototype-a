@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Observable, Subscription} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {Pipeline} from '../_model/pipeline';
 import {PipelineService} from '../_service/pipeline.service';
 

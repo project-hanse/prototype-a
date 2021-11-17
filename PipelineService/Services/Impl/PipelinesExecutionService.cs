@@ -14,404 +14,455 @@ using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Services.Impl
 {
-    public class PipelinesExecutionService : IPipelineExecutionService
-    {
-        private readonly ILogger<PipelinesExecutionService> _logger;
-        private readonly IPipelinesDao _pipelinesesDao;
-        private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
-        private readonly EventBusService _eventBusService;
-        private readonly EdgeEventBusService _edgeEventBusService;
+	public class PipelinesExecutionService : IPipelineExecutionService
+	{
+		private readonly ILogger<PipelinesExecutionService> _logger;
+		private readonly IPipelinesDao _pipelinesDao;
+		private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
+		private readonly EventBusService _eventBusService;
+		private readonly EdgeEventBusService _edgeEventBusService;
 
-        public PipelinesExecutionService(
-            ILogger<PipelinesExecutionService> logger,
-            IPipelinesDao pipelinesesDao,
-            IPipelinesExecutionDao pipelinesExecutionDao,
-            EventBusService eventBusService,
-            EdgeEventBusService edgeEventBusService)
-        {
-            _logger = logger;
-            _pipelinesesDao = pipelinesesDao;
-            _pipelinesExecutionDao = pipelinesExecutionDao;
-            _eventBusService = eventBusService;
-            _edgeEventBusService = edgeEventBusService;
-        }
+		public PipelinesExecutionService(
+			ILogger<PipelinesExecutionService> logger,
+			IPipelinesDao pipelinesDao,
+			IPipelinesExecutionDao pipelinesExecutionDao,
+			EventBusService eventBusService,
+			EdgeEventBusService edgeEventBusService)
+		{
+			_logger = logger;
+			_pipelinesDao = pipelinesDao;
+			_pipelinesExecutionDao = pipelinesExecutionDao;
+			_eventBusService = eventBusService;
+			_edgeEventBusService = edgeEventBusService;
+		}
 
-        public async Task<IList<Pipeline>> CreateDefaultPipelines()
-        {
-            return await _pipelinesesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
-        }
+		public async Task<IList<Pipeline>> CreateDefaultPipelines()
+		{
+			return await _pipelinesDao.CreatePipelines(HardcodedDefaultPipelines.NewDefaultPipelines());
+		}
 
-        public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
-        {
-            return await _pipelinesesDao.GetInfoDto(id);
-        }
+		public Task<IList<PipelineInfoDto>> GetTemplateInfoDtos()
+		{
+			_logger.LogDebug("Loading available pipeline templates");
 
-        public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
-        {
-            var dto = await _pipelinesesDao.GetVisDto(pipelineId);
-            if (dto == null)
-            {
-                _logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
-                return null;
-            }
+			var templates = HardcodedDefaultPipelines.PipelineTemplates()
+				.Select(p => new PipelineInfoDto
+				{
+					Id = p.Id,
+					Name = p.Name
+				})
+				.ToList();
 
-            return dto;
-        }
+			return Task.FromResult<IList<PipelineInfoDto>>(templates);
+		}
 
-        public async Task<IList<PipelineInfoDto>> GetPipelineDtos()
-        {
-            return await _pipelinesesDao.GetDtos();
-        }
+		public async Task<PipelineInfoDto> GetPipelineInfoDto(Guid id)
+		{
+			return await _pipelinesDao.GetInfoDto(id);
+		}
 
-        public async Task<Guid> ExecutePipeline(Guid pipelineId)
-        {
-            _logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
+		public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
+		{
+			var dto = await _pipelinesDao.GetVisDto(pipelineId);
+			if (dto == null)
+			{
+				_logger.LogDebug("Pipeline with id {PipelineId} not found", pipelineId);
+				return null;
+			}
 
-            var execution = await _pipelinesExecutionDao.Create(pipelineId);
+			return dto;
+		}
 
-            await EnqueueNextNodes(execution, pipelineId);
+		public async Task<IList<PipelineInfoDto>> GetPipelineDtos(string userIdentifier)
+		{
+			return (await _pipelinesDao.GetDtos(userIdentifier)).OrderByDescending(p => p.CreatedOn).ToList();
+		}
 
-            return execution.Id;
-        }
+		public async Task<Guid> ExecutePipeline(Guid pipelineId)
+		{
+			_logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
 
-        public async Task HandleExecutionResponse(NodeExecutionResponse response)
-        {
-            _logger.LogInformation(
-                "Node ({NodeId}) completed for execution {ExecutionId} of pipeline {PipelineId} with success state {SuccessState} in {ExecutionTimeMs} ms",
-                response.NodeId, response.ExecutionId, response.PipelineId, response.Successful,
-                (int)(response.StopTime - response.StartTime).TotalMilliseconds);
+			var execution = await _pipelinesExecutionDao.Create(pipelineId);
 
-            if (!response.Successful)
-            {
-                _logger.LogInformation("Execution of node {NodeId} failed with error {ExecutionErrorDescription}",
-                    response.NodeId, response.ErrorDescription);
+			await EnqueueNextNodes(execution, pipelineId);
 
-                await MarkNodeAsFailed(response.ExecutionId, response.NodeId);
-                await NotifyFrontend(response);
-                return;
-            }
+			return execution.Id;
+		}
 
-            if (await MarkNodeAsExecuted(response.ExecutionId, response.NodeId))
-            {
-                _logger.LogDebug("Nothing to enqueue at the moment");
-            }
-            else
-            {
-                var execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
+		public async Task HandleExecutionResponse(NodeExecutionResponse response)
+		{
+			_logger.LogInformation(
+				"Node ({NodeId}) completed for execution {ExecutionId} of pipeline {PipelineId} with success state {SuccessState} in {ExecutionTimeMs} ms",
+				response.NodeId, response.ExecutionId, response.PipelineId, response.Successful,
+				(int)(response.StopTime - response.StartTime).TotalMilliseconds);
 
-                await EnqueueNextNodes(execution, response.PipelineId);
-            }
+			if (!response.Successful)
+			{
+				_logger.LogInformation("Execution of node {NodeId} failed with error {ExecutionErrorDescription}",
+					response.NodeId, response.ErrorDescription);
 
-            await NotifyFrontend(response);
-        }
+				await MarkNodeAsFailed(response.ExecutionId, response.NodeId);
+				await NotifyFrontend(response);
+				return;
+			}
 
-        private async Task NotifyFrontend(NodeExecutionResponse response)
-        {
-            var executionRecord = await _pipelinesExecutionDao.Get(response.ExecutionId);
-            var blockExecutionRecord = executionRecord.Executed.FirstOrDefault(b => b.NodeId == response.NodeId);
-            if (blockExecutionRecord == null)
-            {
-                blockExecutionRecord = executionRecord.Failed.FirstOrDefault(b => b.NodeId == response.NodeId);
-            }
+			if (await MarkNodeAsExecuted(response.ExecutionId, response.NodeId))
+			{
+				_logger.LogDebug("Nothing to enqueue at the moment");
+			}
+			else
+			{
+				var execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
 
-            await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
-                new FrontendExecutionNotification
-                {
-                    PipelineId = response.PipelineId,
-                    ExecutionId = response.ExecutionId,
-                    NodeId = response.NodeId,
-                    OperationName = blockExecutionRecord?.Name,
-                    Successful = response.Successful,
-                    CompletedAt = response.StopTime,
-                    ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
-                    ErrorDescription = response.ErrorDescription,
-                    NodesExecuted = executionRecord.Executed.Count,
-                    NodesInExecution = executionRecord.InExecution.Count,
-                    NodesToBeExecuted = executionRecord.ToBeExecuted.Count,
-                    NodesFailedToExecute = executionRecord.Failed.Count,
-                    ResultDatasetKey = blockExecutionRecord?.ResultKey
-                });
-        }
+				await EnqueueNextNodes(execution, response.PipelineId);
+			}
 
-        private async Task EnqueueNextNodes(PipelineExecutionRecord execution, Guid pipelineId)
-        {
-            var toBeEnqueued = await SelectNextNodes(execution.Id, pipelineId);
+			await NotifyFrontend(response);
+		}
 
-            _logger.LogDebug("Enqueueing {ToBeEnqueued} blocks for execution {ExecutionId} of pipeline {PipelineId}",
-                toBeEnqueued.Count, execution.Id, pipelineId);
+		public async Task<CreateFromTemplateResponse> CreatePipelineFromTemplate(CreateFromTemplateRequest request)
+		{
+			_logger.LogDebug("Creating a new pipeline for user {UserIdentifier} from template {PipelineTemplateId}",
+				request.UserIdentifier, request.TemplateId);
 
-            foreach (var block in toBeEnqueued)
-            {
-                await EnqueueNode(execution.Id, block.NodeId);
-            }
-        }
+			var response = new CreateFromTemplateResponse();
 
-        /// <summary>
-        /// Selects the next blocks to be executed for a given execution of a pipeline.
-        /// Might return empty list if no blocks need to be executed at the moment.
-        /// </summary>
-        ///
-        /// <exception cref="InvalidOperationException">If no execution for a given execution id exists.</exception>
-        /// <exception cref="ArgumentException">If the execution does not match the pipeline.</exception>
-        /// <param name="executionId">The execution's id.</param>
-        /// <param name="pipelineId">The pipeline that is being executed.</param>
-        /// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
-        private async Task<List<NodeExecutionRecord>> SelectNextNodes(Guid executionId, Guid pipelineId)
-        {
-            PipelineExecutionRecord executionRecord;
-            try
-            {
-                executionRecord = await _pipelinesExecutionDao.Get(executionId);
-            }
-            catch (NotFoundException e)
-            {
-                throw new InvalidOperationException("Can not select blocks for non existent execution", e);
-            }
+			var template = HardcodedDefaultPipelines.PipelineTemplates().SingleOrDefault(t => t.Id == request.TemplateId);
+			if (template == null)
+			{
+				response.Success = false;
+				return response;
+			}
 
-            if (executionRecord.PipelineId != pipelineId)
-            {
-                throw new ArgumentException("Pipeline id in loaded execution does not match pipeline id",
-                    nameof(executionId));
-            }
+			template.Id = Guid.NewGuid();
+			SetPipelineId(template.Id, template.Root);
+			template.UserIdentifier = request.UserIdentifier;
+			template.CreatedOn = DateTime.UtcNow;
 
-            if (executionRecord.InExecution.Count != 0)
-            {
-                _logger.LogInformation("Blocks in execution -> no blocks can be selected");
-                return new List<NodeExecutionRecord>();
-            }
+			await _pipelinesDao.CreatePipelines(new List<Pipeline> { template });
 
-            if (executionRecord.ToBeExecuted.Count == 0)
-            {
-                _logger.LogInformation("No more blocks to execute");
-                return new List<NodeExecutionRecord>();
-            }
+			response.PipelineId = template.Id;
+			response.Success = true;
 
-            var currentLevel = executionRecord.ToBeExecuted[0].Level;
+			return response;
+		}
 
-            var nextBlocks = executionRecord.ToBeExecuted
-                .Where(b => b.Level == currentLevel)
-                .ToList();
+		private static void SetPipelineId(Guid pipelineId, IList<Node> templateRoot)
+		{
+			foreach (var node in templateRoot)
+			{
+				node.PipelineId = pipelineId;
+				SetPipelineId(pipelineId, node.Successors);
+			}
+		}
 
-            _logger.LogDebug("Executing {ExecutionLevelCount} blocks from level {ExecutionLevel}",
-                nextBlocks.Count, currentLevel);
+		private async Task NotifyFrontend(NodeExecutionResponse response)
+		{
+			var executionRecord = await _pipelinesExecutionDao.Get(response.ExecutionId);
+			var blockExecutionRecord = executionRecord.Executed.FirstOrDefault(b => b.NodeId == response.NodeId);
+			if (blockExecutionRecord == null)
+			{
+				blockExecutionRecord = executionRecord.Failed.FirstOrDefault(b => b.NodeId == response.NodeId);
+			}
 
-            // moving blocks from to be executed list to in execution list
-            foreach (var nextBlock in nextBlocks)
-            {
-                _logger.LogDebug(
-                    "Moving node {NodeId} in execution {ExecutionId} from status to_be_executed to in_execution",
-                    nextBlock.NodeId, executionId);
-                executionRecord.ToBeExecuted.Remove(nextBlock);
-                nextBlock.MovedToStatusInExecutionAt = DateTime.UtcNow;
-                executionRecord.InExecution.Add(nextBlock);
-            }
+			await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
+				new FrontendExecutionNotification
+				{
+					PipelineId = response.PipelineId,
+					ExecutionId = response.ExecutionId,
+					NodeId = response.NodeId,
+					OperationName = blockExecutionRecord?.Name,
+					Successful = response.Successful,
+					CompletedAt = response.StopTime,
+					ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
+					ErrorDescription = response.ErrorDescription,
+					NodesExecuted = executionRecord.Executed.Count,
+					NodesInExecution = executionRecord.InExecution.Count,
+					NodesToBeExecuted = executionRecord.ToBeExecuted.Count,
+					NodesFailedToExecute = executionRecord.Failed.Count,
+					ResultDatasetKey = blockExecutionRecord?.ResultKey
+				});
+		}
 
-            return nextBlocks;
-        }
+		private async Task EnqueueNextNodes(PipelineExecutionRecord execution, Guid pipelineId)
+		{
+			var toBeEnqueued = await SelectNextNodes(execution.Id, pipelineId);
 
-        /// <summary>
-        /// Enqueues a node to be executed by the appropriate worker.
-        /// </summary>
-        /// <param name="executionId">The execution this node belongs to.</param>
-        /// <param name="nodeId">The node to be executed.</param>
-        private async Task EnqueueNode(Guid executionId, Guid nodeId)
-        {
-	        	var node = await _pipelinesesDao.GetNode(nodeId);
-            _logger.LogInformation("Enqueuing node ({NodeId}) with operation {Operation}", node.Id, node.Operation);
+			_logger.LogDebug("Enqueueing {ToBeEnqueued} blocks for execution {ExecutionId} of pipeline {PipelineId}",
+				toBeEnqueued.Count, execution.Id, pipelineId);
 
-            NodeExecutionRequest request;
-            // TODO: This can be solved in a nicer way by implementing eg the Visitor pattern
-            if (node.GetType() == typeof(NodeFileInput))
-            {
-                request = ExecutionRequestFromNode(executionId, (NodeFileInput)node);
-                await _eventBusService.PublishMessage($"execute/{node.PipelineId}/file", request);
-            }
-            else if (node.GetType() == typeof(NodeSingleInput))
-            {
-                request = ExecutionRequestFromNode(executionId, (NodeSingleInput)node);
-                await _eventBusService.PublishMessage($"execute/{node.PipelineId}/single", request);
-            }
-            else if (node.GetType() == typeof(NodeDoubleInput))
-            {
-                request = ExecutionRequestFromNode(executionId, (NodeDoubleInput)node);
-                await _eventBusService.PublishMessage($"execute/{node.PipelineId}/double", request);
-            }
-            else
-            {
-                throw new InvalidOperationException($"Type {node.GetType()} is not supported");
-            }
-        }
+			foreach (var block in toBeEnqueued)
+			{
+				await EnqueueNode(execution.Id, block.NodeId);
+			}
+		}
 
-        /// <summary>
-        /// Marks a node as executed in an execution.
-        /// TODO: This method must become thread safe (case: multiple node finish execution at the same time -> when updating data might get lost).
-        /// </summary>
-        /// <param name="executionId">The execution's id a node has been executed in.</param>
-        /// <param name="nodeId">The node that will be moved from status in execution to executed.</param>
-        /// <returns>True if there are still blocks in status in_execution.</returns>
-        private async Task<bool> MarkNodeAsExecuted(Guid executionId, Guid nodeId)
-        {
-            PipelineExecutionRecord execution;
-            try
-            {
-                execution = await _pipelinesExecutionDao.Get(executionId);
-            }
-            catch (NotFoundException e)
-            {
-                throw new InvalidOperationException("Can not move node for non existent execution", e);
-            }
+		/// <summary>
+		/// Selects the next blocks to be executed for a given execution of a pipeline.
+		/// Might return empty list if no blocks need to be executed at the moment.
+		/// </summary>
+		///
+		/// <exception cref="InvalidOperationException">If no execution for a given execution id exists.</exception>
+		/// <exception cref="ArgumentException">If the execution does not match the pipeline.</exception>
+		/// <param name="executionId">The execution's id.</param>
+		/// <param name="pipelineId">The pipeline that is being executed.</param>
+		/// <returns>A list of blocks that need to be executed next inorder to complete the execution of the pipeline</returns>
+		private async Task<List<NodeExecutionRecord>> SelectNextNodes(Guid executionId, Guid pipelineId)
+		{
+			PipelineExecutionRecord executionRecord;
+			try
+			{
+				executionRecord = await _pipelinesExecutionDao.Get(executionId);
+			}
+			catch (NotFoundException e)
+			{
+				throw new InvalidOperationException("Can not select blocks for non existent execution", e);
+			}
 
-            var block = execution.InExecution.FirstOrDefault(b => b.NodeId == nodeId);
+			if (executionRecord.PipelineId != pipelineId)
+			{
+				throw new ArgumentException("Pipeline id in loaded execution does not match pipeline id",
+					nameof(executionId));
+			}
 
-            if (block == null)
-            {
-                throw new InvalidOperationException("Node is not in status expected status for this execution");
-            }
+			if (executionRecord.InExecution.Count != 0)
+			{
+				_logger.LogInformation("Blocks in execution -> no blocks can be selected");
+				return new List<NodeExecutionRecord>();
+			}
 
-            _logger.LogDebug(
-                "Moving node {NodeId} in execution {ExecutionId} from status in_execution to executed",
-                nodeId, executionId);
+			if (executionRecord.ToBeExecuted.Count == 0)
+			{
+				_logger.LogInformation("No more blocks to execute");
+				return new List<NodeExecutionRecord>();
+			}
 
-            block.ExecutionCompletedAt = DateTime.UtcNow;
+			var currentLevel = executionRecord.ToBeExecuted[0].Level;
 
-            execution.InExecution.Remove(block);
-            execution.Executed.Add(block);
+			var nextBlocks = executionRecord.ToBeExecuted
+				.Where(b => b.Level == currentLevel)
+				.ToList();
 
-            CheckIfCompleted(execution);
+			_logger.LogDebug("Executing {ExecutionLevelCount} blocks from level {ExecutionLevel}",
+				nextBlocks.Count, currentLevel);
 
-            await _pipelinesExecutionDao.Update(execution);
+			// moving blocks from to be executed list to in execution list
+			foreach (var nextBlock in nextBlocks)
+			{
+				_logger.LogDebug(
+					"Moving node {NodeId} in execution {ExecutionId} from status to_be_executed to in_execution",
+					nextBlock.NodeId, executionId);
+				executionRecord.ToBeExecuted.Remove(nextBlock);
+				nextBlock.MovedToStatusInExecutionAt = DateTime.UtcNow;
+				executionRecord.InExecution.Add(nextBlock);
+			}
 
-            return execution.InExecution.Count > 0;
-        }
+			return nextBlocks;
+		}
 
-        private async Task MarkNodeAsFailed(Guid responseExecutionId, Guid responseBlockId)
-        {
-            PipelineExecutionRecord execution;
-            try
-            {
-                execution = await _pipelinesExecutionDao.Get(responseExecutionId);
-            }
-            catch (NotFoundException e)
-            {
-                throw new InvalidOperationException("Can not move node for non existent execution", e);
-            }
+		/// <summary>
+		/// Enqueues a node to be executed by the appropriate worker.
+		/// </summary>
+		/// <param name="executionId">The execution this node belongs to.</param>
+		/// <param name="nodeId">The node to be executed.</param>
+		private async Task EnqueueNode(Guid executionId, Guid nodeId)
+		{
+			var node = await _pipelinesDao.GetNode(nodeId);
+			_logger.LogInformation("Enqueuing node ({NodeId}) with operation {Operation}", node.Id, node.Operation);
 
-            var block = execution.InExecution.FirstOrDefault(b => b.NodeId == responseBlockId);
+			NodeExecutionRequest request;
+			// TODO: This can be solved in a nicer way by implementing eg the Visitor pattern
+			if (node.GetType() == typeof(NodeFileInput))
+			{
+				request = ExecutionRequestFromNode(executionId, (NodeFileInput)node);
+				await _eventBusService.PublishMessage($"execute/{node.PipelineId}/file", request);
+			}
+			else if (node.GetType() == typeof(NodeSingleInput))
+			{
+				request = ExecutionRequestFromNode(executionId, (NodeSingleInput)node);
+				await _eventBusService.PublishMessage($"execute/{node.PipelineId}/single", request);
+			}
+			else if (node.GetType() == typeof(NodeDoubleInput))
+			{
+				request = ExecutionRequestFromNode(executionId, (NodeDoubleInput)node);
+				await _eventBusService.PublishMessage($"execute/{node.PipelineId}/double", request);
+			}
+			else
+			{
+				throw new InvalidOperationException($"Type {node.GetType()} is not supported");
+			}
+		}
 
-            if (block == null)
-            {
-                throw new InvalidOperationException("Node is not in status expected status for this execution");
-            }
+		/// <summary>
+		/// Marks a node as executed in an execution.
+		/// TODO: This method must become thread safe (case: multiple node finish execution at the same time -> when updating data might get lost).
+		/// </summary>
+		/// <param name="executionId">The execution's id a node has been executed in.</param>
+		/// <param name="nodeId">The node that will be moved from status in execution to executed.</param>
+		/// <returns>True if there are still blocks in status in_execution.</returns>
+		private async Task<bool> MarkNodeAsExecuted(Guid executionId, Guid nodeId)
+		{
+			PipelineExecutionRecord execution;
+			try
+			{
+				execution = await _pipelinesExecutionDao.Get(executionId);
+			}
+			catch (NotFoundException e)
+			{
+				throw new InvalidOperationException("Can not move node for non existent execution", e);
+			}
 
-            _logger.LogDebug(
-                "Moving node {NodeId} in execution {ExecutionId} from status in_execution to failed",
-                responseBlockId, responseExecutionId);
+			var block = execution.InExecution.FirstOrDefault(b => b.NodeId == nodeId);
 
-            block.ExecutionCompletedAt = DateTime.UtcNow;
+			if (block == null)
+			{
+				throw new InvalidOperationException("Node is not in status expected status for this execution");
+			}
 
-            execution.InExecution.Remove(block);
-            execution.Failed.Add(block);
+			_logger.LogDebug(
+				"Moving node {NodeId} in execution {ExecutionId} from status in_execution to executed",
+				nodeId, executionId);
 
-            _logger.LogDebug("Moving all enqueued operations to failed state");
-            // Optimization: Only move enqueued execution operations records to failed state if they depend on the failed execution (see implementations before 2021/11/09).
-            execution.Failed.AddAll(execution.ToBeExecuted);
-            execution.ToBeExecuted.Clear();
+			block.ExecutionCompletedAt = DateTime.UtcNow;
 
-            CheckIfCompleted(execution);
+			execution.InExecution.Remove(block);
+			execution.Executed.Add(block);
 
-            await _pipelinesExecutionDao.Update(execution);
-        }
+			CheckIfCompleted(execution);
 
-        // TODO: could be done in an extension methode
-        private static void CheckIfCompleted(PipelineExecutionRecord execution)
-        {
-            if (execution.InExecution.Count == 0 && execution.ToBeExecuted.Count == 0)
-            {
-                execution.CompletedOn = DateTime.UtcNow;
-            }
-        }
+			await _pipelinesExecutionDao.Update(execution);
 
-        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeFileInput node)
-        {
-            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
-            if (string.IsNullOrEmpty(node.InputObjectKey) && string.IsNullOrEmpty(node.InputObjectBucket))
-            {
-                _logger.LogWarning("Node {NodeId} has no input object key or bucket defined",
-                    node.Id);
-                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
-            }
+			return execution.InExecution.Count > 0;
+		}
 
-            return new NodeExecutionRequestFileInput
-            {
-                PipelineId = node.PipelineId,
-                NodeId = node.Id,
-                ExecutionId = executionId,
-                OperationName = node.Operation,
-                OperationId = node.OperationId,
-                OperationConfiguration = node.OperationConfiguration,
-                ResultKey = node.ResultKey,
-                InputObjectBucket = node.InputObjectBucket,
-                InputObjectKey = node.InputObjectKey
-            };
-        }
+		private async Task MarkNodeAsFailed(Guid responseExecutionId, Guid responseBlockId)
+		{
+			PipelineExecutionRecord execution;
+			try
+			{
+				execution = await _pipelinesExecutionDao.Get(responseExecutionId);
+			}
+			catch (NotFoundException e)
+			{
+				throw new InvalidOperationException("Can not move node for non existent execution", e);
+			}
 
-        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeSingleInput node)
-        {
-            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
-            if (!node.InputDatasetId.HasValue && string.IsNullOrEmpty(node.InputDatasetHash))
-            {
-                _logger.LogWarning("Node {NodeId} has neither an input dataset id nor a producing node hash",
-                    node.Id);
-                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
-            }
+			var block = execution.InExecution.FirstOrDefault(b => b.NodeId == responseBlockId);
 
-            return new NodeExecutionRequestSingleInput
-            {
-                PipelineId = node.PipelineId,
-                NodeId = node.Id,
-                ExecutionId = executionId,
-                OperationName = node.Operation,
-                OperationId = node.OperationId,
-                OperationConfiguration = node.OperationConfiguration,
-                ResultKey = node.ResultKey,
-                InputDataSetHash = node.InputDatasetHash,
-                InputDataSetId = node.InputDatasetId,
-            };
-        }
+			if (block == null)
+			{
+				throw new InvalidOperationException("Node is not in status expected status for this execution");
+			}
 
-        private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeDoubleInput node)
-        {
-            // TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
-            if (!node.InputDatasetOneId.HasValue && string.IsNullOrEmpty(node.InputDatasetOneHash))
-            {
-                _logger.LogWarning(
-                    "Node {NodeId} has neither an input dataset id nor a producing node hash for the first dataset",
-                    node.Id);
-                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
-            }
+			_logger.LogDebug(
+				"Moving node {NodeId} in execution {ExecutionId} from status in_execution to failed",
+				responseBlockId, responseExecutionId);
 
-            if (!node.InputDatasetTwoId.HasValue && string.IsNullOrEmpty(node.InputDatasetTwoHash))
-            {
-                _logger.LogWarning(
-                    "Node {NodeId} has neither an input dataset id nor a producing node hash for the second dataset",
-                    node.Id);
-                throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
-            }
+			block.ExecutionCompletedAt = DateTime.UtcNow;
 
-            return new NodeExecutionRequestDoubleInput
-            {
-                PipelineId = node.PipelineId,
-                NodeId = node.Id,
-                ExecutionId = executionId,
-                OperationName = node.Operation,
-                OperationId = node.OperationId,
-                OperationConfiguration = node.OperationConfiguration,
-                ResultKey = node.ResultKey,
-                InputDataSetOneHash = node.InputDatasetOneHash,
-                InputDataSetOneId = node.InputDatasetOneId,
-                InputDataSetTwoHash = node.InputDatasetTwoHash,
-                InputDataSetTwoId = node.InputDatasetTwoId
-            };
-        }
-    }
+			execution.InExecution.Remove(block);
+			execution.Failed.Add(block);
+
+			_logger.LogDebug("Moving all enqueued operations to failed state");
+			// Optimization: Only move enqueued execution operations records to failed state if they depend on the failed execution (see implementations before 2021/11/09).
+			execution.Failed.AddAll(execution.ToBeExecuted);
+			execution.ToBeExecuted.Clear();
+
+			CheckIfCompleted(execution);
+
+			await _pipelinesExecutionDao.Update(execution);
+		}
+
+		// TODO: could be done in an extension methode
+		private static void CheckIfCompleted(PipelineExecutionRecord execution)
+		{
+			if (execution.InExecution.Count == 0 && execution.ToBeExecuted.Count == 0)
+			{
+				execution.CompletedOn = DateTime.UtcNow;
+			}
+		}
+
+		private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeFileInput node)
+		{
+			// TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
+			if (string.IsNullOrEmpty(node.InputObjectKey) && string.IsNullOrEmpty(node.InputObjectBucket))
+			{
+				_logger.LogWarning("Node {NodeId} has no input object key or bucket defined",
+					node.Id);
+				throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
+			}
+
+			return new NodeExecutionRequestFileInput
+			{
+				PipelineId = node.PipelineId,
+				NodeId = node.Id,
+				ExecutionId = executionId,
+				OperationName = node.Operation,
+				OperationId = node.OperationId,
+				OperationConfiguration = node.OperationConfiguration,
+				ResultKey = node.ResultKey,
+				InputObjectBucket = node.InputObjectBucket,
+				InputObjectKey = node.InputObjectKey
+			};
+		}
+
+		private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeSingleInput node)
+		{
+			// TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
+			if (!node.InputDatasetId.HasValue && string.IsNullOrEmpty(node.InputDatasetHash))
+			{
+				_logger.LogWarning("Node {NodeId} has neither an input dataset id nor a producing node hash",
+					node.Id);
+				throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
+			}
+
+			return new NodeExecutionRequestSingleInput
+			{
+				PipelineId = node.PipelineId,
+				NodeId = node.Id,
+				ExecutionId = executionId,
+				OperationName = node.Operation,
+				OperationId = node.OperationId,
+				OperationConfiguration = node.OperationConfiguration,
+				ResultKey = node.ResultKey,
+				InputDataSetHash = node.InputDatasetHash,
+				InputDataSetId = node.InputDatasetId,
+			};
+		}
+
+		private NodeExecutionRequest ExecutionRequestFromNode(Guid executionId, NodeDoubleInput node)
+		{
+			// TODO this check should be moved to a more appropriate part of the code (eg. when creating an execution)
+			if (!node.InputDatasetOneId.HasValue && string.IsNullOrEmpty(node.InputDatasetOneHash))
+			{
+				_logger.LogWarning(
+					"Node {NodeId} has neither an input dataset id nor a producing node hash for the first dataset",
+					node.Id);
+				throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
+			}
+
+			if (!node.InputDatasetTwoId.HasValue && string.IsNullOrEmpty(node.InputDatasetTwoHash))
+			{
+				_logger.LogWarning(
+					"Node {NodeId} has neither an input dataset id nor a producing node hash for the second dataset",
+					node.Id);
+				throw new ValidationException("Node has neither an input dataset id nor a producing node hash");
+			}
+
+			return new NodeExecutionRequestDoubleInput
+			{
+				PipelineId = node.PipelineId,
+				NodeId = node.Id,
+				ExecutionId = executionId,
+				OperationName = node.Operation,
+				OperationId = node.OperationId,
+				OperationConfiguration = node.OperationConfiguration,
+				ResultKey = node.ResultKey,
+				InputDataSetOneHash = node.InputDatasetOneHash,
+				InputDataSetOneId = node.InputDatasetOneId,
+				InputDataSetTwoHash = node.InputDatasetTwoHash,
+				InputDataSetTwoId = node.InputDatasetTwoId
+			};
+		}
+	}
 }

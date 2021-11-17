@@ -1,7 +1,7 @@
 namespace PipelineService.Models.MqttMessages
 {
-    public class NodeExecutionResponseSingleInput : NodeExecutionResponse
-    {
-        private string DatasetProducingHash { get; set; }
-    }
+	public class NodeExecutionResponseSingleInput : NodeExecutionResponse
+	{
+		private string DatasetProducingHash { get; set; }
+	}
 }

@@ -26,6 +26,26 @@ namespace PipelineService.Models.Pipeline
 			};
 		}
 
+		public static IList<Pipeline> PipelineTemplates()
+		{
+			return new List<Pipeline>
+			{
+				MelbourneHousingPipeline(Guid.Parse("d10eb9ef-292d-49ed-be8d-486970c0cf8e")),
+				InfluenzaInterpolation(Guid.Parse("14d110b2-5125-43e9-8db4-617ea330af87")),
+				MelbourneHousingPipelineWithError(Guid.Parse("8c5bcfe6-7f7b-4e9a-9656-9f0ca45fa236")),
+				ChemnitzStudentAndJobsPipeline(Guid.Parse("5d3ab062-ea9b-43b9-ada0-4bb0f3035be1")),
+				SimulatedVineYieldPipeline(Guid.Parse("d4702c80-53b5-4f3d-b4e1-d79dd859d9ec")),
+				ZamgWeatherPreprocessingGraz(Guid.Parse("6490fdbc-0240-4a4e-8c36-fca40b89f80e")),
+				ZamgWeatherPreprocessingGraz(Guid.Parse("40a61687-794c-4fab-9c17-5608833b0f33"), 1991),
+				new()
+				{
+					Id = Guid.Parse("4bfd7879-c86a-4597-89f1-941a9fed9e4f"),
+					Name = "Empty Pipeline",
+					Root = new List<Node>()
+				}
+			};
+		}
+
 		public static Pipeline MelbourneHousingPipeline(Guid pipelineId = default)
 		{
 			if (pipelineId == default)

@@ -8,6 +8,8 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "8080:80"
+    depends_on:
+      - pipeline-service
 
   # Pipeline Service
   pipeline-service:
@@ -15,8 +17,7 @@ services:
       context: ./PipelineService
       dockerfile: ./Dockerfile
     environment:
-      Logging__LogLevel__Default: Information
-      ASPNETCORE_ENVIRONMENT: Development
+      Logging__LogLevel__Default: Debug
       EVENT_BUS__MQTT_HOST: message-broker
       EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
@@ -24,9 +25,20 @@ services:
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     ports:
       - "5000:80"
+
+  # File Service
+  file-service:
+    build:
+      context: ./FileService
+      dockerfile: ./Dockerfile
+    environment:
+      Logging__LogLevel__Default: Information
+      S3_HOST: localstack-s3
+      S3_PORT: 4566
+    ports:
+      - "5004:80"
     depends_on:
-      - message-broker
-      - pipeline-database
+      - localstack-s3
 
   # Node Worker
   node-worker:
@@ -83,9 +95,10 @@ services:
 
   # S3 Bucket
   localstack-s3:
-    image: localstack/localstack:0.12.20
+    image: localstack/localstack:0.13.0
     environment:
       - SERVICES=s3
+      - EAGER_SERVICE_LOADING=1
       - DEFAULT_REGION=eu-west-2
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock
@@ -93,8 +106,8 @@ services:
     ports:
       - "4566:4566"
       - "4571:4571"
-    # volumes:
-    #   - ./volumes/localstack-data:/tmp/localstack
+    volumes:
+      - ./volumes/localstack/data:/tmp/localstack
 
   # Neo4j Pipeline Database
   pipeline-database:
@@ -110,4 +123,3 @@ services:
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
-        

@@ -1,7 +1,7 @@
 @startuml
 'https://plantuml.com/deployment-diagram
 
-title "Components Overview"
+title "Architecture Overview"
 
 'Definitions'
 
@@ -11,79 +11,52 @@ rectangle "Frontend" {
 
 rectangle "Edge Services" {
     component "Reverse Proxy" << NGINX >> as reverse_proxy
+    component "Edge Message Broker" << MQTT Broker >> as message_broker_edge
 }
 
-rectangle "Event Bus"{
-    component "Edge Broker" << MQTT Broker >> as message_broker_edge
-    component "Internal Broker" << MQTT Broker >> as message_broker_internal
+rectangle "Event Bus" {
+    component "Internal Message Broker" << MQTT Broker >> as message_broker_internal
 }
 
-rectangle "Mid Level Services" {
+rectangle "Service Layer" {
     component "Pipeline Service" << .NET REST API >> as pipeline_service
     collections  "Node Worker" <<Python Worker>> as worker
     component #line.dashed "Suggestion Service" << Python REST API >> as suggestion_service
-    component #line.dashed "Dataset Service" << Python REST API >> as dataset_service
+    component "File Service" << .NET REST API >> as file_service
 }
 
-rectangle "Low Level Services" {
-    component #line.dashed "Pipeline Store" << .NET REST API >> as pipeline_store
+rectangle "Persistence Layer" {
     database "Pipeline Database" << neo4j >> as pipeline_db
-    
-    component #line.dashed "Execution Store" << .NET REST API >> as execution_store
-    database #line.dashed "Execution Database" << MongoDB >> as execution_db
-    
+
     component "Dataset Store" << Python REST API >> as dataset_store
     node "File Store" << S3 Bucket >> as file_store
     database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
-    
-    /'
-    component #line.dashed "Operation Store" << Python REST API >> as operation_store
-    database #line.dashed "Operation Database" << MongoDB >> as operation_db
-
-    component #line.dashed "Event Logging" << Logstash? >> as event_logging
-    database #line.dashed "Event Database" << Elasticsearch >> as event_db    
-    '/
 }
 
 'Interaction'
 
 development_frontend <--> reverse_proxy
+development_frontend --> reverse_proxy
 
-reverse_proxy --> pipeline_service 
+reverse_proxy --> pipeline_service
 reverse_proxy --> suggestion_service
-reverse_proxy --> dataset_service
+suggestion_service <--> message_broker_internal
+reverse_proxy --> file_service
 reverse_proxy <--> message_broker_edge
-
 
 pipeline_service --> pipeline_db
 dataset_store --> dataset_db
-dataset_store --> file_store
-execution_store --> execution_db 
-
-/'
-operation_store --> operation_db
-event_logging --> event_db
-'/
-
-pipeline_service --> message_broker_internal
-message_broker_internal --> worker 
-pipeline_service <-- message_broker_internal
-message_broker_internal <-- worker 
-
-'message_broker --> event_logging
+file_service --> file_store
+pipeline_service <--> message_broker_internal
+message_broker_internal <--> worker
 
 worker --> dataset_store
-note right of worker 
-    Node Worker should not directly access 
-    the file store, this should go through 
-    the dataset store or another low level service 
-end note    
 worker --> file_store
-'worker -->operation_store
-suggestion_service --> pipeline_store
-pipeline_service --> execution_store
-pipeline_service --> pipeline_store
-dataset_service --> dataset_store
 
-pipeline_service <--> message_broker_edge
+message_broker_edge <--> pipeline_service
+
+'TODO: This connection should no longer exist'
+reverse_proxy --> dataset_store
+'TODO: Default files should be seeded from file service PH-213'
+dataset_store --> file_store
 @enduml

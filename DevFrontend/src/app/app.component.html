@@ -2,12 +2,18 @@
 	<mat-toolbar color="primary" class="mat-elevation-z4">
 		<mat-toolbar-row>
 			<h1>Development Frontend</h1>
-			<span *ngIf="!isProd()"> - Dev</span>
+			<span *ngIf="!isProd()">&nbsp;-&nbsp;Dev</span>
+			<ph-username style="margin-left: auto; opacity: 0.75;"></ph-username>
 		</mat-toolbar-row>
 		<mat-toolbar-row class="nav-row">
 			<nav>
 				<a mat-stroked-button routerLink="pipeline">
 					Pipelines
+				</a>
+			</nav>
+			<nav>
+				<a mat-stroked-button routerLink="files">
+					Files
 				</a>
 			</nav>
 			<nav>

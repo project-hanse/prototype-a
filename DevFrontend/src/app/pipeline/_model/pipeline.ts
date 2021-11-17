@@ -7,7 +7,7 @@ export interface Pipeline extends BasePersistentModel {
 }
 
 export interface PipelineInfoDto {
-	id: string;
+	id?: string;
 	name: string;
-	createdOn: Date | string;
+	createdOn?: Date | string;
 }

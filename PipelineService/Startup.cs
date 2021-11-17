@@ -31,6 +31,7 @@ namespace PipelineService
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			// TODO this should be stricter
 			services.AddCors(options =>
 			{
 				options.AddPolicy("AllowAnyCorsPolicy",
@@ -60,7 +61,6 @@ namespace PipelineService
 			});
 
 			services.AddNeo4jAnnotations<PipelineContext>();
-
 
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();

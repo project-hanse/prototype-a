@@ -120,17 +120,22 @@ namespace PipelineService.Dao.Impl
 			return pipeline;
 		}
 
-		public async Task<IList<PipelineInfoDto>> GetDtos()
+		public async Task<IList<PipelineInfoDto>> GetDtos(string userIdentifier = default)
 		{
 			_logger.LogDebug("Getting all pipeline dtos");
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var results = await _graphClient
+			var query = _graphClient
 				.WithAnnotations<PipelineContext>().Cypher
-				.Match(path => path.Pattern<Pipeline>("pipeline"))
-				.Return(pipeline => pipeline.As<PipelineInfoDto>())
-				.ResultsAsync;
+				.Match(path => path.Pattern<Pipeline>("pipeline"));
+
+			if (userIdentifier != default)
+			{
+				query = query.Where("pipeline.UserIdentifier=$user_identifier").WithParam("user_identifier", userIdentifier);
+			}
+
+			var results = await query.Return(pipeline => pipeline.As<PipelineInfoDto>()).ResultsAsync;
 
 			var pipelineInfoDtos = results?.ToList() ?? new List<PipelineInfoDto>();
 
@@ -341,26 +346,36 @@ namespace PipelineService.Dao.Impl
 				PipelineName = infoDto.Name
 			};
 
-			var results = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var resultNodes = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+					.Match(path => path.Pattern<Node>("node"))
+					.Where((Node node) => node.PipelineId == pipelineId)
+					.Return(() => new VisNode
+					{
+						Id = Return.As<Guid>("node.Id"),
+						Label = Return.As<string>("node.Operation"),
+					})
+					.ResultsAsync)
+				.ToList();
+
+			foreach (var resultNode in resultNodes)
+			{
+				dto.Nodes.Add(resultNode);
+			}
+
+			var resultEdges = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
 					.Match(path => path.Pattern<Node, Node>("node", "successor"))
 					.Where((Node node, Node successor) => node.PipelineId == pipelineId && successor.PipelineId == pipelineId)
 					.Return(() => new
 					{
 						NodeId = Return.As<Guid>("node.Id"),
-						NodeOperation = Return.As<string>("node.Operation"),
 						SuccessorId = Return.As<Guid>("successor.Id"),
-						SuccessorOperation = Return.As<string>("successor.Operation")
 					})
 					.ResultsAsync
 				).ToArray();
 
-			foreach (var result in results)
+			foreach (var edge in resultEdges)
 			{
-				if (dto.Nodes.All(n => n.Id != result.NodeId))
-					dto.Nodes.Add(new VisNode { Id = result.NodeId, Label = result.NodeOperation });
-				if (dto.Nodes.All(n => n.Id != result.SuccessorId))
-					dto.Nodes.Add(new VisNode { Id = result.SuccessorId, Label = result.SuccessorOperation });
-				dto.Edges.Add(new VisEdge { Id = Guid.NewGuid(), From = result.NodeId, To = result.SuccessorId });
+				dto.Edges.Add(new VisEdge { Id = Guid.NewGuid(), From = edge.NodeId, To = edge.SuccessorId });
 			}
 
 			_logger.LogInformation("Loaded pipeline {PipelineId} for visualization", pipelineId);

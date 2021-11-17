@@ -2,6 +2,8 @@ import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {BaseHttpService} from '../../core/_service/base-http.service';
+import {CreateFromTemplateRequest} from '../_model/create-from-template-request';
+import {CreateFromTemplateResponse} from '../_model/create-from-template-response';
 import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
 import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 
@@ -11,7 +13,7 @@ import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 export class PipelineService extends BaseHttpService {
 
 	constructor(private httpClient: HttpClient) {
-		super('api/v1/pipeline', httpClient);
+		super('api/v1/pipelines', httpClient);
 	}
 
 	public getPipelines(): Observable<Pipeline[]> {
@@ -32,5 +34,13 @@ export class PipelineService extends BaseHttpService {
 
 	public getPipelineForVisualization(pipelineId: string): Observable<PipelineVisualizationDto> {
 		return super.get<PipelineVisualizationDto>(`vis/${pipelineId}`);
+	}
+
+	public getPipelineTemplates(): Observable<Array<PipelineInfoDto>> {
+		return super.get('templates');
+	}
+
+	public createFromTemplate(request: CreateFromTemplateRequest): Observable<CreateFromTemplateResponse> {
+		return this.httpClient.post<CreateFromTemplateResponse>(this.getPipelinesUrl('create', 'from', 'template'), request);
 	}
 }

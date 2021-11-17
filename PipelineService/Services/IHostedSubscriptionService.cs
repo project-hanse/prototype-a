@@ -2,8 +2,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace PipelineService.Services
 {
-    public interface IHostedSubscriptionService : IHostedService
-    {
-        
-    }
+	public interface IHostedSubscriptionService : IHostedService
+	{
+	}
 }
