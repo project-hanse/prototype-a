@@ -51,7 +51,7 @@ namespace PipelineService.Models.Pipeline
 
 		public string OperationConfigurationSerialized { get; set; } = "{}";
 
-		[JsonIgnore] public abstract string ResultKey { get; }
+		public abstract string ResultKey { get; }
 
 		/// <summary>
 		/// Any value returned here will be included in the hash value of this object.

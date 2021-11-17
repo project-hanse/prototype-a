@@ -80,9 +80,11 @@ namespace FileService.Services
 		{
 			_logger.LogDebug("Uploading file to S3 store {@FileUploadRequest}", request);
 
-			await EnsureBucketExists(GetBucketName(request.UserIdentifier));
+			var bucketName = GetBucketName(request.UserIdentifier);
+			var objectKey = request.FileName;
+			await EnsureBucketExists(bucketName);
 
-			await _s3Client.UploadObjectFromStreamAsync(GetBucketName(request.UserIdentifier), request.FileName,
+			await _s3Client.UploadObjectFromStreamAsync(bucketName, objectKey,
 				request.File.OpenReadStream(), new Dictionary<string, object>());
 
 			_logger.LogInformation("File {FileName} uploaded for user {UserIdentifier} to S3 store",
@@ -91,7 +93,10 @@ namespace FileService.Services
 			return new FileInfoDto
 			{
 				FileName = request.FileName,
-				LastModified = DateTime.UtcNow
+				FileExtension = System.IO.Path.GetExtension(request.FileName),
+				LastModified = DateTime.UtcNow,
+				BucketName = bucketName,
+				ObjectKey = objectKey
 			};
 		}
 
@@ -111,8 +116,11 @@ namespace FileService.Services
 				.Select(o => new FileInfoDto
 				{
 					FileName = o.Key,
+					FileExtension = System.IO.Path.GetExtension(o.Key),
 					LastModified = o.LastModified,
-					Size = o.Size
+					Size = o.Size,
+					BucketName = o.BucketName,
+					ObjectKey = o.Key
 				})
 				.OrderByDescending(fi => fi.LastModified)
 				.ToList();

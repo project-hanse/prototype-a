@@ -51,21 +51,32 @@ namespace PipelineService.Services.Impl
 				Success = false
 			};
 
-			if (request.PredecessorNodeIds.Count is < 1 or > 2)
+			if (request.PredecessorNodeIds.Count is < 0 or > 2)
 			{
 				_logger.LogDebug("Unexpected count of predecessor nodes");
 				response.StatusCode = HttpStatusCode.BadRequest;
 				response.Errors.Add(new Error
 				{
-					Message = "A node must have either 0 or 2 predecessors",
+					Message = "A node must have between 0 and 2 predecessors",
 					Code = "P400"
 				});
 				return response;
 			}
 
 			Node newNode;
-			if (request.PredecessorNodeIds.Count == 1)
+			if (request.PredecessorNodeIds.Count == 0)
 			{
+				_logger.LogDebug("Detected no predecessor nodes");
+				newNode = new NodeFileInput
+				{
+					InputObjectBucket = request.Options["objectBucket"],
+					InputObjectKey = request.Options["objectKey"]
+				};
+				await _pipelinesDao.CreateRootNode(request.PipelineId, (NodeFileInput)newNode);
+			}
+			else if (request.PredecessorNodeIds.Count == 1)
+			{
+				_logger.LogDebug("Detected 1 predecessor node {NodeId}", request.PredecessorNodeIds);
 				var predecessor = await _pipelinesDao.GetNode(request.PredecessorNodeIds[0]);
 				if (predecessor == null)
 				{
@@ -78,6 +89,7 @@ namespace PipelineService.Services.Impl
 			}
 			else
 			{
+				_logger.LogDebug("Detected 2 predecessor nodes {@NodeIds}", request.PredecessorNodeIds);
 				var predecessor1 = await _pipelinesDao.GetNode(request.PredecessorNodeIds[0]);
 				var predecessor2 = await _pipelinesDao.GetNode(request.PredecessorNodeIds[1]);
 				if (predecessor1 == default || predecessor2 == default)
