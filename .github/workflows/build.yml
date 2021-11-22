@@ -45,6 +45,7 @@ jobs:
         with:
           context: ./DataSetService
           builder: ${{ steps.buildx.outputs.name }}
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -85,6 +86,7 @@ jobs:
         with:
           context: ./DevFrontend
           builder: ${{ steps.buildx.outputs.name }}
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -125,6 +127,7 @@ jobs:
         with:
           context: ./NodeWorker
           builder: ${{ steps.buildx.outputs.name }}
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -165,6 +168,7 @@ jobs:
         with:
           context: ./PipelineService
           builder: ${{ steps.buildx.outputs.name }}
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -205,6 +209,7 @@ jobs:
         with:
           context: ./FileService
           builder: ${{ steps.buildx.outputs.name }}
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -245,6 +250,7 @@ jobs:
         with:
           context: ./Neo4jPlugins
           builder: ${{ steps.buildx.outputs.name }}
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
