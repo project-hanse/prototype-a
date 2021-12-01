@@ -81,7 +81,7 @@ repository [https://github.com/project-hanse/prototype-a][git-repo].
 The technologies used for this project are primarily [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0)
 using [C#](https://docs.microsoft.com/en-us/dotnet/csharp/) for the services that are not directly interacting with
 datasets. Services handling datasets (e.g. `Dataset Service` when importing new datasets) or services that execute
-single nodes of pipelines (e.g. `Node Worker`) will be implemented using [Python](https://www.python.org/) and
+single nodes of pipelines (e.g. `Operation Worker`) will be implemented using [Python](https://www.python.org/) and
 appropriate libraries like [Pandas](https://pandas.pydata.org/) and [NumPy](https://numpy.org/). For storing data in a
 persistent way databases like [MongoDB](https://www.mongodb.com/) and [GraphDB](https://graphdb.ontotext.com/) could be
 used. For the `Event Bus` a [MQTT](https://mqtt.org/) message broker like [Eclipse Mosquitto](https://mosquitto.org/)

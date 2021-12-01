@@ -11,7 +11,7 @@ from src.services.operation_service import OperationService
 
 MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
 MQTT_PORT: int = os.getenv("MQTT_PORT", 1883)
-CLIENT_ID: str = os.getenv("MQTT_CLIENT_ID", ("NodeWorker-" + str(uuid.uuid4())))
+CLIENT_ID: str = os.getenv("MQTT_CLIENT_ID", ("OperationWorker-" + str(uuid.uuid4())))
 TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+/+")
 TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "executed")
 DATASET_HOST: str = os.getenv("DATASET_HOST", "dataset-service")
@@ -41,7 +41,7 @@ def sigterm_handler(_signo, _stack_frame):
 
 
 if __name__ == '__main__':
-    logging.info('Starting node worker')
+    logging.info('Starting Operation Worker')
     operation_service = OperationService(OPERATION_HOST, OPERATION_PORT, logging)
     dataset_client = DatasetServiceClient(DATASET_HOST, DATASET_PORT, logging)
     file_store_client = FileStoreClient(logging)

@@ -6,7 +6,7 @@
 !$es = "Execution Service"
 !$hs = "Hangfire Service"
 !$mb = "Event Bus"
-!$bw = "Node Worker"
+!$bw = "Operation Worker"
 !$ds = "Dataset Storage"
 
 title ** Pipeline execution **
@@ -41,25 +41,25 @@ participant "$ds" << Dataset Store >>
 "$hs" <-- "$es"
 alt all previous blocks have been executed
     "$es" -> "$es" : selectNextBlocks(pipelineId: Guid, executionId: Guid)
-    "$es" -> "$mb" : publish(request: BlockExecutionRequest) 
-    "$es" <-- "$mb" 
+    "$es" -> "$mb" : publish(request: BlockExecutionRequest)
+    "$es" <-- "$mb"
     "$es" -> "$mb" : subscribe("executed/{pipelineId}/{executionId}")
     ...
-    
+
     "$mb" --> "$bw" : newPublished(request: BlockExecutionRequest)
     "$bw" -> "$bw" : creationHash(inputDataSetIds: Guid[], operation: string, operationConfig: OperationConfig)
     "$bw" -> "$ds" : GET api/v1/datasets?creationHash={hash}
-    "$bw" <-- "$ds" 
-    
+    "$bw" <-- "$ds"
+
     alt result already exists
         "$bw" -> "$mb" : publish(response: BlockExecutionResponse)
         "$bw" <-- "$mb"
     else
         "$bw" -> "$ds" : GET api/v1/datasets?id={datasetId};{datasetId};...
         "$bw" <-- "$ds"
-        
+
         "$bw" -> "$bw" : executeOperation(datasets: Dataset[])
-           
+
         alt successful
             "$bw" -> "$ds" : POST api/v1/datasets/create/{datasetId} (dataset: Dataset, creationHash: Hash)
             "$bw" <-- "$ds"

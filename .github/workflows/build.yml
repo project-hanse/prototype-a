@@ -1,3 +1,4 @@
+# TODO: Run jobs conditionally https://github.com/dorny/paths-filter
 name: Docker Build Pipeline
 
 on:
@@ -93,9 +94,9 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
 
-  # Node Worker
-  build-node-worker:
-    name: 'Build Node Worker'
+  # Operation Worker
+  build-operation-worker:
+    name: 'Build Operation Worker'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -120,12 +121,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY_NAME }}/node-worker
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY_NAME }}/operation-worker
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./NodeWorker
+          context: ./OperationWorker
           builder: ${{ steps.buildx.outputs.name }}
           pull: true
           push: ${{ github.event_name != 'pull_request' }}
@@ -260,7 +261,7 @@ jobs:
   # Get Version from previous tag and commit messages
   create-release:
     name: 'Create Release'
-    needs: [ build-plugins-neo4j, build-pipeline-service, build-node-worker, build-dev-frontend, build-dataset-service, build-file-service ]
+    needs: [ build-plugins-neo4j, build-pipeline-service, build-operation-worker, build-dev-frontend, build-dataset-service, build-file-service ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
