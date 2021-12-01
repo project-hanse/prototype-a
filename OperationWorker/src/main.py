@@ -40,7 +40,7 @@ def sigterm_handler(_signo, _stack_frame):
 
 if __name__ == '__main__':
 	logging.info('Starting Operation Worker')
-	operation_service = OperationService(OPERATION_HOST, OPERATION_PORT, logging)
+	operation_service = OperationService(logging)
 	dataset_client = DatasetServiceClient(DATASET_HOST, DATASET_PORT, logging)
 	file_store_client = FileStoreClient(logging)
 	node_execution_service = NodeExecutionService(logging, dataset_client, file_store_client, operation_service)

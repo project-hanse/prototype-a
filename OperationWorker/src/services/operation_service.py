@@ -3,10 +3,10 @@ from typing import Callable
 
 import pandas as pd
 
+from src.services.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
 from src.services.operations_file_input import OperationsFileInputCollection
 from src.services.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
 from src.services.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
-from src.services.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
 
 
 class OperationService:
@@ -16,10 +16,8 @@ class OperationService:
         print("dataset:", dataset)
         return dataset
 
-    def __init__(self, host: str, port: int, logger: logging) -> None:
+    def __init__(self, logger: logging) -> None:
         self.logger = logger
-        self.host = host
-        self.port = port
         self.local_operations = {}
         super().__init__()
 

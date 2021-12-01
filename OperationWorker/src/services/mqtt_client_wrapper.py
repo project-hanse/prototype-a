@@ -2,9 +2,7 @@ import json
 
 import paho.mqtt.client as mqtt
 
-from src.models.node_execution_request_double_input import NodeExecutionRequestDoubleInput
-from src.models.node_execution_request_file_input import NodeExecutionRequestFileInput
-from src.models.node_execution_request_single_input import NodeExecutionRequestSingleInput
+from src.models.operation_execution_message import OperationExecutionMessage
 from src.services.node_execution_service import NodeExecutionService
 
 
@@ -59,13 +57,13 @@ class MqttClientWrapper:
         # TODO this contains hardcoded strings that might change in the config (MQTT_TOPIC_SUB);
         #  - Possible solution: validate at startup?
         if message.topic.endswith("file"):
-            request = NodeExecutionRequestFileInput(payload_deserialized)
+            request = OperationExecutionMessage(payload_deserialized)
             response = self.execution_service.handle_file_input_request(request)
         elif message.topic.endswith("single"):
-            request = NodeExecutionRequestSingleInput(payload_deserialized)
+            request = OperationExecutionMessage(payload_deserialized)
             response = self.execution_service.handle_single_input_request(request)
         elif message.topic.endswith("double"):
-            request = NodeExecutionRequestDoubleInput(payload_deserialized)
+            request = OperationExecutionMessage(payload_deserialized)
             response = self.execution_service.handle_double_input_request(request)
         else:
             self.logging.error("Got message that can not be processed by this worker")

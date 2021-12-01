@@ -3,10 +3,10 @@ import datetime
 from src.models.message import Message
 
 
-class NodeExecutionResponse(Message):
+class OperationExecutedMessage(Message):
     pipeline_id: str
     execution_id: str
-    node_id: str
+    operation_id: str
     successful: bool
     start_time: datetime
     stop_time: datetime
@@ -20,8 +20,8 @@ class NodeExecutionResponse(Message):
     def set_pipeline_id(self, pipeline_id: str):
         self.pipeline_id = pipeline_id
 
-    def set_node_id(self, node_id: str):
-        self.node_id = node_id
+    def set_operation_id(self, operation_id: str):
+        self.operation_id = operation_id
 
     def set_execution_id(self, execution_id: str):
         self.execution_id = execution_id

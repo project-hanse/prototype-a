@@ -2,7 +2,7 @@ using System;
 
 namespace PipelineService.Models.MqttMessages
 {
-	public abstract class OperationExecutedMessage : BaseMqttMessage
+	public class OperationExecutedMessage : BaseMqttMessage
 	{
 		/// <summary>
 		/// The pipeline's id the node was executed for.

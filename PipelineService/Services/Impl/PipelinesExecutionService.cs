@@ -159,7 +159,8 @@ namespace PipelineService.Services.Impl
 		private async Task NotifyFrontend(OperationExecutedMessage response)
 		{
 			var executionRecord = await _pipelinesExecutionDao.Get(response.ExecutionId);
-			var operationExecutionRecord = executionRecord.Executed.FirstOrDefault(b => b.OperationId == response.OperationId);
+			var operationExecutionRecord =
+				executionRecord.Executed.FirstOrDefault(b => b.OperationId == response.OperationId);
 			if (operationExecutionRecord == null)
 			{
 				operationExecutionRecord = executionRecord.Failed.FirstOrDefault(b => b.OperationId == response.OperationId);
@@ -308,21 +309,21 @@ namespace PipelineService.Services.Impl
 				throw new InvalidOperationException("Can not move node for non existent execution", e);
 			}
 
-			var block = execution.InExecution.FirstOrDefault(b => b.OperationId == nodeId);
+			var operation = execution.InExecution.FirstOrDefault(b => b.OperationId == nodeId);
 
-			if (block == null)
+			if (operation == null)
 			{
-				throw new InvalidOperationException("Node is not in status expected status for this execution");
+				throw new InvalidOperationException("Operation is not in status expected status for this execution");
 			}
 
 			_logger.LogDebug(
-				"Moving node {OperationId} in execution {ExecutionId} from status in_execution to executed",
+				"Moving operation {OperationId} in execution {ExecutionId} from status in_execution to executed",
 				nodeId, executionId);
 
-			block.ExecutionCompletedAt = DateTime.UtcNow;
+			operation.ExecutionCompletedAt = DateTime.UtcNow;
 
-			execution.InExecution.Remove(block);
-			execution.Executed.Add(block);
+			execution.InExecution.Remove(operation);
+			execution.Executed.Add(operation);
 
 			CheckIfCompleted(execution);
 
@@ -347,7 +348,7 @@ namespace PipelineService.Services.Impl
 
 			if (operation == null)
 			{
-				throw new InvalidOperationException("Node is not in status expected status for this execution");
+				throw new InvalidOperationException("Operation is not in status expected status for this execution");
 			}
 
 			_logger.LogDebug(
