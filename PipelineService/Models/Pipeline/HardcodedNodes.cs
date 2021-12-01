@@ -6,14 +6,21 @@ namespace PipelineService.Models.Pipeline
 {
 	public static class HardcodedNodes
 	{
-		public static NodeFileInput ZamgWeatherImport(Guid pipelineId, int year)
+		public static Operation ZamgWeatherImport(Guid pipelineId, int year)
 		{
-			var import = new NodeFileInput
+			return new Operation
 			{
-				InputObjectKey = $"ZAMG_Jahrbuch_{year}.csv",
-				InputObjectBucket = "defaultfiles",
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = $"ZAMG_Jahrbuch_{year}.csv",
+						Store = "defaultfiles",
+					}
+				},
 				PipelineId = pipelineId,
-				Operation = "read_csv",
+				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -23,16 +30,14 @@ namespace PipelineService.Models.Pipeline
 					{ "decimal", "," }
 				}
 			};
-
-			return import;
 		}
 
-		public static NodeSingleInput ZamgWeatherTrim(Guid pipelineId, int year)
+		public static Operation ZamgWeatherTrim(Guid pipelineId, int year)
 		{
-			var trimRows = new NodeSingleInput
+			return new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "trim",
+				OperationIdentifier = "trim",
 				OperationDescription = $"trim_{year}",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
@@ -40,8 +45,6 @@ namespace PipelineService.Models.Pipeline
 					{ "first_n", "8" }
 				},
 			};
-
-			return trimRows;
 		}
 	}
 }

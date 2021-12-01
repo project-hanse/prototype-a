@@ -10,7 +10,7 @@ namespace PipelineService.Models.Pipeline
 		/// The first (root) node in the pipeline.
 		/// </summary>
 		[Column("HAS_ROOT")]
-		public IList<Node> Root { get; set; } = new List<Node>();
+		public IList<Operation> Root { get; set; } = new List<Operation>();
 
 		/// <summary>
 		/// The pipeline's name.

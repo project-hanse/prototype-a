@@ -2,8 +2,8 @@ import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {BaseHttpService} from '../../core/_service/base-http.service';
-import {CreateFromTemplateRequest} from '../_model/create-from-template-request';
-import {CreateFromTemplateResponse} from '../_model/create-from-template-response';
+import {CreatePipelineFromTemplateRequest} from '../_model/create-pipeline-from-template-request';
+import {CreatePipelineFromTemplateResponse} from '../_model/create-pipeline-from-template-response';
 import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
 import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 
@@ -40,7 +40,7 @@ export class PipelineService extends BaseHttpService {
 		return super.get('templates');
 	}
 
-	public createFromTemplate(request: CreateFromTemplateRequest): Observable<CreateFromTemplateResponse> {
-		return this.httpClient.post<CreateFromTemplateResponse>(this.getPipelinesUrl('create', 'from', 'template'), request);
+	public createFromTemplate(request: CreatePipelineFromTemplateRequest): Observable<CreatePipelineFromTemplateResponse> {
+		return this.httpClient.post<CreatePipelineFromTemplateResponse>(this.getPipelinesUrl('create', 'from', 'template'), request);
 	}
 }

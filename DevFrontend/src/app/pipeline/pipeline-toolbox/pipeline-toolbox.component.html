@@ -19,8 +19,8 @@
 				</mat-form-field>
 				<!-- Operations -->
 				<div class="scrollable-content-wrapper">
-					<ng-container *ngIf="getOperationDtos() | async as operationsGroups">
-						<mat-action-list *ngFor="let operationsGroup of operationsGroups" [disabled]="selectedNodeIds.length === 0">
+					<ng-container *ngIf="getOperationTemplates() | async as operationTemplateGroups">
+						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups" [disabled]="selectedOperationsIds.length === 0">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
 								<button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"
@@ -69,7 +69,7 @@
 		<mat-toolbar>
 			<mat-toolbar-row>
 				<button mat-stroked-button color="warn"
-								[disabled]="selectedNodeIds.length === 0"
+								[disabled]="selectedOperationsIds.length === 0"
 								(click)="onRemoveNodes()">
 					<mat-icon>
 						remove_circle_outline

@@ -75,10 +75,10 @@ namespace PipelineService.Dao.Impl
 			var executionRecordsRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
 				.Match("(n:Node)")
 				.Where("n._visited=$visited_stamp").WithParam("visited_stamp", partitionResult.VisitedStamp)
-				.Return(() => new NodeExecutionRecord
+				.Return(() => new OperationExecutionRecord
 				{
 					ResultKey = Return.As<string>("n.ResultKey"),
-					NodeId = Return.As<Guid>("n.Id"),
+					OperationId = Return.As<Guid>("n.Id"),
 					PipelineId = Return.As<Guid>("n.PipelineId"),
 					Level = Return.As<int>("n._level"),
 					Name = Return.As<string>("n.Operation")

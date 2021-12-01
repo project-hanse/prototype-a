@@ -9,7 +9,7 @@
 		</mat-toolbar>
 
 		<ph-pipeline-node-view [pipelineId]="pipeline.id"
-													 (selectedNodeIdsChange)="toolbox.selectedNodeIds = $event; nodeResultPreview.nodeIds = $event; nodeConfigEditor.nodeIds = $event"
+													 (selectedNodeIdsChange)="toolbox.selectedOperationsIds = $event; nodeResultPreview.nodeIds = $event; nodeConfigEditor.nodeIds = $event"
 													 #pipelineNodeView></ph-pipeline-node-view>
 
 		<ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
@@ -19,11 +19,11 @@
 												 (pipelineChanged)="pipelineNodeView.displayPipeline($event);"
 												 #toolbox></ph-pipeline-toolbox>
 
-		<ph-node-config-editor [pipelineId]="pipeline.id"
-													 #nodeConfigEditor></ph-node-config-editor>
+		<ph-operation-config-editor [pipelineId]="pipeline.id"
+													 #nodeConfigEditor></ph-operation-config-editor>
 
-		<ph-node-result-preview [pipelineId]="pipeline.id"
-														#nodeResultPreview></ph-node-result-preview>
+		<ph-operation-result-preview [pipelineId]="pipeline.id"
+														#nodeResultPreview></ph-operation-result-preview>
 	</div>
 
 </ng-container>

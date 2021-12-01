@@ -11,13 +11,13 @@ namespace PipelineService.UnitTests.Services
     [TestFixture]
     public class OperationsServiceUnitTests
     {
-        private IOperationsService _operationsService;
+        private IOperationTemplatesService _operationTemplatesService;
 
         [SetUp]
         public void Setup()
         {
-            _operationsService = new OperationsService(
-                GeneralHelper.CreateLogger<OperationsService>(),
+            _operationTemplatesService = new OperationTemplatesService(
+                GeneralHelper.CreateLogger<OperationTemplatesService>(),
                 GeneralHelper.EmptyConfiguration());
         }
 
@@ -25,7 +25,7 @@ namespace PipelineService.UnitTests.Services
         public async Task GetOperations_ReturnsAllOperations()
         {
             // act
-            var operations = await _operationsService.GetOperationDtos();
+            var operations = await _operationTemplatesService.GetOperationDtos();
 
             // assert
             Assert.NotNull(operations);

@@ -27,7 +27,7 @@ namespace PipelineService.Services.Impl
 
 			cancellationToken.ThrowIfCancellationRequested();
 
-			await _eventBusService.Subscribe<NodeExecutionResponseSingleInput>(
+			await _eventBusService.Subscribe<OperationExecutedMessage>(
 				"executed/+/+",
 				async m => { await _pipelineExecutionService.HandleExecutionResponse(m); });
 		}

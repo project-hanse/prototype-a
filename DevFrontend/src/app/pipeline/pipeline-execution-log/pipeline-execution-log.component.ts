@@ -50,7 +50,7 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 					}),
 					scan((acc, val) => {
 						acc.push(val);
-						// TODO display number of nodes in pipeline
+						// TODO display number of operations in pipeline
 						return acc.slice(-5);
 					}, [])
 				);
@@ -69,16 +69,16 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 		return events[events.length - 1];
 	}
 
-	private totalNodes(last: FrontendExecutionNotification): number {
-		return last.NodesToBeExecuted + last.NodesInExecution + last.NodesFailedToExecute + last.NodesExecuted;
+	private totalOperationsCount(last: FrontendExecutionNotification): number {
+		return last.OperationsToBeExecuted + last.OperationsInExecution + last.OperationsFailedToExecute + last.OperationsExecuted;
 	}
 
 	public progressValue(last: FrontendExecutionNotification): number {
-		return last.NodesExecuted / this.totalNodes(last) * 100;
+		return last.OperationsExecuted / this.totalOperationsCount(last) * 100;
 	}
 
 	public bufferValue(last: FrontendExecutionNotification): number {
-		return last.NodesInExecution / this.totalNodes(last) * 100 + this.progressValue(last);
+		return last.OperationsInExecution / this.totalOperationsCount(last) * 100 + this.progressValue(last);
 	}
 
 	public sort(events: FrontendExecutionNotification[]): FrontendExecutionNotification[] {

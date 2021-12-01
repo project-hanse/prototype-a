@@ -60,7 +60,7 @@ namespace PipelineService.Services
 		/// This covers both successful and unsuccessful execution.
 		/// </remarks>
 		/// <param name="response">The response message payload from the worker.</param>
-		Task HandleExecutionResponse(NodeExecutionResponse response);
+		Task HandleExecutionResponse(OperationExecutedMessage response);
 
 		/// <summary>
 		/// Creates a new pipeline from a template for a user.
