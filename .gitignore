@@ -274,3 +274,5 @@ dmypy.json
 
 # Volumes
 ./volumes/
+
+*.DotSettings.user

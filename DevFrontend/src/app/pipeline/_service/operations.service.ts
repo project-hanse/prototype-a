@@ -21,20 +21,20 @@ export class OperationsService extends BaseHttpService {
 		return super.get(pipelineId + '/' + operationId + '/datasets/input');
 	}
 
-	public addNode(request: AddOperationRequest): Observable<AddOperationResponse> {
+	public addOperation(request: AddOperationRequest): Observable<AddOperationResponse> {
 		return this.httpClient.post<AddOperationResponse>(this.getPipelinesUrl('add'), request);
 	}
 
-	public removeNodes(request: RemoveOperationsRequest): Observable<RemoveOperationsResponse> {
+	public removeOperations(request: RemoveOperationsRequest): Observable<RemoveOperationsResponse> {
 		return this.httpClient.post<RemoveOperationsResponse>(this.getPipelinesUrl('remove'), request);
 	}
 
-	public getResultHash(pipelineId: string, operationId: string): Observable<{ hash: string }> {
-		return this.httpClient.get<{ hash: string }>(this.getPipelinesUrl(pipelineId, operationId, 'result-hash'));
+	public getOutputKey(pipelineId: string, operationId: string): Observable<{ key: string }> {
+		return this.httpClient.get<{ key: string }>(this.getPipelinesUrl(pipelineId, operationId, 'output-key'));
 	}
 
-	public getPreviewHtml(hash: string): Observable<string> {
-		return this.httpClient.get(`${environment.datasetApi}/api/datasets/hash/describe/html/${hash}`, {responseType: 'text'});
+	public getPreviewHtml(outputKey: string): Observable<string> {
+		return this.httpClient.get(`${environment.datasetApi}/api/datasets/hash/describe/html/${outputKey}`, {responseType: 'text'});
 	}
 
 	public getConfig(pipelineId: string, operationId: string): Observable<Map<string, string>> {

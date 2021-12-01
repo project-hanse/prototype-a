@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Helper;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
@@ -138,9 +139,9 @@ namespace PipelineService.Services.Impl
 			return response;
 		}
 
-		public async Task<string> GetResultHash(Guid pipelineId, Guid operationId)
+		public async Task<string> GetOutputKey(Guid pipelineId, Guid operationId)
 		{
-			return (await _pipelinesDao.GetOperation(operationId)).ComputedHash;
+			return (await _pipelinesDao.GetOperation(operationId)).Output.Key;
 		}
 
 		public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)

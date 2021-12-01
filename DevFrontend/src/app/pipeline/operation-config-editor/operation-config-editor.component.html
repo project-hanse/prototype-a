@@ -1,13 +1,13 @@
-<ng-container *ngIf="nodeIds">
-	<ng-container *ngFor="let nodeId of nodeIds">
-		<mat-card *ngIf="getConfig(nodeId) | async as config">
+<ng-container *ngIf="operationIds">
+	<ng-container *ngFor="let operationId of operationIds">
+		<mat-card *ngIf="getConfig(operationId) | async as config">
 			<mat-card-header>
 				<mat-card-title>
-					Node Configuration
+					Operation Configuration
 				</mat-card-title>
 			</mat-card-header>
 			<mat-card-content>
-				<form (ngSubmit)="onSubmit(nodeId, config)">
+				<form (ngSubmit)="onSubmit(operationId, config)">
 					<ng-container *ngFor="let tuple of config | keyvalue">
 						<mat-form-field appearance="fill">
 							<mat-label>{{tuple.key}}</mat-label>

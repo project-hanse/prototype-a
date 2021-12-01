@@ -14,7 +14,7 @@ export class OperationResultPreviewComponent implements OnInit {
 	pipelineId?: string;
 	operationIds?: Array<string>;
 
-	private $hashes = {};
+	private $datasetKeys = {};
 	private $previewHtml = {};
 
 	constructor(private operationsService: OperationsService) {
@@ -23,18 +23,18 @@ export class OperationResultPreviewComponent implements OnInit {
 	ngOnInit(): void {
 	}
 
-	getHash(operationId: string): Observable<{ hash: string }> {
-		if (!this.$hashes[operationId]) {
-			this.$hashes[operationId] = this.operationsService.getResultHash(this.pipelineId, operationId);
+	getOutputKey(operationId: string): Observable<{ hash: string }> {
+		if (!this.$datasetKeys[operationId]) {
+			this.$datasetKeys[operationId] = this.operationsService.getOutputKey(this.pipelineId, operationId);
 		}
-		return this.$hashes[operationId];
+		return this.$datasetKeys[operationId];
 	}
 
-	getPreviewHtml(hash: string): Observable<string> {
-		if (!this.$previewHtml[hash]) {
-			this.$previewHtml[hash] = this.operationsService.getPreviewHtml(hash);
+	getPreviewHtml(datasetKey: string): Observable<string> {
+		if (!this.$previewHtml[datasetKey]) {
+			this.$previewHtml[datasetKey] = this.operationsService.getPreviewHtml(datasetKey);
 		}
-		return this.$previewHtml[hash];
+		return this.$previewHtml[datasetKey];
 	}
 
 	getDatasetLink(hash: string): string {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using PipelineService.Extensions;
 using PipelineService.Helper;
+using PipelineService.Models.Enums;
 using static PipelineService.Models.Constants.OperationIds;
 
 namespace PipelineService.Models.Pipeline

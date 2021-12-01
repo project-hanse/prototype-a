@@ -10,7 +10,7 @@ import {OperationsService} from '../_service/operations.service';
 export class OperationConfigEditorComponent implements OnInit, OnDestroy {
 	@Input()
 	pipelineId?: string;
-	nodeIds?: Array<string>;
+	operationIds?: Array<string>;
 	$configs: Array<Observable<Map<string, string>>> = [];
 
 	private readonly subscriptions: Subscription;
@@ -22,11 +22,11 @@ export class OperationConfigEditorComponent implements OnInit, OnDestroy {
 	ngOnInit(): void {
 	}
 
-	getConfig(nodeId: string): Observable<Map<string, string>> {
-		if (!this.$configs[nodeId]) {
-			this.$configs[nodeId] = this.operationsService.getConfig(this.pipelineId, nodeId);
+	getConfig(operationId: string): Observable<Map<string, string>> {
+		if (!this.$configs[operationId]) {
+			this.$configs[operationId] = this.operationsService.getConfig(this.pipelineId, operationId);
 		}
-		return this.$configs[nodeId];
+		return this.$configs[operationId];
 	}
 
 	onSubmit(operationId: string, config: Map<string, string>): void {

@@ -13,7 +13,6 @@ using PipelineService.Extensions;
 using PipelineService.Models.Constants;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
-using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
 {

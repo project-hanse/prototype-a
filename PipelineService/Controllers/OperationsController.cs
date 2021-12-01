@@ -40,10 +40,10 @@ namespace PipelineService.Controllers
 			return Ok(result);
 		}
 
-		[HttpGet("{pipelineId:Guid}/{operationId:Guid}/result-hash")]
+		[HttpGet("{pipelineId:Guid}/{operationId:Guid}/output-key")]
 		public async Task<IActionResult> GetResultHash(Guid pipelineId, Guid operationId)
 		{
-			return Ok(new { Hash = await _operationsService.GetResultHash(pipelineId, operationId) });
+			return Ok(new { Key = await _operationsService.GetOutputKey(pipelineId, operationId) });
 		}
 
 		[HttpPost("add")]

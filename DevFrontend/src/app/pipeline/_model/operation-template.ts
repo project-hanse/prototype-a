@@ -17,10 +17,3 @@ export interface OperationTemplateGroup {
 	sectionTitle: string;
 	operations: Array<OperationTemplate>;
 }
-
-export enum OperationInputTypes {
-	File = 0,
-	Single = 1,
-	Double = 2,
-	Unknown
-}

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using PipelineService.Models.Enums;
-using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Models.Dtos
 {
@@ -32,7 +31,6 @@ namespace PipelineService.Models.Dtos
 		public string SourceUrl { get; set; }
 		public Dictionary<string, string> DefaultConfig { get; set; }
 
-		[Obsolete("Replaced by InputTypes")] public OperationInputTypes OperationInputType { get; set; }
 		[Obsolete("Replaced by OutputType")] public string Returns { get; set; }
 	}
 }

@@ -33,7 +33,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	public pipelineId: string;
 
 	@Input()
-	public selectedOperationsIds: Array<string> = [];
+	public selectedOperationIds: Array<string> = [];
 
 	@Output()
 	public readonly pipelineChanged: EventEmitter<PipelineVisualizationDto>;
@@ -109,10 +109,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				return false;
 			}
 		}
-		if (this.selectedOperationsIds.length === 0) {
+		if (this.selectedOperationIds.length === 0) {
 			return true;
 		}
-		if (operation.inputTypes?.length === this.selectedOperationsIds.length) {
+		if (operation.inputTypes?.length === this.selectedOperationIds.length) {
 			return true;
 		}
 		// TODO: perform type checking here
@@ -123,10 +123,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		const request: AddOperationRequest = {
 			pipelineId: this.pipelineId,
 			operationTemplate: operation,
-			predecessorOperationIds: this.selectedOperationsIds
+			predecessorOperationIds: this.selectedOperationIds
 		};
 		this.subscriptions.add(
-			this.nodeService.addNode(request).subscribe(
+			this.nodeService.addOperation(request).subscribe(
 				response => {
 					this.pipelineChanged.emit(response.pipelineVisualizationDto);
 				},
@@ -139,10 +139,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	onRemoveNodes(): void {
 		const request: RemoveOperationsRequest = {
 			pipelineId: this.pipelineId,
-			nodeIdsToBeRemoved: this.selectedOperationsIds
+			operationIdsToBeRemoved: this.selectedOperationIds
 		};
 		this.subscriptions.add(
-			this.nodeService.removeNodes(request).subscribe(
+			this.nodeService.removeOperations(request).subscribe(
 				response => {
 					this.pipelineChanged.emit(response.pipelineVisualizationDto);
 				},
@@ -166,7 +166,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 			}
 		};
 		this.subscriptions.add(
-			this.nodeService.addNode(request).subscribe(
+			this.nodeService.addOperation(request).subscribe(
 				response => {
 					this.pipelineChanged.emit(response.pipelineVisualizationDto);
 				},

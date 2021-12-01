@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -8,6 +7,7 @@ using PipelineService.Dao;
 using PipelineService.Exceptions;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;

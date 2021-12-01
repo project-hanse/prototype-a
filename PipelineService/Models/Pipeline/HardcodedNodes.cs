@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PipelineService.Models.Enums;
 using static PipelineService.Models.Constants.OperationIds;
 
 namespace PipelineService.Models.Pipeline

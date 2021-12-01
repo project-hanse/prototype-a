@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using Newtonsoft.Json;
 using PipelineService.Helper;
 
@@ -95,32 +94,5 @@ namespace PipelineService.Models.Pipeline
 				return HashHelper.ComputeHash(include);
 			}
 		}
-	}
-
-	public record Dataset
-	{
-		/// <summary>
-		/// The dataset's type.
-		/// </summary>
-		public DatasetType Type { get; set; }
-
-		/// <summary>
-		/// The dataset's key used to load and store the dataset.
-		/// This should be an arbitrary string that uniquely identifies the dataset within its store.
-		/// </summary>
-		public string Key { get; set; } = Guid.NewGuid().ToString();
-
-		/// <summary>
-		/// A string that identifies the data store the dataset is held in.
-		/// Could be for example an S3 bucket or a store specific to a dataset type.
-		/// </summary>
-		public string Store { get; set; }
-	}
-
-	public enum DatasetType
-	{
-		File = 0,
-		PdSeries = 1,
-		PdDataFrame = 2,
 	}
 }
