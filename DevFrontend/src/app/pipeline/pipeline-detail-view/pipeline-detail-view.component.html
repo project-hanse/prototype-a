@@ -19,11 +19,11 @@
 												 (pipelineChanged)="pipelineNodeView.displayPipeline($event);"
 												 #toolbox></ph-pipeline-toolbox>
 
-		<ph-operation-config-editor [pipelineId]="pipeline.id"
-																#operationConfigEditor></ph-operation-config-editor>
-
 		<ph-operation-result-preview [pipelineId]="pipeline.id"
 																 #operationResultPreview></ph-operation-result-preview>
+
+		<ph-operation-config-editor [pipelineId]="pipeline.id"
+																#operationConfigEditor></ph-operation-config-editor>
 	</div>
 
 </ng-container>

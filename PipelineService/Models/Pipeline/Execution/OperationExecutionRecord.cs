@@ -8,10 +8,10 @@ namespace PipelineService.Models.Pipeline.Execution
 
 		public Guid OperationId { get; set; }
 
+		/// <summary>
+		/// The dataset resulting from this execution of the operation.
+		/// </summary>
 		public Dataset ResultDataset { get; set; }
-
-		[Obsolete("Replaced by ResultDataset")]
-		public string ResultKey { get; set; }
 
 		public string Name { get; set; }
 

@@ -1,14 +1,14 @@
 <ng-container *ngIf="operationIds">
 	<ng-container *ngFor="let operationId of operationIds">
-		<ng-container *ngIf="getOutputKey(operationId) | async as hash">
-			<mat-card *ngIf="getPreviewHtml(hash.hash) | async as html_text">
+		<ng-container *ngIf="getOutputKey(operationId) | async as output">
+			<mat-card *ngIf="getPreviewHtml(output.key) | async as html_text">
 				<mat-card-header>
 					<mat-card-title>
 						Operation Result Description
 					</mat-card-title>
 					<mat-card-subtitle>
-						<a target="_blank" [href]="getDatasetLink(hash.hash)"
-							 [matTooltip]="hash.hash">
+						<a target="_blank" [href]="getDatasetLink(output.key)"
+							 [matTooltip]="output.key">
 							Full Dataset
 						</a>
 					</mat-card-subtitle>
