@@ -16,8 +16,8 @@ namespace PipelineService.Models.MqttMessages
 		public int OperationsToBeExecuted { get; set; }
 		public int OperationsFailedToExecute { get; set; }
 		public string OperationName { get; set; }
-		public string ResultDatasetKey { get; set; }
 		public DateTime CompletedAt { get; set; }
 		public Dataset ResultDataset { get; set; }
+		public string ResultDatasetKey { get; set; }
 	}
 }

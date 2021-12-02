@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
+using Newtonsoft.Json;
 using PipelineService.Exceptions;
 using PipelineService.Extensions;
 using PipelineService.Models;
@@ -76,9 +77,9 @@ namespace PipelineService.Dao.Impl
 			var executionRecordsRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
 				.Match($"(n:{nameof(Operation)})")
 				.Where("n._visited=$visited_stamp").WithParam("visited_stamp", partitionResult.VisitedStamp)
-				.Return(() => new OperationExecutionRecord
+				.Return(() => new
 				{
-					ResultDataset = Return.As<Dataset>("n.Output"),
+					ResultDataset = Return.As<string>("n.OutputSerialized"),
 					OperationId = Return.As<Guid>("n.Id"),
 					PipelineId = Return.As<Guid>("n.PipelineId"),
 					Level = Return.As<int>("n._level"),
@@ -86,7 +87,15 @@ namespace PipelineService.Dao.Impl
 				})
 				.OrderByDescending("n._level");
 
-			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync).ToList();
+			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync)
+				.Select(r => new OperationExecutionRecord
+				{
+					ResultDataset = JsonConvert.DeserializeObject<Dataset>(r.ResultDataset),
+					OperationId = r.OperationId,
+					PipelineId = r.PipelineId,
+					Level = r.Level,
+					Name = r.Name
+				}).ToList();
 
 			foreach (var nodeExecutionRecord in nodeExecutionRecords)
 			{

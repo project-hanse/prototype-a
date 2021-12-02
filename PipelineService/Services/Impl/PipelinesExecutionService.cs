@@ -181,8 +181,8 @@ namespace PipelineService.Services.Impl
 					OperationsInExecution = executionRecord.InExecution.Count,
 					OperationsToBeExecuted = executionRecord.ToBeExecuted.Count,
 					OperationsFailedToExecute = executionRecord.Failed.Count,
-					ResultDatasetKey = operationExecutionRecord?.ResultKey,
-					ResultDataset = operationExecutionRecord?.ResultDataset
+					ResultDataset = operationExecutionRecord?.ResultDataset,
+					ResultDatasetKey = operationExecutionRecord?.ResultDataset.Key
 				});
 		}
 
