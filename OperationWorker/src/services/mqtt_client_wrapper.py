@@ -3,17 +3,17 @@ import json
 import paho.mqtt.client as mqtt
 
 from src.models.operation_execution_message import OperationExecutionMessage
-from src.services.node_execution_service import NodeExecutionService
+from src.services.operation_execution_service import OperationExecutionService
 
 
 class MqttClientWrapper:
 	logging = None
-	execution_service: NodeExecutionService
+	execution_service: OperationExecutionService
 	client: mqtt.Client
 	topic_name_sub: str
 	topic_name_pub: str
 
-	def __init__(self, logging, execution_service: NodeExecutionService) -> None:
+	def __init__(self, logging, execution_service: OperationExecutionService) -> None:
 		self.execution_service = execution_service
 		self.logging = logging
 

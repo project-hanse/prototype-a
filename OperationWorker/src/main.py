@@ -6,7 +6,7 @@ import uuid
 from src.services.dateset_service_client import DatasetServiceClient
 from src.services.file_store_client import FileStoreClient
 from src.services.mqtt_client_wrapper import MqttClientWrapper
-from src.services.node_execution_service import NodeExecutionService
+from src.services.operation_execution_service import OperationExecutionService
 from src.services.operation_service import OperationService
 
 MQTT_HOST: str = os.getenv("MQTT_HOST", "message-broker")
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 	operation_service = OperationService(logging)
 	dataset_client = DatasetServiceClient(DATASET_HOST, DATASET_PORT, logging)
 	file_store_client = FileStoreClient(logging)
-	node_execution_service = NodeExecutionService(logging, dataset_client, file_store_client, operation_service)
+	node_execution_service = OperationExecutionService(logging, dataset_client, file_store_client, operation_service)
 	client_wrapper = MqttClientWrapper(logging, node_execution_service)
 
 	logging.debug('Setting up signal handler')

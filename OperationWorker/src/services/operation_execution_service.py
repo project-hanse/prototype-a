@@ -11,7 +11,7 @@ from src.services.file_store_client import FileStoreClient
 from src.services.operation_service import OperationService
 
 
-class NodeExecutionService:
+class OperationExecutionService:
 	count: int
 
 	def __init__(self, logger: logging,
@@ -221,7 +221,7 @@ class NodeExecutionService:
 						if config[key].strip().startswith("{") or config[key].strip().startswith("["):
 							cleaned_str = config[key].replace("'", '"')
 							parsed = json.loads(cleaned_str)
-							config[key] = NodeExecutionService.preprocess_operation_config(parsed)
+							config[key] = OperationExecutionService.preprocess_operation_config(parsed)
 						elif config[key].strip() == 'None':
 							config[key] = None
 						else:
