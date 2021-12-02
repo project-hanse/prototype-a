@@ -9,7 +9,8 @@ class OperationExecutionMessage(Message):
 		self.pipeline_id: str = deserialized['PipelineId']
 		self.execution_id: str = deserialized['ExecutionId']
 		self.operation_id = deserialized['OperationId']
-		self.operation_identifier: str = deserialized['OperationIdentifier']
+		self.worker_operation_id = deserialized['WorkerOperationId']
+		self.worker_operation_identifier: str = deserialized['WorkerOperationIdentifier']
 		self.operation_configuration: dict = deserialized['OperationConfiguration']
 		self.inputs: [] = Dataset.from_array(deserialized['Inputs'])
 		self.output: Dataset = Dataset(deserialized['Output'])
@@ -20,11 +21,14 @@ class OperationExecutionMessage(Message):
 	def get_operation_id(self) -> str:
 		return self.operation_id
 
+	def get_worker_operation_id(self) -> str:
+		return self.worker_operation_id
+
+	def get_worker_operation_identifier(self):
+		return self.worker_operation_identifier
+
 	def get_execution_id(self) -> str:
 		return self.execution_id
-
-	def get_operation_identifier(self):
-		return self.operation_identifier
 
 	def get_operation_configuration(self) -> dict:
 		return self.operation_configuration

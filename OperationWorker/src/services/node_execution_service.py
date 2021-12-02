@@ -41,22 +41,22 @@ class NodeExecutionService:
 			file_content_str = self.file_store_client.get_object_content(request.get_inputs()[0].store,
 																																	 request.get_inputs()[0].key)
 			if file_content_str is not None:
-				resulting_dataset = self.execute_file_input_operation(request.operation_identifier,
-																															request.operation_id,
+				resulting_dataset = self.execute_file_input_operation(request.worker_operation_identifier,
+																															request.worker_operation_id,
 																															operation_config,
 																															file_content_str)
 			else:
 				file_content_bin = self.file_store_client.get_object_content_as_binary(request.get_inputs()[0].store,
 																																							 request.get_inputs()[0].key)
-				resulting_dataset = self.execute_file_input_operation(request.operation_identifier,
-																															request.operation_id,
+				resulting_dataset = self.execute_file_input_operation(request.worker_operation_identifier,
+																															request.worker_operation_id,
 																															operation_config,
 																															file_content_bin)
 
 			self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
 			response.set_successful(True)
 		except Exception as e:
-			self.logger.info("Failed to execute operation %s: %s" % (request.operation_identifier, str(e)))
+			self.logger.info("Failed to execute operation %s: %s" % (request.worker_operation_identifier, str(e)))
 			response.set_successful(False)
 			response.set_error_description(str(e))
 
@@ -78,20 +78,20 @@ class NodeExecutionService:
 			# Dataset loading not successful -> returning error message
 			return response
 
-		operation = request.get_operation_identifier()
+		worker_operation_identifier = request.get_worker_operation_identifier()
 		operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
 		# Executing operation
 		try:
 			resulting_dataset = self.execute_single_input_operation(dataset,
-																															operation,
-																															request.operation_identifier,
+																															worker_operation_identifier,
+																															request.worker_operation_id,
 																															operation_config)
 
 			self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
 			response.set_successful(True)
 		except Exception as e:
-			self.logger.info("Failed to execute operation %s: %s" % (operation, str(e)))
+			self.logger.info("Failed to execute operation %s: %s" % (worker_operation_identifier, str(e)))
 			response.set_successful(False)
 			response.set_error_description(str(e))
 
@@ -119,22 +119,22 @@ class NodeExecutionService:
 			# Dataset loading not successful -> returning error message
 			return response
 
-		operation = request.get_operation_identifier()
+		worker_operation_identifier = request.get_worker_operation_identifier()
 		operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
 		# Executing operation
 		try:
 			resulting_dataset = self.execute_double_input_operation(dataset_one,
 																															dataset_two,
-																															operation,
-																															request.operation_identifier,
+																															worker_operation_identifier,
+																															request.worker_operation_id,
 																															operation_config)
 
 			self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
 
 			response.set_successful(True)
 		except Exception as e:
-			self.logger.warning("Failed to execute operation %s: %s" % (operation, str(e)))
+			self.logger.warning("Failed to execute operation %s: %s" % (worker_operation_identifier, str(e)))
 			response.set_successful(False)
 			response.set_error_description(str(e))
 
@@ -146,6 +146,8 @@ class NodeExecutionService:
 		self.logger.debug("Generating basic response message")
 		response.set_pipeline_id(request.pipeline_id)
 		response.set_operation_id(request.operation_id)
+		response.set_worker_operation_id(request.worker_operation_id)
+		response.set_worker_operation_identifier(request.worker_operation_identifier)
 		response.set_execution_id(request.execution_id)
 		response.set_successful(True)
 		response.set_start_time(datetime.datetime.now(datetime.timezone.utc))

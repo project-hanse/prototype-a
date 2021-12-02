@@ -385,8 +385,9 @@ namespace PipelineService.Services.Impl
 			{
 				PipelineId = operation.PipelineId,
 				ExecutionId = executionId,
-				OperationId = operation.OperationId,
-				OperationIdentifier = operation.OperationIdentifier,
+				OperationId = operation.Id,
+				WorkerOperationId = operation.OperationId,
+				WorkerOperationIdentifier = operation.OperationIdentifier,
 				OperationConfiguration = operation.OperationConfiguration,
 				Inputs = operation.Inputs,
 				Output = operation.Output

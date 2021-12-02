@@ -27,12 +27,17 @@ namespace PipelineService.Models.Pipeline
 
 		/// <summary>
 		/// The id of the operation that will be performed on the input dataset.
+		/// Used by workers to perform the appropriate operation.
 		/// </summary>
 		public Guid OperationId { get; set; }
 
 		/// <summary>
 		/// The operation that will be performed on the input dataset.
+		/// A string used by workers to perform a specific variant of an operation.
 		/// </summary>
+		/// <remarks>
+		///	Example: For the generic pandas operation this could be "dropna", "fillna", etc..
+		/// </remarks>
 		public string OperationIdentifier { get; set; }
 
 		/// <summary>

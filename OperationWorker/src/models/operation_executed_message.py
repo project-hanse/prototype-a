@@ -7,6 +7,8 @@ class OperationExecutedMessage(Message):
 	pipeline_id: str
 	execution_id: str
 	operation_id: str
+	worker_operation_id: str
+	worker_operation_identifier: str
 	successful: bool
 	start_time: datetime
 	stop_time: datetime
@@ -22,6 +24,12 @@ class OperationExecutedMessage(Message):
 
 	def set_operation_id(self, operation_id: str):
 		self.operation_id = operation_id
+
+	def set_worker_operation_id(self, worker_operation_id: str):
+		self.worker_operation_id = worker_operation_id
+
+	def set_worker_operation_identifier(self, worker_operation_id: str):
+		self.worker_operation_identifier = worker_operation_id
 
 	def set_execution_id(self, execution_id: str):
 		self.execution_id = execution_id

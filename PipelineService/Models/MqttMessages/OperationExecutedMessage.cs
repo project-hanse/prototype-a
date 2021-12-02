@@ -15,9 +15,20 @@ namespace PipelineService.Models.MqttMessages
 		public Guid ExecutionId { get; set; }
 
 		/// <summary>
-		/// The node's id that was executed.
+		/// The operation's id (within a pipeline or execution) that was executed.
 		/// </summary>
 		public Guid OperationId { get; set; }
+
+		/// <summary>
+		/// The operation's id that will be executed.
+		/// </summary>
+		public Guid WorkerOperationId { get; set; }
+
+		/// <summary>
+		/// An identifier of the operation.
+		/// Used by generic pandas operation to execute correct function.
+		/// </summary>
+		public string WorkerOperationIdentifier { get; set; }
 
 		/// <summary>
 		/// Indicates if the execution was successful.
