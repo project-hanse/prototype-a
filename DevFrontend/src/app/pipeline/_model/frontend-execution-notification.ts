@@ -1,15 +1,18 @@
+import {Dataset} from './dataset';
+
 export interface FrontendExecutionNotification {
 	PipelineId: string;
 	ExecutionId: string;
-	NodeId: string;
+	OperationId: string;
 	OperationName: string;
 	Successful: boolean;
 	ExecutionTime: any;
 	CompletedAt: Date;
 	ErrorDescription: string;
-	NodesExecuted: number;
-	NodesInExecution: number;
-	NodesToBeExecuted: number;
-	NodesFailedToExecute: number;
+	OperationsExecuted: number;
+	OperationsInExecution: number;
+	OperationsToBeExecuted: number;
+	OperationsFailedToExecute: number;
 	ResultDatasetKey: string;
+	ResultDataset: Dataset;
 }

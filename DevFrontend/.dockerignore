@@ -17,3 +17,5 @@
 *.zip
 
 *.md
+
+/.angular

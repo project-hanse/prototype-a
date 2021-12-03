@@ -1,156 +1,182 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
+using System.Net;
 using System.Threading.Tasks;
-using Hangfire.Annotations;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using PipelineService.Extensions;
-using PipelineService.Models.Constants;
+using PipelineService.Dao;
+using PipelineService.Helper;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
+using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
 {
 	public class OperationsService : IOperationsService
 	{
 		private readonly ILogger<OperationsService> _logger;
-		private readonly IConfiguration _configuration;
-
-		private string OperationsConfigPath => Path.Combine(
-			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
-			_configuration.GetValue("OperationsConfigFolder", ""));
+		private readonly IPipelinesDao _pipelinesDao;
 
 		public OperationsService(
 			ILogger<OperationsService> logger,
-			IConfiguration configuration)
+			IPipelinesDao pipelinesDao)
 		{
 			_logger = logger;
-			_configuration = configuration;
+			_pipelinesDao = pipelinesDao;
 		}
 
-		public async Task<IList<OperationDto>> GetOperationDtos()
+		public async Task<IList<string>> GetInputDatasetKeysForOperation(Guid pipelineId, Guid operationId)
 		{
-			_logger.LogDebug("Loading available operations");
-			var operations = new List<OperationDto>();
-			operations.AddRange(GenerateOperationsFromIds());
-			operations.AddRange(await LoadFromConfigFiles());
-			operations = operations
-				.OrderBy(op => op.Framework)
-				.ThenBy(op => op.SectionTitle)
-				.ThenBy(op => op.OperationName)
+			return (await _pipelinesDao.GetOperation(operationId))?.Inputs
+				.Select(ds => ds.Key)
 				.ToList();
-
-			_logger.LogInformation("Loaded {OperationsCount} operations", operations.Count);
-
-			return operations;
 		}
 
-		private async Task<IList<OperationDto>> LoadFromConfigFiles()
+		public async Task<AddOperationResponse> AddOperationToPipeline(AddOperationRequest request)
 		{
-			_logger.LogDebug("Loading operations from config files");
-			var operations = new List<OperationDto>();
-			if (OperationsConfigPath == null || !Directory.Exists(OperationsConfigPath))
-			{
-				_logger.LogWarning("No operation configuration files found");
-				return new List<OperationDto>();
-			}
+			_logger.LogDebug("Adding node to pipeline for request {@AddNodeRequest}", request);
 
-			foreach (var configFile in Directory.GetFiles(OperationsConfigPath))
+			var response = new AddOperationResponse
 			{
-				_logger.LogDebug("Loading operations from {OperationsConfigFile}", configFile);
-				using var streamReader = new StreamReader(configFile);
-				var content = await streamReader.ReadToEndAsync();
-				var operationDtos = JsonConvert.DeserializeObject<IList<OperationDto>>(content);
-				operations.AddRange(operationDtos);
-				_logger.LogInformation("Loaded {OperationsCount} operations from {OperationsConfigFile}",
-					operationDtos.Count, configFile);
-			}
+				Success = false
+			};
 
-			_logger.LogDebug("Postprocessing configured operations");
-
-			foreach (var operationDto in operations.Where(operationDto => operationDto.Framework == "pandas"))
+			if (request.PredecessorOperationIds.Count is < 0 or > 2)
 			{
-				operationDto.OperationName = operationDto.SignatureName;
-				operationDto.OperationFullName = operationDto.Title;
-				operationDto.OperationId = OperationIds.OpIdPdSingleGeneric;
-				operationDto.OperationInputType =
-					operationDto.Signature.Contains("other") ||
-					operationDto.Signature.Contains("right") // TODO: this should check the parameters type
-						? OperationInputTypes.Double
-						: OperationInputTypes.Single;
-				if (operationDto.DefaultConfig == null)
+				_logger.LogDebug("Unexpected count of predecessor operations");
+				response.StatusCode = HttpStatusCode.BadRequest;
+				response.Errors.Add(new Error
 				{
-					operationDto.DefaultConfig = new Dictionary<string, string>();
-					var arguments = operationDto.Signature
-						.Substring(operationDto.Signature.IndexOf('(') + 1)
-						.ReplaceLastOccurenceOf(")", "")
-						.Split(", ");
+					Message = "An operation must have between 0 and 2 predecessors",
+					Code = "P400"
+				});
+				return response;
+			}
 
-					foreach (var argument in arguments)
+			// TODO reimplement this in a general way that does can handle any number of predecessors and checks if dataset types match
+			Operation newOperation;
+			if (request.PredecessorOperationIds.Count == 0)
+			{
+				_logger.LogDebug("Detected no predecessor nodes");
+				newOperation = new Operation
+				{
+					Inputs =
 					{
-						var split = argument.Split("=");
-						if (split.Length == 1)
+						new Dataset
 						{
-							operationDto.DefaultConfig.Add(argument, "");
-						}
-
-						if (split.Length == 2)
-						{
-							operationDto.DefaultConfig.Add(split[0], split[1].Replace("'", ""));
+							Type = DatasetType.File,
+							Store = request.Options["objectBucket"],
+							Key = request.Options["objectKey"]
 						}
 					}
+				};
+				await _pipelinesDao.CreateRootOperation(request.PipelineId, newOperation);
+			}
+			else if (request.PredecessorOperationIds.Count == 1)
+			{
+				_logger.LogDebug("Detected 1 predecessor operation {OperationId}", request.PredecessorOperationIds);
+				var predecessor = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[0]);
+				if (predecessor == null)
+				{
+					response.StatusCode = HttpStatusCode.NotFound;
+					return response;
 				}
+
+				newOperation = PipelineConstructionHelpers.Successor(predecessor, new Operation());
+				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
+			}
+			else
+			{
+				_logger.LogDebug("Detected 2 predecessor nodes {@OperationIds}", request.PredecessorOperationIds);
+				var predecessor1 = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[0]);
+				var predecessor2 = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[1]);
+				if (predecessor1 == default || predecessor2 == default)
+				{
+					response.StatusCode = HttpStatusCode.NotFound;
+					return response;
+				}
+
+				newOperation = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, new Operation());
+				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
 			}
 
-			return operations;
+			newOperation.PipelineId = request.PipelineId;
+			newOperation.OperationId = request.OperationTemplate.OperationId;
+			newOperation.OperationIdentifier = request.OperationTemplate.OperationName;
+			newOperation.OperationConfiguration = request.OperationTemplate.DefaultConfig;
+
+			await _pipelinesDao.UpdateOperation(newOperation);
+
+			_logger.LogDebug(
+				"Added node {OperationId} from operation template {OperationName} ({OperationTemplateId}) to pipeline {PipelineId}",
+				newOperation.Id, newOperation.OperationIdentifier, newOperation.OperationId, request.PipelineId);
+
+			response.OperationId = newOperation.Id;
+			response.PipelineId = request.PipelineId;
+			response.Success = true;
+			return response;
 		}
 
-		private static IEnumerable<OperationDto> GenerateOperationsFromIds()
+		public async Task<RemoveNodesResponse> RemoveOperationsFromPipeline(RemoveOperationsRequest request)
 		{
-			var fromIds = new List<OperationDto>();
-			var type = typeof(OperationIds);
-			var fields = type.GetFields(BindingFlags.Static | BindingFlags.Public);
-			foreach (var fieldInfo in fields)
+			_logger.LogDebug("Removing operations from pipeline for request {@RemoveOperationsRequest}", request);
+
+			var response = new RemoveNodesResponse
 			{
-				var operation = new OperationDto
-				{
-					OperationFullName = fieldInfo.Name,
-					OperationId = Guid.Parse(fieldInfo.GetValue(null)?.ToString() ?? string.Empty)
-				};
+				Success = false
+			};
 
-				var split = Regex.Split(operation.OperationFullName.Replace("OpId", ""), @"(?<!^)(?=[A-Z])");
-				operation.Framework = split[0] switch
-				{
-					"Pd" => "pandas",
-					"Sklearn" => "scikit-learn",
-					_ => "unknown"
-				};
-
-				operation.OperationInputType = split[1] switch
-				{
-					"File" => OperationInputTypes.File,
-					"Single" => OperationInputTypes.Single,
-					"Double" => OperationInputTypes.Double,
-					_ => OperationInputTypes.Unknown
-				};
-
-				operation.OperationName = string.Join("_", split, 2, split.Length - 2).ToLower();
-
-				operation.DefaultConfig = new Dictionary<string, string>();
-				operation.Returns = "DataFrame";
-				operation.Title = operation.OperationFullName;
-				operation.SectionTitle = "Custom Operations";
-
-				fromIds.Add(operation);
+			foreach (var operationId in request.OperationIdsToBeRemoved)
+			{
+				await _pipelinesDao.DeleteOperation(operationId);
 			}
 
-			return fromIds;
+			response.Success = true;
+			response.PipelineId = request.PipelineId;
+
+			_logger.LogInformation("Removed {RemovedCount} operations from pipeline {PipelineId}",
+				request.OperationIdsToBeRemoved.Count, request.PipelineId);
+			return response;
+		}
+
+		public async Task<string> GetOutputKey(Guid pipelineId, Guid operationId)
+		{
+			return (await _pipelinesDao.GetOperation(operationId)).Output.Key;
+		}
+
+		public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
+		{
+			var node = await FindOperationOrDefault(pipelineId, nodeId);
+			if (node == null)
+			{
+				_logger.LogDebug("Node with id {NotFoundId} not found", pipelineId);
+			}
+
+			return node?.OperationConfiguration;
+		}
+
+		public async Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, Dictionary<string, string> config)
+		{
+			var operation = await _pipelinesDao.GetOperation(operationId);
+			if (operation == null)
+			{
+				_logger.LogDebug("Operation with id {NotFoundId} not found", operationId);
+				return false;
+			}
+
+			operation.OperationConfiguration = config;
+
+			await _pipelinesDao.UpdateOperation(operation);
+
+			_logger.LogInformation("Updated configuration for operation {OperationId} in pipeline {PipelineId}",
+				operation.Id, pipelineId);
+
+			return true;
+		}
+
+		public async Task<Operation> FindOperationOrDefault(Guid pipelineId, Guid nodeId)
+		{
+			return await _pipelinesDao.GetOperation(nodeId);
 		}
 	}
 }

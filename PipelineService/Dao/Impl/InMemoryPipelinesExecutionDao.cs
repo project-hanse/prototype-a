@@ -8,9 +8,11 @@ using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
+using Newtonsoft.Json;
 using PipelineService.Exceptions;
 using PipelineService.Extensions;
 using PipelineService.Models;
+using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Dao.Impl
@@ -47,7 +49,7 @@ namespace PipelineService.Dao.Impl
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			var partitionRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Match("(n:Node)")
+				.Match($"(n:{nameof(Operation)})")
 				.Where("n.PipelineId=$pipeline_id").WithParam("pipeline_id", pipelineId)
 				.AndWhere("NOT (n)-[:HAS_SUCCESSOR]->()")
 				.With("collect(n) AS nodesList")
@@ -73,19 +75,29 @@ namespace PipelineService.Dao.Impl
 				pipelineId, partitionResult.MaxLevel);
 
 			var executionRecordsRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Match("(n:Node)")
+				.Match($"(n:{nameof(Operation)})")
 				.Where("n._visited=$visited_stamp").WithParam("visited_stamp", partitionResult.VisitedStamp)
-				.Return(() => new NodeExecutionRecord
+				.Return(() => new
 				{
-					ResultKey = Return.As<string>("n.ResultKey"),
-					NodeId = Return.As<Guid>("n.Id"),
-					PipelineId = Return.As<Guid>("n.PipelineId"),
+					ResultDataset = Return.As<string>($"n.{nameof(Operation.OutputSerialized)}"),
+					OperationId = Return.As<Guid>($"n.{nameof(Operation.Id)}"),
+					PipelineId = Return.As<Guid>($"n.{nameof(Operation.PipelineId)}"),
 					Level = Return.As<int>("n._level"),
-					Name = Return.As<string>("n.Operation")
+					Name = Return.As<string>($"n.{nameof(Operation.OperationIdentifier)}"),
+					HashAtEnqueuing = Return.As<string>($"n.{nameof(Operation.ComputedHash)}")
 				})
 				.OrderByDescending("n._level");
 
-			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync).ToList();
+			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync)
+				.Select(r => new OperationExecutionRecord
+				{
+					ResultDataset = JsonConvert.DeserializeObject<Dataset>(r.ResultDataset),
+					OperationId = r.OperationId,
+					PipelineId = r.PipelineId,
+					Level = r.Level,
+					Name = r.Name,
+					HashAtEnqueuing = r.HashAtEnqueuing
+				}).ToList();
 
 			foreach (var nodeExecutionRecord in nodeExecutionRecords)
 			{

@@ -1,9 +1,10 @@
 import {BasePersistentModel} from './base-persistent-model';
-import {PipelineNode} from './pipelineNode';
+import {Operation} from './operation';
 
 export interface Pipeline extends BasePersistentModel {
 	name: string;
-	root: PipelineNode[];
+	root: Operation[];
+	userIdentifier: string;
 }
 
 export interface PipelineInfoDto {
