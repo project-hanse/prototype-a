@@ -19,6 +19,10 @@ jobs:
     outputs:
       dataset-service: ${{ steps.filter.outputs.dataset-service }}
       dev-frontend: ${{ steps.filter.outputs.dev-frontend }}
+      operation-worker: ${{ steps.filter.outputs.operation-worker }}
+      pipeline-service: ${{ steps.filter.outputs.pipeline-service }}
+      file-service: ${{ steps.filter.outputs.file-service }}
+      plugins-neo4j: ${{ steps.filter.outputs.plugins-neo4j }}
     steps:
       # For pull requests it's not necessary to checkout the code
       - uses: dorny/paths-filter@v2
@@ -29,6 +33,14 @@ jobs:
               - 'DataSetService/**'
             dev-frontend:
               - 'DevFrontend/**'
+            operation-worker:
+              - 'OperationWorker/**'
+            pipeline-service:
+              - 'PipelineService/**'
+            file-service:
+              - 'FileService/**'
+            plugins-neo4j:
+              - 'Neo4jPlugins/**'
 
   # Dataset Service
   build-dataset-service:
@@ -119,6 +131,8 @@ jobs:
   # Operation Worker
   build-operation-worker:
     name: 'Build Operation Worker'
+    needs: changes
+    if: ${{ needs.changes.outputs.operation-worker == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -160,6 +174,8 @@ jobs:
   # Pipeline Service
   build-pipeline-service:
     name: 'Build Pipeline Service'
+    needs: changes
+    if: ${{ needs.changes.outputs.pipeline-service == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -201,6 +217,8 @@ jobs:
   # File Service
   build-file-service:
     name: 'Build File Service'
+    needs: changes
+    if: ${{ needs.changes.outputs.file-service == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -242,6 +260,8 @@ jobs:
   # Hanse Neo4j
   build-plugins-neo4j:
     name: 'Build Neo4j Plugins + Hanse Neo4j Docker Image'
+    needs: changes
+    if: ${{ needs.changes.outputs.plugins-neo4j == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
