@@ -101,7 +101,7 @@ namespace PipelineService.Services.Impl
 				_logger.LogInformation("Execution of operation {OperationId} failed with error {ExecutionErrorDescription}",
 					response.OperationId, response.ErrorDescription);
 
-				await MarkNodeAsFailed(response.ExecutionId, response.OperationId);
+				await MarkOperationAsFailed(response.ExecutionId, response.OperationId);
 				await NotifyFrontend(response);
 				return;
 			}
@@ -295,9 +295,9 @@ namespace PipelineService.Services.Impl
 		/// TODO: This method must become thread safe (case: multiple node finish execution at the same time -> when updating data might get lost).
 		/// </summary>
 		/// <param name="executionId">The execution's id a node has been executed in.</param>
-		/// <param name="nodeId">The node that will be moved from status in execution to executed.</param>
+		/// <param name="operationId">The node that will be moved from status in execution to executed.</param>
 		/// <returns>True if there are still blocks in status in_execution.</returns>
-		private async Task<bool> MarkOperationAsExecuted(Guid executionId, Guid nodeId)
+		private async Task<bool> MarkOperationAsExecuted(Guid executionId, Guid operationId)
 		{
 			PipelineExecutionRecord execution;
 			try
@@ -309,7 +309,7 @@ namespace PipelineService.Services.Impl
 				throw new InvalidOperationException("Can not move node for non existent execution", e);
 			}
 
-			var operation = execution.InExecution.FirstOrDefault(b => b.OperationId == nodeId);
+			var operation = execution.InExecution.FirstOrDefault(b => b.OperationId == operationId);
 
 			if (operation == null)
 			{
@@ -318,7 +318,7 @@ namespace PipelineService.Services.Impl
 
 			_logger.LogDebug(
 				"Moving operation {OperationId} in execution {ExecutionId} from status in_execution to executed",
-				nodeId, executionId);
+				operationId, executionId);
 
 			operation.ExecutionCompletedAt = DateTime.UtcNow;
 
@@ -332,7 +332,7 @@ namespace PipelineService.Services.Impl
 			return execution.InExecution.Count > 0;
 		}
 
-		private async Task MarkNodeAsFailed(Guid responseExecutionId, Guid responseOperationId)
+		private async Task MarkOperationAsFailed(Guid responseExecutionId, Guid responseOperationId)
 		{
 			PipelineExecutionRecord execution;
 			try

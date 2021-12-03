@@ -1,4 +1,3 @@
-using PipelineService.Extensions;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Helper
@@ -8,7 +7,6 @@ namespace PipelineService.Helper
 		public static Operation Successor(Operation predecessor, Operation successor)
 		{
 			predecessor.Successors.Add(successor);
-			predecessor.CalculateOutputKey();
 			successor.Inputs.Add(predecessor.Output);
 			return successor;
 		}

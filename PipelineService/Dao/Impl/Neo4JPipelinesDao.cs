@@ -174,7 +174,7 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			root.CalculateOutputKey().ChangedOn = DateTime.UtcNow;
+			root.ChangedOn = DateTime.UtcNow;
 
 			// TODO: Merge this into a single db call using annotations
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
@@ -199,7 +199,6 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			successor.CalculateOutputKey();
 			successor.ChangedOn = DateTime.UtcNow;
 
 			// TODO: Merge this into a single db call using annotations
@@ -229,7 +228,8 @@ namespace PipelineService.Dao.Impl
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			var operation = await _graphClient.WithAnnotations<PipelineContext>().Cypher
-				.Match(path => path.Pattern<Operation>("operationNode").Constrain(operationNode => operationNode.Id == operationId))
+				.Match(path => path.Pattern<Operation>("operationNode")
+					.Constrain(operationNode => operationNode.Id == operationId))
 				.Return<Operation>("operationNode")
 				.ResultsAsync;
 
@@ -244,7 +244,6 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 			operation.ChangedOn = DateTime.UtcNow;
-			operation.CalculateOutputKey();
 
 			await _graphClient.WithAnnotations<PipelineContext>().Cypher
 				.Merge(path => path.Pattern<T>("n").Constrain(n => n.Id == operation.Id))
