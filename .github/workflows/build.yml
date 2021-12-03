@@ -24,6 +24,8 @@ jobs:
       file-service: ${{ steps.filter.outputs.file-service }}
       plugins-neo4j: ${{ steps.filter.outputs.plugins-neo4j }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
       # For pull requests it's not necessary to checkout the code
       - uses: dorny/paths-filter@v2
         id: filter
