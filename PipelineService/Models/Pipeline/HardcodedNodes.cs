@@ -21,6 +21,11 @@ namespace PipelineService.Models.Pipeline
 					}
 				},
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv,
 				OperationConfiguration = new Dictionary<string, string>
@@ -38,6 +43,11 @@ namespace PipelineService.Models.Pipeline
 			return new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "trim",
 				OperationDescription = $"trim_{year}",
 				OperationId = OpIdPdSingleTrim,

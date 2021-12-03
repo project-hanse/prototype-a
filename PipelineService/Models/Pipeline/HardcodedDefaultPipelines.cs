@@ -108,7 +108,7 @@ namespace PipelineService.Models.Pipeline
 				},
 				Output = new Dataset
 				{
-					Type = DatasetType.PdSeries,
+					Type = DatasetType.PdDataFrame,
 					Store = "dataframes"
 				},
 			};
@@ -122,7 +122,7 @@ namespace PipelineService.Models.Pipeline
 				OperationId = OpIdPdSingleGeneric,
 				Output = new Dataset
 				{
-					Type = DatasetType.PdSeries,
+					Type = DatasetType.PdDataFrame,
 					Store = "dataframes"
 				},
 			};
@@ -158,6 +158,11 @@ namespace PipelineService.Models.Pipeline
 						Store = "defaultfiles"
 					}
 				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
 				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv,
@@ -169,6 +174,11 @@ namespace PipelineService.Models.Pipeline
 
 			var interpolate = new Operation
 			{
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
 				OperationIdentifier = "interpolate",
 				OperationId = OpIdPdSingleInterpolate,
@@ -184,6 +194,11 @@ namespace PipelineService.Models.Pipeline
 			var select = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "select_columns",
 				OperationId = OpIdPdSingleSelectColumns,
 				OperationConfiguration = new Dictionary<string, string>
@@ -197,6 +212,11 @@ namespace PipelineService.Models.Pipeline
 			var describe = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "describe",
 				OperationId = OpIdPdSingleGeneric,
 			};
@@ -230,6 +250,11 @@ namespace PipelineService.Models.Pipeline
 			var describe = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "describe",
 				OperationId = OpIdPdSingleGeneric,
 			};
@@ -258,6 +283,11 @@ namespace PipelineService.Models.Pipeline
 						Store = "defaultfiles"
 					}
 				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
 				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv
@@ -267,6 +297,11 @@ namespace PipelineService.Models.Pipeline
 			var trim1Berufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
@@ -280,6 +315,11 @@ namespace PipelineService.Models.Pipeline
 			var resetIndexBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "reset_index",
 				OperationId = OpIdPdSingleResetIndex
 			};
@@ -289,6 +329,11 @@ namespace PipelineService.Models.Pipeline
 			var setHeaderBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "set_header",
 				OperationId = OpIdPdSingleMakeColumnHeader,
 				OperationConfiguration = new Dictionary<string, string>
@@ -302,6 +347,11 @@ namespace PipelineService.Models.Pipeline
 			var dropNaBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "dropna",
 				OperationId = OpIdPdSingleGeneric,
 				OperationConfiguration = new Dictionary<string, string>
@@ -315,6 +365,11 @@ namespace PipelineService.Models.Pipeline
 			var trim2Berufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
@@ -328,6 +383,11 @@ namespace PipelineService.Models.Pipeline
 			var selectRowsBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "select",
 				OperationId = OpIdPdSingleSelectRows,
 				OperationConfiguration = new Dictionary<string, string>
@@ -350,6 +410,11 @@ namespace PipelineService.Models.Pipeline
 						Store = "defaultfiles"
 					}
 				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
 				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv
@@ -358,6 +423,11 @@ namespace PipelineService.Models.Pipeline
 			var trim1Studenten = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
@@ -371,6 +441,11 @@ namespace PipelineService.Models.Pipeline
 			var resetIndexStudenten = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "reset_index",
 				OperationId = OpIdPdSingleResetIndex
 			};
@@ -380,6 +455,11 @@ namespace PipelineService.Models.Pipeline
 			var setHeaderStudenten = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "set_header",
 				OperationId = OpIdPdSingleMakeColumnHeader,
 				OperationConfiguration = new Dictionary<string, string>
@@ -393,6 +473,11 @@ namespace PipelineService.Models.Pipeline
 			var dropNaStudenten = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "dropna",
 				OperationId = OpIdPdSingleGeneric,
 				OperationConfiguration = new Dictionary<string, string>
@@ -405,6 +490,11 @@ namespace PipelineService.Models.Pipeline
 			var trim2Studenten = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
@@ -417,6 +507,11 @@ namespace PipelineService.Models.Pipeline
 			var selectRowsStudenten = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "select",
 				OperationId = OpIdPdSingleSelectRows,
 				OperationConfiguration = new Dictionary<string, string>
@@ -430,6 +525,11 @@ namespace PipelineService.Models.Pipeline
 			var join = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "join",
 				OperationId = OpIdPdDoubleJoin,
 				OperationConfiguration = new Dictionary<string, string>
@@ -444,6 +544,11 @@ namespace PipelineService.Models.Pipeline
 			var describe = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "describe",
 				OperationId = OpIdPdSingleGeneric,
 			};
@@ -480,6 +585,11 @@ namespace PipelineService.Models.Pipeline
 						Store = "defaultfiles"
 					}
 				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
 				OperationIdentifier = "read_excel",
 				OperationId = OpIdPdFileReadExcel,
@@ -492,6 +602,11 @@ namespace PipelineService.Models.Pipeline
 			var renameLabels = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "rename",
 				OperationId = OpIdPdSingleRename,
 				OperationConfiguration = new Dictionary<string, string>
@@ -506,6 +621,11 @@ namespace PipelineService.Models.Pipeline
 			var setIndex = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "set_index",
 				OperationId = OpIdPdSingleSetIndex,
 				OperationConfiguration = new Dictionary<string, string>
@@ -519,6 +639,11 @@ namespace PipelineService.Models.Pipeline
 			var mean = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "mean",
 				OperationId = OpIdPdSingleMean,
 				OperationConfiguration = new Dictionary<string, string>
@@ -560,6 +685,11 @@ namespace PipelineService.Models.Pipeline
 				var transpose = new Operation
 				{
 					PipelineId = pipelineId,
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
 					OperationIdentifier = "transpose",
 					OperationDescription = $"transpose_{year}",
 					OperationId = OpIdPdSingleTranspose
@@ -568,6 +698,11 @@ namespace PipelineService.Models.Pipeline
 				var setHeader = new Operation
 				{
 					PipelineId = pipelineId,
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
 					OperationIdentifier = "set_header",
 					OperationDescription = $"set_header_{year}",
 					OperationId = OpIdPdSingleMakeColumnHeader,
@@ -579,6 +714,11 @@ namespace PipelineService.Models.Pipeline
 				var setDateIndex = new Operation
 				{
 					PipelineId = pipelineId,
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
 					OperationIdentifier = "set_date_index",
 					OperationDescription = $"set_date_index_{year}",
 					OperationId = OpIdPdSingleSetDateIndex
@@ -599,6 +739,11 @@ namespace PipelineService.Models.Pipeline
 				var concatOperation = new Operation
 				{
 					PipelineId = pipelineId,
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
 					OperationIdentifier = "concat",
 					OperationDescription =
 						$"concat_{operation1.OperationIdentifier.LastChars(4)}_{operation2.OperationIdentifier.LastChars(4)}",
@@ -612,6 +757,11 @@ namespace PipelineService.Models.Pipeline
 			var sortIndex = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "sort_index",
 				OperationId = OpIdPdSingleSortIndex
 			};
@@ -621,6 +771,11 @@ namespace PipelineService.Models.Pipeline
 			var replaceStrings = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "replace",
 				OperationId = OpIdPdSingleReplace,
 				OperationConfiguration = new Dictionary<string, string>
@@ -635,6 +790,11 @@ namespace PipelineService.Models.Pipeline
 			var toNumeric = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "to_numeric",
 				OperationId = OpIdPdSingleDfToNumeric,
 				OperationConfiguration = new Dictionary<string, string>
@@ -648,6 +808,11 @@ namespace PipelineService.Models.Pipeline
 			var interpolate = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "interpolate",
 				OperationId = OpIdPdSingleInterpolate,
 				OperationConfiguration = new Dictionary<string, string>
@@ -662,6 +827,11 @@ namespace PipelineService.Models.Pipeline
 			var resample = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "resample",
 				OperationId = OpIdPdSingleResample,
 				OperationConfiguration = new Dictionary<string, string>
@@ -676,6 +846,11 @@ namespace PipelineService.Models.Pipeline
 			var trimFirstYears = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
@@ -689,6 +864,11 @@ namespace PipelineService.Models.Pipeline
 			var dropEmptyColumns = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "dropna",
 				OperationId = OpIdPdSingleGeneric,
 				OperationConfiguration = new Dictionary<string, string>
@@ -711,6 +891,11 @@ namespace PipelineService.Models.Pipeline
 						Store = "defaultfiles"
 					}
 				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
 				OperationIdentifier = "read_excel",
 				OperationId = OpIdPdFileReadExcel,
@@ -723,6 +908,11 @@ namespace PipelineService.Models.Pipeline
 			var renameLabels = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "rename",
 				OperationId = OpIdPdSingleRename,
 				OperationConfiguration = new Dictionary<string, string>
@@ -737,6 +927,11 @@ namespace PipelineService.Models.Pipeline
 			var setIndex = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "set_index",
 				OperationId = OpIdPdSingleSetIndex,
 				OperationConfiguration = new Dictionary<string, string>
@@ -750,6 +945,11 @@ namespace PipelineService.Models.Pipeline
 			var predict = new Operation
 			{
 				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				OperationIdentifier = "predict_yield",
 				OperationId = OpIdSklearnDoubleMlpRegr
 			};
