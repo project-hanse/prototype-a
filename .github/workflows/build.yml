@@ -46,7 +46,7 @@ jobs:
   build-dataset-service:
     name: 'Build Dataset Service'
     needs: changes
-    if: ${{ needs.changes.outputs.dataset-service == 'true' }}
+    if: ${{ needs.changes.outputs.dataset-service == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -89,7 +89,7 @@ jobs:
   build-dev-frontend:
     name: 'Build Dev Frontend'
     needs: changes
-    if: ${{ needs.changes.outputs.dev-frontend == 'true' }}
+    if: ${{ needs.changes.outputs.dev-frontend == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -132,7 +132,7 @@ jobs:
   build-operation-worker:
     name: 'Build Operation Worker'
     needs: changes
-    if: ${{ needs.changes.outputs.operation-worker == 'true' }}
+    if: ${{ needs.changes.outputs.operation-worker == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -175,7 +175,7 @@ jobs:
   build-pipeline-service:
     name: 'Build Pipeline Service'
     needs: changes
-    if: ${{ needs.changes.outputs.pipeline-service == 'true' }}
+    if: ${{ needs.changes.outputs.pipeline-service == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -218,7 +218,7 @@ jobs:
   build-file-service:
     name: 'Build File Service'
     needs: changes
-    if: ${{ needs.changes.outputs.file-service == 'true' }}
+    if: ${{ needs.changes.outputs.file-service == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -261,7 +261,7 @@ jobs:
   build-plugins-neo4j:
     name: 'Build Neo4j Plugins + Hanse Neo4j Docker Image'
     needs: changes
-    if: ${{ needs.changes.outputs.plugins-neo4j == 'true' }}
+    if: ${{ needs.changes.outputs.plugins-neo4j == 'true' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
