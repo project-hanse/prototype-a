@@ -1,13 +1,12 @@
-using PipelineService.Helper;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
 {
 	public class HashService : IHashService
 	{
-		public string ComputeHash(Node node)
+		public string ComputeHash(Operation operation)
 		{
-			return HashHelper.ComputeStaticHash(node);
+			return operation.ComputedHash;
 		}
 	}
 }

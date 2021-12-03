@@ -8,10 +8,7 @@ namespace PipelineService.Models
 	public class PipelineContext : AnnotationsContext
 	{
 		public virtual EntitySet<Pipeline.Pipeline> Pipelines { get; set; }
-		public virtual EntitySet<Node> Nodes { get; set; }
-		public virtual EntitySet<NodeSingleInput> NodesSingleInput { get; set; }
-		public virtual EntitySet<NodeDoubleInput> NodesDoubleInput { get; set; }
-		public virtual EntitySet<NodeFileInput> NodesFileInput { get; set; }
+		public virtual EntitySet<Operation> Operations { get; set; }
 
 		public PipelineContext(IGraphClient graphClient) : base(graphClient)
 		{

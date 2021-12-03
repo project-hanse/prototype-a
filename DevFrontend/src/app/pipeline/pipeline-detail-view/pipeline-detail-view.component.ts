@@ -3,7 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {Observable, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
-import {NodeService} from '../_service/node.service';
+import {OperationsService} from '../_service/operations.service';
 import {PipelineService} from '../_service/pipeline.service';
 
 @Component({
@@ -19,7 +19,7 @@ export class PipelineDetailViewComponent implements OnInit, OnDestroy {
 	private $rootInputDatasets: Observable<string[]>;
 	lastSelectedNodeIds?: Array<string>;
 
-	constructor(private route: ActivatedRoute, private pipelineService: PipelineService, private nodeService: NodeService) {
+	constructor(private route: ActivatedRoute, private pipelineService: PipelineService, private nodeService: OperationsService) {
 		this.subscriptions = new Subscription();
 	}
 

@@ -1,4 +1,5 @@
 using System;
+using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Models.MqttMessages
 {
@@ -6,16 +7,17 @@ namespace PipelineService.Models.MqttMessages
 	{
 		public Guid PipelineId { get; set; }
 		public Guid ExecutionId { get; set; }
-		public Guid NodeId { get; set; }
+		public Guid OperationId { get; set; }
 		public bool Successful { get; set; }
 		public int ExecutionTime { get; set; }
 		public string ErrorDescription { get; set; }
-		public int NodesExecuted { get; set; }
-		public int NodesInExecution { get; set; }
-		public int NodesToBeExecuted { get; set; }
-		public int NodesFailedToExecute { get; set; }
+		public int OperationsExecuted { get; set; }
+		public int OperationsInExecution { get; set; }
+		public int OperationsToBeExecuted { get; set; }
+		public int OperationsFailedToExecute { get; set; }
 		public string OperationName { get; set; }
-		public string ResultDatasetKey { get; set; }
 		public DateTime CompletedAt { get; set; }
+		public Dataset ResultDataset { get; set; }
+		public string ResultDatasetKey { get; set; }
 	}
 }

@@ -35,7 +35,7 @@ namespace PipelineService.Dao
 		/// <param name="pipeline">An object with values that will be persisted.</param>
 		Task CreatePipeline(Pipeline pipeline);
 
-		Task CreateRootNode<TNode>(Guid pipelineId, TNode root) where TNode : Node;
+		Task CreateRootOperation<TNode>(Guid pipelineId, TNode root) where TNode : Operation;
 
 		/// <summary>
 		/// Creates a new node if it does not already exist and marks it as the successor of a set of other nodes.
@@ -43,32 +43,21 @@ namespace PipelineService.Dao
 		/// <param name="predecessorIds">The node ids of the new nodes predecessors.</param>
 		/// <param name="successor">The node that will be created.</param>
 		/// <typeparam name="TNode">The node's type.</typeparam>
-		Task CreateSuccessor<TNode>(IList<Guid> predecessorIds, TNode successor) where TNode : Node;
-
-		/// <summary>
-		/// Loads a node from the database.
-		/// The node's type will be automatically detected.
-		/// </summary>
-		/// <remarks>
-		/// Hint: if you want to load a node of a specific type, use <c>LoadNode&lt;TN&gt;</c> instead.
-		/// </remarks>
-		/// <param name="nodeId">The node's id.</param>
-		/// <returns>The node or null if no node with a given id is found.</returns>
-		Task<Node> GetNode(Guid nodeId);
+		Task CreateSuccessor<TNode>(IList<Guid> predecessorIds, TNode successor) where TNode : Operation;
 
 		/// <summary>
 		/// Loads a node of a specific type from the database.
 		/// </summary>
-		/// <param name="nodeId">The node's id.</param>
-		/// <typeparam name="TNode">The specific type of the node to be loaded.</typeparam>
+		/// <param name="operationId">The node's id.</param>
+		/// <typeparam name="TOperation">The specific type of the node to be loaded.</typeparam>
 		/// <returns>The node or null if no node with a given id is found.</returns>
-		Task<TNode> GetNode<TNode>(Guid nodeId) where TNode : Node;
+		Task<Operation> GetOperation(Guid operationId);
 
-		Task UpdateNode<TNode>(TNode node) where TNode : Node;
+		Task UpdateOperation<TOperation>(TOperation operation) where TOperation : Operation;
 
-		Task DeleteNode(Guid nodeId);
+		Task DeleteOperation(Guid operationId);
 
-		Task<IList<NodeTupleSingleInput>> GetTuplesSingleInput();
+		Task<IList<OperationTupleSingleInput>> GetTuplesSingleInput();
 
 		/// <summary>
 		/// Loads a dto representing a pipeline in a format that can be directly plugged into the

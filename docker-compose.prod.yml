@@ -89,9 +89,9 @@ services:
     depends_on:
       - localstack-s3
 
-  # Node Worker
-  node-worker:
-    image: ghcr.io/project-hanse/prototype-a/node-worker:main
+  # Operation Worker
+  operation-worker:
+    image: ghcr.io/project-hanse/prototype-a/operation-worker:main
     restart: unless-stopped
     networks:
       - default

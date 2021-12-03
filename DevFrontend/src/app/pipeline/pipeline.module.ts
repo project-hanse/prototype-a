@@ -1,8 +1,8 @@
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {CoreModule} from '../core/core.module';
-import {NodeConfigEditorComponent} from './node-config-editor/node-config-editor.component';
-import {NodeResultPreviewComponent} from './node-result-preview/node-result-preview.component';
+import {OperationConfigEditorComponent} from './operation-config-editor/operation-config-editor.component';
+import {OperationResultPreviewComponent} from './operation-result-preview/operation-result-preview.component';
 import {PipelineDetailViewComponent} from './pipeline-detail-view/pipeline-detail-view.component';
 import {PipelineExecutionLogComponent} from './pipeline-execution-log/pipeline-execution-log.component';
 import {PipelineGraphComponent} from './pipeline-graph-component/pipeline-graph.component';
@@ -20,8 +20,8 @@ import { PipelineCreateComponent } from './pipeline-create/pipeline-create.compo
 		PipelineGraphComponent,
 		PipelineExecutionLogComponent,
 		PipelineToolboxComponent,
-		NodeResultPreviewComponent,
-		NodeConfigEditorComponent,
+		OperationResultPreviewComponent,
+		OperationConfigEditorComponent,
   PipelineCreateComponent
 	],
 	imports: [

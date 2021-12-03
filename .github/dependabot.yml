@@ -51,9 +51,9 @@ updates:
     assignees:
       - "SirPumpkinHead"
 
-  # Node Worker
+  # Operation Worker
   - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/NodeWorker" # Location of package manifests
+    directory: "/OperationWorker" # Location of package manifests
     target-branch: "dev"
     schedule:
       interval: "weekly"
@@ -61,7 +61,7 @@ updates:
       - "SirPumpkinHead"
 
   - package-ecosystem: "docker" # See documentation for possible values
-    directory: "/NodeWorker" # Location of package manifests
+    directory: "/OperationWorker" # Location of package manifests
     target-branch: "dev"
     schedule:
       interval: "weekly"

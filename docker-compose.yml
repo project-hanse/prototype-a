@@ -40,10 +40,10 @@ services:
     depends_on:
       - localstack-s3
 
-  # Node Worker
-  node-worker:
+  # Operation Worker
+  operation-worker:
     build:
-      context: ./NodeWorker
+      context: ./OperationWorker
       dockerfile: ./Dockerfile
     environment:
       - MQTT_HOST=message-broker

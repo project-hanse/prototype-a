@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using PipelineService.Extensions;
 using PipelineService.Helper;
-using static PipelineService.Models.Constants.DatasetIds;
+using PipelineService.Models.Enums;
 using static PipelineService.Models.Constants.OperationIds;
 
 namespace PipelineService.Models.Pipeline
@@ -41,7 +41,7 @@ namespace PipelineService.Models.Pipeline
 				{
 					Id = Guid.Parse("4bfd7879-c86a-4597-89f1-941a9fed9e4f"),
 					Name = "Empty Pipeline",
-					Root = new List<Node>()
+					Root = new List<Operation>()
 				}
 			};
 		}
@@ -53,12 +53,25 @@ namespace PipelineService.Models.Pipeline
 				pipelineId = Guid.NewGuid();
 			}
 
-			var import = new NodeFileInput
+			var import = new Operation
 			{
-				InputObjectKey = "Melbourne_housing_FULL.csv",
-				InputObjectBucket = "defaultfiles",
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = "Melbourne_housing_FULL.csv",
+						Store = "defaultfiles"
+					}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdSeries,
+					Store = "dataframes",
+					Key = Guid.NewGuid().ToString()
+				},
 				PipelineId = pipelineId,
-				Operation = "read_csv",
+				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -66,46 +79,61 @@ namespace PipelineService.Models.Pipeline
 				}
 			};
 
-			var cleanUp = new NodeSingleInput
+			var cleanUp = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "dropna",
+				OperationIdentifier = "dropna",
 				OperationId = OpIdPdSingleGeneric,
 				OperationConfiguration = new Dictionary<string, string>
 				{
 					{ "axis", "0" }
 				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdSeries,
+					Store = "dataframes"
+				},
 			};
 
-			var select = new NodeSingleInput
+			PipelineConstructionHelpers.Successor(import, cleanUp);
+
+			var select = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = cleanUp.ResultKey,
-				Operation = "select_columns",
+				OperationIdentifier = "select_columns",
 				OperationId = OpIdPdSingleSelectColumns,
 				OperationConfiguration = new Dictionary<string, string>
 				{
 					{ "columns", "['Price', 'YearBuilt', 'BuildingArea', 'Landsize']" }
-				}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 			};
 
-			var describe = new NodeSingleInput
+			PipelineConstructionHelpers.Successor(cleanUp, select);
+
+			var describe = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = select.ResultKey,
-				Operation = "describe",
+				OperationIdentifier = "describe",
 				OperationId = OpIdPdSingleGeneric,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 			};
 
-			PipelineConstructionHelpers.Successor(import, cleanUp);
-			PipelineConstructionHelpers.Successor(cleanUp, select);
 			PipelineConstructionHelpers.Successor(select, describe);
 
 			return new Pipeline
 			{
 				Id = pipelineId,
 				Name = "Melbourne Housing Data",
-				Root = new List<Node>
+				Root = new List<Operation>
 				{
 					import
 				}
@@ -119,12 +147,24 @@ namespace PipelineService.Models.Pipeline
 				pipelineId = Guid.NewGuid();
 			}
 
-			var import = new NodeFileInput
+			var import = new Operation
 			{
-				InputObjectKey = "influenca_vienna_2009-2018.csv",
-				InputObjectBucket = "defaultfiles",
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = "influenca_vienna_2009-2018.csv",
+						Store = "defaultfiles"
+					}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
-				Operation = "read_csv",
+				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -132,10 +172,15 @@ namespace PipelineService.Models.Pipeline
 				}
 			};
 
-			var interpolate = new NodeSingleInput
+			var interpolate = new Operation
 			{
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
-				Operation = "interpolate",
+				OperationIdentifier = "interpolate",
 				OperationId = OpIdPdSingleInterpolate,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -144,11 +189,17 @@ namespace PipelineService.Models.Pipeline
 				},
 			};
 
-			var select = new NodeSingleInput
+			PipelineConstructionHelpers.Successor(import, interpolate);
+
+			var select = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = interpolate.ResultKey,
-				Operation = "select_columns",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "select_columns",
 				OperationId = OpIdPdSingleSelectColumns,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -156,23 +207,27 @@ namespace PipelineService.Models.Pipeline
 				}
 			};
 
-			var describe = new NodeSingleInput
+			PipelineConstructionHelpers.Successor(interpolate, select);
+
+			var describe = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = select.ResultKey,
-				Operation = "describe",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "describe",
 				OperationId = OpIdPdSingleGeneric,
 			};
 
-			PipelineConstructionHelpers.Successor(import, interpolate);
-			PipelineConstructionHelpers.Successor(interpolate, select);
 			PipelineConstructionHelpers.Successor(select, describe);
 
 			return new Pipeline
 			{
 				Id = pipelineId,
 				Name = "Influenza Interpolation",
-				Root = new List<Node>
+				Root = new List<Operation>
 				{
 					import
 				}
@@ -184,24 +239,28 @@ namespace PipelineService.Models.Pipeline
 			var pipeline = MelbourneHousingPipeline(pipelineId);
 			pipeline.Name = "Invalid: Melbourne Housing Data";
 
-			var unknownOperation = new NodeSingleInput
+			var unknownOperation = new Operation
 			{
 				PipelineId = pipeline.Id,
-				InputDatasetId = DsIdMelbourneHousePricesLess,
-				Operation = "unknown_operation",
+				OperationIdentifier = "unknown_operation",
 				OperationId = Guid.NewGuid(), // random guid that does not represent an operation
 				OperationConfiguration = new Dictionary<string, string>()
 			};
 
-			var describe = new NodeSingleInput
+			var describe = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = unknownOperation.ResultKey,
-				Operation = "describe",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "describe",
 				OperationId = OpIdPdSingleGeneric,
 			};
+			PipelineConstructionHelpers.Successor(unknownOperation, describe);
 
-			unknownOperation.Successors.Add(describe);
+
 			pipeline.Root[0].Successors.Add(unknownOperation);
 			return pipeline;
 		}
@@ -213,20 +272,37 @@ namespace PipelineService.Models.Pipeline
 				pipelineId = Guid.NewGuid();
 			}
 
-			var import1Berufsbildung = new NodeFileInput
+			var import1Berufsbildung = new Operation
 			{
-				InputObjectKey = "21211-003Z_format.csv",
-				InputObjectBucket = "defaultfiles",
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = "21211-003Z_format.csv",
+						Store = "defaultfiles"
+					}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
-				Operation = "read_csv",
+				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv
 			};
 
 			// Data cleaning Berufsbildung
-			var trim1Berufsbildung = new NodeSingleInput
+			var trim1Berufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "trim",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -236,19 +312,29 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(import1Berufsbildung, trim1Berufsbildung);
 
-			var resetIndexBerufsbildung = new NodeSingleInput
+			var resetIndexBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "reset_index",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "reset_index",
 				OperationId = OpIdPdSingleResetIndex
 			};
 
 			PipelineConstructionHelpers.Successor(trim1Berufsbildung, resetIndexBerufsbildung);
 
-			var setHeaderBerufsbildung = new NodeSingleInput
+			var setHeaderBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "set_header",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "set_header",
 				OperationId = OpIdPdSingleMakeColumnHeader,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -258,38 +344,51 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(resetIndexBerufsbildung, setHeaderBerufsbildung);
 
-			var dropNaBerufsbildung = new NodeSingleInput
+			var dropNaBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = setHeaderBerufsbildung.ResultKey,
-				Operation = "dropna",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "dropna",
 				OperationId = OpIdPdSingleGeneric,
 				OperationConfiguration = new Dictionary<string, string>
 				{
 					{ "axis", "0" }
 				},
 			};
-			setHeaderBerufsbildung.Successors.Add(dropNaBerufsbildung);
 
-			var trim2Berufsbildung = new NodeSingleInput
+			PipelineConstructionHelpers.Successor(setHeaderBerufsbildung, dropNaBerufsbildung);
+
+			var trim2Berufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = dropNaBerufsbildung.ResultKey,
-				Operation = "trim",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
 				{
 					{ "first_n", "1" }
 				},
 			};
-			dropNaBerufsbildung.Successors.Add(trim2Berufsbildung);
 
+			PipelineConstructionHelpers.Successor(dropNaBerufsbildung, trim2Berufsbildung);
 
-			var selectRowsBerufsbildung = new NodeSingleInput
+			var selectRowsBerufsbildung = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = trim2Berufsbildung.ResultKey,
-				Operation = "select",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "select",
 				OperationId = OpIdPdSingleSelectRows,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -297,21 +396,39 @@ namespace PipelineService.Models.Pipeline
 					{ "column_name", "Typ" }
 				},
 			};
-			trim2Berufsbildung.Successors.Add(selectRowsBerufsbildung);
 
-			var import1Studenten = new NodeFileInput
+			PipelineConstructionHelpers.Successor(trim2Berufsbildung, selectRowsBerufsbildung);
+
+			var import1Studenten = new Operation
 			{
-				InputObjectKey = "21311-001Z_format.csv",
-				InputObjectBucket = "defaultfiles",
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = "21311-001Z_format.csv",
+						Store = "defaultfiles"
+					}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
-				Operation = "read_csv",
+				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv
 			};
 			// Data Cleaning Studenten
-			var trim1Studenten = new NodeSingleInput
+			var trim1Studenten = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "trim",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -321,18 +438,29 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(import1Studenten, trim1Studenten);
 
-			var resetIndexStudenten = new NodeSingleInput
+			var resetIndexStudenten = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "reset_index",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "reset_index",
 				OperationId = OpIdPdSingleResetIndex
 			};
+
 			PipelineConstructionHelpers.Successor(trim1Studenten, resetIndexStudenten);
 
-			var setHeaderStudenten = new NodeSingleInput
+			var setHeaderStudenten = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "set_header",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "set_header",
 				OperationId = OpIdPdSingleMakeColumnHeader,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -342,37 +470,49 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(resetIndexStudenten, setHeaderStudenten);
 
-			var dropNaStudenten = new NodeSingleInput
+			var dropNaStudenten = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = setHeaderStudenten.ResultKey,
-				Operation = "dropna",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "dropna",
 				OperationId = OpIdPdSingleGeneric,
 				OperationConfiguration = new Dictionary<string, string>
 				{
 					{ "axis", "0" }
 				},
 			};
-			setHeaderStudenten.Successors.Add(dropNaStudenten);
+			PipelineConstructionHelpers.Successor(setHeaderStudenten, dropNaStudenten);
 
-			var trim2Studenten = new NodeSingleInput
+			var trim2Studenten = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = dropNaStudenten.ResultKey,
-				Operation = "trim",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
 				{
 					{ "first_n", "1" }
 				},
 			};
-			dropNaStudenten.Successors.Add(trim2Studenten);
+			PipelineConstructionHelpers.Successor(dropNaStudenten, trim2Studenten);
 
-			var selectRowsStudenten = new NodeSingleInput
+			var selectRowsStudenten = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = trim2Studenten.ResultKey,
-				Operation = "select",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "select",
 				OperationId = OpIdPdSingleSelectRows,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -380,14 +520,17 @@ namespace PipelineService.Models.Pipeline
 					{ "column_name", "Typ" }
 				},
 			};
-			trim2Studenten.Successors.Add(selectRowsStudenten);
+			PipelineConstructionHelpers.Successor(trim2Studenten, selectRowsStudenten);
 
-			var join = new NodeDoubleInput
+			var join = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetOneHash = selectRowsBerufsbildung.ResultKey,
-				InputDatasetTwoHash = selectRowsStudenten.ResultKey,
-				Operation = "join",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "join",
 				OperationId = OpIdPdDoubleJoin,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -396,24 +539,27 @@ namespace PipelineService.Models.Pipeline
 					{ "rsuffix", "_studenten" }
 				}
 			};
+			PipelineConstructionHelpers.Successor(selectRowsStudenten, selectRowsBerufsbildung, join);
 
-			selectRowsStudenten.Successors.Add(join);
-			selectRowsBerufsbildung.Successors.Add(join);
-
-			var describe = new NodeSingleInput
+			var describe = new Operation
 			{
 				PipelineId = pipelineId,
-				InputDatasetHash = join.ResultKey,
-				Operation = "describe",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "describe",
 				OperationId = OpIdPdSingleGeneric,
 			};
-			join.Successors.Add(describe);
+
+			PipelineConstructionHelpers.Successor(join, describe);
 
 			return new Pipeline
 			{
 				Id = pipelineId,
 				Name = "Chemnitz Students and Jobs",
-				Root = new List<Node>
+				Root = new List<Operation>
 				{
 					import1Berufsbildung,
 					import1Studenten
@@ -428,12 +574,24 @@ namespace PipelineService.Models.Pipeline
 				pipelineId = Guid.NewGuid();
 			}
 
-			var import = new NodeFileInput
+			var import = new Operation
 			{
-				InputObjectKey = "simulated-vine-yield-styria.xlsx",
-				InputObjectBucket = "defaultfiles",
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = "simulated-vine-yield-styria.xlsx",
+						Store = "defaultfiles"
+					}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
-				Operation = "read_excel",
+				OperationIdentifier = "read_excel",
 				OperationId = OpIdPdFileReadExcel,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -441,10 +599,15 @@ namespace PipelineService.Models.Pipeline
 				}
 			};
 
-			var renameLabels = new NodeSingleInput
+			var renameLabels = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "rename",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "rename",
 				OperationId = OpIdPdSingleRename,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -455,10 +618,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(import, renameLabels);
 
-			var setIndex = new NodeSingleInput
+			var setIndex = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "set_index",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "set_index",
 				OperationId = OpIdPdSingleSetIndex,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -468,10 +636,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(renameLabels, setIndex);
 
-			var mean = new NodeSingleInput
+			var mean = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "mean",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "mean",
 				OperationId = OpIdPdSingleMean,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -485,7 +658,7 @@ namespace PipelineService.Models.Pipeline
 			{
 				Id = pipelineId,
 				Name = "Simulated Vine Yield Styria",
-				Root = new List<Node>
+				Root = new List<Operation>
 				{
 					import
 				}
@@ -505,22 +678,32 @@ namespace PipelineService.Models.Pipeline
 				Id = pipelineId
 			};
 
-			var nodesToJoin = new Queue<Node>();
+			var nodesToJoin = new Queue<Operation>();
 			for (var year = 1990; year <= to; year++)
 			{
 				var import = HardcodedNodes.ZamgWeatherImport(pipelineId, year);
-				var transpose = new NodeSingleInput
+				var transpose = new Operation
 				{
 					PipelineId = pipelineId,
-					Operation = "transpose",
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
+					OperationIdentifier = "transpose",
 					OperationDescription = $"transpose_{year}",
 					OperationId = OpIdPdSingleTranspose
 				};
 				var trim = HardcodedNodes.ZamgWeatherTrim(pipelineId, year);
-				var setHeader = new NodeSingleInput
+				var setHeader = new Operation
 				{
 					PipelineId = pipelineId,
-					Operation = "set_header",
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
+					OperationIdentifier = "set_header",
 					OperationDescription = $"set_header_{year}",
 					OperationId = OpIdPdSingleMakeColumnHeader,
 					OperationConfiguration = new Dictionary<string, string>
@@ -528,10 +711,15 @@ namespace PipelineService.Models.Pipeline
 						{ "header_row", "Parameter" }
 					}
 				};
-				var setDateIndex = new NodeSingleInput
+				var setDateIndex = new Operation
 				{
 					PipelineId = pipelineId,
-					Operation = "set_date_index",
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
+					OperationIdentifier = "set_date_index",
 					OperationDescription = $"set_date_index_{year}",
 					OperationId = OpIdPdSingleSetDateIndex
 				};
@@ -546,35 +734,49 @@ namespace PipelineService.Models.Pipeline
 			// join nodes
 			while (nodesToJoin.Count >= 2)
 			{
-				var nodeOne = nodesToJoin.Dequeue();
-				var nodeTwo = nodesToJoin.Dequeue();
-				var concat = new NodeDoubleInput
+				var operation1 = nodesToJoin.Dequeue();
+				var operation2 = nodesToJoin.Dequeue();
+				var concatOperation = new Operation
 				{
 					PipelineId = pipelineId,
-					InputDatasetOneHash = nodeOne.ResultKey,
-					InputDatasetTwoHash = nodeTwo.ResultKey,
-					Operation = "concat",
-					OperationDescription = $"concat_{nodeOne.Operation.LastChars(4)}_{nodeTwo.Operation.LastChars(4)}",
+					Output = new Dataset
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					},
+					OperationIdentifier = "concat",
+					OperationDescription =
+						$"concat_{operation1.OperationIdentifier.LastChars(4)}_{operation2.OperationIdentifier.LastChars(4)}",
 					OperationId = OpIdPdDoubleConcat
 				};
-				PipelineConstructionHelpers.Successor(nodeOne, nodeTwo, concat);
+				PipelineConstructionHelpers.Successor(operation1, operation2, concatOperation);
 
-				nodesToJoin.Enqueue(concat);
+				nodesToJoin.Enqueue(concatOperation);
 			}
 
-			var sortIndex = new NodeSingleInput
+			var sortIndex = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "sort_index",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "sort_index",
 				OperationId = OpIdPdSingleSortIndex
 			};
 
 			PipelineConstructionHelpers.Successor(nodesToJoin.Dequeue(), sortIndex);
 
-			var replaceStrings = new NodeSingleInput
+			var replaceStrings = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "replace",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "replace",
 				OperationId = OpIdPdSingleReplace,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -585,10 +787,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(sortIndex, replaceStrings);
 
-			var toNumeric = new NodeSingleInput
+			var toNumeric = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "to_numeric",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "to_numeric",
 				OperationId = OpIdPdSingleDfToNumeric,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -598,10 +805,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(replaceStrings, toNumeric);
 
-			var interpolate = new NodeSingleInput
+			var interpolate = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "interpolate",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "interpolate",
 				OperationId = OpIdPdSingleInterpolate,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -612,10 +824,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(toNumeric, interpolate);
 
-			var resample = new NodeSingleInput
+			var resample = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "resample",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "resample",
 				OperationId = OpIdPdSingleResample,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -626,10 +843,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(interpolate, resample);
 
-			var trimFirstYears = new NodeSingleInput
+			var trimFirstYears = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "trim",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "trim",
 				OperationId = OpIdPdSingleTrim,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -639,10 +861,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(resample, trimFirstYears);
 
-			var dropEmptyColumns = new NodeSingleInput
+			var dropEmptyColumns = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "dropna",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "dropna",
 				OperationId = OpIdPdSingleGeneric,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -653,12 +880,24 @@ namespace PipelineService.Models.Pipeline
 			PipelineConstructionHelpers.Successor(trimFirstYears, dropEmptyColumns);
 
 			// Simulated Vine Yield
-			var importVine = new NodeFileInput
+			var importVine = new Operation
 			{
-				InputObjectKey = "simulated-vine-yield-styria.xlsx",
-				InputObjectBucket = "defaultfiles",
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = "simulated-vine-yield-styria.xlsx",
+						Store = "defaultfiles"
+					}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
 				PipelineId = pipelineId,
-				Operation = "read_excel",
+				OperationIdentifier = "read_excel",
 				OperationId = OpIdPdFileReadExcel,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -666,10 +905,15 @@ namespace PipelineService.Models.Pipeline
 				}
 			};
 
-			var renameLabels = new NodeSingleInput
+			var renameLabels = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "rename",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "rename",
 				OperationId = OpIdPdSingleRename,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -680,10 +924,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(importVine, renameLabels);
 
-			var setIndex = new NodeSingleInput
+			var setIndex = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "set_index",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "set_index",
 				OperationId = OpIdPdSingleSetIndex,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -693,10 +942,15 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(renameLabels, setIndex);
 
-			var predict = new NodeDoubleInput
+			var predict = new Operation
 			{
 				PipelineId = pipelineId,
-				Operation = "predict_yield",
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "predict_yield",
 				OperationId = OpIdSklearnDoubleMlpRegr
 			};
 

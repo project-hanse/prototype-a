@@ -74,9 +74,9 @@ namespace PipelineService
 			// Registering transient services
 			services.AddTransient<IHashService, HashService>();
 			services.AddTransient<IPipelineExecutionService, PipelinesExecutionService>();
-			services.AddTransient<INodesService, NodesService>();
-			services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
 			services.AddTransient<IOperationsService, OperationsService>();
+			services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
+			services.AddTransient<IOperationTemplatesService, OperationTemplatesService>();
 
 			services.AddHostedService<HostedSubscriptionService>();
 

@@ -20,7 +20,7 @@ rectangle "Event Bus" {
 
 rectangle "Service Layer" {
     component "Pipeline Service" << .NET REST API >> as pipeline_service
-    collections  "Node Worker" <<Python Worker>> as worker
+    collections  "Operation Worker" <<Python Worker>> as worker
     component #line.dashed "Suggestion Service" << Python REST API >> as suggestion_service
     component "File Service" << .NET REST API >> as file_service
 }
