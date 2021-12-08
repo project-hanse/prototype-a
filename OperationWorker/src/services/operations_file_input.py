@@ -21,8 +21,8 @@ class OperationsFileInputCollection:
 		else:
 			separator = 'auto'
 
-		header, index_col, names, skipfooter, skiprows, decimal = OperationsFileInputCollection.get_config(
-			operation_config)
+		header, index_col, names, skipfooter, skiprows, decimal, parse_dates = OperationsFileInputCollection \
+			.get_config(operation_config)
 
 		if separator == 'auto':
 			separator = OperationsFileInputCollection.get_sep(file_content)
@@ -34,7 +34,8 @@ class OperationsFileInputCollection:
 										 header=header,
 										 names=names,
 										 decimal=decimal,
-										 index_col=index_col)
+										 index_col=index_col,
+										 parse_dates=parse_dates)
 		return df
 
 	@staticmethod
@@ -50,15 +51,16 @@ class OperationsFileInputCollection:
 		"""
 		logger.info("Executing pandas operation pd_file_input_read_excel (%s)" % operation_name)
 
-		header, index_col, names, skipfooter, skiprows, decimal = OperationsFileInputCollection.get_config(
-			operation_config)
+		header, index_col, names, skipfooter, skiprows, decimal, parse_dates = OperationsFileInputCollection \
+			.get_config(operation_config)
 
 		df = pd.read_excel(file_content,
 											 skiprows=skiprows,
 											 skipfooter=skipfooter,
 											 header=header,
 											 names=names,
-											 index_col=index_col)
+											 index_col=index_col,
+											 parse_dates=parse_dates)
 		return df
 
 	@staticmethod
@@ -87,7 +89,11 @@ class OperationsFileInputCollection:
 			decimal = operation_config['decimal']
 		else:
 			decimal = '.'
-		return header, index_col, names, skipfooter, skiprows, decimal
+		if 'parse_dates' in operation_config:
+			parse_dates = operation_config['parse_dates']
+		else:
+			parse_dates = False
+		return header, index_col, names, skipfooter, skiprows, decimal, parse_dates
 
 	@staticmethod
 	def get_sep(file_content: str):
