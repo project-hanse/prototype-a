@@ -21,9 +21,9 @@ namespace PipelineService.Services.Impl
 		private readonly ILogger<OperationTemplatesService> _logger;
 		private readonly IConfiguration _configuration;
 
-		private string OperationsConfigPath => Path.Combine(
+		private string OperationTemplatesPath => Path.Combine(
 			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
-			_configuration.GetValue("OperationsConfigFolder", ""));
+			_configuration.GetValue("OperationTemplatesFolder", ""));
 
 		public OperationTemplatesService(
 			ILogger<OperationTemplatesService> logger,
@@ -37,8 +37,7 @@ namespace PipelineService.Services.Impl
 		{
 			_logger.LogDebug("Loading available operations");
 			var operations = new List<OperationTemplate>();
-			operations.AddRange(GenerateOperationsFromIds());
-			operations.AddRange(await LoadFromConfigFiles());
+			operations.AddRange(await LoadTemplatesFromFiles());
 			operations = operations
 				.OrderBy(op => op.Framework)
 				.ThenBy(op => op.SectionTitle)
@@ -50,17 +49,51 @@ namespace PipelineService.Services.Impl
 			return operations;
 		}
 
+		private async Task<IList<OperationTemplate>> LoadTemplatesFromFiles()
+		{
+			var operations = new List<OperationTemplate>();
+			var files = Directory.GetFiles(OperationTemplatesPath, "*.json");
+			foreach (var file in files)
+			{
+				var operation = await LoadOperationTemplatesFromFile(file);
+				operations.AddRange(operation);
+			}
+
+			if (operations.Count == 0)
+			{
+				_logger.LogWarning("No operations found in {OperationTemplatesPath}", OperationTemplatesPath);
+			}
+
+			return operations;
+		}
+
+		private async Task<IEnumerable<OperationTemplate>> LoadOperationTemplatesFromFile(string file)
+		{
+			if (!File.Exists(file))
+			{
+				_logger.LogWarning("File {File} does not exist", file);
+				return new List<OperationTemplate>();
+			}
+
+			using var streamReader = new StreamReader(file);
+
+			var content = await streamReader.ReadToEndAsync();
+
+			return JsonConvert.DeserializeObject<IList<OperationTemplate>>(content);
+		}
+
+		[Obsolete("Deprecated in favor of LoadTemplatesFromFiles() - Postprocessing is no longer needed")]
 		private async Task<IList<OperationTemplate>> LoadFromConfigFiles()
 		{
 			_logger.LogDebug("Loading operation templates from config files");
 			var operations = new List<OperationTemplate>();
-			if (OperationsConfigPath == null || !Directory.Exists(OperationsConfigPath))
+			if (OperationTemplatesPath == null || !Directory.Exists(OperationTemplatesPath))
 			{
 				_logger.LogWarning("No operation template configuration files found");
 				return new List<OperationTemplate>();
 			}
 
-			foreach (var configFile in Directory.GetFiles(OperationsConfigPath))
+			foreach (var configFile in Directory.GetFiles(OperationTemplatesPath))
 			{
 				_logger.LogDebug("Loading operations from {OperationsConfigFile}", configFile);
 				using var streamReader = new StreamReader(configFile);
@@ -123,6 +156,7 @@ namespace PipelineService.Services.Impl
 			return operations;
 		}
 
+		[Obsolete("Deprecated in favor of LoadTemplatesFromFiles() - Operation templates are specified in JSON format")]
 		private static IEnumerable<OperationTemplate> GenerateOperationsFromIds()
 		{
 			var fromIds = new List<OperationTemplate>();

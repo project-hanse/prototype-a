@@ -1,0 +1,465 @@
+[
+	{
+		"operationId": "2878ca36-8e03-4825-8afa-552064686337",
+		"operationName": "mlp_regr",
+		"operationFullName": "OpIdSklearnDoubleMlpRegr",
+		"inputTypes": [
+			2,
+			2
+		],
+		"outputType": null,
+		"framework": "scikit-learn",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdSklearnDoubleMlpRegr",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "804aadc7-4f9e-41cc-8ccc-e386459fbc63",
+		"operationName": "concat",
+		"operationFullName": "OpIdPdDoubleConcat",
+		"inputTypes": [
+			2,
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdDoubleConcat",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "1991ccdb-c8ba-4a71-a325-420e48471379",
+		"operationName": "df_group_by",
+		"operationFullName": "OpIdPdSingleDfGroupBy",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleDfGroupBy",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "e8877645-b0b6-43c9-84ed-79c6565b6f28",
+		"operationName": "df_to_numeric",
+		"operationFullName": "OpIdPdSingleDfToNumeric",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleDfToNumeric",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "43f6b64a-ae47-45e3-95e5-55dc65d4249e",
+		"operationName": "drop",
+		"operationFullName": "OpIdPdSingleDrop",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleDrop",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+		"operationName": "generic",
+		"operationFullName": "OpIdPdSingleGeneric",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleGeneric",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "f2abca86-2175-4d44-8a26-c7bd68ee2dc6",
+		"operationName": "interpolate",
+		"operationFullName": "OpIdPdSingleInterpolate",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleInterpolate",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "9acea312-713e-4de8-b8db-5d33613ab2f1",
+		"operationName": "join",
+		"operationFullName": "OpIdPdDoubleJoin",
+		"inputTypes": [
+			2,
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdDoubleJoin",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "db8b6a9d-d01f-4328-b971-fa56ac350320",
+		"operationName": "make_column_header",
+		"operationFullName": "OpIdPdSingleMakeColumnHeader",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleMakeColumnHeader",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "074669e8-9b60-48ce-bfc9-509d5990f517",
+		"operationName": "mean",
+		"operationFullName": "OpIdPdSingleMean",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleMean",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "dfbca055-69f1-40df-9639-023ec6363bac",
+		"operationName": "read_csv",
+		"operationFullName": "OpIdPdFileReadCsv",
+		"inputTypes": [
+			0
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdFileReadCsv",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "2413f0d5-c3c0-4ce6-b1f3-5837b296ab92",
+		"operationName": "read_excel",
+		"operationFullName": "OpIdPdFileReadExcel",
+		"inputTypes": [
+			0
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdFileReadExcel",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "0fb2b572-bc3c-48d5-9c31-6bf0d0f7cc61",
+		"operationName": "rename",
+		"operationFullName": "OpIdPdSingleRename",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleRename",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "d249e0be-abc4-4801-8622-4e39b4be49bf",
+		"operationName": "replace",
+		"operationFullName": "OpIdPdSingleReplace",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleReplace",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "0fc78290-88c8-49b0-878e-a25a3f6452c1",
+		"operationName": "resample",
+		"operationFullName": "OpIdPdSingleResample",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleResample",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "e44cc87e-3150-4387-b5dc-f7a7b8131d87",
+		"operationName": "reset_index",
+		"operationFullName": "OpIdPdSingleResetIndex",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleResetIndex",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "7b0bb47f-f997-43d8-acb1-c31f2a22475d",
+		"operationName": "select_columns",
+		"operationFullName": "OpIdPdSingleSelectColumns",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleSelectColumns",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "d2701fa4-b038-4fcb-b981-49f9f123da01",
+		"operationName": "select_rows",
+		"operationFullName": "OpIdPdSingleSelectRows",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleSelectRows",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "d424052c-caa5-43b2-a9bc-d543167b983f",
+		"operationName": "set_date_index",
+		"operationFullName": "OpIdPdSingleSetDateIndex",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleSetDateIndex",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "de26c7a0-0444-414d-826f-458cd3b8979c",
+		"operationName": "set_index",
+		"operationFullName": "OpIdPdSingleSetIndex",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleSetIndex",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "7537069e-03b2-481c-b6a3-fca096e4acf8",
+		"operationName": "sort_index",
+		"operationFullName": "OpIdPdSingleSortIndex",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleSortIndex",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "0ebc4dd5-6a81-48e7-8abd-3488c608020f",
+		"operationName": "transpose",
+		"operationFullName": "OpIdPdSingleTranspose",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleTranspose",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "5c9b34fc-ac4f-4290-9dfe-418647509559",
+		"operationName": "trim",
+		"operationFullName": "OpIdPdSingleTrim",
+		"inputTypes": [
+			2
+		],
+		"outputType": null,
+		"framework": "pandas",
+		"frameworkVersion": null,
+		"sectionTitle": "Custom Operations",
+		"title": "OpIdPdSingleTrim",
+		"description": null,
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "DataFrame"
+	}
+]
