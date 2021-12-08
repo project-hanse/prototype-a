@@ -17,7 +17,9 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"max_iter": 200
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -33,12 +35,16 @@
 		"frameworkVersion": null,
 		"sectionTitle": "Custom Operations",
 		"title": "OpIdPdDoubleConcat",
-		"description": null,
+		"description": "Concatenate two dataframes",
 		"signature": null,
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"axis": 0,
+			"join": "outer",
+			"ignore_index": false
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -58,7 +64,16 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"by": null,
+			"axis": 0,
+			"level": null,
+			"as_index": true,
+			"sort": true,
+			"group_keys": true,
+			"observed": false,
+			"dropna": true
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -98,7 +113,10 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"labels": null,
+			"axis": 0
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -379,7 +397,9 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"col_name": null
+		},
 		"returns": "DataFrame"
 	},
 	{

@@ -22,7 +22,8 @@ namespace PipelineService.Models.Pipeline
 				ChemnitzStudentAndJobsPipeline(),
 				SimulatedVineYieldPipeline(),
 				ZamgWeatherPreprocessingGraz(),
-				ZamgWeatherPreprocessingGraz(Guid.NewGuid(), 1991)
+				ZamgWeatherPreprocessingGraz(Guid.NewGuid(), 1991),
+				BeerProductionAustralia()
 			};
 		}
 
@@ -37,6 +38,7 @@ namespace PipelineService.Models.Pipeline
 				SimulatedVineYieldPipeline(Guid.Parse("d4702c80-53b5-4f3d-b4e1-d79dd859d9ec")),
 				ZamgWeatherPreprocessingGraz(Guid.Parse("6490fdbc-0240-4a4e-8c36-fca40b89f80e")),
 				ZamgWeatherPreprocessingGraz(Guid.Parse("40a61687-794c-4fab-9c17-5608833b0f33"), 1991),
+				BeerProductionAustralia(Guid.Parse("ce01a52c-daa2-4495-af5b-5aaa4c30c6b3")),
 				new()
 				{
 					Id = Guid.Parse("4bfd7879-c86a-4597-89f1-941a9fed9e4f"),
@@ -663,6 +665,73 @@ namespace PipelineService.Models.Pipeline
 					import
 				}
 			};
+		}
+
+		public static Pipeline BeerProductionAustralia(Guid pipelineId = default)
+		{
+			if (pipelineId == default)
+			{
+				pipelineId = Guid.NewGuid();
+			}
+
+
+			var pipeline = new Pipeline
+			{
+				Name = "Beer Production Australia 1956 - 1995",
+				Id = pipelineId
+			};
+
+			var import = new Operation
+			{
+				Inputs =
+				{
+					new Dataset
+					{
+						Type = DatasetType.File,
+						Key = "monthly-beer-production-in-australia.csv",
+						Store = "defaultfiles"
+					}
+				},
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				PipelineId = pipelineId,
+				OperationIdentifier = "read_csv",
+				OperationId = OpIdPdFileReadCsv,
+				OperationConfiguration = new Dictionary<string, string>
+				{
+					{ "separator", "," },
+					{ "decimal", "." },
+					{ "parse_dates", "[]" },
+					{ "index_col", "None" }
+				}
+			};
+
+			var setDateIndex = new Operation
+			{
+				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "set_date_index",
+				OperationDescription = $"set_date_index",
+				OperationId = OpIdPdSingleSetDateIndex,
+				OperationConfiguration = new Dictionary<string, string>
+				{
+					{ "col_name", "Month" },
+					{ "format", "%Y-%m" }
+				}
+			};
+
+			PipelineConstructionHelpers.Successor(import, setDateIndex);
+
+			pipeline.Root.Add(import);
+
+			return pipeline;
 		}
 
 		public static Pipeline ZamgWeatherPreprocessingGraz(Guid pipelineId = default, int to = 2020)
