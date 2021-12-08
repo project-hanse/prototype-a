@@ -60,6 +60,8 @@ namespace PipelineService
 				DefaultDatabase = Configuration.GetValue("NeoServerConfiguration:DefaultDatabase", "neo4j")
 			});
 
+			services.AddMemoryCache();
+
 			services.AddNeo4jAnnotations<PipelineContext>();
 
 			// Registering singleton services

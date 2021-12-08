@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -18,8 +19,11 @@ namespace PipelineService.Services.Impl
 {
 	public class OperationTemplatesService : IOperationTemplatesService
 	{
+		private const string OperationTemplatesCacheKey = "OperationTemplates-29d583f5-9caa-49a6-8345-9536576fb969";
+
 		private readonly ILogger<OperationTemplatesService> _logger;
 		private readonly IConfiguration _configuration;
+		private readonly IMemoryCache _memoryCache;
 
 		private string OperationTemplatesPath => Path.Combine(
 			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
@@ -27,17 +31,24 @@ namespace PipelineService.Services.Impl
 
 		public OperationTemplatesService(
 			ILogger<OperationTemplatesService> logger,
-			IConfiguration configuration)
+			IConfiguration configuration,
+			IMemoryCache memoryCache)
 		{
 			_logger = logger;
 			_configuration = configuration;
+			_memoryCache = memoryCache;
 		}
 
 		public async Task<IList<OperationTemplate>> GetOperationDtos()
 		{
+			if (_memoryCache.TryGetValue(OperationTemplatesCacheKey, out IList<OperationTemplate> operations))
+			{
+				_logger.LogDebug("OperationTemplates found in cache");
+				return operations;
+			}
+
 			_logger.LogDebug("Loading available operations");
-			var operations = new List<OperationTemplate>();
-			operations.AddRange(await LoadTemplatesFromFiles());
+			operations = await LoadTemplatesFromFiles();
 			operations = operations
 				.OrderBy(op => op.Framework)
 				.ThenBy(op => op.SectionTitle)
@@ -45,6 +56,8 @@ namespace PipelineService.Services.Impl
 				.ToList();
 
 			_logger.LogInformation("Loaded {OperationsCount} operations", operations.Count);
+
+			_memoryCache.Set(OperationTemplatesCacheKey, operations, TimeSpan.FromHours(6));
 
 			return operations;
 		}
