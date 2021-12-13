@@ -6,7 +6,7 @@
 
     <ItemGroup>
         <PackageReference Include="Hangfire.LiteDB" Version="0.4.1" />
-        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0" />
         <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="3.1.1" />
         <PackageReference Include="Neo4jClient" Version="4.1.18" />
         <PackageReference Include="Neo4jClient.DataAnnotations" Version="2.2.2" />
