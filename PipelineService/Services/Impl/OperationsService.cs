@@ -152,9 +152,9 @@ namespace PipelineService.Services.Impl
 			return response;
 		}
 
-		public async Task<string> GetOutputKey(Guid pipelineId, Guid operationId)
+		public async Task<Dataset> GetOutputDataset(Guid pipelineId, Guid operationId)
 		{
-			return (await _pipelinesDao.GetOperation(operationId)).Output.Key;
+			return (await _pipelinesDao.GetOperation(operationId)).Output;
 		}
 
 		public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
