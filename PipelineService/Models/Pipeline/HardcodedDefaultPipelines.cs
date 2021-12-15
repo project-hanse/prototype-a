@@ -718,7 +718,7 @@ namespace PipelineService.Models.Pipeline
 					Store = "dataframes"
 				},
 				OperationIdentifier = "set_date_index",
-				OperationDescription = $"set_date_index",
+				OperationDescription = "set_date_index",
 				OperationId = OpIdPdSingleSetDateIndex,
 				OperationConfiguration = new Dictionary<string, string>
 				{
@@ -728,6 +728,38 @@ namespace PipelineService.Models.Pipeline
 			};
 
 			PipelineConstructionHelpers.Successor(import, setDateIndex);
+
+			var plot = new Operation
+			{
+				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.StaticPlot,
+					Store = "plots",
+					Key = $"{Guid.NewGuid()}.svg"
+				},
+				OperationIdentifier = "plot",
+				OperationDescription = "plot",
+				OperationId = OpIdCustomPlotDfMatPlotLib,
+				OperationConfiguration = new Dictionary<string, string>
+				{
+					{ "ax", "None" },
+					{ "grid", "None" },
+					{ "kind", "line" },
+					{ "layout", "None" },
+					{ "legend", "true" },
+					{ "sharex", "false" },
+					{ "sharey", "false" },
+					{ "style", "{}" },
+					{ "subplots", "false" },
+					{ "title", pipeline.Name },
+					{ "use_index", "true" },
+					{ "x", "Month" },
+					{ "y", "None" }
+				}
+			};
+
+			PipelineConstructionHelpers.Successor(setDateIndex, plot);
 
 			pipeline.Root.Add(import);
 

@@ -54,7 +54,20 @@ namespace PipelineService.Services.Impl
 			}
 
 			// TODO reimplement this in a general way that does can handle any number of predecessors and checks if dataset types match
-			Operation newOperation;
+			var newOperation = new Operation();
+			if (request.OperationTemplate.OutputType.HasValue)
+			{
+				newOperation.Output.Type = request.OperationTemplate.OutputType.Value;
+			}
+
+			// Hardcoded default values for plotting
+			// TODO: potentially move this to the frontend
+			if (newOperation.Output.Type == DatasetType.StaticPlot)
+			{
+				newOperation.Output.Store = "plots";
+				newOperation.Output.Key = $"{Guid.NewGuid()}.svg";
+			}
+
 			if (request.PredecessorOperationIds.Count == 0)
 			{
 				_logger.LogDebug("Detected no predecessor nodes");
@@ -82,7 +95,7 @@ namespace PipelineService.Services.Impl
 					return response;
 				}
 
-				newOperation = PipelineConstructionHelpers.Successor(predecessor, new Operation());
+				newOperation = PipelineConstructionHelpers.Successor(predecessor, newOperation);
 				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
 			}
 			else
@@ -96,7 +109,7 @@ namespace PipelineService.Services.Impl
 					return response;
 				}
 
-				newOperation = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, new Operation());
+				newOperation = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, newOperation);
 				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
 			}
 
