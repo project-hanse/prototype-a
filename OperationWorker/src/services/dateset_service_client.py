@@ -42,8 +42,8 @@ class DatasetServiceClient:
 
 	def serialize(self, dataframe: pd.DataFrame) -> str:
 		try:
-			return dataframe.to_json()
+			return dataframe.to_json(date_format='iso')
 		except ValueError as e:
 			self.logging.warning('Error during serializing %s, trying to set index' % str(e))
 			dataframe.reset_index(inplace=True)
-			return dataframe.to_json()
+			return dataframe.to_json(date_format='iso')

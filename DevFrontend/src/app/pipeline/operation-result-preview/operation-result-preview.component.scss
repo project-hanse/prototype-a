@@ -2,3 +2,11 @@ mat-card-content {
 	overflow: auto;
 	padding: 1em;
 }
+
+.plot-wrapper {
+	padding: 0;
+	img {
+		max-width: 100%;
+		max-height: 100%;
+	}
+}

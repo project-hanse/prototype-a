@@ -113,7 +113,7 @@ def describe_dataset_by_hash_html(producing_hash: str):
 
 def my_jsonpify(df):
     return app.response_class(
-        response=df.to_json(),
+        response=df.to_json(date_format='iso'),
         status=200,
         mimetype='application/json'
     )

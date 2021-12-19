@@ -4,6 +4,8 @@ import logging
 
 import pandas as pd
 
+from src.models.dataset import Dataset
+from src.models.dataset_type import DatasetType
 from src.models.operation_executed_message import OperationExecutedMessage
 from src.models.operation_execution_message import OperationExecutionMessage
 from src.services.dateset_service_client import DatasetServiceClient
@@ -76,6 +78,7 @@ class OperationExecutionService:
 																						 response)
 		if dataset is None:
 			# Dataset loading not successful -> returning error message
+			response.set_error_description('Failed to load dataset from service')
 			return response
 
 		worker_operation_identifier = request.get_worker_operation_identifier()
@@ -83,12 +86,20 @@ class OperationExecutionService:
 
 		# Executing operation
 		try:
-			resulting_dataset = self.execute_single_input_operation(dataset,
-																															worker_operation_identifier,
-																															request.worker_operation_id,
-																															operation_config)
+			if request.get_output().dataset_type == DatasetType.StaticPlot:
+				self.execute_plotting_operation(dataset, worker_operation_identifier, request.worker_operation_id,
+																				operation_config, request.get_output())
+				success = self.file_store_client.store_file(request.get_output())
+				if not success:
+					response.set_error_description('Failed to store plot')
+				response.set_successful(success)
+			else:
+				resulting_dataset = self.execute_single_input_operation(dataset,
+																																worker_operation_identifier,
+																																request.worker_operation_id,
+																																operation_config)
 
-			self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
+				self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
 			response.set_successful(True)
 		except Exception as e:
 			self.logger.info("Failed to execute operation %s: %s" % (worker_operation_identifier, str(e)))
@@ -192,6 +203,14 @@ class OperationExecutionService:
 		resulting_dataset = operation_callable(self.logger, operation_name, operation_config, df_one, df_two)
 
 		return resulting_dataset
+
+	def execute_plotting_operation(self, df: pd.DataFrame, operation_name: str, operation_id: str,
+																 operation_config: dict, output: Dataset) -> None:
+
+		self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
+
+		operation_callable = self.operation_service.get_simple_operation_by_id(operation_id)
+		operation_callable(self.logger, operation_config, df, output)
 
 	def load_dataset_from_service(self, df_id: str, df_hash: str, response: OperationExecutedMessage) -> pd.DataFrame:
 		dataset = None

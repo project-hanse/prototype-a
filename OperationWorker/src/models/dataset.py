@@ -3,12 +3,12 @@ from src.models.dataset_type import DatasetType
 
 class Dataset:
 	def __init__(self, deserialized: dict):
-		self.type: DatasetType = deserialized['Type']
+		self.dataset_type: DatasetType = DatasetType(deserialized['Type'])
 		self.key: str = deserialized['Key']
 		self.store: str = deserialized['Store']
 
 	def get_type(self) -> DatasetType:
-		return self.type
+		return self.dataset_type
 
 	def get_key(self) -> str:
 		return self.key

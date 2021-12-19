@@ -1,7 +1,10 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {environment} from '../../../environments/environment';
+import {FilesService} from '../../utils/_services/files.service';
+import {Dataset, DatasetType} from '../_model/dataset';
 import {OperationsService} from '../_service/operations.service';
+
 
 @Component({
 	selector: 'ph-operation-result-preview',
@@ -14,20 +17,21 @@ export class OperationResultPreviewComponent implements OnInit {
 	pipelineId?: string;
 	operationIds?: Array<string>;
 
-	private $datasetKeys = {};
+	private $datasetOutputs = {};
 	private $previewHtml = {};
+	private plotUrls = {};
 
-	constructor(private operationsService: OperationsService) {
+	constructor(private operationsService: OperationsService, private filesService: FilesService) {
 	}
 
 	ngOnInit(): void {
 	}
 
-	getOutputKey(operationId: string): Observable<{ key: string }> {
-		if (!this.$datasetKeys[operationId]) {
-			this.$datasetKeys[operationId] = this.operationsService.getOutputKey(this.pipelineId, operationId);
+	getOutputDataset(operationId: string): Observable<Dataset> {
+		if (!this.$datasetOutputs[operationId]) {
+			this.$datasetOutputs[operationId] = this.operationsService.getOutputDataset(this.pipelineId, operationId);
 		}
-		return this.$datasetKeys[operationId];
+		return this.$datasetOutputs[operationId];
 	}
 
 	getPreviewHtml(datasetKey: string): Observable<string> {
@@ -39,5 +43,18 @@ export class OperationResultPreviewComponent implements OnInit {
 
 	getDatasetLink(hash: string): string {
 		return `${environment.datasetApi}/api/datasets/html/${hash}`;
+	}
+
+	isDataframe(output: Dataset): boolean {
+		return output.type === DatasetType.PdDataFrame;
+	}
+
+	isPlot(output: Dataset): boolean {
+		return output.type === DatasetType.StaticPlot;
+	}
+
+	getPlotUrl(dataset: Dataset): string {
+		return this.filesService.getPlotUrl(dataset);
+		// return `${environment.filesApi}/api/v1/files/plotUrl?store=${dataset.store}&key=${dataset.key}`;
 	}
 }
