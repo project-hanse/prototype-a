@@ -1,7 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {DomSanitizer} from '@angular/platform-browser';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
 import {environment} from '../../../environments/environment';
 import {FilesService} from '../../utils/_services/files.service';
 import {Dataset, DatasetType} from '../_model/dataset';
@@ -21,9 +19,9 @@ export class OperationResultPreviewComponent implements OnInit {
 
 	private $datasetOutputs = {};
 	private $previewHtml = {};
-	private $plotOutputs = {};
+	private plotUrls = {};
 
-	constructor(private operationsService: OperationsService, private filesService: FilesService, private domSanitizer: DomSanitizer) {
+	constructor(private operationsService: OperationsService, private filesService: FilesService) {
 	}
 
 	ngOnInit(): void {
@@ -43,17 +41,6 @@ export class OperationResultPreviewComponent implements OnInit {
 		return this.$previewHtml[datasetKey];
 	}
 
-
-	getPlot(output: Dataset): Observable<string> {
-		if (!this.$plotOutputs[output.key]) {
-			this.$plotOutputs[output.key] = this.filesService.getPlot(output).pipe(map(svg => {
-				console.log(svg);
-				return this.domSanitizer.bypassSecurityTrustHtml(svg);
-			}));
-		}
-		return this.$plotOutputs[output.key];
-	}
-
 	getDatasetLink(hash: string): string {
 		return `${environment.datasetApi}/api/datasets/html/${hash}`;
 	}
@@ -66,7 +53,8 @@ export class OperationResultPreviewComponent implements OnInit {
 		return output.type === DatasetType.StaticPlot;
 	}
 
-	getPlotUrl(output: Dataset): string {
-		return `${environment.filesApi}/api/v1/files/plot?store=${output.store}&key=${output.key}`;
+	getPlotUrl(dataset: Dataset): string {
+		return this.filesService.getPlotUrl(dataset);
+		// return `${environment.filesApi}/api/v1/files/plotUrl?store=${dataset.store}&key=${dataset.key}`;
 	}
 }

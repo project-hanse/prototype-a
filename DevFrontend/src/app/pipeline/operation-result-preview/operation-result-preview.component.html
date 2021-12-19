@@ -10,8 +10,8 @@
 						</a>
 					</mat-card-subtitle>
 				</mat-card-header>
-				<mat-card-content *ngIf="getPlot(output) | async as plot" class="plot-wrapper">
-					<svg [outerHTML]="plot"></svg>
+				<mat-card-content *ngIf="getPlotUrl(output) as plotUrl" class="plot-wrapper">
+					<img [src]="plotUrl" [alt]="'Plot from ' + output.store">
 				</mat-card-content>
 			</mat-card>
 
