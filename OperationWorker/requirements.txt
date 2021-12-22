@@ -12,4 +12,4 @@ openpyxl==3.0.9
 scikit-learn==1.0.1
 
 botocore~=1.23.25
-setuptools~=59.7.0
+setuptools~=60.0.3
