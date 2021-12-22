@@ -39,7 +39,7 @@ updates:
     directory: "/FileService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     assignees:
       - "SirPumpkinHead"
 
