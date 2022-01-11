@@ -42,7 +42,7 @@ def root():
         })
 
 
-@app.route('/api/datasets/<dataset_id>', methods=['GET'])
+@app.route('/api/dataframe/<dataset_id>', methods=['GET'])
 def dataset_by_id(dataset_id: str):
     df = dataset_store.get_by_id(dataset_id)
 
@@ -52,7 +52,7 @@ def dataset_by_id(dataset_id: str):
     return my_jsonpify(df)
 
 
-@app.route('/api/datasets/html/<dataset_id>', methods=['GET'])
+@app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
 def dataset_as_html_by_id(dataset_id: str):
     df = dataset_store.get_by_id(dataset_id)
 
@@ -62,7 +62,7 @@ def dataset_as_html_by_id(dataset_id: str):
     return df.to_html()
 
 
-@app.route('/api/datasets/csv/<dataset_id>', methods=['GET'])
+@app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
 def dataset_as_csv_by_id(dataset_id: str):
     df = dataset_store.get_by_id(dataset_id)
 
@@ -72,10 +72,10 @@ def dataset_as_csv_by_id(dataset_id: str):
     return df.to_csv()
 
 
-@app.route('/api/datasets/hash/<producing_hash>', methods=['GET', 'POST'])
-def dataset_by_hash(producing_hash: str):
+@app.route('/api/dataframe/key/<producing_hash>', methods=['GET', 'POST'])
+def dataframe_by_key(producing_hash: str):
     if request.method == 'GET':
-        df = dataset_store.get_by_hash(producing_hash)
+        df = dataset_store.get_by_key(producing_hash)
 
         if df is None:
             abort(404)
@@ -85,14 +85,14 @@ def dataset_by_hash(producing_hash: str):
     if request.method == 'POST':
         data = request.data
         df = pd.read_json(data)
-        dataset_store.store_data_set(producing_hash, df)
+        dataset_store.store_dataframe(producing_hash, df)
         return 'OK'
 
 
-@app.route('/api/datasets/hash/describe/<producing_hash>', methods=['GET', 'POST'])
-def describe_dataset_by_hash(producing_hash: str):
+@app.route('/api/dataframe/key/describe/<producing_hash>', methods=['GET', 'POST'])
+def describe_dataset_by_hash(key: str):
     if request.method == 'GET':
-        df = dataset_store.get_by_hash(producing_hash)
+        df = dataset_store.get_by_key(key)
 
         if df is None:
             abort(404)
@@ -100,10 +100,10 @@ def describe_dataset_by_hash(producing_hash: str):
         return my_jsonpify(df.describe())
 
 
-@app.route('/api/datasets/hash/describe/html/<producing_hash>', methods=['GET', 'POST'])
-def describe_dataset_by_hash_html(producing_hash: str):
+@app.route('/api/dataframe/key/describe/html/<producing_hash>', methods=['GET', 'POST'])
+def describe_dataframe_by_key_html(producing_hash: str):
     if request.method == 'GET':
-        df = dataset_store.get_by_hash(producing_hash)
+        df = dataset_store.get_by_key(producing_hash)
 
         if df is None:
             abort(404)

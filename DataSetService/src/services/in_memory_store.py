@@ -50,16 +50,16 @@ class InMemoryStore:
         else:
             return None
 
-    def get_by_hash(self, producing_hash) -> Optional[pd.DataFrame]:
-        self.log.info("Loading dataset by hash %s" % str(producing_hash))
+    def get_by_key(self, producing_hash) -> Optional[pd.DataFrame]:
+        self.log.info("Loading dataset by key %s" % str(producing_hash))
 
         if self.store.keys().__contains__(producing_hash):
             return self.store.get(producing_hash)
         else:
             return None
 
-    def store_data_set(self, key: str, data: pd.DataFrame):
-        self.log.info("Storing data with key %s of shape %s" % (key, data.shape))
+    def store_dataframe(self, key: str, data: pd.DataFrame):
+        self.log.info("Storing dataframe with key %s of shape %s" % (key, data.shape))
         self.store[key] = data
 
     @staticmethod

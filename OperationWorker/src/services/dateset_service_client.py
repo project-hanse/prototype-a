@@ -14,24 +14,24 @@ class DatasetServiceClient:
 		self.port = port
 		self.logging = logging
 
-	def get_dataset_by_id(self, dataset_id: str) -> pd.DataFrame:
-		address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/' + dataset_id
+	def get_dataframe_by_id(self, dataset_id: str) -> pd.DataFrame:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/' + dataset_id
 		self.logging.info('Loading dataset from %s' % address)
 		response = requests.get(address)
 		if response.status_code == 404:
 			raise NotFoundError("No dataset with id found")
 		return pd.read_json(response.text)
 
-	def get_dataset_by_hash(self, producing_hash: str) -> pd.DataFrame:
-		address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/hash/' + producing_hash
+	def get_dataframe_by_key(self, producing_hash: str) -> pd.DataFrame:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/key/' + producing_hash
 		self.logging.info('Loading dataset from %s' % address)
 		response = requests.get(address)
 		if response.status_code == 404:
 			raise NotFoundError("No dataset with hash found")
 		return pd.read_json(response.text)
 
-	def store_with_hash(self, producing_hash: str, resulting_dataset: pd.DataFrame):
-		address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/hash/' + producing_hash
+	def store_dataframe_with_key(self, producing_hash: str, resulting_dataset: pd.DataFrame):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/key/' + producing_hash
 		self.logging.info('Storing dataset to %s' % address)
 		response = requests.post(address, data=self.serialize(resulting_dataset))
 		if response.status_code < 300:
