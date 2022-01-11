@@ -6,6 +6,7 @@ import pandas as pd
 from src.services.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
 from src.services.operations_file_input import OperationsFileInputCollection
 from src.services.operations_plots_matplotlib import PlotsMatPlotLib
+from src.services.operations_prophet import OperationsProphet
 from src.services.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
 from src.services.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
 
@@ -81,6 +82,11 @@ class OperationService:
 			"1991ccdb-c8ba-4a71-a325-420e48471379"] = OperationsSingleInputPandasCustom.pd_single_input_groupby
 		self.local_operations[
 			"0b60e908-fae2-4d33-aa81-5d1fdc706c12"] = PlotsMatPlotLib.matplot_plot_pd
+
+		# Prophet Operations
+		self.local_operations["c01f8b5a-3c71-466a-b2ab-2abb2aa105ba"] = OperationsProphet.prophet_fit
+		self.local_operations["df7bff17-f175-4db5-9b04-955d6f261380"] = OperationsProphet.prophet_make_future_dataframe
+		self.local_operations["e358a55d-ba47-4d14-93b7-cf52fd29c64d"] = OperationsProphet.prophet_predict
 
 	def get_simple_operation_by_id(self, operation_id: str) -> Callable:
 		self.logger.info('Getting simple operation %s' % operation_id)
