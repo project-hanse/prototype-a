@@ -27,125 +27,33 @@ class OperationExecutionService:
 		self.operation_service = operation_service
 		super().__init__()
 
-	def handle_file_input_request(self, request: OperationExecutionMessage) -> OperationExecutedMessage:
+	def handle_execution_request(self, request: OperationExecutionMessage) -> OperationExecutedMessage:
 		self.count += 1
 		self.logger.debug("Handling request for no input operation %d" % self.count)
 
 		response = OperationExecutedMessage()
 		self.set_initial_response_values(request, response)
-
-		# TODO: Load directly with pandas (pd.read_csv(s3://...))
-		# s3_path = 's3://localhost:4566/%s/%s' % (request.get_input_object_bucket(), request.get_input_object_key())
-
-		operation_config = self.preprocess_operation_config(request.get_operation_configuration())
-
 		try:
-			file_content_str = self.file_store_client.get_object_content(request.get_inputs()[0].store,
-																																	 request.get_inputs()[0].key)
-			if file_content_str is not None:
-				resulting_dataset = self.execute_file_input_operation(request.worker_operation_identifier,
-																															request.worker_operation_id,
-																															operation_config,
-																															file_content_str)
-			else:
-				file_content_bin = self.file_store_client.get_object_content_as_binary(request.get_inputs()[0].store,
-																																							 request.get_inputs()[0].key)
-				resulting_dataset = self.execute_file_input_operation(request.worker_operation_identifier,
-																															request.worker_operation_id,
-																															operation_config,
-																															file_content_bin)
+			data = self.load_datasets(request.inputs, response)
+			operation_config = self.preprocess_operation_config(request.get_operation_configuration())
 
-			self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
-			response.set_successful(True)
-		except Exception as e:
-			self.logger.info("Failed to execute operation %s: %s" % (request.worker_operation_identifier, str(e)))
-			response.set_successful(False)
-			response.set_error_description(str(e))
+			if response.get_error_description() is not None:
+				return response
 
-		response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
-		return response
-
-	def handle_single_input_request(self, request: OperationExecutionMessage) -> OperationExecutedMessage:
-		self.count += 1
-		self.logger.debug("Handling request for single input operation %d" % self.count)
-
-		response = OperationExecutedMessage()
-		self.set_initial_response_values(request, response)
-
-		# Loading dataset from dedicated service
-		dataset = self.load_dataset_from_service(request.get_inputs()[0].key,
-																						 request.get_inputs()[0].key,
-																						 response)
-		if dataset is None:
-			# Dataset loading not successful -> returning error message
-			response.set_error_description('Failed to load dataset from service')
-			return response
-
-		worker_operation_identifier = request.get_worker_operation_identifier()
-		operation_config = self.preprocess_operation_config(request.get_operation_configuration())
-
-		# Executing operation
-		try:
+			# TODO Change method signature for plotting to make this special treatment obsolete
 			if request.get_output().dataset_type == DatasetType.StaticPlot:
-				self.execute_plotting_operation(dataset, worker_operation_identifier, request.worker_operation_id,
+				self.execute_plotting_operation(data[0], request.worker_operation_identifier, request.worker_operation_id,
 																				operation_config, request.get_output())
 				success = self.file_store_client.store_file(request.get_output())
 				if not success:
 					response.set_error_description('Failed to store plot')
 				response.set_successful(success)
 			else:
-				resulting_dataset = self.execute_single_input_operation(dataset,
-																																worker_operation_identifier,
-																																request.worker_operation_id,
-																																operation_config)
-
-				self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
-			response.set_successful(True)
+				result = self.execute_operation(request.worker_operation_identifier, request.worker_operation_id,
+																				operation_config, data)
+				self.store_dataset(request.output, result)
 		except Exception as e:
-			self.logger.info("Failed to execute operation %s: %s" % (worker_operation_identifier, str(e)))
-			response.set_successful(False)
-			response.set_error_description(str(e))
-
-		response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
-
-		return response
-
-	def handle_double_input_request(self, request: OperationExecutionMessage) -> OperationExecutedMessage:
-		self.count += 1
-		self.logger.debug("Handling request for double input operation %d" % self.count)
-		response = OperationExecutedMessage()
-		self.set_initial_response_values(request, response)
-
-		dataset_one = self.load_dataset_from_service(request.get_inputs()[0].key,
-																								 request.get_inputs()[0].key,
-																								 response)
-		if dataset_one is None:
-			# Dataset loading not successful -> returning error message
-			return response
-
-		dataset_two = self.load_dataset_from_service(request.get_inputs()[1].key,
-																								 request.get_inputs()[1].key,
-																								 response)
-		if dataset_two is None:
-			# Dataset loading not successful -> returning error message
-			return response
-
-		worker_operation_identifier = request.get_worker_operation_identifier()
-		operation_config = self.preprocess_operation_config(request.get_operation_configuration())
-
-		# Executing operation
-		try:
-			resulting_dataset = self.execute_double_input_operation(dataset_one,
-																															dataset_two,
-																															worker_operation_identifier,
-																															request.worker_operation_id,
-																															operation_config)
-
-			self.dataset_client.store_with_hash(request.get_output().key, resulting_dataset)
-
-			response.set_successful(True)
-		except Exception as e:
-			self.logger.warning("Failed to execute operation %s: %s" % (worker_operation_identifier, str(e)))
+			self.logger.info("Failed to execute operation %s: %s" % (request.worker_operation_identifier, str(e)))
 			response.set_successful(False)
 			response.set_error_description(str(e))
 
@@ -163,69 +71,32 @@ class OperationExecutionService:
 		response.set_successful(True)
 		response.set_start_time(datetime.datetime.now(datetime.timezone.utc))
 
-	# TODO: Merge execute_*_input_operation methods
-	def execute_file_input_operation(self, operation_name: str,
-																	 operation_id: str,
-																	 operation_config: dict,
-																	 file_content):
+	def execute_operation(self, operation_name: str, operation_id: str, operation_config: dict, data: []):
 		self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
-		operation_callable = self.operation_service.get_file_operation_by_id(operation_id)
-
-		# TODO catch method signature mismatch exception
-		resulting_dataset = operation_callable(self.logger, operation_name, operation_config, file_content)
-
-		return resulting_dataset
-
-	def execute_single_input_operation(self, df: pd.DataFrame,
-																		 operation_name: str,
-																		 operation_id: str,
-																		 operation_config: dict):
-		self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
-
-		operation_callable = self.operation_service.get_simple_operation_by_id(operation_id)
-
-		# TODO catch method signature mismatch exception
-		resulting_dataset = operation_callable(self.logger, operation_name, operation_config, df)
-
-		return resulting_dataset
-
-	def execute_double_input_operation(self,
-																		 df_one: pd.DataFrame,
-																		 df_two: pd.DataFrame,
-																		 operation_name: str,
-																		 operation_id: str,
-																		 operation_config: dict):
-		self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
-
-		operation_callable = self.operation_service.get_simple_operation_by_id(operation_id)
-
-		# TODO catch method signature mismatch exception
-		resulting_dataset = operation_callable(self.logger, operation_name, operation_config, df_one, df_two)
-
-		return resulting_dataset
+		operation_callable = self.operation_service.get_operation_by_id(operation_id)
+		try:
+			return operation_callable(self.logger, operation_name, operation_config, data)
+		except Exception as e:
+			self.logger.warning(
+				"Failed to call operation method, trying backwards compatible signatures\n Error: %s" % str(e))
+			try:
+				return operation_callable(self.logger, operation_name, operation_config, data[0])
+			except Exception as e:
+				self.logger.warning(
+					"Failed to call operation method, trying backwards compatible signatures\n Error: %s" % str(e))
+				try:
+					return operation_callable(self.logger, operation_name, operation_config, data[0], data[1])
+				except Exception as e:
+					self.logger.error("Failed to call operation method Error: %s" % str(e))
+					raise e
 
 	def execute_plotting_operation(self, df: pd.DataFrame, operation_name: str, operation_id: str,
 																 operation_config: dict, output: Dataset) -> None:
 
 		self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
 
-		operation_callable = self.operation_service.get_simple_operation_by_id(operation_id)
+		operation_callable = self.operation_service.get_operation_by_id(operation_id)
 		operation_callable(self.logger, operation_config, df, output)
-
-	def load_dataset_from_service(self, df_id: str, df_hash: str, response: OperationExecutedMessage) -> pd.DataFrame:
-		dataset = None
-		try:
-			# TODO: id is obsolete
-			if df_id is not None:
-				dataset = self.dataset_client.get_dataset_by_id(df_id)
-			else:
-				dataset = self.dataset_client.get_dataset_by_hash(df_hash)
-		except Exception as e:
-			self.logger.warning("Failed to load dataset: %s" % str(e))
-			response.set_successful(False)
-			response.set_error_description(str(e))
-			response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
-		return dataset
 
 	@staticmethod
 	def preprocess_operation_config(config: dict) -> dict:
@@ -253,3 +124,42 @@ class OperationExecutionService:
 			except TypeError:
 				return config
 		return config
+
+	def load_datasets(self, datasets: [], response: OperationExecutedMessage) -> []:
+		self.logger.debug("Loading %i datasets" % len(datasets))
+		loaded_datasets = []
+		for dataset in datasets:
+			# TODO implement local caching mechanism
+			try:
+				loaded_datasets.append(self.load_dataset(dataset))
+			except Exception as e:
+				self.logger.warning("Failed to load dataset %s\nError: %s" % (str(dataset), str(e)))
+				response.set_successful(False)
+				response.set_error_description("Failed to load dataset of type %s" % dataset.get_type())
+				response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
+		self.logger.info("Loaded %i datasets" % len(datasets))
+		return loaded_datasets
+
+	def load_dataset(self, dataset: Dataset):
+		self.logger.debug("Loading dataset of type %s" % str(dataset.get_type()))
+		if dataset.get_type() == DatasetType.File:
+			file_content = self.file_store_client.get_object_content(dataset.store, dataset.key)
+			if file_content is None:
+				file_content = self.file_store_client.get_object_content_as_binary(dataset.store, dataset.key)
+			return file_content
+		elif dataset.get_type() == DatasetType.PdDataFrame:
+			return self.dataset_client.get_dataframe_by_key(dataset.get_key())
+		# TODO: implement remaining dataset types
+		else:
+			raise NotImplemented("%s is not a supported type" % dataset.get_type())
+
+	def store_dataset(self, dataset: Dataset, data):
+		self.logger.debug("Storing dataset of type %s" % str(dataset.get_type()))
+		# TODO implement local caching mechanism
+		if dataset.get_type() == DatasetType.PdDataFrame:
+			self.dataset_client.store_dataframe_with_key(dataset.key, data)
+		elif dataset.get_type() == DatasetType.StaticPlot:
+			self.file_store_client.store_file(dataset)
+		# TODO: implement remaining dataset types
+		else:
+			raise NotImplemented("%s is not a supported type" % dataset.get_type())

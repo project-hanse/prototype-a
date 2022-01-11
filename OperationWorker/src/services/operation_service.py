@@ -88,8 +88,8 @@ class OperationService:
 		self.local_operations["df7bff17-f175-4db5-9b04-955d6f261380"] = OperationsProphet.prophet_make_future_dataframe
 		self.local_operations["e358a55d-ba47-4d14-93b7-cf52fd29c64d"] = OperationsProphet.prophet_predict
 
-	def get_simple_operation_by_id(self, operation_id: str) -> Callable:
-		self.logger.info('Getting simple operation %s' % operation_id)
+	def get_operation_by_id(self, operation_id: str) -> Callable:
+		self.logger.info('Getting operation %s' % operation_id)
 		if operation_id in self.local_operations:
 			return self.local_operations[operation_id]
 
