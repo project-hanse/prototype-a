@@ -25,3 +25,8 @@ class OperationsHelper:
 			cls.tmp_dir = tempfile.mkdtemp()
 
 		return os.path.join(cls.tmp_dir, dataset.get_key())
+
+	@classmethod
+	def validate_input_or_throw(cls, data, expected_length: int):
+		if len(data) != expected_length:
+			raise ValueError("Expected %i input datasets but got %i" % (expected_length, len(data)))

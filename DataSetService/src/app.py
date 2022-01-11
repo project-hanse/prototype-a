@@ -3,8 +3,8 @@ import os
 import pandas as pd
 from flask import Flask, render_template, request, abort
 from flask_bootstrap import Bootstrap
-from flask_socketio import SocketIO
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
 from src.services.file_store import FileStore
 from src.services.import_service import ImportService
@@ -34,97 +34,113 @@ init_service = InitService(file_store)
 @app.route('/')
 @app.route('/index.html')
 def root():
-    return render_template(
-        'index.html',
-        data={
-            'dataset_count': dataset_store.get_dataset_count(),
-            'dataset_ids': dataset_store.get_ids()
-        })
+	return render_template(
+		'index.html',
+		data={
+			'dataset_count': dataset_store.get_dataset_count(),
+			'dataset_ids': dataset_store.get_ids()
+		})
 
 
 @app.route('/api/dataframe/<dataset_id>', methods=['GET'])
 def dataset_by_id(dataset_id: str):
-    df = dataset_store.get_by_id(dataset_id)
+	df = dataset_store.get_by_id(dataset_id)
 
-    if df is None:
-        abort(404)
+	if df is None:
+		abort(404)
 
-    return my_jsonpify(df)
+	return my_jsonpify(df)
 
 
 @app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
 def dataset_as_html_by_id(dataset_id: str):
-    df = dataset_store.get_by_id(dataset_id)
+	df = dataset_store.get_by_id(dataset_id)
 
-    if df is None:
-        abort(404)
+	if df is None:
+		abort(404)
 
-    return df.to_html()
+	return df.to_html()
 
 
 @app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
 def dataset_as_csv_by_id(dataset_id: str):
-    df = dataset_store.get_by_id(dataset_id)
+	df = dataset_store.get_by_id(dataset_id)
 
-    if df is None:
-        abort(404)
+	if df is None:
+		abort(404)
 
-    return df.to_csv()
-
-
-@app.route('/api/dataframe/key/<producing_hash>', methods=['GET', 'POST'])
-def dataframe_by_key(producing_hash: str):
-    if request.method == 'GET':
-        df = dataset_store.get_by_key(producing_hash)
-
-        if df is None:
-            abort(404)
-
-        return my_jsonpify(df)
-
-    if request.method == 'POST':
-        data = request.data
-        df = pd.read_json(data)
-        dataset_store.store_dataframe(producing_hash, df)
-        return 'OK'
+	return df.to_csv()
 
 
-@app.route('/api/dataframe/key/describe/<producing_hash>', methods=['GET', 'POST'])
+@app.route('/api/dataframe/key/<key>', methods=['GET', 'POST'])
+def dataframe_by_key(key: str):
+	if request.method == 'GET':
+		df = dataset_store.get_by_key(key)
+
+		if df is None:
+			abort(404)
+
+		return my_jsonpify(df)
+
+	if request.method == 'POST':
+		data = request.data
+		df = pd.read_json(data)
+		dataset_store.store_dataframe_by_key(key, df)
+		return 'OK'
+
+
+@app.route('/api/string/key/<key>', methods=['GET', 'POST'])
+def string_by_key(key: str):
+	if request.method == 'GET':
+		data = dataset_store.get_by_key(key)
+
+		if data is None:
+			abort(404)
+
+		return data
+
+	if request.method == 'POST':
+		data = request.data
+		dataset_store.store_by_key(key, data)
+		return 'OK'
+
+
+@app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
 def describe_dataset_by_hash(key: str):
-    if request.method == 'GET':
-        df = dataset_store.get_by_key(key)
+	if request.method == 'GET':
+		df = dataset_store.get_by_key(key)
 
-        if df is None:
-            abort(404)
+		if df is None:
+			abort(404)
 
-        return my_jsonpify(df.describe())
+		return my_jsonpify(df.describe())
 
 
-@app.route('/api/dataframe/key/describe/html/<producing_hash>', methods=['GET', 'POST'])
-def describe_dataframe_by_key_html(producing_hash: str):
-    if request.method == 'GET':
-        df = dataset_store.get_by_key(producing_hash)
+@app.route('/api/dataframe/key/describe/html/<key>', methods=['GET'])
+def describe_dataframe_by_key_html(key: str):
+	if request.method == 'GET':
+		df = dataset_store.get_by_key(key)
 
-        if df is None:
-            abort(404)
+		if df is None:
+			abort(404)
 
-        return df.describe().to_html()
+		return df.describe().to_html()
 
 
 def my_jsonpify(df):
-    return app.response_class(
-        response=df.to_json(date_format='iso'),
-        status=200,
-        mimetype='application/json'
-    )
+	return app.response_class(
+		response=df.to_json(date_format='iso'),
+		status=200,
+		mimetype='application/json'
+	)
 
 
 # Initializing services
 file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
-                 s3_access_key_id=S3_ACCESS_KEY_ID,
-                 s3_secret_access_key=S3_ACCESS_KEY_SECRET)
+								 s3_access_key_id=S3_ACCESS_KEY_ID,
+								 s3_secret_access_key=S3_ACCESS_KEY_SECRET)
 init_service.init_default_files_s3()
 import_service.import_defaults_in_background()
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)
+	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)

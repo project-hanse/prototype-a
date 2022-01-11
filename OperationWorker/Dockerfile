@@ -1,4 +1,5 @@
 FROM ubuntu:20.04 AS builder-image
+# Based on https://luis-sena.medium.com/creating-the-perfect-python-dockerfile-51bdec41f1c8
 
 # avoid stuck build due to user prompt
 ARG DEBIAN_FRONTEND=noninteractive
@@ -20,8 +21,8 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 FROM ubuntu:20.04 AS runner-image
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
-RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv && apt-get clean && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv && \
+	apt-get clean && rm -rf /var/lib/apt/lists/*
 # RUN useradd --create-home workeruser
 COPY --from=builder-image /home/workeruser/venv /home/workeruser/venv
 
