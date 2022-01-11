@@ -3,12 +3,12 @@ from typing import Callable
 
 import pandas as pd
 
-from src.services.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
-from src.services.operations_file_input import OperationsFileInputCollection
-from src.services.operations_plots_matplotlib import PlotsMatPlotLib
-from src.services.operations_prophet import OperationsProphet
-from src.services.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
-from src.services.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
+from src.operations.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
+from src.operations.operations_file_input import OperationsFileInputCollection
+from src.operations.operations_plots_matplotlib import PlotsMatPlotLib
+from src.operations.operations_prophet import OperationsProphet
+from src.operations.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
+from src.operations.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
 
 
 class OperationService:
