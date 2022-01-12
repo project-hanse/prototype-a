@@ -6,3 +6,4 @@ class DatasetType(Enum):
 	PdSeries = 1
 	PdDataFrame = 2
 	StaticPlot = 3
+	Prophet = 4

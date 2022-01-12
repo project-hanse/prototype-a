@@ -7,27 +7,25 @@ import {OperationsService} from '../_service/operations.service';
 import {PipelineService} from '../_service/pipeline.service';
 
 @Component({
-	selector: 'ph-pipeline-detail-view',
-	templateUrl: './pipeline-detail-view.component.html',
-	styleUrls: ['./pipeline-detail-view.component.scss']
+	selector: 'ph-pipeline-editor',
+	templateUrl: './pipeline-editor.component.html',
+	styleUrls: ['./pipeline-editor.component.scss']
 })
-export class PipelineDetailViewComponent implements OnInit, OnDestroy {
+export class PipelineEditorComponent implements OnInit, OnDestroy {
 
 	private readonly subscriptions: Subscription;
 
+	$pipelineId: Observable<string>;
 	private $pipeline: Observable<PipelineInfoDto>;
 	private $rootInputDatasets: Observable<string[]>;
 	lastSelectedNodeIds?: Array<string>;
 
 	constructor(private route: ActivatedRoute, private pipelineService: PipelineService, private nodeService: OperationsService) {
 		this.subscriptions = new Subscription();
+		this.$pipelineId = this.route.paramMap.pipe(map(p => p.get('id')));
 	}
 
 	ngOnInit(): void {
-	}
-
-	public getId(): Observable<string> {
-		return this.route.paramMap.pipe(map(p => p.get('id')));
 	}
 
 	public getPipeline(id: string): Observable<PipelineInfoDto> {

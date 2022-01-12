@@ -1,7 +1,7 @@
-import {PipelineVisualizationDto} from './pipeline-visualization.dto';
+import {VisualizationPipelineDto} from './visualization-pipeline.dto';
 
 export interface AddOperationResponse {
 	pipelineId: string;
 	operationId: string;
-	pipelineVisualizationDto: PipelineVisualizationDto;
+	pipelineVisualizationDto: VisualizationPipelineDto;
 }

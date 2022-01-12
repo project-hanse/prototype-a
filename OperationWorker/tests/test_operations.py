@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from src.services.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
+from src.operations.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
 from tests.helper.import_helper import load_file
 
 

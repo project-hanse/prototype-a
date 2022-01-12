@@ -1,6 +1,6 @@
-import {PipelineVisualizationDto} from './pipeline-visualization.dto';
+import {VisualizationPipelineDto} from './visualization-pipeline.dto';
 
 export interface RemoveOperationsResponse {
 	pipelineId: string;
-	pipelineVisualizationDto: PipelineVisualizationDto;
+	pipelineVisualizationDto: VisualizationPipelineDto;
 }

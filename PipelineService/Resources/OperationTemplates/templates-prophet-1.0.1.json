@@ -1,0 +1,68 @@
+[
+	{
+		"operationId": "c01f8b5a-3c71-466a-b2ab-2abb2aa105ba",
+		"operationName": "fit",
+		"operationFullName": "prophet.fit",
+		"inputTypes": [
+			2
+		],
+		"outputType": 4,
+		"framework": "prophet",
+		"frameworkVersion": "1.0.1",
+		"sectionTitle": "Prophet",
+		"title": "prophet.fit",
+		"description": "Generates a model based on a given time series dataset.",
+		"signature": "prophet.fit(df)",
+		"signatureName": "fit",
+		"returnsDescription": "A model based on the given time series dataset.",
+		"sourceUrl": "https://facebook.github.io/prophet/docs/quick_start.html#python-api",
+		"defaultConfig": {
+		},
+		"returns": "Prophet"
+	},
+	{
+		"operationId": "df7bff17-f175-4db5-9b04-955d6f261380",
+		"operationName": "make_future_dataframe",
+		"operationFullName": "prophet.make_future_dataframe",
+		"inputTypes": [
+			4
+		],
+		"outputType": 2,
+		"framework": "prophet",
+		"frameworkVersion": "1.0.1",
+		"sectionTitle": "Prophet",
+		"title": "prophet.make_future_dataframe",
+		"description": "Simulate the trend using the extrapolated generative model.",
+		"signature": "prophet.make_future_dataframe(periods=1, freq='D', include_history=True)",
+		"signatureName": "make_future_dataframe",
+		"returnsDescription": "A pd.Dataframe that extends forward from the end of self.history for the requested number of periods.",
+		"sourceUrl": "https://facebook.github.io/prophet/docs/quick_start.html#python-api",
+		"defaultConfig": {
+			"periods": 365,
+			"freq": "D",
+			"include_history": true
+		},
+		"returns": "Dataframe"
+	},
+	{
+		"operationId": "e358a55d-ba47-4d14-93b7-cf52fd29c64d",
+		"operationName": "predict",
+		"operationFullName": "prophet.predict",
+		"inputTypes": [
+			4,
+			2
+		],
+		"outputType": 2,
+		"framework": "prophet",
+		"frameworkVersion": "1.0.1",
+		"sectionTitle": "Prophet",
+		"title": "prophet.predict",
+		"description": "Predict using the prophet model.",
+		"signature": "prophet.predict(df=None)",
+		"signatureName": "predict",
+		"returnsDescription": "A pd.DataFrame with the forecast components.",
+		"sourceUrl": "https://facebook.github.io/prophet/docs/quick_start.html#python-api",
+		"defaultConfig": {},
+		"returns": "Dataframe"
+	}
+]

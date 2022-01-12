@@ -1,7 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Subscription} from 'rxjs';
-import {Data, DataSet, Edge, Network, Node, Options} from 'vis';
-import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
+import {Data, DataSet, Edge, IdType, Network, Node, Options, Properties} from 'vis';
+import {VisualizationOperationDto} from '../_model/visualization-operation-dto';
+import {VisualizationPipelineDto} from '../_model/visualization-pipeline.dto';
 import {PipelineService} from '../_service/pipeline.service';
 
 @Component({
@@ -16,6 +17,9 @@ export class PipelineGraphComponent implements OnInit {
 	@Output()
 	readonly selectedNodeIdsChange: EventEmitter<Array<string>>;
 
+	@Output()
+	readonly selectedNodesChange: EventEmitter<Array<VisualizationOperationDto>>;
+
 	readonly networkElementId = 'network';
 	private network?: Network;
 
@@ -24,6 +28,7 @@ export class PipelineGraphComponent implements OnInit {
 	constructor(private pipelineService: PipelineService) {
 		this.subscriptions = new Subscription();
 		this.selectedNodeIdsChange = new EventEmitter<Array<string>>();
+		this.selectedNodesChange = new EventEmitter<Array<VisualizationOperationDto>>();
 	}
 
 	ngOnInit(): void {
@@ -39,15 +44,16 @@ export class PipelineGraphComponent implements OnInit {
 		);
 	}
 
-	public displayPipeline(pipeline: PipelineVisualizationDto): void {
+	public displayPipeline(pipeline: VisualizationPipelineDto): void {
 		this.network = this.renderGraph(pipeline);
-		this.network.on('click', (properties) => {
+		this.network.on('click', (properties: Properties) => {
 			const ids = properties.nodes;
 			this.selectedNodeIdsChange.emit(ids);
+			this.selectedNodesChange.emit(properties.nodes.map((nodeId: IdType) => pipeline.nodes.find(n => n.id === nodeId)));
 		});
 	}
 
-	private renderGraph(pipeline: PipelineVisualizationDto): Network {
+	private renderGraph(pipeline: VisualizationPipelineDto): Network {
 		const nodes = new DataSet<Node>(pipeline.nodes, {});
 		const edges = new DataSet<Edge>(pipeline.edges, {});
 
