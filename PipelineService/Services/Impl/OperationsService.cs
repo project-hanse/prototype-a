@@ -41,13 +41,37 @@ namespace PipelineService.Services.Impl
 				Success = false
 			};
 
-			if (request.PredecessorOperationIds.Count is < 0 or > 2)
+			_logger.LogDebug("Validating predecessor counts");
+			if (request.PredecessorOperationIds.Count != 0 &&
+			    request.PredecessorOperationIds.Count != request.OperationTemplate.InputTypes.Count)
 			{
-				_logger.LogDebug("Unexpected count of predecessor operations");
+				_logger.LogDebug(
+					"Unexpected amount of predecessor operations. Got {ReceivedPredecessorCount}, expected {ExpectedPredecessorCount}",
+					request.PredecessorOperationIds.Count, request.OperationTemplate.InputTypes.Count);
 				response.StatusCode = HttpStatusCode.BadRequest;
 				response.Errors.Add(new Error
 				{
-					Message = "An operation must have between 0 and 2 predecessors",
+					Message = $"This operation requires {request.OperationTemplate.InputTypes.Count} predecessor(s)",
+					Code = "P400"
+				});
+				return response;
+			}
+
+			_logger.LogDebug("Validating predecessor types");
+			var predecessorTypes = (await _pipelinesDao.GetOutputDatasets(request.PredecessorOperationIds))
+				.Select(ds => ds.Type).ToList();
+
+			for (var i = 0; i < predecessorTypes.Count; i++)
+			{
+				if (predecessorTypes[i] == request.OperationTemplate.InputTypes[i]) continue;
+				_logger.LogDebug(
+					"Unexpected predecessor type. Got {ReceivedPredecessorType}, expected {ExpectedPredecessorType}",
+					predecessorTypes[i], request.OperationTemplate.InputTypes[i]);
+				response.StatusCode = HttpStatusCode.BadRequest;
+				response.Errors.Add(new Error
+				{
+					Message =
+						$"This operation requires the following types: {string.Join(", ", request.OperationTemplate.InputTypes)}",
 					Code = "P400"
 				});
 				return response;

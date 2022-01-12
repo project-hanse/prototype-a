@@ -5,7 +5,7 @@ import {BaseHttpService} from '../../core/_service/base-http.service';
 import {CreatePipelineFromTemplateRequest} from '../_model/create-pipeline-from-template-request';
 import {CreatePipelineFromTemplateResponse} from '../_model/create-pipeline-from-template-response';
 import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
-import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
+import {VisualizationPipelineDto} from '../_model/visualization-pipeline.dto';
 
 @Injectable({
 	providedIn: 'root'
@@ -32,8 +32,8 @@ export class PipelineService extends BaseHttpService {
 		return super.get('execute/' + id);
 	}
 
-	public getPipelineForVisualization(pipelineId: string): Observable<PipelineVisualizationDto> {
-		return super.get<PipelineVisualizationDto>(`vis/${pipelineId}`);
+	public getPipelineForVisualization(pipelineId: string): Observable<VisualizationPipelineDto> {
+		return super.get<VisualizationPipelineDto>(`vis/${pipelineId}`);
 	}
 
 	public getPipelineTemplates(): Observable<Array<PipelineInfoDto>> {

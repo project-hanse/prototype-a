@@ -6,7 +6,8 @@ using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
-using PipelineService.Extensions;
+using Neo4jClient.Extensions;
+using Newtonsoft.Json;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
@@ -321,13 +322,22 @@ namespace PipelineService.Dao.Impl
 			var resultNodes = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
 					.Match(path => path.Pattern<Operation>("operationNode"))
 					.Where((Operation operationNode) => operationNode.PipelineId == pipelineId)
-					.Return(() => new VisNode
+					.Return(() => new
 					{
 						Id = Return.As<Guid>($"operationNode.{nameof(Operation.Id)}"),
 						Label = Return.As<string>($"operationNode.{nameof(Operation.OperationIdentifier)}"),
+						InputsSerialized = Return.As<string>($"operationNode.{nameof(Operation.InputsSerialized)}"),
+						OutputSerialized = Return.As<string>($"operationNode.{nameof(Operation.OutputSerialized)}"),
 					})
 					.ResultsAsync)
-				.ToList();
+				.ToList()
+				.Select(o => new VisualizationOperationDto
+				{
+					Id = o.Id,
+					Label = o.Label,
+					Inputs = JsonConvert.DeserializeObject<IList<Dataset>>(o.InputsSerialized),
+					Output = JsonConvert.DeserializeObject<Dataset>(o.OutputSerialized)
+				});
 
 			foreach (var resultNode in resultNodes)
 			{
@@ -353,6 +363,33 @@ namespace PipelineService.Dao.Impl
 
 			_logger.LogInformation("Loaded pipeline {PipelineId} for visualization", pipelineId);
 			return dto;
+		}
+
+		public async Task<IList<Dataset>> GetOutputDatasets(IList<Guid> operationIds)
+		{
+			_logger.LogDebug("Loading output datasets for operations {@OperationIds}", operationIds);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var datasets = new List<Dataset>();
+
+			// TODO: This is a very inefficient way of doing this, but it keeps the order of datasets the same as the order of operationIds.
+			foreach (var operationId in operationIds)
+			{
+				var dataset = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+						.Match(path => path.Pattern<Operation>("o"))
+						.Where((Operation o) => o.Id == operationId)
+						.Return(() => new { OutputSerialized = Return.As<string>("o.OutputSerialized") })
+						.ResultsAsync)
+					.Select(o => JsonConvert.DeserializeObject<Dataset>(o.OutputSerialized))
+					.SingleOrDefault();
+				datasets.Add(dataset);
+			}
+
+			_logger.LogInformation("Loaded {DatasetCount} output datasets for operations {@OperationIds}",
+				datasets.Count, operationIds);
+
+			return datasets;
 		}
 	}
 }

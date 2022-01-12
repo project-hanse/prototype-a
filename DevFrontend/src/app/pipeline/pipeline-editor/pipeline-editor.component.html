@@ -10,6 +10,7 @@
 
 		<ph-pipeline-node-view [pipelineId]="pipeline.id"
 													 (selectedNodeIdsChange)="toolbox.selectedOperationIds = $event; operationResultPreview.operationIds = $event; operationConfigEditor.operationIds = $event"
+													 (selectedNodesChange)="toolbox.selectedOperations = $event"
 													 #pipelineNodeView></ph-pipeline-node-view>
 
 		<ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
