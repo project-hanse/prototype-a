@@ -67,6 +67,11 @@ namespace PipelineService.Services.Impl
 				newOperation.Output.Store = "plots";
 				newOperation.Output.Key = $"{Guid.NewGuid()}.svg";
 			}
+			else if (newOperation.Output.Type == DatasetType.Prophet)
+			{
+				newOperation.Output.Store = "generic_json";
+				newOperation.Output.Key = $"{Guid.NewGuid()}.prophet";
+			}
 
 			if (request.PredecessorOperationIds.Count == 0)
 			{
