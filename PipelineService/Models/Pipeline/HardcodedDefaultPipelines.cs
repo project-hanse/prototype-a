@@ -729,7 +729,7 @@ namespace PipelineService.Models.Pipeline
 
 			PipelineConstructionHelpers.Successor(import, setDateIndex);
 
-			var plot = new Operation
+			var plotHistory = new Operation
 			{
 				PipelineId = pipelineId,
 				Output = new Dataset
@@ -759,7 +759,118 @@ namespace PipelineService.Models.Pipeline
 				}
 			};
 
-			PipelineConstructionHelpers.Successor(setDateIndex, plot);
+			PipelineConstructionHelpers.Successor(setDateIndex, plotHistory);
+
+			var rename = new Operation()
+			{
+				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "rename",
+				OperationDescription = "rename",
+				OperationId = OpIdPdSingleGeneric,
+				OperationConfiguration = new Dictionary<string, string>
+				{
+					{ "mapper", "None" },
+					{ "index", "None" },
+					{ "columns", "{'Month': 'ds', 'Monthly beer production':'y'}" },
+					{ "axis", "None" },
+					{ "copy", "True" },
+					{ "level", "None" },
+					{ "errors", "ignore" }
+				}
+			};
+
+			PipelineConstructionHelpers.Successor(import, rename);
+
+			var fit = new Operation()
+			{
+				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.Prophet,
+					Store = "fit",
+					Key = $"{Guid.NewGuid()}.prophet"
+				},
+				OperationIdentifier = "fit",
+				OperationDescription = "fit",
+				OperationId = OpIdProphetFit,
+				OperationConfiguration = new Dictionary<string, string>()
+			};
+
+			PipelineConstructionHelpers.Successor(rename, fit);
+
+			var makeFuture = new Operation()
+			{
+				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "make_future_dataframe",
+				OperationDescription = "make_future_dataframe",
+				OperationId = OpIdProphetMakeFuture,
+				OperationConfiguration = new Dictionary<string, string>()
+				{
+					{ "periods", "18" },
+					{ "freq", "M" },
+					{ "include_history", "true" }
+				}
+			};
+
+			PipelineConstructionHelpers.Successor(fit, makeFuture);
+
+			var predict = new Operation()
+			{
+				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.PdDataFrame,
+					Store = "dataframes"
+				},
+				OperationIdentifier = "predict",
+				OperationDescription = "predict",
+				OperationId = OpIdProphetPredict,
+				OperationConfiguration = new Dictionary<string, string>()
+			};
+
+			PipelineConstructionHelpers.Successor(fit, makeFuture, predict);
+
+			var plotPrediction = new Operation
+			{
+				PipelineId = pipelineId,
+				Output = new Dataset
+				{
+					Type = DatasetType.StaticPlot,
+					Store = "plots",
+					Key = $"{Guid.NewGuid()}.svg"
+				},
+				OperationIdentifier = "plot",
+				OperationDescription = "plot_prediction",
+				OperationId = OpIdCustomPlotDfMatPlotLib,
+				OperationConfiguration = new Dictionary<string, string>
+				{
+					{ "ax", "None" },
+					{ "grid", "None" },
+					{ "kind", "line" },
+					{ "layout", "None" },
+					{ "legend", "true" },
+					{ "sharex", "false" },
+					{ "sharey", "false" },
+					{ "style", "{}" },
+					{ "subplots", "false" },
+					{ "title", "Forecast Beer Production 18 Months" },
+					{ "use_index", "true" },
+					{ "x", "None" },
+					{ "y", "None" }
+				}
+			};
+
+			PipelineConstructionHelpers.Successor(predict, plotPrediction);
 
 			pipeline.Root.Add(import);
 

@@ -28,5 +28,8 @@ namespace PipelineService.Models.Constants
 		public static readonly Guid OpIdPdSingleResample = Guid.Parse("0fc78290-88c8-49b0-878e-a25a3f6452c1");
 		public static readonly Guid OpIdSklearnDoubleMlpRegr = Guid.Parse("2878ca36-8e03-4825-8afa-552064686337");
 		public static readonly Guid OpIdCustomPlotDfMatPlotLib = Guid.Parse("0b60e908-fae2-4d33-aa81-5d1fdc706c12");
+		public static readonly Guid OpIdProphetFit = Guid.Parse("c01f8b5a-3c71-466a-b2ab-2abb2aa105ba");
+		public static readonly Guid OpIdProphetMakeFuture = Guid.Parse("df7bff17-f175-4db5-9b04-955d6f261380");
+		public static readonly Guid OpIdProphetPredict = Guid.Parse("e358a55d-ba47-4d14-93b7-cf52fd29c64d");
 	}
 }

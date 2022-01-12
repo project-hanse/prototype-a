@@ -66,5 +66,7 @@ namespace PipelineService.Dao
 		/// <param name="pipelineId">The pipeline's id.</param>
 		/// <returns>A dto holding visualization information for the pipeline.</returns>
 		Task<PipelineVisualizationDto> GetVisDto(Guid pipelineId);
+
+		Task<IList<Dataset>> GetOutputDatasets(IList<Guid> operationIds);
 	}
 }
