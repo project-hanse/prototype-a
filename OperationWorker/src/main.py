@@ -16,7 +16,8 @@ TOPIC_NAME_SUB: str = os.getenv("MQTT_TOPIC_SUB", "execute/+/+")
 TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "executed")
 DATASET_HOST: str = os.getenv("DATASET_HOST", "dataset-service")
 DATASET_PORT: int = os.getenv("DATASET_PORT", 5002)
-S3_HOST: str = os.getenv("S3_HOST", "http://localstack-s3")
+S3_PROTOCOL: str = os.getenv("S3_PROTOCOL", "http")
+S3_HOST: str = os.getenv("S3_HOST", "localstack-s3")
 S3_PORT: int = os.getenv("S3_PORT", 4566)
 S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
 S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
@@ -55,7 +56,7 @@ if __name__ == '__main__':
 											 mqtt_port=MQTT_PORT,
 											 topic_name_sub=TOPIC_NAME_SUB,
 											 topic_name_pub=TOPIC_NAME_PUB)
-	file_store_ok = file_store_client.setup(s3_endpoint=("%s:%i" % (S3_HOST, S3_PORT)),
+	file_store_ok = file_store_client.setup(s3_endpoint=("%s://%s:%i" % (S3_PROTOCOL, S3_HOST, S3_PORT)),
 																					s3_access_key_id=S3_ACCESS_KEY_ID,
 																					s3_secret_access_key=S3_ACCESS_KEY_SECRET)
 	if not file_store_ok:

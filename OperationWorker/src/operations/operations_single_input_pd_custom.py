@@ -11,11 +11,13 @@ class OperationsSingleInputPandasCustom:
 	def pd_single_input_set_date_index(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
 		logger.info("Executing pandas operation pd_single_input_set_date_index (%s)" % operation_name)
 
-		if 'col_name' in operation_config:
-			df.index = pd.to_datetime(df['col_name'])
+		date_format = OperationsHelper.get_or_default(operation_config, 'format', None)
+		col_name = OperationsHelper.get_or_default(operation_config, 'col_name', 'index')
 
+		if col_name == 'index':
+			df.index = pd.to_datetime(df.index.to_series(), format=date_format)
 		else:
-			df.index = pd.to_datetime(df.index.to_series())
+			df.index = pd.to_datetime(df[col_name], format=date_format)
 
 		return df
 

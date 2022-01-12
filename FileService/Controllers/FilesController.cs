@@ -33,5 +33,17 @@ namespace FileService.Controllers
 
 			return BadRequest();
 		}
+
+		[HttpGet("plot")]
+		public async Task<IActionResult> GetPlot([FromQuery] string store, [FromQuery] string key)
+		{
+			var stream = await _filesService.GetFile(store, key);
+			if (stream != null)
+			{
+				return new FileStreamResult(stream, "image/svg+xml");
+			}
+
+			return NotFound();
+		}
 	}
 }

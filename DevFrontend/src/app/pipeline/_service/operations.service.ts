@@ -5,6 +5,7 @@ import {environment} from '../../../environments/environment';
 import {BaseHttpService} from '../../core/_service/base-http.service';
 import {AddOperationRequest} from '../_model/add-operation-request';
 import {AddOperationResponse} from '../_model/add-operation-response';
+import {Dataset} from '../_model/dataset';
 import {RemoveOperationsRequest} from '../_model/remove-operations-request';
 import {RemoveOperationsResponse} from '../_model/remove-operations-response';
 
@@ -29,12 +30,12 @@ export class OperationsService extends BaseHttpService {
 		return this.httpClient.post<RemoveOperationsResponse>(this.getPipelinesUrl('remove'), request);
 	}
 
-	public getOutputKey(pipelineId: string, operationId: string): Observable<{ key: string }> {
-		return this.httpClient.get<{ key: string }>(this.getPipelinesUrl(pipelineId, operationId, 'output-key'));
+	public getOutputDataset(pipelineId: string, operationId: string): Observable<Dataset> {
+		return this.httpClient.get<Dataset>(this.getPipelinesUrl(pipelineId, operationId, 'output/dataset'));
 	}
 
 	public getPreviewHtml(outputKey: string): Observable<string> {
-		return this.httpClient.get(`${environment.datasetApi}/api/datasets/hash/describe/html/${outputKey}`, {responseType: 'text'});
+		return this.httpClient.get(`${environment.datasetApi}/api/dataframe/key/describe/html/${outputKey}`, {responseType: 'text'});
 	}
 
 	public getConfig(pipelineId: string, operationId: string): Observable<Map<string, string>> {

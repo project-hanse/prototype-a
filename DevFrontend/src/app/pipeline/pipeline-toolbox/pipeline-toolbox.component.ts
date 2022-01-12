@@ -7,8 +7,9 @@ import {FilesService} from '../../utils/_services/files.service';
 import {AddOperationRequest} from '../_model/add-operation-request';
 import {DatasetType} from '../_model/dataset';
 import {OperationTemplate, OperationTemplateGroup} from '../_model/operation-template';
-import {PipelineVisualizationDto} from '../_model/pipeline-visualization.dto';
 import {RemoveOperationsRequest} from '../_model/remove-operations-request';
+import {VisualizationOperationDto} from '../_model/visualization-operation-dto';
+import {VisualizationPipelineDto} from '../_model/visualization-pipeline.dto';
 import {OperationTemplatesService} from '../_service/operation-templates.service';
 import {OperationsService} from '../_service/operations.service';
 
@@ -23,7 +24,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 							private nodeService: OperationsService,
 							private filesService: FilesService) {
 		this.subscriptions = new Subscription();
-		this.pipelineChanged = new EventEmitter<PipelineVisualizationDto>();
+		this.pipelineChanged = new EventEmitter<VisualizationPipelineDto>();
 	}
 
 	@Input()
@@ -35,8 +36,11 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	@Input()
 	public selectedOperationIds: Array<string> = [];
 
+	@Input()
+	public selectedOperations: Array<VisualizationOperationDto> = [];
+
 	@Output()
-	public readonly pipelineChanged: EventEmitter<PipelineVisualizationDto>;
+	public readonly pipelineChanged: EventEmitter<VisualizationPipelineDto>;
 
 	private $operationTemplateGroups?: Observable<Array<OperationTemplateGroup>>;
 	private $userFiles?: Observable<Array<FileInfoDto>>;
@@ -112,11 +116,18 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		if (this.selectedOperationIds.length === 0) {
 			return true;
 		}
-		if (operation.inputTypes?.length === this.selectedOperationIds.length) {
-			return true;
+		if (operation.inputTypes?.length < this.selectedOperationIds.length) {
+			// more inputs selected than available in this operation template
+			return false;
 		}
-		// TODO: perform type checking here
-		return false;
+		const selectedTypes = this.selectedOperations.map(o => o.output.type);
+		for (let i = 0; i < selectedTypes.length; i++) {
+			if (selectedTypes[i] !== operation.inputTypes[i]) {
+				// don't show this operation template if any of the selected type types does not match the input types of the operation template
+				return false;
+			}
+		}
+		return true;
 	}
 
 	onAddNode(operation: OperationTemplate): void {

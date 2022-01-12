@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Amazon.Runtime.Internal;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
@@ -93,7 +95,7 @@ namespace FileService.Services
 			return new FileInfoDto
 			{
 				FileName = request.FileName,
-				FileExtension = System.IO.Path.GetExtension(request.FileName),
+				FileExtension = Path.GetExtension(request.FileName),
 				LastModified = DateTime.UtcNow,
 				BucketName = bucketName,
 				ObjectKey = objectKey
@@ -116,7 +118,7 @@ namespace FileService.Services
 				.Select(o => new FileInfoDto
 				{
 					FileName = o.Key,
-					FileExtension = System.IO.Path.GetExtension(o.Key),
+					FileExtension = Path.GetExtension(o.Key),
 					LastModified = o.LastModified,
 					Size = o.Size,
 					BucketName = o.BucketName,
@@ -129,6 +131,35 @@ namespace FileService.Services
 				userIdentifier);
 
 			return fileInfos;
+		}
+
+		public async Task<Stream> GetFile(string bucket, string key)
+		{
+			_logger.LogDebug("Loading file {Key} from bucket {Bucket}", key, bucket);
+			await EnsureBucketExists(bucket);
+
+			try
+			{
+				var response = await _s3Client.GetObjectAsync(bucket, key);
+				if (response.HttpStatusCode == HttpStatusCode.OK)
+				{
+					_logger.LogInformation("File {Key} loaded from bucket {Bucket}", key, bucket);
+					return response.ResponseStream;
+				}
+			}
+			catch (AmazonS3Exception e)
+			{
+				if (e.StatusCode == HttpStatusCode.NotFound)
+				{
+					_logger.LogInformation(e, "File {Key} not found in bucket {Bucket}", key, bucket);
+				}
+				else
+				{
+					_logger.LogError(e, "Error loading file {Key} from bucket {Bucket}", key, bucket);
+				}
+			}
+
+			return null;
 		}
 	}
 }

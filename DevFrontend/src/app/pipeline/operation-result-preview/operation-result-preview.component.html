@@ -1,19 +1,36 @@
 <ng-container *ngIf="operationIds">
 	<ng-container *ngFor="let operationId of operationIds">
-		<ng-container *ngIf="getOutputKey(operationId) | async as output">
-			<mat-card *ngIf="getPreviewHtml(output.key) | async as html_text">
+		<ng-container *ngIf="getOutputDataset(operationId) | async as output">
+			<!-- Plot Preview -->
+			<mat-card *ngIf="isPlot(output)">
+				<mat-card-header>
+					<mat-card-subtitle>
+						<a target="_blank" [href]="getPlotUrl(output)" [matTooltip]="output.key">
+							Full Plot
+						</a>
+					</mat-card-subtitle>
+				</mat-card-header>
+				<mat-card-content *ngIf="getPlotUrl(output) as plotUrl" class="plot-wrapper">
+					<img [src]="plotUrl" [alt]="'Plot from ' + output.store">
+				</mat-card-content>
+			</mat-card>
+
+			<!-- Dataframe Preview -->
+			<mat-card *ngIf="isDataframe(output)">
 				<mat-card-header>
 					<mat-card-title>
 						Operation Result Description
 					</mat-card-title>
 					<mat-card-subtitle>
-						<a target="_blank" [href]="getDatasetLink(output.key)"
-							 [matTooltip]="output.key">
+						<a target="_blank" [href]="getDatasetLink(output.key)" [matTooltip]="output.key">
 							Full Dataset
 						</a>
 					</mat-card-subtitle>
 				</mat-card-header>
-				<mat-card-content [innerHTML]="html_text"></mat-card-content>
+				<ng-container>
+					<mat-card-content *ngIf="getPreviewHtml(output.key) | async as html_text"
+														[innerHTML]="html_text"></mat-card-content>
+				</ng-container>
 			</mat-card>
 		</ng-container>
 	</ng-container>

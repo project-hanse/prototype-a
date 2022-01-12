@@ -5,3 +5,5 @@ class DatasetType(Enum):
 	File = 0
 	PdSeries = 1
 	PdDataFrame = 2
+	StaticPlot = 3
+	Prophet = 4

@@ -3,10 +3,12 @@ from typing import Callable
 
 import pandas as pd
 
-from src.services.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
-from src.services.operations_file_input import OperationsFileInputCollection
-from src.services.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
-from src.services.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
+from src.operations.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
+from src.operations.operations_file_input import OperationsFileInputCollection
+from src.operations.operations_plots_matplotlib import PlotsMatPlotLib
+from src.operations.operations_prophet import OperationsProphet
+from src.operations.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
+from src.operations.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
 
 
 class OperationService:
@@ -78,9 +80,16 @@ class OperationService:
 			"0fc78290-88c8-49b0-878e-a25a3f6452c1"] = OperationsSingleInputPandasCustom.pd_single_input_resample
 		self.local_operations[
 			"1991ccdb-c8ba-4a71-a325-420e48471379"] = OperationsSingleInputPandasCustom.pd_single_input_groupby
+		self.local_operations[
+			"0b60e908-fae2-4d33-aa81-5d1fdc706c12"] = PlotsMatPlotLib.matplot_plot_pd
 
-	def get_simple_operation_by_id(self, operation_id: str) -> Callable:
-		self.logger.info('Getting simple operation %s' % operation_id)
+		# Prophet Operations
+		self.local_operations["c01f8b5a-3c71-466a-b2ab-2abb2aa105ba"] = OperationsProphet.prophet_fit
+		self.local_operations["df7bff17-f175-4db5-9b04-955d6f261380"] = OperationsProphet.prophet_make_future_dataframe
+		self.local_operations["e358a55d-ba47-4d14-93b7-cf52fd29c64d"] = OperationsProphet.prophet_predict
+
+	def get_operation_by_id(self, operation_id: str) -> Callable:
+		self.logger.info('Getting operation %s' % operation_id)
 		if operation_id in self.local_operations:
 			return self.local_operations[operation_id]
 

@@ -13,7 +13,7 @@ updates:
     directory: "/PipelineService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     assignees:
       - "SirPumpkinHead"
 
@@ -107,7 +107,7 @@ updates:
     directory: "/Neo4jPlugins"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     assignees:
       - "SirPumpkinHead"
 

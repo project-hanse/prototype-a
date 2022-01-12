@@ -54,22 +54,8 @@ class MqttClientWrapper:
 			self.publish_error_message(str(e))
 			return
 
-		# TODO this contains hardcoded strings that might change in the config (MQTT_TOPIC_SUB);
-		#  - Possible solution: validate at startup?
-		if message.topic.endswith("file"):
-			request = OperationExecutionMessage(payload_deserialized)
-			response = self.execution_service.handle_file_input_request(request)
-		elif message.topic.endswith("single"):
-			request = OperationExecutionMessage(payload_deserialized)
-			response = self.execution_service.handle_single_input_request(request)
-		elif message.topic.endswith("double"):
-			request = OperationExecutionMessage(payload_deserialized)
-			response = self.execution_service.handle_double_input_request(request)
-		else:
-			self.logging.error("Got message that can not be processed by this worker")
-			self.publish_error_message("Unknown message")
-			# TODO: requeue message
-			return
+		request = OperationExecutionMessage(payload_deserialized)
+		response = self.execution_service.handle_execution_request(request)
 
 		topic = ("%s/%s/%s" % (self.topic_name_pub, request.get_pipeline_id(), request.get_pipeline_id()))
 

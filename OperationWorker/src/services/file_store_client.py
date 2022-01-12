@@ -2,7 +2,12 @@ import logging
 from typing import Optional
 
 import boto3
+import botocore
 import chardet
+from botocore.exceptions import ClientError
+
+from src.helper.operations_helper import OperationsHelper
+from src.models.dataset import Dataset
 
 
 class FileStoreClient:
@@ -64,3 +69,39 @@ class FileStoreClient:
 			return None
 
 		return response['Body'].read()
+
+	def create_bucket_if_not_exists(self, bucket_name: str):
+		self.log.info("Creating bucket '%s'" % bucket_name)
+		if self.s3_client is None:
+			raise Exception('Service not initialized')
+		try:
+			response = self.s3_client.create_bucket(Bucket=bucket_name)
+			self.log.debug("Created bucket '%s' (response: %s)" % (bucket_name, str(response)))
+		except ClientError as e:
+			if e.response['Error']['Code'] == 'BucketAlreadyOwnedByYou':
+				self.log.debug("Bucket '%s' already exists" % bucket_name)
+			else:
+				logging.error(e)
+				return False
+
+	def store_file(self, dataset: Dataset) -> bool:
+		self.log.info("Storing file '%s' to bucket '%s'" % (dataset.get_key(), dataset.get_store()))
+		if self.s3_client is None:
+			raise Exception('Service not initialized')
+		self.create_bucket_if_not_exists(dataset.get_store())
+		temp_path = OperationsHelper.get_temporary_file_path(dataset)
+		try:
+			response = self.s3_client.upload_file(temp_path, dataset.get_store(), dataset.get_key())
+			self.log.debug(
+				"Uploaded file '%s' to bucket '%s' (response: %s)" % (temp_path, dataset.get_store(), str(response)))
+		except botocore.exceptions.ClientError as err:
+			status = err.response["ResponseMetadata"]["HTTPStatusCode"]
+			errcode = err.response["Error"]["Code"]
+			if status == 404:
+				self.log.warning("Missing object, %s", errcode)
+			elif status == 403:
+				self.log.error("Access denied, %s", errcode)
+			else:
+				self.log.exception("Error in request, %s", errcode)
+			return False
+		return True

@@ -41,20 +41,62 @@ namespace PipelineService.Services.Impl
 				Success = false
 			};
 
-			if (request.PredecessorOperationIds.Count is < 0 or > 2)
+			_logger.LogDebug("Validating predecessor counts");
+			if (request.PredecessorOperationIds.Count != 0 &&
+			    request.PredecessorOperationIds.Count != request.OperationTemplate.InputTypes.Count)
 			{
-				_logger.LogDebug("Unexpected count of predecessor operations");
+				_logger.LogDebug(
+					"Unexpected amount of predecessor operations. Got {ReceivedPredecessorCount}, expected {ExpectedPredecessorCount}",
+					request.PredecessorOperationIds.Count, request.OperationTemplate.InputTypes.Count);
 				response.StatusCode = HttpStatusCode.BadRequest;
 				response.Errors.Add(new Error
 				{
-					Message = "An operation must have between 0 and 2 predecessors",
+					Message = $"This operation requires {request.OperationTemplate.InputTypes.Count} predecessor(s)",
+					Code = "P400"
+				});
+				return response;
+			}
+
+			_logger.LogDebug("Validating predecessor types");
+			var predecessorTypes = (await _pipelinesDao.GetOutputDatasets(request.PredecessorOperationIds))
+				.Select(ds => ds.Type).ToList();
+
+			for (var i = 0; i < predecessorTypes.Count; i++)
+			{
+				if (predecessorTypes[i] == request.OperationTemplate.InputTypes[i]) continue;
+				_logger.LogDebug(
+					"Unexpected predecessor type. Got {ReceivedPredecessorType}, expected {ExpectedPredecessorType}",
+					predecessorTypes[i], request.OperationTemplate.InputTypes[i]);
+				response.StatusCode = HttpStatusCode.BadRequest;
+				response.Errors.Add(new Error
+				{
+					Message =
+						$"This operation requires the following types: {string.Join(", ", request.OperationTemplate.InputTypes)}",
 					Code = "P400"
 				});
 				return response;
 			}
 
 			// TODO reimplement this in a general way that does can handle any number of predecessors and checks if dataset types match
-			Operation newOperation;
+			var newOperation = new Operation();
+			if (request.OperationTemplate.OutputType.HasValue)
+			{
+				newOperation.Output.Type = request.OperationTemplate.OutputType.Value;
+			}
+
+			// Hardcoded default values for plotting
+			// TODO: potentially move this to the frontend
+			if (newOperation.Output.Type == DatasetType.StaticPlot)
+			{
+				newOperation.Output.Store = "plots";
+				newOperation.Output.Key = $"{Guid.NewGuid()}.svg";
+			}
+			else if (newOperation.Output.Type == DatasetType.Prophet)
+			{
+				newOperation.Output.Store = "generic_json";
+				newOperation.Output.Key = $"{Guid.NewGuid()}.prophet";
+			}
+
 			if (request.PredecessorOperationIds.Count == 0)
 			{
 				_logger.LogDebug("Detected no predecessor nodes");
@@ -82,7 +124,7 @@ namespace PipelineService.Services.Impl
 					return response;
 				}
 
-				newOperation = PipelineConstructionHelpers.Successor(predecessor, new Operation());
+				newOperation = PipelineConstructionHelpers.Successor(predecessor, newOperation);
 				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
 			}
 			else
@@ -96,7 +138,7 @@ namespace PipelineService.Services.Impl
 					return response;
 				}
 
-				newOperation = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, new Operation());
+				newOperation = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, newOperation);
 				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
 			}
 
@@ -139,9 +181,9 @@ namespace PipelineService.Services.Impl
 			return response;
 		}
 
-		public async Task<string> GetOutputKey(Guid pipelineId, Guid operationId)
+		public async Task<Dataset> GetOutputDataset(Guid pipelineId, Guid operationId)
 		{
-			return (await _pipelinesDao.GetOperation(operationId)).Output.Key;
+			return (await _pipelinesDao.GetOperation(operationId)).Output;
 		}
 
 		public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)

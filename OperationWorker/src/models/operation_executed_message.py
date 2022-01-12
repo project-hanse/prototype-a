@@ -12,7 +12,7 @@ class OperationExecutedMessage(Message):
 	successful: bool
 	start_time: datetime
 	stop_time: datetime
-	error_description: str
+	error_description: str = None
 
 	def __init__(self):
 		super().__init__()
@@ -48,3 +48,6 @@ class OperationExecutedMessage(Message):
 
 	def set_error_description(self, error_description):
 		self.error_description = error_description
+
+	def get_error_description(self) -> str:
+		return self.error_description

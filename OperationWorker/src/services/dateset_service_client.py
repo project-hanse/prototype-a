@@ -1,5 +1,7 @@
 import pandas as pd
 import requests
+from prophet import Prophet
+from prophet.serialize import model_to_json, model_from_json
 
 from src.exceptions.NotFoundError import NotFoundError
 from src.exceptions.NotStoredError import NotStoredError
@@ -14,36 +16,58 @@ class DatasetServiceClient:
 		self.port = port
 		self.logging = logging
 
-	def get_dataset_by_id(self, dataset_id: str) -> pd.DataFrame:
-		address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/' + dataset_id
-		self.logging.info('Loading dataset from %s' % address)
+	def get_dataframe_by_id(self, dataset_id: str) -> pd.DataFrame:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/' + dataset_id
+		self.logging.info('Loading dataframe from %s' % address)
 		response = requests.get(address)
 		if response.status_code == 404:
 			raise NotFoundError("No dataset with id found")
 		return pd.read_json(response.text)
 
-	def get_dataset_by_hash(self, producing_hash: str) -> pd.DataFrame:
-		address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/hash/' + producing_hash
-		self.logging.info('Loading dataset from %s' % address)
+	def get_dataframe_by_key(self, key: str) -> pd.DataFrame:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/key/' + key
+		self.logging.info('Loading dataframe from %s' % address)
 		response = requests.get(address)
 		if response.status_code == 404:
-			raise NotFoundError("No dataset with hash found")
+			raise NotFoundError("No dataset with key found")
 		return pd.read_json(response.text)
 
-	def store_with_hash(self, producing_hash: str, resulting_dataset: pd.DataFrame):
-		address = 'http://' + self.host + ':' + str(self.port) + '/api/datasets/hash/' + producing_hash
-		self.logging.info('Storing dataset to %s' % address)
-		response = requests.post(address, data=self.serialize(resulting_dataset))
+	def store_dataframe_by_key(self, key: str, resulting_dataset: pd.DataFrame):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/key/' + key
+		self.logging.info('Storing dataframe to %s' % address)
+		response = requests.post(address, data=self.serialize_dataframe(resulting_dataset))
 		if response.status_code < 300:
 			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
 		else:
-			self.logging.warning('Failed to store dataset: (%i) %s' % (response.status_code, str(response.text)))
-			raise NotStoredError('Failed to store dataset: (%i) %s' % (response.status_code, str(response.reason)))
+			self.logging.warning('Failed to store dataframe: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError('Failed to store dataframe: (%i) %s' % (response.status_code, str(response.reason)))
 
-	def serialize(self, dataframe: pd.DataFrame) -> str:
+	def get_prophet_model_by_key(self, key: str) -> pd.DataFrame:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Loading prophet model from %s' % address)
+		response = requests.get(address)
+		if response.status_code == 404:
+			raise NotFoundError("No model with key found")
+		return model_from_json(response.text)
+
+	def store_prophet_model_by_key(self, key: str, model: Prophet):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Storing prophet model to %s' % address)
+		response = requests.post(address, data=self.serialize_prophet_model(model))
+		if response.status_code < 300:
+			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
+		else:
+			self.logging.warning('Failed to store prophet model: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError('Failed to store prophet model: (%i) %s' % (response.status_code, str(response.reason)))
+
+	def serialize_dataframe(self, dataframe: pd.DataFrame) -> str:
 		try:
-			return dataframe.to_json()
+			return dataframe.to_json(date_format='iso')
 		except ValueError as e:
 			self.logging.warning('Error during serializing %s, trying to set index' % str(e))
 			dataframe.reset_index(inplace=True)
-			return dataframe.to_json()
+			return dataframe.to_json(date_format='iso')
+
+	def serialize_prophet_model(self, model: Prophet) -> str:
+		self.logging.debug('Serializing prophet model')
+		return model_to_json(model)

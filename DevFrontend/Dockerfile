@@ -16,7 +16,7 @@ RUN ng build --output-path=./dist/out  --output-hashing=all --configuration prod
 
 # Deployment
 
-FROM nginx:1.21.4-alpine as run-step
+FROM nginx:1.21.5-alpine as run-step
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
 # Replacing default config with Angular specific
