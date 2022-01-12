@@ -14,10 +14,10 @@ class OperationsProphet:
 
 		OperationsHelper.validate_input_or_throw(data, 1)
 
-		m = Prophet()
-		m.fit(data[0])
+		model = Prophet()
+		model.fit(data[0])
 
-		return m
+		return model
 
 	@staticmethod
 	def prophet_make_future_dataframe(logger: logging, operation_name: str, operation_config: dict,
@@ -36,9 +36,14 @@ class OperationsProphet:
 	def prophet_predict(logger: logging, operation_name: str, operation_config: dict, data: []) -> pd.DataFrame:
 		logger.info("Executing prophet operation prophet_predict (%s)" % operation_name)
 
-		m = data[0]
+		model = data[0]
 		future = data[1]
 
-		forecast = m.predict(future)
+		# Convert ds column in future to UTC
+		future['ds'] = pd.to_datetime(future['ds'], utc=True)
+		# Remove timezone information from ds column in future
+		future['ds'] = future['ds'].dt.tz_localize(None)
+
+		forecast = model.predict(future)
 
 		return forecast
