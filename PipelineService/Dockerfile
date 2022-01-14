@@ -13,6 +13,8 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
+ENV Logging__Console__FormatterName=Simple
+
 WORKDIR /app
 
 COPY --from=build-env /app/out .
