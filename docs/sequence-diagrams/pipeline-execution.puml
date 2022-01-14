@@ -1,21 +1,16 @@
 @startuml pipeline-execution
 
 'Name Definitions'
-!$pc = "Pipeline Controller"
 !$ps = "Pipeline Service"
-!$es = "Execution Service"
-!$hs = "Hangfire Service"
 !$mb = "Event Bus"
 !$bw = "Operation Worker"
 !$ds = "Dataset Storage"
 
-title ** Pipeline execution **
+title ** Pipeline Execution **
 
 actor User
-participant "$pc" << (C,#ADD1B2) Pipeline Service >>
-participant "$es" << (C,#ADD1B2) Pipeline Service >>
 participant "$ps" << (C,#ADD1B2) Pipeline Service >>
-participant "$hs" << (C,#ADD1B2) .NET Web API >>
+participant "$ps" << (C,#ADD1B2) Pipeline Service >>
 participant "$mb" << MQTT Broker >>
 collections "$bw" << Python Worker >>
 participant "$ds" << Dataset Store >>
@@ -26,24 +21,21 @@ participant "$ds" << Dataset Store >>
 
 == Invocation ==
 
-"User" -> "$pc" : GET /api/v1/Pipeline/execute/{pipelineId}
+"User" -> "$ps" : GET /api/v1/Pipeline/execute/{pipelineId}
 
-"$pc" -> "$ps": loadPipeline(pipelineId: Guid)
-"$pc" <-- "$ps": pipeline: Pipeline
-"$pc" -> "$es": createExecution(pipeline: Pipeline)
-"$es" -> "$hs": enqueue(deployNextBlocks(executionId: Guid))
-"$es" <-- "$hs"
-"$pc" <-- "$es": executionId
-"User" <-- "$pc" : executionId: Guid
+"$ps" -> "$ps": loadPipeline(pipelineId: Guid)
+"$ps" <-- "$ps": pipeline: Pipeline
+"$ps" -> "$ps": createExecution(pipeline: Pipeline)
+"$ps" <-- "$ps": executionId
+"User" <-- "$ps" : executionId: Guid
 ...
+
 == Execution ==
-"$hs" -> "$es": deployNextBlocks(executionId: Guid)
-"$hs" <-- "$es"
 alt all previous blocks have been executed
-    "$es" -> "$es" : selectNextBlocks(pipelineId: Guid, executionId: Guid)
-    "$es" -> "$mb" : publish(request: BlockExecutionRequest)
-    "$es" <-- "$mb"
-    "$es" -> "$mb" : subscribe("executed/{pipelineId}/{executionId}")
+    "$ps" -> "$ps" : selectNextBlocks(pipelineId: Guid, executionId: Guid)
+    "$ps" -> "$mb" : publish(request: BlockExecutionRequest)
+    "$ps" <-- "$mb"
+    "$ps" -> "$mb" : subscribe("executed/{pipelineId}/{executionId}")
     ...
 
     "$mb" --> "$bw" : newPublished(request: BlockExecutionRequest)
@@ -71,15 +63,8 @@ alt all previous blocks have been executed
         end
     end
     ...
-    "$mb" --> "$es" : newPublished(response: BlockExecutionResponse)
-    "$es" -> "$es": storeExecutedBlocks()
-    "$es" -> "$hs": enqueue(deployNextBlocks(executionId: Guid))
-    "$es" <-- "$hs"
+    "$mb" --> "$ps" : newPublished(response: BlockExecutionResponse)
+    "$ps" -> "$ps": storeExecutedBlocks()
     ...
 end
-
-== Checking Status ==
-    ...
-"User" -> "$pc" : GET /api/v1/Pipeline/executionStatus/{pipelineId}
-
 @enduml
