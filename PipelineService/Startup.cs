@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Hangfire;
-using Hangfire.LiteDB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -40,16 +38,6 @@ namespace PipelineService
 						.AllowAnyMethod()
 						.AllowAnyHeader());
 			});
-
-			// Configuring Hangfire services
-			services.AddHangfire(configuration =>
-			{
-				configuration
-					.UseSimpleAssemblyNameTypeSerializer()
-					.UseRecommendedSerializerSettings()
-					.UseLiteDbStorage("hangfire.db");
-			});
-			services.AddHangfireServer();
 
 			// configuring Neo4j connection
 			services.AddSingleton<IGraphClient>(new GraphClient(
@@ -105,7 +93,6 @@ namespace PipelineService
 					// swagger UI at root
 					c.RoutePrefix = string.Empty;
 				});
-				app.UseHangfireDashboard();
 			}
 			else
 			{

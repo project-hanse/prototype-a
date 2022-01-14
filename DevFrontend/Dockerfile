@@ -1,6 +1,8 @@
 # Build
 FROM node:16-alpine as build-step
 
+ARG NG_CONFIG=production
+
 RUN npm install -g @angular/cli
 
 WORKDIR /app
@@ -12,7 +14,7 @@ RUN npm ci
 
 COPY . /app
 
-RUN ng build --output-path=./dist/out  --output-hashing=all --configuration production
+RUN ng build --output-path=./dist/out --configuration ${NG_CONFIG}
 
 # Deployment
 

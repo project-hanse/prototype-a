@@ -1,0 +1,41 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+title ** Automated Pipeline Generation **
+
+!select = "Select initial datasets"
+!get_ops = "Get operation suggestions"
+!add_op = "Add operation to pipeline"
+!validate = "Validate pipeline"
+!perplexity = "Calculate perplexity"
+!execute = "Execute pipeline"
+!next = "Generate next pipeline"
+'
+'(*) --> "select"
+'"select" --> "get_ops"
+'"get_ops" --> "add_op"
+'"add_op" --> "validate"
+'
+'partition "Validation Steps" {
+'	"validate" -right-> "perplexity"
+'	"perplexity" --> "execute"
+'	"execute" --> "..."
+'}
+'
+
+start
+:select;
+
+repeat :get_ops;
+	:add_op;
+	if (Is pipeline not valid?) then
+		:Revert last operation;
+	endif
+repeat while (Is pipeline complete?) is (No) not (Yes)
+
+if (Is pipeline computable?) is (Yes) then
+:Update Model;
+endif
+stop
+
+@enduml

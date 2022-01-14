@@ -1,8 +1,8 @@
 export const environment = {
 	production: true,
-	pipelineApi: '/api/pipeline',
-	datasetApi: '/api/dataset',
-	filesApi: '/api/files', // TODO: change to /api/file/ and update edge server config
+	pipelineApi: 'https://hanse.allteams.at/api/pipeline',
+	datasetApi: 'https://hanse.allteams.at/api/dataset',
+	filesApi: 'https://hanse.allteams.at/api/files', // TODO: change to /api/file/ and update edge server config
 	messageBrokerHost: 'hanse.allteams.at',
 	messageBrokerPath: '/mqtt',
 	messageBrokerPort: 443
