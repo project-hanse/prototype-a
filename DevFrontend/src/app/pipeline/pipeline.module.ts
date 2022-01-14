@@ -1,6 +1,7 @@
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {CoreModule} from '../core/core.module';
+import {UtilsModule} from '../utils/utils.module';
 import {OperationConfigEditorComponent} from './operation-config-editor/operation-config-editor.component';
 import {OperationResultPreviewComponent} from './operation-result-preview/operation-result-preview.component';
 import {PipelineCreateComponent} from './pipeline-create/pipeline-create.component';
@@ -27,7 +28,8 @@ import {PipelineToolboxComponent} from './pipeline-toolbox/pipeline-toolbox.comp
 	imports: [
 		CommonModule,
 		PipelineRoutingModule,
-		CoreModule
+		CoreModule,
+		UtilsModule
 	]
 })
 export class PipelineModule {

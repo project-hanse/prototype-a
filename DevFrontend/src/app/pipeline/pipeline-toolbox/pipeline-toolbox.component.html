@@ -1,9 +1,7 @@
 <mat-card>
-	<mat-card-header>
-		<mat-card-title *ngIf="subtitle">
-			{{subtitle}}
-		</mat-card-title>
-	</mat-card-header>
+
+	<ph-pipeline-title *ngIf="pipelineInfoDto" [pipeline]="pipelineInfoDto"></ph-pipeline-title>
+
 	<mat-card-content>
 		<mat-tab-group>
 			<mat-tab label="Operations">
@@ -20,7 +18,8 @@
 				<!-- Operations -->
 				<div class="scrollable-content-wrapper">
 					<ng-container *ngIf="getOperationTemplates() | async as operationTemplateGroups">
-						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups" [disabled]="selectedOperationIds.length === 0">
+						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups"
+														 [disabled]="selectedOperationIds.length === 0">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
 								<button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"

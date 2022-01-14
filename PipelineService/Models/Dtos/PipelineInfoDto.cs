@@ -7,5 +7,7 @@ namespace PipelineService.Models.Dtos
 		public Guid Id { get; set; }
 		public string Name { get; set; }
 		public DateTime CreatedOn { get; set; }
+		public DateTime? ChangedOn { get; set; }
+		public string UserIdentifier { get; set; }
 	}
 }
