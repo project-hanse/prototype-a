@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
-using Neo4jClient.Extensions;
 using Newtonsoft.Json;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
@@ -115,6 +114,20 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Loaded pipeline info {PipelineId}", pipeline.Id);
 
 			return pipeline;
+		}
+
+		public async Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto)
+		{
+			_logger.LogDebug("Updating pipeline {PipelineId}", pipelineDto.Id);
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Merge(path => path.Pattern<Pipeline>("p").Constrain(n => n.Id == pipelineDto.Id))
+				.Set("p", () => pipelineDto)
+				.ExecuteWithoutResultsAsync();
+
+			_logger.LogInformation("Updated pipeline {PipelineId}", pipelineDto.Id);
+			return await GetInfoDto(pipelineDto.Id);
 		}
 
 		public async Task<IList<PipelineInfoDto>> GetDtos(string userIdentifier = default)

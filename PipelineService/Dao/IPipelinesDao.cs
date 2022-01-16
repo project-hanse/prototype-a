@@ -23,6 +23,8 @@ namespace PipelineService.Dao
 
 		Task<PipelineInfoDto> GetInfoDto(Guid pipelineId);
 
+		Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto);
+
 		Task<IList<PipelineInfoDto>> GetDtos(string userIdentifier = default);
 
 		/// <summary>

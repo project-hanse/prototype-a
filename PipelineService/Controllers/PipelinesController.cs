@@ -64,6 +64,24 @@ namespace PipelineService.Controllers
 			return Ok(pipelineDto);
 		}
 
+		[HttpPost("{pipelineId:Guid}")]
+		public async Task<IActionResult> UpdatePipeline(Guid pipelineId, [FromBody] PipelineInfoDto pipelineDto)
+		{
+			if (pipelineId != pipelineDto.Id)
+			{
+				return BadRequest("The pipeline id in the request body does not match the id in the url");
+			}
+
+			var updatedPipelineDto = await _pipelineExecutionService.UpdatePipeline(pipelineDto);
+
+			if (updatedPipelineDto == null)
+			{
+				return NotFound($"No pipeline with id {pipelineId} exists");
+			}
+
+			return Ok(updatedPipelineDto);
+		}
+
 		[HttpGet("vis/{pipelineId:Guid}")]
 		public async Task<IActionResult> GetPipelineForVisualization(Guid pipelineId)
 		{

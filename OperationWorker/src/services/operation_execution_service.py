@@ -164,6 +164,9 @@ class OperationExecutionService:
 			self.file_store_client.store_file(dataset)
 		elif dataset.get_type() == DatasetType.Prophet:
 			self.dataset_client.store_prophet_model_by_key(dataset.key, data)
+		elif dataset.get_type() == DatasetType.File:
+			self.file_store_client.store_file(dataset)
 		# TODO: implement remaining dataset types
 		else:
+			logging.error("%s is not a supported type" % dataset.get_type())
 			raise NotImplemented("%s is not a supported type" % dataset.get_type())

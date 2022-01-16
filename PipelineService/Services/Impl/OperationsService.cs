@@ -100,18 +100,13 @@ namespace PipelineService.Services.Impl
 			if (request.PredecessorOperationIds.Count == 0)
 			{
 				_logger.LogDebug("Detected no predecessor nodes");
-				newOperation = new Operation
+				newOperation.Inputs.Clear();
+				newOperation.Inputs.Add(new Dataset
 				{
-					Inputs =
-					{
-						new Dataset
-						{
-							Type = DatasetType.File,
-							Store = request.Options["objectBucket"],
-							Key = request.Options["objectKey"]
-						}
-					}
-				};
+					Type = DatasetType.File,
+					Store = request.Options["objectBucket"],
+					Key = request.Options["objectKey"]
+				});
 				await _pipelinesDao.CreateRootOperation(request.PipelineId, newOperation);
 			}
 			else if (request.PredecessorOperationIds.Count == 1)

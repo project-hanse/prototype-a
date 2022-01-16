@@ -31,6 +31,13 @@ namespace PipelineService.Services
 		Task<PipelineInfoDto> GetPipelineInfoDto(Guid id);
 
 		/// <summary>
+		/// Updates a pipeline.
+		/// </summary>
+		/// <param name="pipelineDto">The pipeline model used for the update.</param>
+		/// <returns>The updated pipeline model</returns>
+		Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto);
+
+		/// <summary>
 		/// Builds a DTO that represents a pipeline that can be used in a nis network for visualization of
 		/// the pipeline graph.
 		/// </summary>

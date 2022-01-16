@@ -1,0 +1,12 @@
+<ng-container *ngIf="pipeline">
+	<p *ngIf="!editMode" (click)="nameClicked()">
+		<b>{{pipeline.name}}</b>
+	</p>
+
+	<form (submit)="onSubmit($event, pipeline)">
+		<mat-form-field appearance="fill" *ngIf="editMode">
+			<mat-label>Pipeline Name</mat-label>
+			<input matInput placeholder="Give your pipeline a name" [(ngModel)]="pipeline.name">
+		</mat-form-field>
+	</form>
+</ng-container>

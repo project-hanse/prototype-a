@@ -61,6 +61,12 @@ namespace PipelineService.Services.Impl
 			return await _pipelinesDao.GetInfoDto(id);
 		}
 
+		public async Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto)
+		{
+			pipelineDto.ChangedOn = DateTime.UtcNow;
+			return await _pipelinesDao.UpdatePipeline(pipelineDto);
+		}
+
 		public async Task<PipelineVisualizationDto> GetPipelineForVisualization(Guid pipelineId)
 		{
 			var dto = await _pipelinesDao.GetVisDto(pipelineId);

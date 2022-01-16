@@ -24,6 +24,10 @@ export class PipelineService extends BaseHttpService {
 		return super.get(id);
 	}
 
+	public update(pipeline: PipelineInfoDto): Observable<PipelineInfoDto> {
+		return this.httpClient.post<PipelineInfoDto>(this.getPipelinesUrl(pipeline.id), pipeline);
+	}
+
 	public generateNew(): Observable<number> {
 		return super.get('create/defaults');
 	}

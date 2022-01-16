@@ -3,14 +3,17 @@ import {NgModule} from '@angular/core';
 import {NgxFileDropModule} from 'ngx-file-drop';
 import {CoreModule} from '../core/core.module';
 import {FilesUploadComponent} from './files-upload/files-upload.component';
+import { PipelineTitleComponent } from './pipeline-title/pipeline-title.component';
 
 
 @NgModule({
 	declarations: [
-		FilesUploadComponent
+		FilesUploadComponent,
+  PipelineTitleComponent
 	],
 	exports: [
-		FilesUploadComponent
+		FilesUploadComponent,
+		PipelineTitleComponent
 	],
 	imports: [
 		CommonModule,

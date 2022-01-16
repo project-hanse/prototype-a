@@ -76,7 +76,9 @@ namespace PipelineService.Dao.Impl
 			{
 				Id = pipeline.Id,
 				Name = pipeline.Name,
-				CreatedOn = pipeline.CreatedOn
+				CreatedOn = pipeline.CreatedOn,
+				ChangedOn = pipeline.ChangedOn,
+				UserIdentifier = pipeline.UserIdentifier
 			};
 		}
 

@@ -15,8 +15,7 @@
 
 		<ph-pipeline-execution-log [pipelineId]="pipeline.id"></ph-pipeline-execution-log>
 
-		<ph-pipeline-toolbox [pipelineId]="pipeline.id"
-												 [subtitle]="pipeline.name"
+		<ph-pipeline-toolbox [pipelineInfoDto]="pipeline"
 												 (pipelineChanged)="pipelineNodeView.displayPipeline($event);"
 												 #toolbox></ph-pipeline-toolbox>
 

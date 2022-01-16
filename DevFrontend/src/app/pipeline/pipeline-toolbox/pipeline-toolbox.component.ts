@@ -7,6 +7,7 @@ import {FilesService} from '../../utils/_services/files.service';
 import {AddOperationRequest} from '../_model/add-operation-request';
 import {DatasetType} from '../_model/dataset';
 import {OperationTemplate, OperationTemplateGroup} from '../_model/operation-template';
+import {PipelineInfoDto} from '../_model/pipeline';
 import {RemoveOperationsRequest} from '../_model/remove-operations-request';
 import {VisualizationOperationDto} from '../_model/visualization-operation-dto';
 import {VisualizationPipelineDto} from '../_model/visualization-pipeline.dto';
@@ -19,6 +20,7 @@ import {OperationsService} from '../_service/operations.service';
 	styleUrls: ['./pipeline-toolbox.component.scss']
 })
 export class PipelineToolboxComponent implements OnInit, OnDestroy {
+	private titleClicked: boolean = false;
 
 	constructor(private operationsService: OperationTemplatesService,
 							private nodeService: OperationsService,
@@ -28,10 +30,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	@Input()
-	public subtitle?: string;
-
-	@Input()
-	public pipelineId: string;
+	public pipelineInfoDto?: PipelineInfoDto;
 
 	@Input()
 	public selectedOperationIds: Array<string> = [];
@@ -132,7 +131,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	onAddNode(operation: OperationTemplate): void {
 		const request: AddOperationRequest = {
-			pipelineId: this.pipelineId,
+			pipelineId: this.pipelineInfoDto.id,
 			operationTemplate: operation,
 			predecessorOperationIds: this.selectedOperationIds
 		};
@@ -149,7 +148,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	onRemoveNodes(): void {
 		const request: RemoveOperationsRequest = {
-			pipelineId: this.pipelineId,
+			pipelineId: this.pipelineInfoDto.id,
 			operationIdsToBeRemoved: this.selectedOperationIds
 		};
 		this.subscriptions.add(
@@ -168,7 +167,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 			return;
 		}
 		const request: AddOperationRequest = {
-			pipelineId: this.pipelineId,
+			pipelineId: this.pipelineInfoDto.id,
 			predecessorOperationIds: [],
 			operationTemplate: PipelineToolboxComponent.getFileInputOperation(userFile),
 			options: {
@@ -206,5 +205,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 			return false;
 		}
 		return userFile.fileName.toLowerCase().includes(this.filesSearchText.toLowerCase());
+	}
+
+	titleClick(): void {
+		console.log('Hi');
+		this.titleClicked = true;
 	}
 }
