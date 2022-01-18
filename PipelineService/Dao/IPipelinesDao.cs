@@ -59,7 +59,7 @@ namespace PipelineService.Dao
 
 		Task DeleteOperation(Guid operationId);
 
-		Task<IList<OperationTupleSingleInput>> GetTuplesSingleInput();
+		Task<IList<OperationTuples>> GetOperationTuples();
 
 		/// <summary>
 		/// Loads a dto representing a pipeline in a format that can be directly plugged into the

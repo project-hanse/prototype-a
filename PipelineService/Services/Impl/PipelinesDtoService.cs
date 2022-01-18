@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Dao;
@@ -17,20 +16,10 @@ namespace PipelineService.Services.Impl
 			_pipelinesExecutionDao = pipelinesExecutionDao;
 		}
 
-		public async Task<IList<OperationTupleSingleInput>> GetSingleInputNodeTuples()
+		public async Task<IList<OperationTuples>> GetOperationTuples()
 		{
 			// TODO: check if pipeline has been successfully executed
-			return await _pipelinesesDao.GetTuplesSingleInput();
-		}
-
-		public Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples()
-		{
-			throw new NotImplementedException();
-		}
-
-		public Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples(Guid pipelineId)
-		{
-			throw new NotImplementedException();
+			return await _pipelinesesDao.GetOperationTuples();
 		}
 	}
 }

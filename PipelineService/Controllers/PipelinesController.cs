@@ -107,19 +107,13 @@ namespace PipelineService.Controllers
 			return Ok(execution);
 		}
 
-		[HttpGet("tuples/single")]
-		public async Task<IActionResult> GetTuplesSingleInput()
+		[HttpGet("tuples")]
+		public async Task<IActionResult> GetOperationTuples()
 		{
-			var tuples = (await _pipelinesDtoService.GetSingleInputNodeTuples())
-				.OrderBy(t => t.Description)
+			var tuples = (await _pipelinesDtoService.GetOperationTuples())
+				.OrderBy(t => t.TupleDescription)
 				.ToList();
 			return Ok(tuples);
-		}
-
-		[HttpGet("tuples/double")]
-		public async Task<IActionResult> GetTuplesDoubleInput()
-		{
-			return Ok(await _pipelinesDtoService.GetDoubleInputNodeTuples());
 		}
 	}
 }

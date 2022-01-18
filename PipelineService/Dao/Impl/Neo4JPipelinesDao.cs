@@ -280,32 +280,32 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Deleted operation {OperationId}", operationId);
 		}
 
-		public async Task<IList<OperationTupleSingleInput>> GetTuplesSingleInput()
+		public async Task<IList<OperationTuples>> GetOperationTuples()
 		{
 			_logger.LogDebug("Loading all tuples of single input operations");
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var results = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
-					.Match(path => path.Pattern<Operation, Operation>("predecessor", "successor"))
-					.Return(() => new
-					{
-						predecessor = Return.As<Operation>("operationNode"),
-						successor = Return.As<Operation>("successor"),
-					})
-					.ResultsAsync)
-				.Select(tuple => new OperationTupleSingleInput
+			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(path => path.Pattern<Operation, Operation>("predecessor", "target"))
+				.Return(() => new
 				{
-					Description = $"{tuple.predecessor.OperationIdentifier} -> {tuple.successor.OperationIdentifier}",
-					NodeId = tuple.predecessor.Id,
-					OperationId = tuple.predecessor.OperationId,
-					OperationIdentifier = tuple.predecessor.OperationIdentifier,
-					OperationConfiguration = tuple.predecessor.OperationConfiguration,
-					OperationInputs = tuple.predecessor.Inputs,
-					OperationOutput = tuple.successor.Output,
-					TargetNodeId = tuple.successor.Id,
-					TargetOperation = tuple.successor.OperationIdentifier,
-					TargetOperationId = tuple.successor.OperationId
+					predecessor = Return.As<Operation>("predecessor"),
+					target = Return.As<Operation>("target"),
+				});
+
+			var results = (await query.ResultsAsync)
+				.Select(tuple => new OperationTuples
+				{
+					TupleDescription = $"{tuple.predecessor.OperationIdentifier} -> {tuple.target.OperationIdentifier}",
+					PredecessorOperationId = tuple.predecessor.OperationId,
+					PredecessorOperationIdentifier = tuple.predecessor.OperationIdentifier,
+					PredecessorOperationConfiguration = tuple.predecessor.OperationConfiguration,
+					PredecessorOperationInputs = tuple.predecessor.Inputs,
+					PredecessorOperationOutput = tuple.predecessor.Output,
+					TargetOperationId = tuple.target.OperationId,
+					TargetOperationIdentifier = tuple.target.OperationIdentifier,
+					TargetInputs = tuple.target.Inputs,
 				})
 				.ToList();
 
