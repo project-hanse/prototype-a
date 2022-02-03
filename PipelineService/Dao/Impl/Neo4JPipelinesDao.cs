@@ -298,13 +298,11 @@ namespace PipelineService.Dao.Impl
 				.Select(tuple => new OperationTuples
 				{
 					TupleDescription = $"{tuple.predecessor.OperationIdentifier} -> {tuple.target.OperationIdentifier}",
-					PredecessorOperationId = tuple.predecessor.OperationId,
-					PredecessorOperationIdentifier = tuple.predecessor.OperationIdentifier,
+					PredecessorOperationIdentifier = $"{tuple.predecessor.OperationId}-{tuple.predecessor.OperationIdentifier}",
 					PredecessorOperationConfiguration = tuple.predecessor.OperationConfiguration,
 					PredecessorOperationInputs = tuple.predecessor.Inputs,
 					PredecessorOperationOutput = tuple.predecessor.Output,
-					TargetOperationId = tuple.target.OperationId,
-					TargetOperationIdentifier = tuple.target.OperationIdentifier,
+					TargetOperationIdentifier = $"{tuple.target.OperationId}-{tuple.target.OperationIdentifier}",
 					TargetInputs = tuple.target.Inputs,
 				})
 				.ToList();
