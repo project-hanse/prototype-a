@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -132,7 +131,6 @@ namespace PipelineService.Controllers
 
 			ret.CreatedBy = HttpContext.GetUsernameFromBasicAuthHeader();
 
-			Response.Clear();
 			var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(ret));
 			await using var stream = new MemoryStream(bytes);
 			Response.Headers.Add("Content-Disposition", $"attachment; pipeline-export-{pipelineId}.json");
