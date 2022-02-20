@@ -115,5 +115,18 @@ namespace PipelineService.Controllers
 				.ToList();
 			return Ok(tuples);
 		}
+
+		[HttpGet("export/{pipelineId:Guid}")]
+		public async Task<IActionResult> ExportPipeline(Guid pipelineId)
+		{
+			var ret = await _pipelinesDtoService.ExportPipeline(pipelineId);
+			if (ret == null)
+			{
+				return NotFound();
+			}
+
+			ret.CreatedBy = HttpContext.GetUsernameFromBasicAuthHeader();
+			return Ok(ret);
+		}
 	}
 }

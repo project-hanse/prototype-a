@@ -402,5 +402,45 @@ namespace PipelineService.Dao.Impl
 
 			return datasets;
 		}
+
+		public async Task<PipelineExport> ExportPipeline(Guid pipelineId)
+		{
+			_logger.LogDebug("Exporting pipeline {PipelineId}", pipelineId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(op => op.Pattern("op"))
+				.Where((Operation op) => op.PipelineId == pipelineId)
+				.Match("(op)-[rl]->()")
+				.Match(ppl => ppl.Pattern("ppl"))
+				.Where((Pipeline ppl) => ppl.Id == pipelineId)
+				.Match("(ppl)-[prl]->()")
+				.With("collect(op) as ops, collect(rl) as rls, collect(ppl) as ps, collect(prl) as prls")
+				.Call("apoc.export.json.data(ops, rls , null, {stream: true})")
+				.Yield("data as data_ops")
+				.Call("apoc.export.json.data(ps, prls , null, {stream: true})")
+				.Yield("data as data_ps")
+				.Return(() => new PipelineExport
+				{
+					OperationData = Return.As<string>("data_ops"),
+					PipelineData = Return.As<string>("data_ps")
+				});
+
+			_logger.LogDebug("Exporting with query {ExportQuery}", query.Query.QueryText);
+
+			var results = (await query.ResultsAsync).FirstOrDefault();
+			if (results == default)
+			{
+				_logger.LogInformation("Failed to export pipeline {PipelineId}", pipelineId);
+				return null;
+			}
+
+			results.CreatedOn = DateTime.UtcNow;
+			results.PipelineId = pipelineId;
+
+			_logger.LogInformation("Exported pipeline {PipelineId}", pipelineId);
+
+			return results;
+		}
 	}
 }
