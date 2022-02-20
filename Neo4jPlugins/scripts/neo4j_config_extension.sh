@@ -12,4 +12,4 @@ echo "# Custom Neo4j configurations" >>"$NEO4J_HOME"/conf/neo4j.conf
 echo "#********************************************************************" >>"$NEO4J_HOME"/conf/neo4j.conf
 echo "" >>"$NEO4J_HOME"/conf/neo4j.conf
 echo "apoc.export.file.enabled=true" >>"$NEO4J_HOME"/conf/neo4j.conf
-echo "apoc.import.file.enabled=true" >>"$NEO4J_HOME"/conf/neo4j.conf
+# echo "apoc.import.file.enabled=true" >>"$NEO4J_HOME"/conf/neo4j.conf
