@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
 using PipelineService.Services;
@@ -117,16 +121,24 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpGet("export/{pipelineId:Guid}")]
-		public async Task<IActionResult> ExportPipeline(Guid pipelineId)
+		public async Task ExportPipeline(Guid pipelineId)
 		{
 			var ret = await _pipelinesDtoService.ExportPipeline(pipelineId);
 			if (ret == null)
 			{
-				return NotFound();
+				Response.StatusCode = 404;
+				return;
 			}
 
 			ret.CreatedBy = HttpContext.GetUsernameFromBasicAuthHeader();
-			return Ok(ret);
+
+			Response.Clear();
+			var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(ret));
+			await using var stream = new MemoryStream(bytes);
+			Response.Headers.Add("Content-Disposition", $"attachment; pipeline-export-{pipelineId}.json");
+			Response.Headers.Add("Content-Length", stream.Length.ToString());
+			Response.ContentType = "plain/text";
+			stream.WriteTo(Response.BodyWriter.AsStream());
 		}
 	}
 }
