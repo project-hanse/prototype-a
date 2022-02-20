@@ -7,8 +7,7 @@ namespace PipelineService.Services
 {
 	public interface IPipelinesDtoService
 	{
-		public Task<IList<OperationTupleSingleInput>> GetSingleInputNodeTuples();
-		public Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples();
-		public Task<IList<NodeTupleDoubleInput>> GetDoubleInputNodeTuples(Guid pipelineId);
+		public Task<IList<OperationTuples>> GetOperationTuples();
+		public Task<PipelineExport> ExportPipeline(Guid pipelineId);
 	}
 }

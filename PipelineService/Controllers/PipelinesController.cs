@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
 using PipelineService.Services;
@@ -107,19 +110,33 @@ namespace PipelineService.Controllers
 			return Ok(execution);
 		}
 
-		[HttpGet("tuples/single")]
-		public async Task<IActionResult> GetTuplesSingleInput()
+		[HttpGet("tuples")]
+		public async Task<IActionResult> GetOperationTuples()
 		{
-			var tuples = (await _pipelinesDtoService.GetSingleInputNodeTuples())
-				.OrderBy(t => t.Description)
+			var tuples = (await _pipelinesDtoService.GetOperationTuples())
+				.OrderBy(t => t.TupleDescription)
 				.ToList();
 			return Ok(tuples);
 		}
 
-		[HttpGet("tuples/double")]
-		public async Task<IActionResult> GetTuplesDoubleInput()
+		[HttpGet("export/{pipelineId:Guid}")]
+		public async Task ExportPipeline(Guid pipelineId)
 		{
-			return Ok(await _pipelinesDtoService.GetDoubleInputNodeTuples());
+			var ret = await _pipelinesDtoService.ExportPipeline(pipelineId);
+			if (ret == null)
+			{
+				Response.StatusCode = 404;
+				return;
+			}
+
+			ret.CreatedBy = HttpContext.GetUsernameFromBasicAuthHeader();
+
+			var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(ret));
+			await using var stream = new MemoryStream(bytes);
+			Response.Headers.Add("Content-Disposition", $"attachment; pipeline-export-{pipelineId}.json");
+			Response.Headers.Add("Content-Length", stream.Length.ToString());
+			Response.ContentType = "plain/text";
+			stream.WriteTo(Response.BodyWriter.AsStream());
 		}
 	}
 }

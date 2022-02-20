@@ -21,6 +21,11 @@ namespace PipelineService.Dao
 		/// <returns>A list of all pipelines that have been created.</returns>
 		Task<IList<Pipeline>> CreatePipelines(IList<Pipeline> pipelines);
 
+		/// <summary>
+		/// Loads the info dto for a pipeline.
+		/// </summary>
+		/// <param name="pipelineId">The pipeline's id</param>
+		/// <returns>The pipeline's into dto if pipeline exists, otherwise null.</returns>
 		Task<PipelineInfoDto> GetInfoDto(Guid pipelineId);
 
 		Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto);
@@ -59,7 +64,7 @@ namespace PipelineService.Dao
 
 		Task DeleteOperation(Guid operationId);
 
-		Task<IList<OperationTupleSingleInput>> GetTuplesSingleInput();
+		Task<IList<OperationTuples>> GetOperationTuples();
 
 		/// <summary>
 		/// Loads a dto representing a pipeline in a format that can be directly plugged into the
@@ -70,5 +75,6 @@ namespace PipelineService.Dao
 		Task<PipelineVisualizationDto> GetVisDto(Guid pipelineId);
 
 		Task<IList<Dataset>> GetOutputDatasets(IList<Guid> operationIds);
+		Task<PipelineExport> ExportPipeline(Guid pipelineId);
 	}
 }
