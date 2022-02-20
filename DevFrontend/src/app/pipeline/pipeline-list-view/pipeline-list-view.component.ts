@@ -1,6 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Observable, Subscription} from 'rxjs';
-import {map} from 'rxjs/operators';
 import {Pipeline} from '../_model/pipeline';
 import {PipelineService} from '../_service/pipeline.service';
 
@@ -30,5 +29,9 @@ export class PipelineListViewComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy(): void {
 		this.subscriptions.unsubscribe();
+	}
+
+	getDownloadLink(id: string): string {
+		return this.pipelineService.getPipelineDownloadLink(id);
 	}
 }

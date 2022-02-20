@@ -8,9 +8,9 @@
 
     <ItemGroup>
         <PackageReference Include="AspNetCore.HealthChecks.Aws.S3" Version="6.0.1" />
-        <PackageReference Include="AWSSDK.S3" Version="3.7.7.10" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.1" NoWarn="NU1605" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.1" NoWarn="NU1605" />
+        <PackageReference Include="AWSSDK.S3" Version="3.7.7.21" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.2" NoWarn="NU1605" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.2" NoWarn="NU1605" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     </ItemGroup>
 

@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10.2-slim
 # Alpine isn't used here intentionally because especially with python there are often major issues when compiling dependencies
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 

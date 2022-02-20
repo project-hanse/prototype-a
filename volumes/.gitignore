@@ -2,4 +2,4 @@
 ./mosquitto/data
 ./edge-server/logs
 ./edge-server/etc/apache2/.htpasswd
-./neo4j/**/*
+neo4j/**/**/*

@@ -280,32 +280,30 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Deleted operation {OperationId}", operationId);
 		}
 
-		public async Task<IList<OperationTupleSingleInput>> GetTuplesSingleInput()
+		public async Task<IList<OperationTuples>> GetOperationTuples()
 		{
 			_logger.LogDebug("Loading all tuples of single input operations");
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var results = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
-					.Match(path => path.Pattern<Operation, Operation>("predecessor", "successor"))
-					.Return(() => new
-					{
-						predecessor = Return.As<Operation>("operationNode"),
-						successor = Return.As<Operation>("successor"),
-					})
-					.ResultsAsync)
-				.Select(tuple => new OperationTupleSingleInput
+			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(path => path.Pattern<Operation, Operation>("predecessor", "target"))
+				.Return(() => new
 				{
-					Description = $"{tuple.predecessor.OperationIdentifier} -> {tuple.successor.OperationIdentifier}",
-					NodeId = tuple.predecessor.Id,
-					OperationId = tuple.predecessor.OperationId,
-					OperationIdentifier = tuple.predecessor.OperationIdentifier,
-					OperationConfiguration = tuple.predecessor.OperationConfiguration,
-					OperationInputs = tuple.predecessor.Inputs,
-					OperationOutput = tuple.successor.Output,
-					TargetNodeId = tuple.successor.Id,
-					TargetOperation = tuple.successor.OperationIdentifier,
-					TargetOperationId = tuple.successor.OperationId
+					predecessor = Return.As<Operation>("predecessor"),
+					target = Return.As<Operation>("target"),
+				});
+
+			var results = (await query.ResultsAsync)
+				.Select(tuple => new OperationTuples
+				{
+					TupleDescription = $"{tuple.predecessor.OperationIdentifier} -> {tuple.target.OperationIdentifier}",
+					PredecessorOperationIdentifier = $"{tuple.predecessor.OperationId}-{tuple.predecessor.OperationIdentifier}",
+					PredecessorOperationConfiguration = tuple.predecessor.OperationConfiguration,
+					PredecessorOperationInputs = tuple.predecessor.Inputs,
+					PredecessorOperationOutput = tuple.predecessor.Output,
+					TargetOperationIdentifier = $"{tuple.target.OperationId}-{tuple.target.OperationIdentifier}",
+					TargetInputs = tuple.target.Inputs,
 				})
 				.ToList();
 
@@ -403,6 +401,46 @@ namespace PipelineService.Dao.Impl
 				datasets.Count, operationIds);
 
 			return datasets;
+		}
+
+		public async Task<PipelineExport> ExportPipeline(Guid pipelineId)
+		{
+			_logger.LogDebug("Exporting pipeline {PipelineId}", pipelineId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(op => op.Pattern("op"))
+				.Where((Operation op) => op.PipelineId == pipelineId)
+				.Match("(op)-[rl]->()")
+				.Match(ppl => ppl.Pattern("ppl"))
+				.Where((Pipeline ppl) => ppl.Id == pipelineId)
+				.Match("(ppl)-[prl]->()")
+				.With("collect(op) as ops, collect(rl) as rls, collect(ppl) as ps, collect(prl) as prls")
+				.Call("apoc.export.json.data(ops, rls , null, {stream: true})")
+				.Yield("data as data_ops")
+				.Call("apoc.export.json.data(ps, prls , null, {stream: true, writeNodeProperties: true})")
+				.Yield("data as data_ps")
+				.Return(() => new PipelineExport
+				{
+					OperationData = Return.As<string>("data_ops"),
+					PipelineData = Return.As<string>("data_ps")
+				});
+
+			_logger.LogDebug("Exporting with query {ExportQuery}", query.Query.QueryText);
+
+			var results = (await query.ResultsAsync).FirstOrDefault();
+			if (results == default)
+			{
+				_logger.LogInformation("Failed to export pipeline {PipelineId}", pipelineId);
+				return null;
+			}
+
+			results.CreatedOn = DateTime.UtcNow;
+			results.PipelineId = pipelineId;
+
+			_logger.LogInformation("Exported pipeline {PipelineId}", pipelineId);
+
+			return results;
 		}
 	}
 }
