@@ -418,7 +418,7 @@ namespace PipelineService.Dao.Impl
 				.With("collect(op) as ops, collect(rl) as rls, collect(ppl) as ps, collect(prl) as prls")
 				.Call("apoc.export.json.data(ops, rls , null, {stream: true})")
 				.Yield("data as data_ops")
-				.Call("apoc.export.json.data(ps, prls , null, {stream: true})")
+				.Call("apoc.export.json.data(ps, prls , null, {stream: true, writeNodeProperties: true})")
 				.Yield("data as data_ps")
 				.Return(() => new PipelineExport
 				{
