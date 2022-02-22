@@ -1,27 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PipelineService.Dao;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
 {
 	public class PipelinesDtoService : IPipelinesDtoService
 	{
 		private readonly ILogger<PipelinesDtoService> _logger;
+		private readonly IConfiguration _configuration;
 		private readonly IPipelinesDao _pipelinesDao;
-		private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
 
-		public PipelinesDtoService(ILogger<PipelinesDtoService> logger,
-			IPipelinesDao pipelinesDao,
-			IPipelinesExecutionDao pipelinesExecutionDao)
+		public string DefaultPipelinesPath => Path.Combine(
+			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
+			_configuration.GetValue("DefaultPipelinesFolder", ""));
+
+		public PipelinesDtoService(ILogger<PipelinesDtoService> logger, IConfiguration configuration,
+			IPipelinesDao pipelinesDao)
 		{
 			_logger = logger;
+			_configuration = configuration;
 			_pipelinesDao = pipelinesDao;
-			_pipelinesExecutionDao = pipelinesExecutionDao;
 		}
 
 		public async Task<IList<OperationTuples>> GetOperationTuples()
@@ -41,6 +47,99 @@ namespace PipelineService.Services.Impl
 			}
 
 			return await _pipelinesDao.ExportPipeline(pipelineId);
+		}
+
+		public async Task<Guid> ImportPipeline(PipelineExport exportObject)
+		{
+			Pipeline pipeline = null;
+			var operationIds = new Dictionary<int, Guid>();
+
+			foreach (var line in exportObject.PipelineData.Split('\n'))
+			{
+				// TODO: change this to Regex
+				if (line.Contains("\"type\":\"node\""))
+				{
+					if (line.Contains($"\"{nameof(Pipeline)}\""))
+					{
+						_logger.LogDebug("Skipping pipeline node");
+					}
+					else if (pipeline == null)
+					{
+						_logger.LogWarning(
+							"No pipeline object was found in the export file\nHint: Pipeline objects must occur before operations");
+						throw new InvalidDataException("No pipeline object was found in the export file");
+					}
+					else if (line.Contains($"\"{nameof(Operation)}\""))
+					{
+						_logger.LogDebug("Skipping operation node");
+					}
+				}
+				else if (line.Contains("\"type\":\"relationship\""))
+				{
+					var relationship = JsonConvert.DeserializeObject<Neo4JRelationShip<Pipeline, Operation>>(line);
+					if (pipeline == null)
+					{
+						pipeline = relationship.Start.Properties;
+						pipeline.Id = Guid.NewGuid();
+						_logger.LogDebug("Found pipeline node {OriginalPipelineId} to {NewPipelineId}",
+							relationship.Start.Properties.Id, pipeline.Id);
+						await _pipelinesDao.CreatePipeline(pipeline);
+					}
+
+					var operation = relationship.End.Properties;
+					operation.PipelineId = pipeline.Id;
+					operation.Id = Guid.NewGuid();
+					operationIds.Add(relationship.End.Id, operation.Id);
+					await _pipelinesDao.CreateRootOperation(pipeline.Id, operation);
+				}
+				else
+				{
+					_logger.LogWarning("Found unknown	line in export file ({Line})", line);
+				}
+			}
+
+			if (pipeline == null)
+			{
+				throw new InvalidDataException("No pipeline object found in provided data");
+			}
+
+			var lines = new Queue<string>(exportObject.OperationData.Split('\n'));
+
+			while (lines.Count > 0)
+			{
+				var line = lines.Dequeue();
+				// TODO: change this to Regex
+				if (line.Contains("\"type\":\"node\""))
+				{
+					_logger.LogDebug("Skipping node");
+				}
+				else if (line.Contains("\"type\":\"relationship\""))
+				{
+					var relationship = JsonConvert.DeserializeObject<Neo4JRelationShip<Operation, Operation>>(line);
+					var successor = relationship.End.Properties;
+					successor.Id = Guid.NewGuid();
+					successor.PipelineId = pipeline.Id;
+					if (operationIds.TryGetValue(relationship.Start.Id, out var rootOpId))
+					{
+						await _pipelinesDao.CreateSuccessor(new List<Guid> { rootOpId }, successor);
+						if (!operationIds.TryAdd(relationship.End.Id, successor.Id))
+						{
+							_logger.LogDebug("Duplicate operation id found in export file");
+						}
+					}
+					else
+					{
+						_logger.LogWarning("Could not find predecessors for operation {OperationId}", successor.Id);
+						lines.Enqueue(line);
+					}
+				}
+				else
+				{
+					_logger.LogWarning("Found unknown	line in export file ({Line})", line);
+				}
+			}
+
+			return pipeline.Id;
 		}
 	}
 }
