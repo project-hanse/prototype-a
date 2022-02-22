@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {BaseHttpService} from '../../core/_service/base-http.service';
 import {CreatePipelineFromTemplateRequest} from '../_model/create-pipeline-from-template-request';
 import {CreatePipelineFromTemplateResponse} from '../_model/create-pipeline-from-template-response';
+import {ImportPipelineResponse} from '../_model/import-pipeline-response';
 import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
 import {VisualizationPipelineDto} from '../_model/visualization-pipeline.dto';
 
@@ -50,5 +51,9 @@ export class PipelineService extends BaseHttpService {
 
 	public getPipelineDownloadLink(id: string): string {
 		return this.getPipelinesUrl('export', id);
+	}
+
+	public importPipeline(formData: FormData): Observable<ImportPipelineResponse> {
+		return this.httpClient.post<ImportPipelineResponse>(this.getPipelinesUrl('import'), formData);
 	}
 }

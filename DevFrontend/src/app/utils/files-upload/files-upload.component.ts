@@ -1,6 +1,7 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {NgxFileDropEntry} from 'ngx-file-drop';
-import {Subscription} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
+import {BaseResponse} from '../../core/_model/base-response';
 import {FileInfoDto} from '../../files/_model/file-info-dto';
 import {FilesService} from '../_services/files.service';
 
@@ -10,16 +11,28 @@ import {FilesService} from '../_services/files.service';
 	styleUrls: ['./files-upload.component.scss']
 })
 export class FilesUploadComponent implements OnInit, OnDestroy {
-	@Output()
-	readonly fileUploaded: EventEmitter<FileInfoDto> = new EventEmitter<FileInfoDto>();
+
+	constructor(private filesService: FilesService) {
+	}
+
+	private readonly subscriptions = new Subscription();
 
 	uploading: number = 0;
 	files: NgxFileDropEntry[] = [];
 
-	private readonly subscriptions = new Subscription();
+	@Output()
+	readonly fileUploaded: EventEmitter<FileInfoDto> = new EventEmitter<FileInfoDto>();
 
-	constructor(private filesService: FilesService) {
-	}
+	@Output()
+	readonly uploaded: EventEmitter<BaseResponse> = new EventEmitter<BaseResponse>();
+
+	@Input()
+	uploadText: string = 'Drop files here so they can be used in your pipelines.';
+
+	@Input()
+	public uploadFunction: (formData: FormData) => Observable<BaseResponse | FileInfoDto> = (formData: FormData) => {
+		return this.filesService.uploadFile(formData);
+	};
 
 	ngOnInit(): void {
 	}
@@ -48,16 +61,7 @@ export class FilesUploadComponent implements OnInit, OnDestroy {
 					formData.append('file', file, droppedFile.relativePath);
 					formData.append('fileName', file.name);
 
-					this.subscriptions.add(
-						this.filesService.uploadFile(formData).subscribe(
-							next => {
-								this.uploading--;
-								this.fileUploaded.next(next);
-							},
-							error => {
-								this.uploading--;
-							}
-						));
+					this.subscriptions.add(this.sendToBackend(formData));
 				});
 			} else {
 				// It was a directory (empty directories are added, otherwise only files)
@@ -65,6 +69,25 @@ export class FilesUploadComponent implements OnInit, OnDestroy {
 				console.log(droppedFile.relativePath, fileEntry);
 			}
 		}
+	}
+
+	private sendToBackend(formData: FormData): Subscription {
+		return this.uploadFunction(formData).subscribe(
+			next => {
+				this.uploading--;
+				const f = next as FileInfoDto;
+				if (f) {
+					this.fileUploaded.emit(f);
+				}
+				const r = next as BaseResponse;
+				if (r) {
+					this.uploaded.emit(r);
+				}
+			},
+			error => {
+				this.uploading--;
+			}
+		);
 	}
 
 	public fileOver(event): void {

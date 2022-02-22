@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
@@ -137,6 +138,36 @@ namespace PipelineService.Controllers
 			Response.Headers.Add("Content-Length", stream.Length.ToString());
 			Response.ContentType = "plain/text";
 			stream.WriteTo(Response.BodyWriter.AsStream());
+		}
+
+		[HttpPost("import")]
+		public async Task<IActionResult> Upload([FromForm] UploadFileRequest request)
+		{
+			// TODO: this could be moved to middleware
+			request.UserIdentifier = HttpContext.GetUsernameFromBasicAuthHeader();
+
+			if (request.File == null) return BadRequest();
+
+			var json = await new StreamReader(request.File.OpenReadStream()).ReadToEndAsync();
+
+			if (string.IsNullOrEmpty(json)) return BadRequest(new BaseResponse {
+				Errors =
+				{
+					new Error()
+					{
+						Code = "F400",
+						Message = "No data was found in the file"
+					}
+				}});
+
+			var exportObject = JsonConvert.DeserializeObject<PipelineExport>(json);
+			exportObject.CreatedBy = request.UserIdentifier;
+
+			var pipelineId = await _pipelinesDtoService.ImportPipeline(exportObject);
+			return Ok(new ImportPipelineResponse
+			{
+				PipelineId = pipelineId
+			});
 		}
 	}
 }

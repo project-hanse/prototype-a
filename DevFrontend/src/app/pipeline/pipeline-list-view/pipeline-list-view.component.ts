@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Observable, Subscription} from 'rxjs';
+import {BaseResponse} from '../../core/_model/base-response';
 import {Pipeline} from '../_model/pipeline';
 import {PipelineService} from '../_service/pipeline.service';
 
@@ -12,6 +13,10 @@ export class PipelineListViewComponent implements OnInit, OnDestroy {
 
 	private $pipelines: Observable<Pipeline[]>;
 	private readonly subscriptions: Subscription;
+
+	uploadFunction = (formData: FormData) => {
+		return this.pipelineService.importPipeline(formData);
+	};
 
 	constructor(private pipelineService: PipelineService) {
 		this.subscriptions = new Subscription();
@@ -33,5 +38,9 @@ export class PipelineListViewComponent implements OnInit, OnDestroy {
 
 	getDownloadLink(id: string): string {
 		return this.pipelineService.getPipelineDownloadLink(id);
+	}
+
+	onPipelineImported(response: BaseResponse): void {
+		this.$pipelines = undefined;
 	}
 }
