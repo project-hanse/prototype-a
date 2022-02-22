@@ -415,10 +415,10 @@ namespace PipelineService.Dao.Impl
 				.Match(ppl => ppl.Pattern("ppl"))
 				.Where((Pipeline ppl) => ppl.Id == pipelineId)
 				.Match("(ppl)-[prl]->()")
-				.With("collect(op) as ops, collect(rl) as rls, collect(ppl) as ps, collect(prl) as prls")
-				.Call("apoc.export.json.data(ops, rls , null, {stream: true})")
+				.With("collect(rl) as rls, collect(prl) as prls")
+				.Call("apoc.export.json.data([], rls , null, {stream: true, writeNodeProperties: true})")
 				.Yield("data as data_ops")
-				.Call("apoc.export.json.data(ps, prls , null, {stream: true, writeNodeProperties: true})")
+				.Call("apoc.export.json.data([], prls , null, {stream: true, writeNodeProperties: true})")
 				.Yield("data as data_ps")
 				.Return(() => new PipelineExport
 				{

@@ -1,3 +1,16 @@
 mat-card {
 	margin: 1em;
 }
+
+
+.import-cards {
+	// flex box with 2 children filling the available space and breaking on small screens
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+
+	mat-card {
+		width: calc(50% - 5em);
+		min-width: 300px;
+	}
+}
