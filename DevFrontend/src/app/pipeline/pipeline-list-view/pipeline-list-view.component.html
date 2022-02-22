@@ -1,6 +1,13 @@
-<mat-card>
-	<ph-pipeline-create></ph-pipeline-create>
-</mat-card>
+<div class="import-cards">
+	<mat-card>
+		<ph-pipeline-create></ph-pipeline-create>
+	</mat-card>
+	<mat-card>
+		<ph-files-upload [uploadText]="'Drop an pipeline file here.'"
+										 [uploadFunction]="uploadFunction"
+										 (uploaded)="onPipelineImported($event)"></ph-files-upload>
+	</mat-card>
+</div>
 
 <mat-card>
 	<mat-list *ngIf="getPipelines() | async as pipelines">

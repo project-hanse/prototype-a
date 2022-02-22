@@ -3,7 +3,7 @@ using System.Net;
 
 namespace PipelineService.Models.Dtos
 {
-	public abstract class BaseResponse
+	public class BaseResponse
 	{
 		public bool Success { get; set; }
 		public HttpStatusCode StatusCode { get; set; }
