@@ -81,6 +81,8 @@ namespace PipelineService.Services.Impl
 					{
 						pipeline = relationship.Start.Properties;
 						pipeline.Id = Guid.NewGuid();
+						pipeline.CreatedOn = DateTime.UtcNow;
+						pipeline.UserIdentifier = exportObject.CreatedBy;
 						_logger.LogDebug("Found pipeline node {OriginalPipelineId} to {NewPipelineId}",
 							relationship.Start.Properties.Id, pipeline.Id);
 						await _pipelinesDao.CreatePipeline(pipeline);
@@ -117,7 +119,16 @@ namespace PipelineService.Services.Impl
 				{
 					var relationship = JsonConvert.DeserializeObject<Neo4JRelationShip<Operation, Operation>>(line);
 					var successor = relationship.End.Properties;
-					successor.Id = Guid.NewGuid();
+					if (operationIds.TryGetValue(relationship.End.Id, out var existingId))
+					{
+						_logger.LogDebug("Found existing operation {OperationId}", existingId);
+						successor.Id = existingId;
+					}
+					else
+					{
+						successor.Id = Guid.NewGuid();
+					}
+
 					successor.PipelineId = pipeline.Id;
 					if (operationIds.TryGetValue(relationship.Start.Id, out var rootOpId))
 					{
