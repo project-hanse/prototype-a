@@ -3,7 +3,7 @@ import {RouterModule, Routes} from '@angular/router';
 
 const routes: Routes = [
 	{
-		path: 'pipelineId',
+		path: 'pipeline',
 		loadChildren: () => import('./pipeline/pipeline.module').then(m => m.PipelineModule)
 	},
 	{
@@ -16,7 +16,7 @@ const routes: Routes = [
 	},
 	{
 		path: '',
-		redirectTo: 'pipelineId'
+		redirectTo: 'pipeline'
 	}
 ];
 
