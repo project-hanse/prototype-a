@@ -12,6 +12,7 @@ import {PipelineListViewComponent} from './pipeline-list-view/pipeline-list-view
 
 import {PipelineRoutingModule} from './pipeline-routing.module';
 import {PipelineToolboxComponent} from './pipeline-toolbox/pipeline-toolbox.component';
+import {PipelineExportComponent} from './util-components/pipeline-export/pipeline-export.component';
 
 
 @NgModule({
@@ -23,7 +24,8 @@ import {PipelineToolboxComponent} from './pipeline-toolbox/pipeline-toolbox.comp
 		PipelineToolboxComponent,
 		OperationResultPreviewComponent,
 		OperationConfigEditorComponent,
-		PipelineCreateComponent
+		PipelineCreateComponent,
+		PipelineExportComponent
 	],
 	imports: [
 		CommonModule,
