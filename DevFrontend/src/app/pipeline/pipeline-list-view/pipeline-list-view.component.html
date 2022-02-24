@@ -18,7 +18,7 @@
 				<a [routerLink]="[pipeline.id]">{{pipeline.name}}</a>
 			</div>
 			<div mat-line> {{pipeline.createdOn | date: 'medium'}} </div>
-			<ph-pipeline-export [pipelineId]="pipeline.id" [compact]="true"></ph-pipeline-export>
+			<ph-pipeline-export style="opacity: 0.66" [pipelineId]="pipeline.id" [compact]="true"></ph-pipeline-export>
 		</mat-list-item>
 
 		<mat-list-item *ngIf="pipelines.length === 0">

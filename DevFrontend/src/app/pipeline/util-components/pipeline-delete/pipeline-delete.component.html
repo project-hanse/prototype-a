@@ -1,0 +1,8 @@
+<button mat-button
+				color="warn"
+				*ngIf="pipelineId"
+				matTooltip="Delete pipeline"
+				(click)="deletePipeline(pipelineId)">
+	<mat-icon>delete</mat-icon>
+	<span *ngIf="!compact">Delete</span>
+</button>

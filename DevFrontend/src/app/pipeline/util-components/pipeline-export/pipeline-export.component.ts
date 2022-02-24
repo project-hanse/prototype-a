@@ -8,7 +8,7 @@ import {PipelineService} from '../../_service/pipeline.service';
 })
 export class PipelineExportComponent implements OnInit {
 
-	@Input() pipelineId: string;
+	@Input() pipelineId?: string;
 	@Input() compact: boolean = false;
 
 	constructor(private pipelineService: PipelineService) {
