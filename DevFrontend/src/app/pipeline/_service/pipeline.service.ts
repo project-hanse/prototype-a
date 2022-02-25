@@ -56,4 +56,8 @@ export class PipelineService extends BaseHttpService {
 	public importPipeline(formData: FormData): Observable<ImportPipelineResponse> {
 		return this.httpClient.post<ImportPipelineResponse>(this.getPipelinesUrl('import'), formData);
 	}
+
+	public deletePipeline(pipelineId: string): Observable<PipelineInfoDto> {
+		return this.httpClient.delete<PipelineInfoDto>(this.getPipelinesUrl(pipelineId));
+	}
 }

@@ -116,6 +116,30 @@ namespace PipelineService.Dao.Impl
 			return pipeline;
 		}
 
+		public async Task<bool> DeletePipeline(Guid pipelineId)
+		{
+			_logger.LogDebug("Deleting pipeline {PipelineId}", pipelineId);
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+			try
+			{
+				await _graphClient
+					.WithAnnotations<PipelineContext>().Cypher
+					.Match(path => path.Pattern<Pipeline>("pipeline")
+						.Constrain(p => p.Id == pipelineId))
+					.Match(path => path.Pattern<Operation>("operation")
+						.Constrain(o => o.PipelineId == pipelineId))
+					.DetachDelete("pipeline, operation")
+					.ExecuteWithoutResultsAsync();
+			}
+			catch (Exception e)
+			{
+				_logger.LogWarning(e, "Failed to delete pipeline {PipelineId}", pipelineId);
+				return false;
+			}
+
+			return true;
+		}
+
 		public async Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto)
 		{
 			_logger.LogDebug("Updating pipeline {PipelineId}", pipelineDto.Id);

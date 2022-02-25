@@ -61,6 +61,29 @@ namespace PipelineService.Services.Impl
 			return await _pipelinesDao.GetInfoDto(id);
 		}
 
+		public async Task<PipelineInfoDto> DeletePipeline(Guid pipelineId)
+		{
+			_logger.LogDebug("Deleting pipeline {PipelineId}", pipelineId);
+			var pipelineDto = await GetPipelineInfoDto(pipelineId);
+			if (pipelineDto == null)
+			{
+				_logger.LogInformation("Could not delete pipeline {PipelineId}, because it does not exist", pipelineId);
+				return null;
+			}
+
+			var deleted = await _pipelinesDao.DeletePipeline(pipelineId);
+			if (deleted)
+			{
+				_logger.LogInformation("Deleted pipeline {PipelineId}", pipelineId);
+			}
+			else
+			{
+				_logger.LogInformation("Failed to delete pipeline {PipelineId}", pipelineId);
+			}
+
+			return pipelineDto;
+		}
+
 		public async Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto)
 		{
 			pipelineDto.ChangedOn = DateTime.UtcNow;

@@ -28,6 +28,13 @@ namespace PipelineService.Dao
 		/// <returns>The pipeline's into dto if pipeline exists, otherwise null.</returns>
 		Task<PipelineInfoDto> GetInfoDto(Guid pipelineId);
 
+		/// <summary>
+		/// Delete a pipeline.
+		/// </summary>
+		/// <param name="pipelineId">The pipeline's id.</param>
+		/// <returns>True if the pipeline was deleted, otherwise false.</returns>
+		Task<bool> DeletePipeline(Guid pipelineId);
+
 		Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto);
 
 		Task<IList<PipelineInfoDto>> GetDtos(string userIdentifier = default);

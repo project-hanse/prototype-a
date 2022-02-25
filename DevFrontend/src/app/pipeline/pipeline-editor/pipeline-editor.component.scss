@@ -61,3 +61,13 @@ ph-pipeline-execution-log {
 		height: 350px;
 	}
 }
+
+mat-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 -0.5em;
+}
+
+mat-toolbar > * {
+	margin: 0 0.5em;
+}

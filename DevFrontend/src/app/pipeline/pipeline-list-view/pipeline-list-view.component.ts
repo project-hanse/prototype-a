@@ -16,7 +16,7 @@ export class PipelineListViewComponent implements OnInit, OnDestroy {
 
 	uploadFunction = (formData: FormData) => {
 		return this.pipelineService.importPipeline(formData);
-	};
+	}
 
 	constructor(private pipelineService: PipelineService) {
 		this.subscriptions = new Subscription();
@@ -34,10 +34,6 @@ export class PipelineListViewComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy(): void {
 		this.subscriptions.unsubscribe();
-	}
-
-	getDownloadLink(id: string): string {
-		return this.pipelineService.getPipelineDownloadLink(id);
 	}
 
 	onPipelineImported(response: BaseResponse): void {
