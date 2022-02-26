@@ -16,13 +16,16 @@ namespace PipelineService.Services.Impl
 	{
 		private readonly ILogger<OperationsService> _logger;
 		private readonly IPipelinesDao _pipelinesDao;
+		private readonly IOperationTemplatesService _operationTemplatesService;
 
 		public OperationsService(
 			ILogger<OperationsService> logger,
-			IPipelinesDao pipelinesDao)
+			IPipelinesDao pipelinesDao,
+			IOperationTemplatesService operationTemplatesService)
 		{
 			_logger = logger;
 			_pipelinesDao = pipelinesDao;
+			_operationTemplatesService = operationTemplatesService;
 		}
 
 		public async Task<IList<string>> GetInputDatasetKeysForOperation(Guid pipelineId, Guid operationId)
@@ -189,7 +192,23 @@ namespace PipelineService.Services.Impl
 				_logger.LogDebug("Node with id {NotFoundId} not found", pipelineId);
 			}
 
-			return node?.OperationConfiguration;
+			var config = node?.OperationConfiguration ?? new Dictionary<string, string>();
+
+			if (config.Count != 0) return config;
+
+			_logger.LogDebug("Node {NodeId} has no configuration", nodeId);
+			if (node == null) return config;
+
+			_logger.LogDebug("Loading default configuration for operation {OperationId}", node.OperationId);
+			var template = await _operationTemplatesService.GetTemplate(node.OperationId, node.OperationIdentifier);
+			if (template != null)
+			{
+				_logger.LogInformation("Falling back to default configuration for operation {OperationId}",
+					node.OperationId);
+				config = template.DefaultConfig;
+			}
+
+			return config;
 		}
 
 		public async Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, Dictionary<string, string> config)
