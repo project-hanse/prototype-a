@@ -16,7 +16,7 @@ class OperationsSklearnCustomUnitTests(unittest.TestCase):
 	def test_sklearn_split(self):
 		# arrange
 		df = pd.DataFrame(range(0, 100), columns=['Number'])
-		result = OperationsSklearnCustom.sklearn_get_split(self.logger, "split", {
+		result = OperationsSklearnCustom.sklearn_split(self.logger, "split", {
 			'split_size': 0.8
 		}, [df])
 

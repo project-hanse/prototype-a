@@ -1,6 +1,7 @@
 import logging
 import random
 
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
@@ -46,11 +47,13 @@ class OperationsSklearnCustom:
 		return df
 
 	@staticmethod
-	def sklearn_get_split(logger: logging, operation_name: str, operation_config: dict, data: []):
+	def sklearn_split(logger: logging, operation_name: str, operation_config: dict, data: []):
 		"""
 		Get a split of data from a dataframe.
 		"""
 		logger.info("Executing scikit operation sklearn_get_split (%s)" % operation_name)
+
+		OperationsHelper.validate_input_or_throw(data, 1)
 
 		random_state = OperationsHelper.get_or_default(operation_config, 'random_state', random.randint(0, 1000))
 		split_size = OperationsHelper.get_or_default(operation_config, 'split_size', 0.8)
@@ -59,3 +62,31 @@ class OperationsSklearnCustom:
 		split_train, _ = train_test_split(data[0], train_size=split_size, random_state=random_state, shuffle=shuffle)
 
 		return split_train
+
+	@staticmethod
+	def min_max_scaling(column):
+		return (column - column.min()) / (column.max() - column.min())
+
+	@staticmethod
+	def sklearn_transform(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Transform columns of a dataframe.
+		"""
+		logger.info("Executing scikit operation sklearn_transform (%s)" % operation_name)
+
+		OperationsHelper.validate_input_or_throw(data, 1)
+		columns = OperationsHelper.get_or_default(operation_config, 'columns', data[0].columns)
+		min_max = OperationsHelper.get_or_default(operation_config, 'min_max', False)
+		log = OperationsHelper.get_or_default(operation_config, 'log', False)
+
+		df = data[0]
+
+		for col in columns:
+			x = np.array(df[col])
+			if min_max:
+				x = OperationsSklearnCustom.min_max_scaling(x)
+			if log:
+				x = np.log(x + 1)
+			df[col] = x
+
+		return df

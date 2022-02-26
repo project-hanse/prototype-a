@@ -1,0 +1,50 @@
+[
+	{
+		"operationId": "ed0beb29-a853-4421-ba3e-eb2bdc050117",
+		"operationName": "split",
+		"operationFullName": "sklearn.custom.split",
+		"inputTypes": [
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.split",
+		"description": "Split the data into a subset",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"random_state": 42,
+			"split_size": 0.8,
+			"shuffle": true
+		},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "c3ed2e34-0f7b-492c-9152-e3d5cf3ebeb0",
+		"operationName": "transform",
+		"operationFullName": "sklearn.custom.transform",
+		"inputTypes": [
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.split",
+		"description": "Split the data into a subset",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"columns": null,
+			"min_max": false,
+			"log": false
+		},
+		"returns": "DataFrame"
+	}
+]

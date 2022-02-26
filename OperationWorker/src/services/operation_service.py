@@ -68,8 +68,9 @@ class OperationService:
 			"804aadc7-4f9e-41cc-8ccc-e386459fbc63"] = OperationsSingleInputPandasWrappers.pd_double_input_concat
 
 		# SkLearn Operations
-		self.local_operations[
-			"2878ca36-8e03-4825-8afa-552064686337"] = OperationsSklearnCustom.sklearn_double_input_predict
+		self.local_operations["2878ca36-8e03-4825-8afa-552064686337"] = OperationsSklearnCustom.sklearn_double_input_predict
+		self.local_operations["ed0beb29-a853-4421-ba3e-eb2bdc050117"] = OperationsSklearnCustom.sklearn_split
+		self.local_operations["c3ed2e34-0f7b-492c-9152-e3d5cf3ebeb0"] = OperationsSklearnCustom.sklearn_transform
 
 		# Custom Operations
 		self.local_operations[
