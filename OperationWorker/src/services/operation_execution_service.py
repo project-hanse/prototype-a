@@ -112,8 +112,12 @@ class OperationExecutionService:
 							cleaned_str = config[key].replace("'", '"')
 							parsed = json.loads(cleaned_str)
 							config[key] = OperationExecutionService.preprocess_operation_config(parsed)
-						elif config[key].strip() == 'None':
+						elif config[key].strip().lower() == 'none':
 							config[key] = None
+						elif config[key].strip().lower() == 'false':
+							config[key] = False
+						elif config[key].strip().lower() == 'true':
+							config[key] = True
 						else:
 							raise ValueError
 					except ValueError:
@@ -122,7 +126,7 @@ class OperationExecutionService:
 						except Exception:
 							config[key] = config[key]
 			except TypeError:
-				return config
+				continue
 		return config
 
 	def load_datasets(self, datasets: [], response: OperationExecutedMessage) -> []:
@@ -143,9 +147,9 @@ class OperationExecutionService:
 	def load_dataset(self, dataset: Dataset):
 		self.logger.debug("Loading dataset of type %s" % str(dataset.get_type()))
 		if dataset.get_type() == DatasetType.File:
-			file_content = self.file_store_client.get_object_content(dataset.store, dataset.key)
+			file_content = self.file_store_client.get_object_content_as_str(dataset.store, dataset.key)
 			if file_content is None:
-				file_content = self.file_store_client.get_object_content_as_binary(dataset.store, dataset.key)
+				file_content = self.file_store_client.get_object_content_as_binary_stream(dataset.store, dataset.key)
 			return file_content
 		elif dataset.get_type() == DatasetType.PdDataFrame:
 			return self.dataset_client.get_dataframe_by_key(dataset.get_key())
