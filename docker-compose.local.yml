@@ -97,7 +97,7 @@ services:
 
   # S3 Bucket
   localstack-s3:
-    image: localstack/localstack:0.13.0
+    image: localstack/localstack:0.14.0
     environment:
       - SERVICES=s3
       - EAGER_SERVICE_LOADING=1
