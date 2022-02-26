@@ -1,4 +1,5 @@
 import logging
+import random
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -7,10 +8,7 @@ from sklearn.neural_network import MLPRegressor
 from src.helper.operations_helper import OperationsHelper
 
 
-class OperationsDoubleInputSciKitWrappers:
-	"""
-	Primarily wrappers around scikit operations.
-	"""
+class OperationsSklearnCustom:
 
 	@staticmethod
 	def sklearn_double_input_predict(logger: logging,
@@ -46,3 +44,18 @@ class OperationsDoubleInputSciKitWrappers:
 		df.index = X_test.index[:1]
 
 		return df
+
+	@staticmethod
+	def sklearn_get_split(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Get a split of data from a dataframe.
+		"""
+		logger.info("Executing scikit operation sklearn_get_split (%s)" % operation_name)
+
+		random_state = OperationsHelper.get_or_default(operation_config, 'random_state', random.randint(0, 1000))
+		split_size = OperationsHelper.get_or_default(operation_config, 'split_size', 0.8)
+		shuffle = OperationsHelper.get_or_default(operation_config, 'shuffle', True)
+
+		split_train, _ = train_test_split(data[0], train_size=split_size, random_state=random_state, shuffle=shuffle)
+
+		return split_train

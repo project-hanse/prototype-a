@@ -3,7 +3,7 @@ from typing import Callable
 
 import pandas as pd
 
-from src.operations.operations_double_input_scikit_wrappers import OperationsDoubleInputSciKitWrappers
+from src.operations.operations_sklearn_custom import OperationsSklearnCustom
 from src.operations.operations_file_input import OperationsFileInputCollection
 from src.operations.operations_plots_matplotlib import PlotsMatPlotLib
 from src.operations.operations_prophet import OperationsProphet
@@ -69,7 +69,7 @@ class OperationService:
 
 		# SkLearn Operations
 		self.local_operations[
-			"2878ca36-8e03-4825-8afa-552064686337"] = OperationsDoubleInputSciKitWrappers.sklearn_double_input_predict
+			"2878ca36-8e03-4825-8afa-552064686337"] = OperationsSklearnCustom.sklearn_double_input_predict
 
 		# Custom Operations
 		self.local_operations[
