@@ -46,5 +46,86 @@
 			"log": false
 		},
 		"returns": "DataFrame"
+	},
+	{
+		"operationId": "34c12968-f79b-43b8-a934-39ce4e2e763d",
+		"operationName": "extract_features",
+		"operationFullName": "sklearn.custom.extract.features",
+		"inputTypes": [
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.extract.features",
+		"description": "Remove the target column from the data",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"target_column": "target"
+		},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "34c12968-f79b-43b8-a934-39ce4e2e763d",
+		"operationName": "extract_targets",
+		"operationFullName": "sklearn.custom.extract.targets",
+		"inputTypes": [
+			2
+		],
+		"outputType": 1,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.extract.targets",
+		"description": "Get the target from the data",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"target_column": "target"
+		},
+		"returns": "Series"
+	},
+	{
+		"operationId": "36564f26-f147-47f1-95fb-884dba993494",
+		"operationName": "classifier_svc",
+		"operationFullName": "sklearn.classifiers.svc",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.svc",
+		"description": "Creates and fits a C-Support Vector Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"C": 1.0,
+			"kernel": "rbf",
+			"degree": 3,
+			"gamma": "scale",
+			"coef0": 0.0,
+			"shrinking": true,
+			"probability": false,
+			"tol": 0.001,
+			"cache_size": 200,
+			"class_weight": null,
+			"verbose": false,
+			"max_iter": -1,
+			"decision_function_shape": "ovr",
+			"break_ties": false,
+			"random_state": null
+		},
+		"returns": "DataFrame"
 	}
 ]

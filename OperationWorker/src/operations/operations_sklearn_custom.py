@@ -79,6 +79,9 @@ class OperationsSklearnCustom:
 		min_max = OperationsHelper.get_or_default(operation_config, 'min_max', False)
 		log = OperationsHelper.get_or_default(operation_config, 'log', False)
 
+		if columns is None:
+			columns = data[0].columns
+
 		df = data[0]
 
 		for col in columns:
@@ -90,3 +93,43 @@ class OperationsSklearnCustom:
 			df[col] = x
 
 		return df
+
+	@staticmethod
+	def sklearn_extract_features(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Removes the target column from the dataframe.
+		"""
+		logger.info("Executing scikit operation sklearn_extract_labels (%s)" % operation_name)
+
+		OperationsHelper.validate_input_or_throw(data, 1)
+
+		df = data[0]
+
+		target_column = OperationsHelper.get_or_default(operation_config, 'target_column', "target")
+
+		if target_column not in df.columns:
+			raise ValueError("Column %s not found in dataframe" % target_column)
+
+		df.drop(columns=[target_column], inplace=True)
+
+		return df
+
+	@staticmethod
+	def sklearn_extract_targets(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Extracts a target column from a dataframe.
+		"""
+		logger.info("Executing scikit operation sklearn_extract_labels (%s)" % operation_name)
+
+		OperationsHelper.validate_input_or_throw(data, 1)
+
+		df = data[0]
+
+		target_column = OperationsHelper.get_or_default(operation_config, 'target_column', "target")
+
+		if target_column not in df.columns:
+			raise ValueError("Column %s not found in dataframe" % target_column)
+
+		labels = df[target_column]
+
+		return labels

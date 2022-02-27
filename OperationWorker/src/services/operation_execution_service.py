@@ -153,8 +153,12 @@ class OperationExecutionService:
 			return file_content
 		elif dataset.get_type() == DatasetType.PdDataFrame:
 			return self.dataset_client.get_dataframe_by_key(dataset.get_key())
+		elif dataset.get_type() == DatasetType.PdSeries:
+			return self.dataset_client.get_dataframe_by_key(dataset.get_key())
 		elif dataset.get_type() == DatasetType.Prophet:
 			return self.dataset_client.get_prophet_model_by_key(dataset.get_key())
+		elif dataset.get_type() == DatasetType.SklearnModel:
+			return self.dataset_client.get_sklearn_model_by_key(dataset.get_key())
 		# TODO: implement remaining dataset types
 		else:
 			raise NotImplemented("%s is not a supported type" % dataset.get_type())
@@ -164,12 +168,16 @@ class OperationExecutionService:
 		# TODO implement local caching mechanism
 		if dataset.get_type() == DatasetType.PdDataFrame:
 			self.dataset_client.store_dataframe_by_key(dataset.key, data)
+		elif dataset.get_type() == DatasetType.PdSeries:
+			self.dataset_client.store_dataframe_by_key(dataset.key, data)
 		elif dataset.get_type() == DatasetType.StaticPlot:
 			self.file_store_client.store_file(dataset)
 		elif dataset.get_type() == DatasetType.Prophet:
 			self.dataset_client.store_prophet_model_by_key(dataset.key, data)
 		elif dataset.get_type() == DatasetType.File:
 			self.file_store_client.store_file(dataset)
+		elif dataset.get_type() == DatasetType.SklearnModel:
+			self.dataset_client.store_sklearn_model(dataset, data)
 		# TODO: implement remaining dataset types
 		else:
 			logging.error("%s is not a supported type" % dataset.get_type())

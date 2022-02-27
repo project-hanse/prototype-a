@@ -1,3 +1,6 @@
+import io
+import pickle
+
 import pandas as pd
 import requests
 from prophet import Prophet
@@ -5,6 +8,7 @@ from prophet.serialize import model_to_json, model_from_json
 
 from src.exceptions.NotFoundError import NotFoundError
 from src.exceptions.NotStoredError import NotStoredError
+from src.models.dataset import Dataset
 
 
 class DatasetServiceClient:
@@ -42,6 +46,24 @@ class DatasetServiceClient:
 			self.logging.warning('Failed to store dataframe: (%i) %s' % (response.status_code, str(response.text)))
 			raise NotStoredError('Failed to store dataframe: (%i) %s' % (response.status_code, str(response.reason)))
 
+	def store_sklearn_model(self, dataset: Dataset, model):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + dataset.key
+		self.logging.info('Storing sklearn model to %s' % address)
+		response = requests.post(address, data=self.serialize_sklearn_model(model))
+		if response.status_code < 300:
+			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
+		else:
+			self.logging.warning('Failed to store sklearn model: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError('Failed to store sklearn model: (%i) %s' % (response.status_code, str(response.reason)))
+
+	def get_sklearn_model_by_key(self, key: str) -> pd.DataFrame:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Loading sklearn model from %s' % address)
+		response = requests.get(address)
+		if response.status_code == 404:
+			raise NotFoundError("No model with key found")
+		return self.deserialize_sklearn_model(response.text)
+
 	def get_prophet_model_by_key(self, key: str) -> pd.DataFrame:
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
 		self.logging.info('Loading prophet model from %s' % address)
@@ -71,3 +93,13 @@ class DatasetServiceClient:
 	def serialize_prophet_model(self, model: Prophet) -> str:
 		self.logging.debug('Serializing prophet model')
 		return model_to_json(model)
+
+	def serialize_sklearn_model(self, model) -> io.BytesIO:
+		self.logging.debug('Serializing sklearn model')
+		stream = io.BytesIO()
+		pickle.dump(model, stream)
+		return stream
+
+	def deserialize_sklearn_model(self, text):
+		self.logging.debug('Deserializing sklearn model')
+		return pickle.loads(text)
