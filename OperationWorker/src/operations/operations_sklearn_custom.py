@@ -110,9 +110,7 @@ class OperationsSklearnCustom:
 		if target_column not in df.columns:
 			raise ValueError("Column %s not found in dataframe" % target_column)
 
-		df.drop(columns=[target_column], inplace=True)
-
-		return df
+		return df.drop(columns=[target_column])
 
 	@staticmethod
 	def sklearn_extract_targets(logger: logging, operation_name: str, operation_config: dict, data: []):
