@@ -49,7 +49,7 @@ def dataset_by_id(dataset_id: str):
 	if df is None:
 		abort(404)
 
-	return my_jsonpify(df)
+	return serialize_dataframe(df)
 
 
 @app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
@@ -75,12 +75,12 @@ def dataset_as_csv_by_id(dataset_id: str):
 @app.route('/api/dataframe/key/<key>', methods=['GET', 'POST'])
 def dataframe_by_key(key: str):
 	if request.method == 'GET':
-		df = dataset_store.get_by_key(key)
+		df = dataset_store.get_df_by_key(key)
 
 		if df is None:
 			abort(404)
 
-		return my_jsonpify(df)
+		return serialize_dataframe(df)
 
 	if request.method == 'POST':
 		data = request.data
@@ -89,10 +89,27 @@ def dataframe_by_key(key: str):
 		return 'OK'
 
 
+@app.route('/api/series/key/<key>', methods=['GET', 'POST'])
+def series_by_key(key: str):
+	if request.method == 'GET':
+		series = dataset_store.get_series_by_key(key)
+
+		if series is None:
+			abort(404)
+
+		return serialize_series(series)
+
+	if request.method == 'POST':
+		data = request.data
+		series = pd.read_json(data, typ='series')
+		dataset_store.store_series_by_key(key, series)
+		return 'OK'
+
+
 @app.route('/api/string/key/<key>', methods=['GET', 'POST'])
 def string_by_key(key: str):
 	if request.method == 'GET':
-		data = dataset_store.get_by_key(key)
+		data = dataset_store.get_df_by_key(key)
 
 		if data is None:
 			abort(404)
@@ -108,18 +125,18 @@ def string_by_key(key: str):
 @app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
 def describe_dataset_by_hash(key: str):
 	if request.method == 'GET':
-		df = dataset_store.get_by_key(key)
+		df = dataset_store.get_df_by_key(key)
 
 		if df is None:
 			abort(404)
 
-		return my_jsonpify(df.describe())
+		return serialize_dataframe(df.describe())
 
 
 @app.route('/api/dataframe/key/describe/html/<key>', methods=['GET'])
 def describe_dataframe_by_key_html(key: str):
 	if request.method == 'GET':
-		df = dataset_store.get_by_key(key)
+		df = dataset_store.get_df_by_key(key)
 
 		if df is None:
 			abort(404)
@@ -127,7 +144,15 @@ def describe_dataframe_by_key_html(key: str):
 		return df.describe().to_html()
 
 
-def my_jsonpify(df):
+def serialize_dataframe(df: pd.DataFrame):
+	return app.response_class(
+		response=df.to_json(date_format='iso'),
+		status=200,
+		mimetype='application/json'
+	)
+
+
+def serialize_series(df: pd.Series):
 	return app.response_class(
 		response=df.to_json(date_format='iso'),
 		status=200,

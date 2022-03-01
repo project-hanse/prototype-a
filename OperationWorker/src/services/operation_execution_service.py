@@ -154,7 +154,7 @@ class OperationExecutionService:
 		elif dataset.get_type() == DatasetType.PdDataFrame:
 			return self.dataset_client.get_dataframe_by_key(dataset.get_key())
 		elif dataset.get_type() == DatasetType.PdSeries:
-			return self.dataset_client.get_dataframe_by_key(dataset.get_key())
+			return self.dataset_client.get_series_by_key(dataset.get_key())
 		elif dataset.get_type() == DatasetType.Prophet:
 			return self.dataset_client.get_prophet_model_by_key(dataset.get_key())
 		elif dataset.get_type() == DatasetType.SklearnModel:
@@ -169,7 +169,7 @@ class OperationExecutionService:
 		if dataset.get_type() == DatasetType.PdDataFrame:
 			self.dataset_client.store_dataframe_by_key(dataset.key, data)
 		elif dataset.get_type() == DatasetType.PdSeries:
-			self.dataset_client.store_dataframe_by_key(dataset.key, data)
+			self.dataset_client.store_series_by_key(dataset.key, data)
 		elif dataset.get_type() == DatasetType.StaticPlot:
 			self.file_store_client.store_file(dataset)
 		elif dataset.get_type() == DatasetType.Prophet:
