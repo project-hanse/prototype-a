@@ -127,16 +127,22 @@ namespace PipelineService.Services.Impl
 			}
 			else
 			{
-				_logger.LogDebug("Detected 2 predecessor nodes {@OperationIds}", request.PredecessorOperationIds);
-				var predecessor1 = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[0]);
-				var predecessor2 = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[1]);
-				if (predecessor1 == default || predecessor2 == default)
+				_logger.LogDebug("Detected {PredecessorCount} predecessor nodes {@OperationIds}",
+					request.PredecessorOperationIds.Count, request.PredecessorOperationIds);
+				foreach (var predecessorOperationId in request.PredecessorOperationIds)
 				{
-					response.StatusCode = HttpStatusCode.NotFound;
-					return response;
+					var predecessor = await _pipelinesDao.GetOperation(predecessorOperationId);
+					if (predecessor == default)
+					{
+						_logger.LogInformation("Predecessor operation {PredecessorOperationId} not found",
+							predecessorOperationId);
+						response.StatusCode = HttpStatusCode.NotFound;
+						return response;
+					}
+
+					newOperation = PipelineConstructionHelpers.Successor(predecessor, newOperation);
 				}
 
-				newOperation = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, newOperation);
 				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
 			}
 

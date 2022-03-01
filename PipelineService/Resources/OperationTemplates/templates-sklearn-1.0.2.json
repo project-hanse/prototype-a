@@ -99,7 +99,7 @@
 			2,
 			1
 		],
-		"outputType": 2,
+		"outputType": 5,
 		"framework": "scikit-learn",
 		"frameworkVersion": "1.0.2",
 		"sectionTitle": "Custom Operations",
@@ -125,6 +125,29 @@
 			"decision_function_shape": "ovr",
 			"break_ties": false,
 			"random_state": null
+		},
+		"returns": "SVC"
+	},
+	{
+		"operationId": "067c7cd4-87f6-43e2-a733-26e5c51ef875",
+		"operationName": "classifier_score",
+		"operationFullName": "sklearn.classifiers.score",
+		"inputTypes": [
+			5,
+			2,
+			1
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.score",
+		"description": "Scores a classifier on test data",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
 		},
 		"returns": "DataFrame"
 	}
