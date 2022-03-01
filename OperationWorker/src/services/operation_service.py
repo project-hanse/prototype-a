@@ -77,7 +77,9 @@ class OperationService:
 		self.local_operations[
 			"36564f26-f147-47f1-95fb-884dba993494"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_svc
 		self.local_operations[
-			"067c7cd4-87f6-43e2-a733-26e5c51ef875"] = OperationsSklearnClassifiers.sklearn_create_score_classifier
+			"067c7cd4-87f6-43e2-a733-26e5c51ef875"] = OperationsSklearnClassifiers.sklearn_classifier_score
+		self.local_operations[
+			"ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba"] = OperationsSklearnClassifiers.sklearn_classifier_predict
 
 		# Custom Operations
 		self.local_operations[

@@ -41,11 +41,11 @@ class OperationsSklearnClassifiers:
 		return cls
 
 	@staticmethod
-	def sklearn_create_score_classifier(logger: logging, operation_name: str, operation_config: dict, data: []):
+	def sklearn_classifier_score(logger: logging, operation_name: str, operation_config: dict, data: []):
 		"""
 		Scores a classifier.
 		"""
-		logger.info("Executing scikit operation sklearn_create_score_classifier (%s)" % operation_name)
+		logger.info("Executing scikit operation sklearn_classifier_score (%s)" % operation_name)
 		OperationsHelper.validate_input_or_throw(data, 3)
 
 		cls = data[0]
@@ -55,5 +55,23 @@ class OperationsSklearnClassifiers:
 		}
 
 		df = pd.DataFrame(metrics, index=[0])
+
+		return df
+
+	@staticmethod
+	def sklearn_classifier_predict(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Predicts labels using a classifier.
+		"""
+		logger.info("Executing scikit operation sklearn_classifier_predict (%s)" % operation_name)
+		OperationsHelper.validate_input_or_throw(data, 2)
+
+		prediction_column_name = OperationsHelper.get_or_default(operation_config, "prediction_column_name", 'prediction')
+
+		cls = data[0]
+		df = data[1]
+
+		prediction = cls.predict(df)
+		df[prediction_column_name] = prediction
 
 		return df

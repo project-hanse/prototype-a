@@ -150,5 +150,28 @@
 		"defaultConfig": {
 		},
 		"returns": "DataFrame"
+	},
+	{
+		"operationId": "ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba",
+		"operationName": "classifier_predict",
+		"operationFullName": "sklearn.classifiers.predict",
+		"inputTypes": [
+			5,
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.predict",
+		"description": "Predicts labels using a classifier",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"prediction_column_name": "prediction"
+		},
+		"returns": "Series"
 	}
 ]
