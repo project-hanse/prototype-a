@@ -13,10 +13,10 @@ starting November 1st, 2021.
 Recommended tooling for developers:
 
 * JetBrains Plugin [Conventional Commit](https://plugins.jetbrains.com/plugin/13389-conventional-commit)
-  by [Edoardo Luppi](https://github.com/lppedd)
+	by [Edoardo Luppi](https://github.com/lppedd)
 * Visual Studio
-  Plugin [Conventional Commits](https://marketplace.visualstudio.com/items?itemName=vivaxy.vscode-conventional-commits)
-  by [vivaxy](https://marketplace.visualstudio.com/publishers/vivaxy)
+	Plugin [Conventional Commits](https://marketplace.visualstudio.com/items?itemName=vivaxy.vscode-conventional-commits)
+	by [vivaxy](https://marketplace.visualstudio.com/publishers/vivaxy)
 
 **Example commit message**
 
@@ -112,3 +112,8 @@ providers and data consumers to exchange, transport and trade data.
 ![Platform Vision](./docs/big-picture.jpg)
 
 [git-repo]: https://github.com/project-hanse/prototype-a
+
+## Known flaws in the current implementation
+
+* Operations output only a single dataset. Operations like `sklearn_extract_features`, `sklearn_extract_targets`
+	, `sklearn_split` could benefit from outputting multiple datasets.

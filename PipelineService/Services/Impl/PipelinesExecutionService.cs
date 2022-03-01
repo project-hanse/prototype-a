@@ -307,7 +307,7 @@ namespace PipelineService.Services.Impl
 				1 when operation.Inputs[0].Type == DatasetType.File => $"execute/{operation.PipelineId}/file",
 				1 => $"execute/{operation.PipelineId}/single",
 				2 => $"execute/{operation.PipelineId}/double",
-				_ => null
+				_ => $"execute/{operation.PipelineId}/{operation.Inputs.Count}",
 			};
 
 			if (topic == null)

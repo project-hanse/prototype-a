@@ -50,13 +50,25 @@ class InMemoryStore:
 		else:
 			return None
 
-	def get_by_key(self, key) -> Optional[pd.DataFrame]:
+	def get_df_by_key(self, key) -> Optional[pd.DataFrame]:
 		self.log.info("Loading dataset by key %s" % str(key))
 
 		if self.store.keys().__contains__(key):
 			return self.store.get(key)
 		else:
 			return None
+
+	def get_series_by_key(self, key) -> Optional[pd.Series]:
+		self.log.info("Loading dataset by key %s" % str(key))
+
+		if self.store.keys().__contains__(key):
+			return self.store.get(key)
+		else:
+			return None
+
+	def store_series_by_key(self, key, series: pd.Series):
+		self.log.info("Storing series with key %s" % key)
+		self.store[key] = series
 
 	def store_dataframe_by_key(self, key: str, data: pd.DataFrame):
 		self.log.info("Storing dataframe with key %s of shape %s" % (key, data.shape))

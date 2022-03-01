@@ -3,7 +3,11 @@
 
 	<mat-card style="margin-top: 1em">
 		<mat-list *ngIf="getUserFiles() | async as userFiles">
-			<div mat-subheader>My Files</div>
+			<div mat-subheader>
+				<span>My Files</span>
+				<span>&nbsp;</span>
+				<a *ngIf="localProd" href="http://localhost:4566/defaultfiles/?Marker=0" target="_blank">Default Files</a>
+			</div>
 			<mat-list-item *ngFor="let userFile of userFiles">
 				<mat-icon mat-list-icon>note</mat-icon>
 				<div mat-line>

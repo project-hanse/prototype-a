@@ -1,0 +1,177 @@
+[
+	{
+		"operationId": "ed0beb29-a853-4421-ba3e-eb2bdc050117",
+		"operationName": "split",
+		"operationFullName": "sklearn.custom.split",
+		"inputTypes": [
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.split",
+		"description": "Split the data into a subset",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"random_state": 42,
+			"split_size": 0.8,
+			"shuffle": true
+		},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "c3ed2e34-0f7b-492c-9152-e3d5cf3ebeb0",
+		"operationName": "transform",
+		"operationFullName": "sklearn.custom.transform",
+		"inputTypes": [
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.split",
+		"description": "Split the data into a subset",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"columns": null,
+			"min_max": false,
+			"log": false
+		},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "95cd82c3-01cf-488c-b156-22e06993b2f3",
+		"operationName": "extract_features",
+		"operationFullName": "sklearn.custom.extract.features",
+		"inputTypes": [
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.extract.features",
+		"description": "Remove the target column from the data",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"target_column": "target"
+		},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "34c12968-f79b-43b8-a934-39ce4e2e763d",
+		"operationName": "extract_targets",
+		"operationFullName": "sklearn.custom.extract.targets",
+		"inputTypes": [
+			2
+		],
+		"outputType": 1,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.custom.extract.targets",
+		"description": "Get the target from the data",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"target_column": "target"
+		},
+		"returns": "Series"
+	},
+	{
+		"operationId": "36564f26-f147-47f1-95fb-884dba993494",
+		"operationName": "classifier_svc",
+		"operationFullName": "sklearn.classifiers.svc",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.svc",
+		"description": "Creates and fits a C-Support Vector Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"C": 1.0,
+			"kernel": "rbf",
+			"degree": 3,
+			"gamma": "scale",
+			"coef0": 0.0,
+			"shrinking": true,
+			"probability": false,
+			"tol": 0.001,
+			"cache_size": 200,
+			"class_weight": null,
+			"verbose": false,
+			"max_iter": -1,
+			"decision_function_shape": "ovr",
+			"break_ties": false,
+			"random_state": null
+		},
+		"returns": "SVC"
+	},
+	{
+		"operationId": "067c7cd4-87f6-43e2-a733-26e5c51ef875",
+		"operationName": "classifier_score",
+		"operationFullName": "sklearn.classifiers.score",
+		"inputTypes": [
+			5,
+			2,
+			1
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.score",
+		"description": "Scores a classifier on test data",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+		},
+		"returns": "DataFrame"
+	},
+	{
+		"operationId": "ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba",
+		"operationName": "classifier_predict",
+		"operationFullName": "sklearn.classifiers.predict",
+		"inputTypes": [
+			5,
+			2
+		],
+		"outputType": 2,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.predict",
+		"description": "Predicts labels using a classifier",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"prediction_column_name": "prediction"
+		},
+		"returns": "Series"
+	}
+]

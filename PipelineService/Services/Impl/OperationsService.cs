@@ -16,13 +16,16 @@ namespace PipelineService.Services.Impl
 	{
 		private readonly ILogger<OperationsService> _logger;
 		private readonly IPipelinesDao _pipelinesDao;
+		private readonly IOperationTemplatesService _operationTemplatesService;
 
 		public OperationsService(
 			ILogger<OperationsService> logger,
-			IPipelinesDao pipelinesDao)
+			IPipelinesDao pipelinesDao,
+			IOperationTemplatesService operationTemplatesService)
 		{
 			_logger = logger;
 			_pipelinesDao = pipelinesDao;
+			_operationTemplatesService = operationTemplatesService;
 		}
 
 		public async Task<IList<string>> GetInputDatasetKeysForOperation(Guid pipelineId, Guid operationId)
@@ -124,16 +127,22 @@ namespace PipelineService.Services.Impl
 			}
 			else
 			{
-				_logger.LogDebug("Detected 2 predecessor nodes {@OperationIds}", request.PredecessorOperationIds);
-				var predecessor1 = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[0]);
-				var predecessor2 = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[1]);
-				if (predecessor1 == default || predecessor2 == default)
+				_logger.LogDebug("Detected {PredecessorCount} predecessor nodes {@OperationIds}",
+					request.PredecessorOperationIds.Count, request.PredecessorOperationIds);
+				foreach (var predecessorOperationId in request.PredecessorOperationIds)
 				{
-					response.StatusCode = HttpStatusCode.NotFound;
-					return response;
+					var predecessor = await _pipelinesDao.GetOperation(predecessorOperationId);
+					if (predecessor == default)
+					{
+						_logger.LogInformation("Predecessor operation {PredecessorOperationId} not found",
+							predecessorOperationId);
+						response.StatusCode = HttpStatusCode.NotFound;
+						return response;
+					}
+
+					newOperation = PipelineConstructionHelpers.Successor(predecessor, newOperation);
 				}
 
-				newOperation = PipelineConstructionHelpers.Successor(predecessor1, predecessor2, newOperation);
 				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
 			}
 
@@ -189,7 +198,23 @@ namespace PipelineService.Services.Impl
 				_logger.LogDebug("Node with id {NotFoundId} not found", pipelineId);
 			}
 
-			return node?.OperationConfiguration;
+			var config = node?.OperationConfiguration ?? new Dictionary<string, string>();
+
+			if (config.Count != 0) return config;
+
+			_logger.LogDebug("Node {NodeId} has no configuration", nodeId);
+			if (node == null) return config;
+
+			_logger.LogDebug("Loading default configuration for operation {OperationId}", node.OperationId);
+			var template = await _operationTemplatesService.GetTemplate(node.OperationId, node.OperationIdentifier);
+			if (template != null)
+			{
+				_logger.LogInformation("Falling back to default configuration for operation {OperationId}",
+					node.OperationId);
+				config = template.DefaultConfig;
+			}
+
+			return config;
 		}
 
 		public async Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, Dictionary<string, string> config)

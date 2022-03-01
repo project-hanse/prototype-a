@@ -112,8 +112,12 @@ class OperationExecutionService:
 							cleaned_str = config[key].replace("'", '"')
 							parsed = json.loads(cleaned_str)
 							config[key] = OperationExecutionService.preprocess_operation_config(parsed)
-						elif config[key].strip() == 'None':
+						elif config[key].strip().lower() == 'none':
 							config[key] = None
+						elif config[key].strip().lower() == 'false':
+							config[key] = False
+						elif config[key].strip().lower() == 'true':
+							config[key] = True
 						else:
 							raise ValueError
 					except ValueError:
@@ -122,7 +126,7 @@ class OperationExecutionService:
 						except Exception:
 							config[key] = config[key]
 			except TypeError:
-				return config
+				continue
 		return config
 
 	def load_datasets(self, datasets: [], response: OperationExecutedMessage) -> []:
@@ -133,7 +137,7 @@ class OperationExecutionService:
 			try:
 				loaded_datasets.append(self.load_dataset(dataset))
 			except Exception as e:
-				self.logger.warning("Failed to load dataset %s\nError: %s" % (str(dataset), str(e)))
+				self.logger.warning("Failed to load dataset %s\nError: %s" % (dataset.key + '@' + dataset.store, str(e)))
 				response.set_successful(False)
 				response.set_error_description("Failed to load dataset of type %s" % dataset.get_type())
 				response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
@@ -143,14 +147,18 @@ class OperationExecutionService:
 	def load_dataset(self, dataset: Dataset):
 		self.logger.debug("Loading dataset of type %s" % str(dataset.get_type()))
 		if dataset.get_type() == DatasetType.File:
-			file_content = self.file_store_client.get_object_content(dataset.store, dataset.key)
+			file_content = self.file_store_client.get_object_content_as_str(dataset.store, dataset.key)
 			if file_content is None:
-				file_content = self.file_store_client.get_object_content_as_binary(dataset.store, dataset.key)
+				file_content = self.file_store_client.get_object_content_as_binary_stream(dataset.store, dataset.key)
 			return file_content
 		elif dataset.get_type() == DatasetType.PdDataFrame:
 			return self.dataset_client.get_dataframe_by_key(dataset.get_key())
+		elif dataset.get_type() == DatasetType.PdSeries:
+			return self.dataset_client.get_series_by_key(dataset.get_key())
 		elif dataset.get_type() == DatasetType.Prophet:
 			return self.dataset_client.get_prophet_model_by_key(dataset.get_key())
+		elif dataset.get_type() == DatasetType.SklearnModel:
+			return self.dataset_client.get_sklearn_model_by_key(dataset.get_key())
 		# TODO: implement remaining dataset types
 		else:
 			raise NotImplemented("%s is not a supported type" % dataset.get_type())
@@ -160,12 +168,16 @@ class OperationExecutionService:
 		# TODO implement local caching mechanism
 		if dataset.get_type() == DatasetType.PdDataFrame:
 			self.dataset_client.store_dataframe_by_key(dataset.key, data)
+		elif dataset.get_type() == DatasetType.PdSeries:
+			self.dataset_client.store_series_by_key(dataset.key, data)
 		elif dataset.get_type() == DatasetType.StaticPlot:
 			self.file_store_client.store_file(dataset)
 		elif dataset.get_type() == DatasetType.Prophet:
 			self.dataset_client.store_prophet_model_by_key(dataset.key, data)
 		elif dataset.get_type() == DatasetType.File:
 			self.file_store_client.store_file(dataset)
+		elif dataset.get_type() == DatasetType.SklearnModel:
+			self.dataset_client.store_sklearn_model(dataset, data)
 		# TODO: implement remaining dataset types
 		else:
 			logging.error("%s is not a supported type" % dataset.get_type())

@@ -93,7 +93,9 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"errors": "coerce"
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -156,7 +158,14 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"method": "linear",
+			"axis": null,
+			"limit": null,
+			"limit_direction": null,
+			"limit_area": null,
+			"downcast": null
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -177,13 +186,17 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"on": null,
+			"lsuffix": "",
+			"rsuffix": ""
+		},
 		"returns": "DataFrame"
 	},
 	{
 		"operationId": "db8b6a9d-d01f-4328-b971-fa56ac350320",
-		"operationName": "make_column_header",
-		"operationFullName": "OpIdPdSingleMakeColumnHeader",
+		"operationName": "make_row_header",
+		"operationFullName": "OpIdPdSingleMakeRowHeader",
 		"inputTypes": [
 			2
 		],
@@ -197,7 +210,9 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"header_row": 0
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -217,7 +232,13 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"axis": 1,
+			"skipna": true,
+			"level": null,
+			"numeric_only": null,
+			"name": "mean"
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -237,7 +258,16 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"separator": "auto",
+			"skiprows": 0,
+			"skipfooter": 0,
+			"header": 0,
+			"names": null,
+			"index_col": null,
+			"decimal": ".",
+			"parse_dates": false
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -257,7 +287,15 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"skiprows": 0,
+			"skipfooter": 0,
+			"header": 0,
+			"names": null,
+			"index_col": null,
+			"decimal": ".",
+			"parse_dates": false
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -277,7 +315,10 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"mapper": null,
+			"axis": "columns"
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -297,7 +338,10 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"labels": null,
+			"axis": 0
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -317,7 +361,19 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"rule": "1M",
+			"axis": 0,
+			"closed": null,
+			"label": null,
+			"convention": "start",
+			"kind": null,
+			"on": null,
+			"level": null,
+			"origin": null,
+			"offset": null,
+			"group_by_operation": "mean"
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -337,7 +393,13 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"level": null,
+			"drop": false,
+			"inplace": false,
+			"col_level": 0,
+			"col_fill": 0
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -379,7 +441,10 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"column_name": null,
+			"select_value": null
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -421,7 +486,10 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"keys": null,
+			"drop": true
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -441,7 +509,11 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"axis": 0,
+			"level": null,
+			"ascending": true
+		},
 		"returns": "DataFrame"
 	},
 	{
@@ -481,7 +553,10 @@
 		"signatureName": null,
 		"returnsDescription": null,
 		"sourceUrl": null,
-		"defaultConfig": {},
+		"defaultConfig": {
+			"first_n": 0,
+			"last_n": 0
+		},
 		"returns": "DataFrame"
 	},
 	{
