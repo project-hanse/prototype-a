@@ -137,7 +137,7 @@ class OperationExecutionService:
 			try:
 				loaded_datasets.append(self.load_dataset(dataset))
 			except Exception as e:
-				self.logger.warning("Failed to load dataset %s\nError: %s" % (str(dataset), str(e)))
+				self.logger.warning("Failed to load dataset %s\nError: %s" % (dataset.key + '@' + dataset.store, str(e)))
 				response.set_successful(False)
 				response.set_error_description("Failed to load dataset of type %s" % dataset.get_type())
 				response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))

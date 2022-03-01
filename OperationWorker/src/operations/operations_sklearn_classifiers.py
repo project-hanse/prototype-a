@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 from sklearn.svm import SVC
 
 from src.helper.operations_helper import OperationsHelper
@@ -38,3 +39,21 @@ class OperationsSklearnClassifiers:
 		cls.fit(data[0], data[1])
 
 		return cls
+
+	@staticmethod
+	def sklearn_create_score_classifier(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Scores a classifier.
+		"""
+		logger.info("Executing scikit operation sklearn_create_score_classifier (%s)" % operation_name)
+		OperationsHelper.validate_input_or_throw(data, 3)
+
+		cls = data[0]
+		score = cls.score(data[1], data[2])
+		metrics = {
+			"score": score
+		}
+
+		df = pd.DataFrame(metrics, index=[0])
+
+		return df

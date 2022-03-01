@@ -1,4 +1,4 @@
-import io
+import base64
 import pickle
 
 import pandas as pd
@@ -52,7 +52,7 @@ class DatasetServiceClient:
 		response = requests.get(address)
 		if response.status_code == 404:
 			raise NotFoundError("No dataset with key found")
-		return pd.read_json(response.text)
+		return pd.read_json(response.text, typ='series')
 
 	def store_series_by_key(self, key: str, data: pd.Series):
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/series/key/' + key
@@ -67,7 +67,8 @@ class DatasetServiceClient:
 	def store_sklearn_model(self, dataset: Dataset, model):
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + dataset.key
 		self.logging.info('Storing sklearn model to %s' % address)
-		response = requests.post(address, data=self.serialize_sklearn_model(model))
+		serialized = self.serialize_sklearn_model(model)
+		response = requests.post(address, data=serialized)
 		if response.status_code < 300:
 			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
 		else:
@@ -120,12 +121,14 @@ class DatasetServiceClient:
 		self.logging.debug('Serializing prophet model')
 		return model_to_json(model)
 
-	def serialize_sklearn_model(self, model) -> io.BytesIO:
+	def serialize_sklearn_model(self, model) -> str:
 		self.logging.debug('Serializing sklearn model')
-		stream = io.BytesIO()
-		pickle.dump(model, stream)
-		return stream
+		b = pickle.dumps(model)
+		s = base64.b64encode(b).decode('utf-8')
+		return s
 
-	def deserialize_sklearn_model(self, text):
+	def deserialize_sklearn_model(self, text: str):
 		self.logging.debug('Deserializing sklearn model')
-		return pickle.loads(text)
+		b = base64.b64decode(text)
+		m = pickle.loads(b)
+		return m
