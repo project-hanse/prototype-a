@@ -68,6 +68,19 @@ namespace PipelineService.Controllers
 			return Ok(pipelineDto);
 		}
 
+		[HttpDelete("{pipelineId:Guid}")]
+		public async Task<IActionResult> DeletePipeline(Guid pipelineId)
+		{
+			var pipelineDto = await _pipelineExecutionService.DeletePipeline(pipelineId);
+
+			if (pipelineDto == null)
+			{
+				return NotFound($"No pipeline with id {pipelineId} exists");
+			}
+
+			return Ok(pipelineDto);
+		}
+
 		[HttpPost("{pipelineId:Guid}")]
 		public async Task<IActionResult> UpdatePipeline(Guid pipelineId, [FromBody] PipelineInfoDto pipelineDto)
 		{
@@ -150,17 +163,32 @@ namespace PipelineService.Controllers
 
 			var json = await new StreamReader(request.File.OpenReadStream()).ReadToEndAsync();
 
-			if (string.IsNullOrEmpty(json)) return BadRequest(new BaseResponse {
-				Errors =
+			if (string.IsNullOrEmpty(json))
+				return BadRequest(new BaseResponse
 				{
-					new Error()
+					Errors =
 					{
-						Code = "F400",
-						Message = "No data was found in the file"
+						new Error
+						{
+							Code = "F400",
+							Message = "No data was found in the file"
+						}
 					}
-				}});
+				});
 
 			var exportObject = JsonConvert.DeserializeObject<PipelineExport>(json);
+			if (exportObject == null)
+				return BadRequest(new BaseResponse
+				{
+					Errors =
+					{
+						new Error
+						{
+							Code = "F400",
+							Message = "Failed to deserialize content"
+						}
+					}
+				});
 			exportObject.CreatedBy = request.UserIdentifier;
 
 			var pipelineId = await _pipelinesDtoService.ImportPipeline(exportObject);

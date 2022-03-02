@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
+import {environment} from '../../../environments/environment';
 import {FilesService} from '../../utils/_services/files.service';
 import {FileInfoDto} from '../_model/file-info-dto';
 
@@ -10,6 +11,7 @@ import {FileInfoDto} from '../_model/file-info-dto';
 })
 export class FilesOverviewComponent implements OnInit {
 	$userFiles?: Observable<Array<FileInfoDto>>;
+	localProd: boolean = !environment.production;
 
 	constructor(private filesService: FilesService) {
 	}

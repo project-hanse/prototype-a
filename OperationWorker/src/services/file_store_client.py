@@ -1,3 +1,4 @@
+import io
 import logging
 from typing import Optional
 
@@ -34,7 +35,7 @@ class FileStoreClient:
 			self.log.error("Failed to setup connection to S3 service %s" % str(e))
 		return True
 
-	def get_object_content(self, input_object_bucket: str, input_object_key: str) -> Optional[str]:
+	def get_object_content_as_str(self, input_object_bucket: str, input_object_key: str) -> Optional[str]:
 		self.log.info("Loading object content from bucket '%s' for object with key '%s'"
 									% (input_object_bucket, input_object_key))
 
@@ -55,7 +56,7 @@ class FileStoreClient:
 		self.log.info('Detected charset %s' % detection["encoding"])
 		return body.decode(detection["encoding"])
 
-	def get_object_content_as_binary(self, input_object_bucket: str, input_object_key: str):
+	def get_object_content_as_binary_stream(self, input_object_bucket: str, input_object_key: str) -> Optional[io.BytesIO]:
 		self.log.info("Loading object content from bucket '%s' for object with key '%s'"
 									% (input_object_bucket, input_object_key))
 
@@ -68,7 +69,7 @@ class FileStoreClient:
 		if response is None:
 			return None
 
-		return response['Body'].read()
+		return io.BytesIO(response['Body'].read())
 
 	def create_bucket_if_not_exists(self, bucket_name: str):
 		self.log.info("Creating bucket '%s'" % bucket_name)

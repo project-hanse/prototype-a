@@ -9,4 +9,6 @@ export enum DatasetType {
 	PdSeries = 1,
 	PdDataFrame = 2,
 	StaticPlot = 3,
+	Prophet = 4,
+	SklearnModel = 5
 }

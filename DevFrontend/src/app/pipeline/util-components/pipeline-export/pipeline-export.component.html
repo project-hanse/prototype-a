@@ -1,0 +1,8 @@
+<a mat-button
+	 *ngIf="pipelineId"
+	 matTooltip="Download as file"
+	 [href]="getDownloadLink(pipelineId)"
+	 target="_blank">
+	<mat-icon>download</mat-icon>
+	<span *ngIf="!compact">Download</span>
+</a>

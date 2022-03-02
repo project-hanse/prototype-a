@@ -26,9 +26,15 @@ namespace PipelineService.Services
 		/// Loads a pipeline by it's id.
 		/// </summary>
 		/// <param name="id">The pipeline's id.</param>
-		/// <exception cref="NotFoundException">If not pipeline with a given id can be found.</exception>
-		/// <returns>The pipeline</returns>
+		/// <returns>The pipeline if it exists, otherwise <c>null</c>.</returns>
 		Task<PipelineInfoDto> GetPipelineInfoDto(Guid id);
+
+		/// <summary>
+		/// Deletes a pipeline by it's id.
+		/// </summary>
+		/// <param name="pipelineId">The pipeline's id.</param>
+		/// <returns>The info <c>PipelineInfoDto</c> of the deleted pipeline if the pipeline exists, otherwise <c>null</c>.</returns>
+		Task<PipelineInfoDto> DeletePipeline(Guid pipelineId);
 
 		/// <summary>
 		/// Updates a pipeline.

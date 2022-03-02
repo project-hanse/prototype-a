@@ -62,6 +62,28 @@ namespace PipelineService.Services.Impl
 			return operations;
 		}
 
+		public async Task<OperationTemplate> GetTemplate(Guid operationId, string operationIdentifier)
+		{
+			_logger.LogDebug("Loading operation template for {OperationId} {OperationIdentifier}",
+				operationId, operationIdentifier);
+
+			// TODO make this more efficient
+			var template = (await GetOperationDtos())
+				.FirstOrDefault(op => op.OperationId == operationId && op.OperationName == operationIdentifier);
+
+			if (template == default)
+			{
+				_logger.LogInformation("Operation template not found for {OperationId} {OperationIdentifier}",
+					operationId, operationIdentifier);
+
+				return null;
+			}
+
+			_logger.LogInformation("Loaded operation template for {OperationId} {OperationIdentifier}",
+				operationId, operationIdentifier);
+			return template;
+		}
+
 		private async Task<IList<OperationTemplate>> LoadTemplatesFromFiles()
 		{
 			var operations = new List<OperationTemplate>();
