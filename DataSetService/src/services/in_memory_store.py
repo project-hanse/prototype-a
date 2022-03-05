@@ -90,6 +90,14 @@ class InMemoryStore:
 				return None
 		return metadata
 
+	def store_metadata_by_key(self, key, metadata) -> bool:
+		self.log.info("Storing metadata for key %s" % str(key))
+		if key not in self.store:
+			self.log.info("Dataset %s does not exist" % str(key))
+			return False
+		self.store[key]['metadata'] = metadata
+		return True
+
 	def generate_metadata_by_key(self, key: str):
 		self.log.info("Generating metadata for key %s" % str(key))
 		if key not in self.store:

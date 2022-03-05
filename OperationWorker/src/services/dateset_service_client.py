@@ -1,4 +1,5 @@
 import base64
+import json
 import pickle
 
 import pandas as pd
@@ -74,6 +75,17 @@ class DatasetServiceClient:
 		else:
 			self.logging.warning('Failed to store sklearn model: (%i) %s' % (response.status_code, str(response.text)))
 			raise NotStoredError('Failed to store sklearn model: (%i) %s' % (response.status_code, str(response.reason)))
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key
+		self.logging.info('Storing sklearn model metadata to %s' % address)
+		params_serialized = json.dumps(model.get_params())
+		response = requests.post(address, data=params_serialized)
+		if response.status_code < 300:
+			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
+		else:
+			self.logging.warning(
+				'Failed to store sklearn model metadata: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError(
+				'Failed to store sklearn model metadata: (%i) %s' % (response.status_code, str(response.reason)))
 
 	def get_sklearn_model_by_key(self, key: str) -> pd.DataFrame:
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key

@@ -1,3 +1,4 @@
+import json
 import os
 
 import pandas as pd
@@ -91,7 +92,7 @@ def string_by_key(key: str):
 		return 'OK'
 
 
-@app.route('/api/metadata/key/<key>', methods=['GET'])
+@app.route('/api/metadata/key/<key>', methods=['GET', 'POST'])
 def metadata_by_key(key: str):
 	if request.method == 'GET':
 		dataset_store.generate_metadata_by_key(key)
@@ -102,6 +103,18 @@ def metadata_by_key(key: str):
 
 		requested_format = request.args.get('format')
 		return format_response(metadata, requested_format)
+	if request.method == 'POST':
+		data_format = request.args.get('format')
+		if data_format is None or data_format == 'json':
+			metadata = json.loads(request.data.decode('utf-8'))
+		else:
+			return 'Unsupported format', 400
+		if metadata is not None:
+			stored = dataset_store.store_metadata_by_key(key, metadata)
+			if stored:
+				return 'OK'
+			return 'Dataset does not exist', 404
+		return 'No metadata provided', 400
 
 
 ########################
