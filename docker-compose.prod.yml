@@ -98,7 +98,7 @@ services:
     environment:
       - MQTT_HOST=message-broker
       - DATASET_HOST=dataset-service
-      - DATASET_PORT=5000
+      - DATASET_PORT=5002
     depends_on:
       - message-broker
       - localstack-s3

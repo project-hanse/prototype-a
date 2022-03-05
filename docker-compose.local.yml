@@ -50,7 +50,7 @@ services:
     environment:
       - MQTT_HOST=message-broker
       - DATASET_HOST=dataset-service
-      - DATASET_PORT=5000
+      - DATASET_PORT=5002
     depends_on:
       - message-broker
       - localstack-s3
@@ -64,7 +64,7 @@ services:
       context: ./DataSetService
       dockerfile: ./Dockerfile
     ports:
-      - "5002:5000"
+      - "5002:5002"
     expose:
       - 5002
     environment:
