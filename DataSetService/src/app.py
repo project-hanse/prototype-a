@@ -1,7 +1,7 @@
 import os
 
 import pandas as pd
-from flask import Flask, render_template, request, abort
+from flask import Flask, render_template, request, abort, redirect
 from flask_bootstrap import Bootstrap
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -45,27 +45,17 @@ def root():
 @app.route('/api/dataframe/<dataset_id>', methods=['GET'])
 def dataset_by_id(dataset_id: str):
 	"""
-	Legacy endpoint. Will be replaced by GET /api/dataframe/<key>?format=json
+	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=json
 	"""
-	df = dataset_store.get_by_id(dataset_id)
-
-	if df is None:
-		abort(404)
-
-	return serialize_dataframe(df)
+	return redirect('/api/dataframe/key/%s?format=json' % dataset_id, 301)
 
 
 @app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
 def dataset_as_html_by_id(dataset_id: str):
 	"""
-	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=html
+	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=html
 	"""
-	df = dataset_store.get_by_id(dataset_id)
-
-	if df is None:
-		abort(404)
-
-	return df.to_html()
+	return redirect('/api/dataframe/key/%s?format=html' % dataset_id, 301)
 
 
 @app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
@@ -73,12 +63,7 @@ def dataset_as_csv_by_id(dataset_id: str):
 	"""
 	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
 	"""
-	df = dataset_store.get_by_id(dataset_id)
-
-	if df is None:
-		abort(404)
-
-	return df.to_csv()
+	return redirect('/api/dataframe/key/%s?format=csv' % dataset_id, 301)
 
 
 @app.route('/api/dataframe/key/<key>', methods=['GET', 'POST'])
@@ -88,8 +73,15 @@ def dataframe_by_key(key: str):
 
 		if df is None:
 			abort(404)
-
-		return serialize_dataframe(df)
+		requested_format = request.args.get('format')
+		if requested_format == 'json' or requested_format is None:
+			return serialize_dataframe(df)
+		elif requested_format == 'csv':
+			return df.to_csv()
+		elif requested_format == 'html':
+			return df.to_html()
+		else:
+			abort(400)
 
 	if request.method == 'POST':
 		data = request.data
@@ -105,9 +97,15 @@ def series_by_key(key: str):
 
 		if series is None:
 			abort(404)
-
-		return serialize_series(series)
-
+		requested_format = request.args.get('format')
+		if requested_format == 'json' or requested_format is None:
+			return serialize_series(series)
+		elif requested_format == 'csv':
+			return series.to_csv()
+		elif requested_format == 'html':
+			return series.to_frame().to_html()
+		else:
+			abort(400)
 	if request.method == 'POST':
 		data = request.data
 		series = pd.read_json(data, typ='series')
@@ -133,7 +131,7 @@ def string_by_key(key: str):
 
 
 @app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
-def describe_dataset_by_hash(key: str):
+def describe_dataset_by_key(key: str):
 	"""
 	Legacy endpoint. Will be replaced by GET /api/metadata/key/<key>?format=json
 	"""
@@ -149,7 +147,7 @@ def describe_dataset_by_hash(key: str):
 @app.route('/api/dataframe/key/describe/html/<key>', methods=['GET'])
 def describe_dataframe_by_key_html(key: str):
 	"""
-	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=html
+	Legacy endpoint. Will be replaced by GET /api/metadata/key/<key>?format=html
 	"""
 	if request.method == 'GET':
 		df = dataset_store.get_df_by_key(key)
