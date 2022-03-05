@@ -1,11 +1,12 @@
 import os
 
 import pandas as pd
-from flask import Flask, render_template, request, abort, redirect
+from flask import Flask, render_template, request, redirect, abort
 from flask_bootstrap import Bootstrap
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
+from src.helper.response_helper import format_response
 from src.services.file_store import FileStore
 from src.services.import_service import ImportService
 from src.services.in_memory_store import InMemoryStore
@@ -42,30 +43,6 @@ def root():
 		})
 
 
-@app.route('/api/dataframe/<dataset_id>', methods=['GET'])
-def dataset_by_id(dataset_id: str):
-	"""
-	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=json
-	"""
-	return redirect('/api/dataframe/key/%s?format=json' % dataset_id, 301)
-
-
-@app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
-def dataset_as_html_by_id(dataset_id: str):
-	"""
-	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=html
-	"""
-	return redirect('/api/dataframe/key/%s?format=html' % dataset_id, 301)
-
-
-@app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
-def dataset_as_csv_by_id(dataset_id: str):
-	"""
-	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
-	"""
-	return redirect('/api/dataframe/key/%s?format=csv' % dataset_id, 301)
-
-
 @app.route('/api/dataframe/key/<key>', methods=['GET', 'POST'])
 def dataframe_by_key(key: str):
 	if request.method == 'GET':
@@ -74,14 +51,7 @@ def dataframe_by_key(key: str):
 		if df is None:
 			abort(404)
 		requested_format = request.args.get('format')
-		if requested_format == 'json' or requested_format is None:
-			return serialize_dataframe(df)
-		elif requested_format == 'csv':
-			return df.to_csv()
-		elif requested_format == 'html':
-			return df.to_html()
-		else:
-			abort(400)
+		return format_response(df, requested_format)
 
 	if request.method == 'POST':
 		data = request.data
@@ -98,14 +68,7 @@ def series_by_key(key: str):
 		if series is None:
 			abort(404)
 		requested_format = request.args.get('format')
-		if requested_format == 'json' or requested_format is None:
-			return serialize_series(series)
-		elif requested_format == 'csv':
-			return series.to_csv()
-		elif requested_format == 'html':
-			return series.to_frame().to_html()
-		else:
-			abort(400)
+		return format_response(series, requested_format)
 	if request.method == 'POST':
 		data = request.data
 		series = pd.read_json(data, typ='series')
@@ -130,48 +93,62 @@ def string_by_key(key: str):
 		return 'OK'
 
 
+@app.route('/api/metadata/key/<key>', methods=['GET'])
+def metadata_by_key(key: str):
+	if request.method == 'GET':
+		dataset_store.generate_metadata_by_key(key)
+		metadata = dataset_store.get_metadata_by_key(key)
+
+		if metadata is None:
+			abort(404)
+
+		requested_format = request.args.get('format')
+		return format_response(metadata, requested_format)
+
+
+########################
+### Legacy endpoints ###
+########################
+
+
+@app.route('/api/dataframe/<dataset_id>', methods=['GET'])
+def dataset_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=json
+	"""
+	return redirect('/api/dataframe/key/%s?format=json' % dataset_id, 301)
+
+
+@app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
+def dataset_as_html_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=html
+	"""
+	return redirect('/api/dataframe/key/%s?format=html' % dataset_id, 301)
+
+
+@app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
+def dataset_as_csv_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
+	"""
+	return redirect('/api/dataframe/key/%s?format=csv' % dataset_id, 301)
+
+
 @app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
 def describe_dataset_by_key(key: str):
 	"""
-	Legacy endpoint. Will be replaced by GET /api/metadata/key/<key>?format=json
+	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=json
 	"""
-	if request.method == 'GET':
-		df = dataset_store.get_df_by_key(key)
-
-		if df is None:
-			abort(404)
-
-		return serialize_dataframe(df.describe())
+	return redirect('/api/metadata/key/%s?format=json' % key, 301)
 
 
 @app.route('/api/dataframe/key/describe/html/<key>', methods=['GET'])
 def describe_dataframe_by_key_html(key: str):
 	"""
-	Legacy endpoint. Will be replaced by GET /api/metadata/key/<key>?format=html
+	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=html
 	"""
-	if request.method == 'GET':
-		df = dataset_store.get_df_by_key(key)
-
-		if df is None:
-			abort(404)
-
-		return df.describe().to_html()
-
-
-def serialize_dataframe(df: pd.DataFrame):
-	return app.response_class(
-		response=df.to_json(date_format='iso'),
-		status=200,
-		mimetype='application/json'
-	)
-
-
-def serialize_series(df: pd.Series):
-	return app.response_class(
-		response=df.to_json(date_format='iso'),
-		status=200,
-		mimetype='application/json'
-	)
+	return redirect('/api/metadata/key/%s?format=html' % key, 301)
 
 
 # Initializing services
@@ -183,3 +160,4 @@ import_service.import_defaults_in_background()
 
 if __name__ == '__main__':
 	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)
+# TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec
