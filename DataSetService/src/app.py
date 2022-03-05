@@ -1,18 +1,20 @@
+import json
 import os
 
 import pandas as pd
-from flask import Flask, render_template, request, abort
+from flask import Flask, render_template, request, redirect, abort
 from flask_bootstrap import Bootstrap
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
+from src.helper.response_helper import format_response
 from src.services.file_store import FileStore
 from src.services.import_service import ImportService
 from src.services.in_memory_store import InMemoryStore
 from src.services.init_service import InitService
 
 # Configuration
-PORT: int = os.getenv("PORT", 5000)
+PORT: int = os.getenv("PORT", 5002)
 S3_HOST: str = os.getenv("S3_HOST", "localstack-s3")
 S3_PORT: str = os.getenv("S3_PORT", "4566")
 S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
@@ -29,87 +31,54 @@ import_service = ImportService(dataset_store)
 init_service = InitService(file_store)
 
 
-# Setting up endpoint
-
+# Setting up endpoints
 @app.route('/')
 @app.route('/index.html')
 def root():
 	return render_template(
 		'index.html',
 		data={
-			'dataset_count': dataset_store.get_dataset_count(),
-			'dataset_ids': dataset_store.get_ids()
+			'dataset_count': dataset_store.get_dataset_count()
 		})
-
-
-@app.route('/api/dataframe/<dataset_id>', methods=['GET'])
-def dataset_by_id(dataset_id: str):
-	df = dataset_store.get_by_id(dataset_id)
-
-	if df is None:
-		abort(404)
-
-	return serialize_dataframe(df)
-
-
-@app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
-def dataset_as_html_by_id(dataset_id: str):
-	df = dataset_store.get_by_id(dataset_id)
-
-	if df is None:
-		abort(404)
-
-	return df.to_html()
-
-
-@app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
-def dataset_as_csv_by_id(dataset_id: str):
-	df = dataset_store.get_by_id(dataset_id)
-
-	if df is None:
-		abort(404)
-
-	return df.to_csv()
 
 
 @app.route('/api/dataframe/key/<key>', methods=['GET', 'POST'])
 def dataframe_by_key(key: str):
 	if request.method == 'GET':
-		df = dataset_store.get_df_by_key(key)
+		df = dataset_store.get_by_key(key, pd.DataFrame)
 
 		if df is None:
 			abort(404)
-
-		return serialize_dataframe(df)
+		requested_format = request.args.get('format')
+		return format_response(df, requested_format)
 
 	if request.method == 'POST':
 		data = request.data
 		df = pd.read_json(data)
-		dataset_store.store_dataframe_by_key(key, df)
+		dataset_store.store_by_key(key, df)
 		return 'OK'
 
 
 @app.route('/api/series/key/<key>', methods=['GET', 'POST'])
 def series_by_key(key: str):
 	if request.method == 'GET':
-		series = dataset_store.get_series_by_key(key)
+		series = dataset_store.get_by_key(key, pd.Series)
 
 		if series is None:
 			abort(404)
-
-		return serialize_series(series)
-
+		requested_format = request.args.get('format')
+		return format_response(series, requested_format)
 	if request.method == 'POST':
 		data = request.data
 		series = pd.read_json(data, typ='series')
-		dataset_store.store_series_by_key(key, series)
+		dataset_store.store_by_key(key, series)
 		return 'OK'
 
 
 @app.route('/api/string/key/<key>', methods=['GET', 'POST'])
 def string_by_key(key: str):
 	if request.method == 'GET':
-		data = dataset_store.get_df_by_key(key)
+		data = dataset_store.get_by_key(key, str)
 
 		if data is None:
 			abort(404)
@@ -118,46 +87,79 @@ def string_by_key(key: str):
 
 	if request.method == 'POST':
 		data = request.data
-		dataset_store.store_by_key(key, data)
+		data_str: str = data.decode('utf-8')
+		dataset_store.store_by_key(key, data_str)
 		return 'OK'
 
 
-@app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
-def describe_dataset_by_hash(key: str):
+@app.route('/api/metadata/key/<key>', methods=['GET', 'POST'])
+def metadata_by_key(key: str):
 	if request.method == 'GET':
-		df = dataset_store.get_df_by_key(key)
+		dataset_store.generate_metadata_by_key(key)
+		metadata = dataset_store.get_metadata_by_key(key)
 
-		if df is None:
+		if metadata is None:
 			abort(404)
 
-		return serialize_dataframe(df.describe())
+		requested_format = request.args.get('format')
+		return format_response(metadata, requested_format)
+	if request.method == 'POST':
+		data_format = request.args.get('format')
+		if data_format is None or data_format == 'json':
+			metadata = json.loads(request.data.decode('utf-8'))
+		else:
+			return 'Unsupported format', 400
+		if metadata is not None:
+			stored = dataset_store.store_metadata_by_key(key, metadata)
+			if stored:
+				return 'OK'
+			return 'Dataset does not exist', 404
+		return 'No metadata provided', 400
+
+
+########################
+### Legacy endpoints ###
+########################
+
+
+@app.route('/api/dataframe/<dataset_id>', methods=['GET'])
+def dataset_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=json
+	"""
+	return redirect('/api/dataframe/key/%s?format=json' % dataset_id, 301)
+
+
+@app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
+def dataset_as_html_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=html
+	"""
+	return redirect('/api/dataframe/key/%s?format=html' % dataset_id, 301)
+
+
+@app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
+def dataset_as_csv_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
+	"""
+	return redirect('/api/dataframe/key/%s?format=csv' % dataset_id, 301)
+
+
+@app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
+def describe_dataset_by_key(key: str):
+	"""
+	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=json
+	"""
+	return redirect('/api/metadata/key/%s?format=json' % key, 301)
 
 
 @app.route('/api/dataframe/key/describe/html/<key>', methods=['GET'])
 def describe_dataframe_by_key_html(key: str):
-	if request.method == 'GET':
-		df = dataset_store.get_df_by_key(key)
-
-		if df is None:
-			abort(404)
-
-		return df.describe().to_html()
-
-
-def serialize_dataframe(df: pd.DataFrame):
-	return app.response_class(
-		response=df.to_json(date_format='iso'),
-		status=200,
-		mimetype='application/json'
-	)
-
-
-def serialize_series(df: pd.Series):
-	return app.response_class(
-		response=df.to_json(date_format='iso'),
-		status=200,
-		mimetype='application/json'
-	)
+	"""
+	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=html
+	"""
+	return redirect('/api/metadata/key/%s?format=html' % key, 301)
 
 
 # Initializing services
@@ -169,3 +171,4 @@ import_service.import_defaults_in_background()
 
 if __name__ == '__main__':
 	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)
+# TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec
