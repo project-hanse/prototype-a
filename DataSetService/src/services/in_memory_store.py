@@ -40,9 +40,6 @@ class InMemoryStore:
 	def get_dataset_count(self):
 		return len(self.store)
 
-	def get_ids(self):
-		return self.store.keys()
-
 	def get_df_by_key(self, key) -> Optional[pd.DataFrame]:
 		self.log.info("Loading dataset by key %s" % str(key))
 
@@ -55,6 +52,7 @@ class InMemoryStore:
 		data_type = type(data)
 		self.log.info("Storing %s with key %s" % (str(data_type), key))
 		self.store[key] = {
+			'key': key,
 			'type': data_type,
 			'date': time.gmtime(),
 			'data': data,

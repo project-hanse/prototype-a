@@ -30,16 +30,14 @@ import_service = ImportService(dataset_store)
 init_service = InitService(file_store)
 
 
-# Setting up endpoint
-
+# Setting up endpoints
 @app.route('/')
 @app.route('/index.html')
 def root():
 	return render_template(
 		'index.html',
 		data={
-			'dataset_count': dataset_store.get_dataset_count(),
-			'dataset_ids': dataset_store.get_ids()
+			'dataset_count': dataset_store.get_dataset_count()
 		})
 
 
