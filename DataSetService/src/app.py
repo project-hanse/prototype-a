@@ -12,7 +12,7 @@ from src.services.in_memory_store import InMemoryStore
 from src.services.init_service import InitService
 
 # Configuration
-PORT: int = os.getenv("PORT", 5000)
+PORT: int = os.getenv("PORT", 5002)
 S3_HOST: str = os.getenv("S3_HOST", "localstack-s3")
 S3_PORT: str = os.getenv("S3_PORT", "4566")
 S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
@@ -44,6 +44,9 @@ def root():
 
 @app.route('/api/dataframe/<dataset_id>', methods=['GET'])
 def dataset_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Will be replaced by GET /api/dataframe/<key>?format=json
+	"""
 	df = dataset_store.get_by_id(dataset_id)
 
 	if df is None:
@@ -54,6 +57,9 @@ def dataset_by_id(dataset_id: str):
 
 @app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
 def dataset_as_html_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=html
+	"""
 	df = dataset_store.get_by_id(dataset_id)
 
 	if df is None:
@@ -64,6 +70,9 @@ def dataset_as_html_by_id(dataset_id: str):
 
 @app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
 def dataset_as_csv_by_id(dataset_id: str):
+	"""
+	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
+	"""
 	df = dataset_store.get_by_id(dataset_id)
 
 	if df is None:
@@ -75,7 +84,7 @@ def dataset_as_csv_by_id(dataset_id: str):
 @app.route('/api/dataframe/key/<key>', methods=['GET', 'POST'])
 def dataframe_by_key(key: str):
 	if request.method == 'GET':
-		df = dataset_store.get_df_by_key(key)
+		df = dataset_store.get_by_key(key, pd.DataFrame)
 
 		if df is None:
 			abort(404)
@@ -85,14 +94,14 @@ def dataframe_by_key(key: str):
 	if request.method == 'POST':
 		data = request.data
 		df = pd.read_json(data)
-		dataset_store.store_dataframe_by_key(key, df)
+		dataset_store.store_by_key(key, df)
 		return 'OK'
 
 
 @app.route('/api/series/key/<key>', methods=['GET', 'POST'])
 def series_by_key(key: str):
 	if request.method == 'GET':
-		series = dataset_store.get_series_by_key(key)
+		series = dataset_store.get_by_key(key, pd.Series)
 
 		if series is None:
 			abort(404)
@@ -102,14 +111,14 @@ def series_by_key(key: str):
 	if request.method == 'POST':
 		data = request.data
 		series = pd.read_json(data, typ='series')
-		dataset_store.store_series_by_key(key, series)
+		dataset_store.store_by_key(key, series)
 		return 'OK'
 
 
 @app.route('/api/string/key/<key>', methods=['GET', 'POST'])
 def string_by_key(key: str):
 	if request.method == 'GET':
-		data = dataset_store.get_df_by_key(key)
+		data = dataset_store.get_by_key(key, str)
 
 		if data is None:
 			abort(404)
@@ -118,12 +127,16 @@ def string_by_key(key: str):
 
 	if request.method == 'POST':
 		data = request.data
-		dataset_store.store_by_key(key, data)
+		data_str: str = data.decode('utf-8')
+		dataset_store.store_by_key(key, data_str)
 		return 'OK'
 
 
 @app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
 def describe_dataset_by_hash(key: str):
+	"""
+	Legacy endpoint. Will be replaced by GET /api/metadata/key/<key>?format=json
+	"""
 	if request.method == 'GET':
 		df = dataset_store.get_df_by_key(key)
 
@@ -135,6 +148,9 @@ def describe_dataset_by_hash(key: str):
 
 @app.route('/api/dataframe/key/describe/html/<key>', methods=['GET'])
 def describe_dataframe_by_key_html(key: str):
+	"""
+	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=html
+	"""
 	if request.method == 'GET':
 		df = dataset_store.get_df_by_key(key)
 

@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -75,8 +76,30 @@ class InMemoryStore:
 		self.store[key] = data
 
 	def store_by_key(self, key: str, data):
-		self.log.info("Storing data with key %s" % key)
-		self.store[key] = data
+		data_type = type(data)
+		self.log.info("Storing %s with key %s" % (str(data_type), key))
+		self.store[key] = {
+			'type': data_type,
+			'date': time.gmtime(),
+			'data': data
+		}
+
+	def get_by_key(self, key: str, data_type: type = None):
+		if data_type is not None:
+			self.log.info("Loading dataset by key %s and verifying type %s" % (str(key), str(data_type)))
+		else:
+			self.log.info("Loading dataset by key %s" % str(key))
+
+		if key in self.store:
+			data_object = self.store[key]
+			if data_type is not None:
+				if data_object['type'] is not data_type:
+					self.log.warn("Data type of key %s is not %s" % (str(key), str(data_type)))
+					return None
+			return data_object['data']
+		else:
+			self.log.info("Key %s does not exist" % str(key))
+			return None
 
 	@staticmethod
 	def get_sep(file_path: str):
