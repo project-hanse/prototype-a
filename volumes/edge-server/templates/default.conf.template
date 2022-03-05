@@ -54,7 +54,7 @@ server {
     }
 
     location /api/dataset {
-        proxy_pass          http://dataset-service:5000;
+        proxy_pass          http://dataset-service:5002;
         rewrite             /api/dataset/(.*) /$1 break;
         proxy_redirect      off;
         proxy_set_header    Host $host;
