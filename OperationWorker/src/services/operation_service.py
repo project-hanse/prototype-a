@@ -81,6 +81,8 @@ class OperationService:
 		self.local_operations[
 			"24f097f7-08db-4e78-a7dd-b510bfa4852e"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_naive_bayes_gaussian
 		self.local_operations[
+			"e34a64ab-2c1e-4498-a9e3-40f5fe78fa5e"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_k_neighbors
+		self.local_operations[
 			"a5918ebc-5ba2-461a-8b5f-4215328d957e"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_random_forest
 		self.local_operations[
 			"067c7cd4-87f6-43e2-a733-26e5c51ef875"] = OperationsSklearnClassifiers.sklearn_classifier_score

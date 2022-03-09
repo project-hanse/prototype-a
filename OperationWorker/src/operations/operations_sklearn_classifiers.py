@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
 
 from src.helper.operations_helper import OperationsHelper
@@ -84,6 +85,31 @@ class OperationsSklearnClassifiers:
 		var_smoothing = OperationsHelper.get_or_default(operation_config, "var_smoothing", 1e-9)
 
 		cls = GaussianNB(priors=priors, var_smoothing=var_smoothing)
+
+		cls.fit(data[0], data[1])
+
+		return cls
+
+	@staticmethod
+	def sklearn_create_fit_classifier_k_neighbors(logger: logging, operation_name: str, operation_config: dict,
+																								data: []):
+		"""
+		Create and fit a K-Neighbors classifier.
+		"""
+		logger.info("Executing scikit operation sklearn_create_fit_classifier_k_neighbors (%s)" % operation_name)
+		OperationsHelper.validate_input_or_throw(data, 2)
+
+		n_neighbors = OperationsHelper.get_or_default(operation_config, "n_neighbors", 5)
+		weights = OperationsHelper.get_or_default(operation_config, "weights", "uniform")
+		algorithm = OperationsHelper.get_or_default(operation_config, "algorithm", "auto")
+		leaf_size = OperationsHelper.get_or_default(operation_config, "leaf_size", 30)
+		p = OperationsHelper.get_or_default(operation_config, "p", 2)
+		metric = OperationsHelper.get_or_default(operation_config, "metric", "minkowski")
+		metric_params = OperationsHelper.get_or_default(operation_config, "metric_params", None)
+		n_jobs = OperationsHelper.get_or_default(operation_config, "n_jobs", None)
+
+		cls = KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm, leaf_size=leaf_size, p=p,
+															 metric=metric, metric_params=metric_params, n_jobs=n_jobs)
 
 		cls.fit(data[0], data[1])
 
