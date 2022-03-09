@@ -2,6 +2,7 @@ import logging
 
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC, LinearSVC
 
 from src.helper.operations_helper import OperationsHelper
@@ -65,6 +66,24 @@ class OperationsSklearnClassifiers:
 		cls = LinearSVC(penalty=penalty, loss=loss, dual=dual, tol=tol, C=C, multi_class=multi_class,
 										fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight,
 										verbose=verbose, random_state=random_state, max_iter=max_iter)
+
+		cls.fit(data[0], data[1])
+
+		return cls
+
+	@staticmethod
+	def sklearn_create_fit_classifier_naive_bayes_gaussian(logger: logging, operation_name: str, operation_config: dict,
+																												 data: []):
+		"""
+		Create and fit a Naive Bayes classifier.
+		"""
+		logger.info("Executing scikit operation sklearn_create_fit_classifier_naive_bayes_gaussian (%s)" % operation_name)
+		OperationsHelper.validate_input_or_throw(data, 2)
+
+		priors = OperationsHelper.get_or_default(operation_config, "priors", None)
+		var_smoothing = OperationsHelper.get_or_default(operation_config, "var_smoothing", 1e-9)
+
+		cls = GaussianNB(priors=priors, var_smoothing=var_smoothing)
 
 		cls.fit(data[0], data[1])
 

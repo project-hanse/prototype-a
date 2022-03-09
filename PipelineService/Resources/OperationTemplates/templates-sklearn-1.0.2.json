@@ -140,7 +140,7 @@
 		"framework": "scikit-learn",
 		"frameworkVersion": "1.0.2",
 		"sectionTitle": "Custom Operations",
-		"title": "sklearn.classifiers.linear-svc",
+		"title": "sklearn.classifiers.linear.svc",
 		"description": "Creates and fits a Linear-Support Vector Classification model",
 		"signature": null,
 		"signatureName": null,
@@ -163,6 +163,30 @@
 		"returns": "LinearSVC"
 	},
 	{
+		"operationId": "24f097f7-08db-4e78-a7dd-b510bfa4852e",
+		"operationName": "classifier_naive_bayes_gaussian",
+		"operationFullName": "sklearn.classifiers.naive.bayes.gaussian",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.naive.bayes.gaussian",
+		"description": "Creates and fits a Gaussian Naive Bayes Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"priors": null,
+			"var_smoothing": 1e-9
+		},
+		"returns": "GaussianNB"
+	},
+	{
 		"operationId": "a5918ebc-5ba2-461a-8b5f-4215328d957e",
 		"operationName": "classifier_random_forest",
 		"operationFullName": "sklearn.classifiers.random.forest",
@@ -174,7 +198,7 @@
 		"framework": "scikit-learn",
 		"frameworkVersion": "1.0.2",
 		"sectionTitle": "Custom Operations",
-		"title": "sklearn.classifiers.random-forest",
+		"title": "sklearn.classifiers.random.forest",
 		"description": "Creates and fits a Random Forest Classification model",
 		"signature": null,
 		"signatureName": null,
