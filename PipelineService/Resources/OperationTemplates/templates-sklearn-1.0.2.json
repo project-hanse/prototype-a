@@ -129,6 +129,46 @@
 		"returns": "SVC"
 	},
 	{
+		"operationId": "a5918ebc-5ba2-461a-8b5f-4215328d957e",
+		"operationName": "classifier_random_forest",
+		"operationFullName": "sklearn.classifiers.random.forest",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.random-forest",
+		"description": "Creates and fits a Random Forest Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"n_estimators": 100,
+			"criterion": "gini",
+			"max_depth": null,
+			"min_samples_split": 2,
+			"min_samples_leaf": 1,
+			"min_weight_fraction_leaf": 0.0,
+			"max_features": "auto",
+			"max_leaf_nodes": null,
+			"min_impurity_decrease": 0.0,
+			"bootstrap": true,
+			"oob_score": false,
+			"n_jobs": null,
+			"random_state": null,
+			"verbose": 0,
+			"warm_start": false,
+			"class_weight": null,
+			"ccp_alpha": 0.0,
+			"max_samples": null
+		},
+		"returns": "RandomForest"
+	},
+	{
 		"operationId": "067c7cd4-87f6-43e2-a733-26e5c51ef875",
 		"operationName": "classifier_score",
 		"operationFullName": "sklearn.classifiers.score",
