@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 
 from src.helper.operations_helper import OperationsHelper
 
@@ -36,6 +36,35 @@ class OperationsSklearnClassifiers:
 		cls = SVC(C=c, kernel=kernel, degree=degree, gamma=gamma, coef0=coef0, shrinking=shrinking, probability=probability,
 							tol=tol, cache_size=cache_size, class_weight=class_weight, verbose=verbose, max_iter=max_iter,
 							decision_function_shape=decision_function_shape, break_ties=break_ties, random_state=random_state)
+
+		cls.fit(data[0], data[1])
+
+		return cls
+
+	@staticmethod
+	def sklearn_create_fit_classifier_linear_svc(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Create and fit a Linear-Support Vector classifier.
+		"""
+		logger.info("Executing scikit operation sklearn_create_fit_classifier_linear_svc (%s)" % operation_name)
+		OperationsHelper.validate_input_or_throw(data, 2)
+
+		penalty = OperationsHelper.get_or_default(operation_config, "penalty", "l2")
+		loss = OperationsHelper.get_or_default(operation_config, "loss", "squared_hinge")
+		dual = OperationsHelper.get_or_default(operation_config, "dual", True)
+		tol = OperationsHelper.get_or_default(operation_config, "tol", 1e-4)
+		C = OperationsHelper.get_or_default(operation_config, "C", 1.0)
+		multi_class = OperationsHelper.get_or_default(operation_config, "multi_class", "ovr")
+		fit_intercept = OperationsHelper.get_or_default(operation_config, "fit_intercept", True)
+		intercept_scaling = OperationsHelper.get_or_default(operation_config, "intercept_scaling", 1)
+		class_weight = OperationsHelper.get_or_default(operation_config, "class_weight", None)
+		verbose = OperationsHelper.get_or_default(operation_config, "verbose", 0)
+		random_state = OperationsHelper.get_or_default(operation_config, "random_state", None)
+		max_iter = OperationsHelper.get_or_default(operation_config, "max_iter", 1000)
+
+		cls = LinearSVC(penalty=penalty, loss=loss, dual=dual, tol=tol, C=C, multi_class=multi_class,
+										fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight,
+										verbose=verbose, random_state=random_state, max_iter=max_iter)
 
 		cls.fit(data[0], data[1])
 
