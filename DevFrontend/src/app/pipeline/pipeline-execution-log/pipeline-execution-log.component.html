@@ -1,9 +1,5 @@
-<mat-card>
-	<mat-card-title>
-		Execution Log
-	</mat-card-title>
-
-	<mat-card-content *ngIf="executionEvents(pipelineId) | async as events">
+<mat-card *ngIf="executionEvents(pipelineId) | async as events">
+	<mat-card-content>
 
 		<mat-progress-bar
 			*ngIf="getLast(events) as last"
@@ -12,7 +8,7 @@
 			[bufferValue]="bufferValue(last)">
 		</mat-progress-bar>
 
-		<mat-list>
+		<mat-list style="max-height: 250px; overflow-y: auto; padding: 0.5em 0;">
 			<mat-list-item *ngFor="let e of sort(events)">
 
 				<mat-icon mat-list-icon>{{e.Successful ? 'check' : 'error'}}</mat-icon>
@@ -24,9 +20,6 @@
 					<span *ngIf="e.ErrorDescription" style="color: red">{{e.ErrorDescription}}</span>
 					&nbsp;
 					<span [matTooltip]="e.CompletedAt | date: 'medium'">{{e.ExecutionTime}} ms</span>
-					&nbsp;
-					<span>(Execution: {{e.ExecutionId}})</span>
-
 				</div>
 
 			</mat-list-item>

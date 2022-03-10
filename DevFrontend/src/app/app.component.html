@@ -1,11 +1,8 @@
 <header>
 	<mat-toolbar color="primary" class="mat-elevation-z4">
-		<mat-toolbar-row>
-			<h1>Development Frontend</h1>
-			<span *ngIf="!isProd()">&nbsp;-&nbsp;Dev</span>
-			<ph-username style="margin-left: auto; opacity: 0.75;"></ph-username>
-		</mat-toolbar-row>
 		<mat-toolbar-row class="nav-row">
+			<h1>Project Hanse</h1>
+			<span *ngIf="!isProd()">&nbsp;-&nbsp;Dev</span>
 			<nav>
 				<a mat-stroked-button routerLink="pipeline">
 					Pipelines
@@ -22,6 +19,7 @@
 				</a>
 			</nav>
 			<ph-status-bar style="margin-left: auto"></ph-status-bar>
+			<ph-username style="margin-left: 1em; opacity: 0.75; font-size: smaller"></ph-username>
 		</mat-toolbar-row>
 	</mat-toolbar>
 </header>
