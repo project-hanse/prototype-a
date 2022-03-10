@@ -30,9 +30,14 @@ namespace FileService.Services
 			_s3Client = s3Client;
 		}
 
-		private string GetBucketName(string userIdentifier)
+		private string GetBucketName(string userIdentifier = null)
 		{
-			return $"{_configuration.GetValue("S3Configuration:UserBucketPrefix", "users")}-{userIdentifier}".ToLower();
+			if (userIdentifier != null)
+			{
+				return $"{_configuration.GetValue("S3Configuration:UserBucketPrefix", "users")}-{userIdentifier}".ToLower();
+			}
+
+			return $"{_configuration.GetValue("S3Configuration:DefaultFilesBucket", "defaultfiles")}";
 		}
 
 		private async Task EnsureBucketExists(string bucketName)
@@ -114,20 +119,35 @@ namespace FileService.Services
 			});
 
 			var fileInfos = bucketList.S3Objects
-				.Select(o => new FileInfoDto
-				{
-					FileName = o.Key,
-					FileExtension = Path.GetExtension(o.Key),
-					LastModified = o.LastModified,
-					Size = o.Size,
-					BucketName = o.BucketName,
-					ObjectKey = o.Key
-				})
+				.Select(MapToFileInfoDto)
 				.OrderByDescending(fi => fi.LastModified)
 				.ToList();
 
 			_logger.LogInformation("Loaded {FileCount} file info dtos for user {UserIdentifier}", fileInfos.Count,
 				userIdentifier);
+
+			return fileInfos;
+		}
+
+		public async Task<IList<FileInfoDto>> GetDefaultFileInfos()
+		{
+			_logger.LogDebug("Loading available default file infos for all users");
+
+			await EnsureBucketExists(GetBucketName());
+
+			var bucketList = await _s3Client.ListObjectsAsync(new ListObjectsRequest
+			{
+				BucketName = GetBucketName(),
+				MaxKeys = 1000
+			});
+
+			var fileInfos = bucketList.S3Objects
+				.Select(MapToFileInfoDto)
+				.OrderByDescending(fi => fi.FileExtension)
+				.ThenByDescending(fi => fi.FileName)
+				.ToList();
+
+			_logger.LogInformation("Loaded {FileCount} default file info dtos", fileInfos.Count);
 
 			return fileInfos;
 		}
@@ -159,6 +179,19 @@ namespace FileService.Services
 			}
 
 			return null;
+		}
+
+		private static FileInfoDto MapToFileInfoDto(S3Object o)
+		{
+			return new FileInfoDto
+			{
+				FileName = o.Key,
+				FileExtension = Path.GetExtension(o.Key),
+				LastModified = o.LastModified,
+				Size = o.Size,
+				BucketName = o.BucketName,
+				ObjectKey = o.Key
+			};
 		}
 	}
 }

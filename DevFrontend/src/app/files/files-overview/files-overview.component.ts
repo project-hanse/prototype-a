@@ -11,6 +11,7 @@ import {FileInfoDto} from '../_model/file-info-dto';
 })
 export class FilesOverviewComponent implements OnInit {
 	$userFiles?: Observable<Array<FileInfoDto>>;
+	$defaultFiles?: Observable<Array<FileInfoDto>>;
 	localProd: boolean = !environment.production;
 
 	constructor(private filesService: FilesService) {
@@ -29,6 +30,13 @@ export class FilesOverviewComponent implements OnInit {
 			this.$userFiles = this.filesService.getUserFileInfos();
 		}
 		return this.$userFiles;
+	}
+
+	getDefaultFiles(): Observable<Array<FileInfoDto>> {
+		if (!this.$defaultFiles) {
+			this.$defaultFiles = this.filesService.getDefaultFileInfos();
+		}
+		return this.$defaultFiles;
 	}
 
 	toReadablyBytes(size: number): string {

@@ -18,6 +18,10 @@ export class FilesService extends BaseHttpService {
 		return this.httpClient.get<Array<FileInfoDto>>(this.getFilesUrl('info'));
 	}
 
+	public getDefaultFileInfos(): Observable<Array<FileInfoDto>> {
+		return this.httpClient.get<Array<FileInfoDto>>(this.getFilesUrl('public/info'));
+	}
+
 	public uploadFile(formData: FormData): Observable<FileInfoDto> {
 		return this.httpClient.post<FileInfoDto>(this.getFilesUrl('upload'), formData);
 	}
