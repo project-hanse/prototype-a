@@ -5,19 +5,16 @@
 		<mat-list *ngIf="getUserFiles() | async as userFiles">
 			<div mat-subheader>
 				<span>My Files</span>
-				<span>&nbsp;</span>
-				<a *ngIf="localProd" href="http://localhost:4566/defaultfiles/?Marker=0" target="_blank">Default Files</a>
 			</div>
-			<mat-list-item *ngFor="let userFile of userFiles">
-				<mat-icon mat-list-icon>note</mat-icon>
-				<div mat-line>
-					<span>{{userFile.fileName}}</span>
-				</div>
-				<div mat-line>
-					<span>{{userFile.lastModified | date: 'MMM dd, YYYY, HH:mm'}}</span>
-					<span *ngIf="userFile.size" style="opacity: 0.6">&nbsp;({{toReadablyBytes(userFile.size)}})</span>
-				</div>
-			</mat-list-item>
+			<ph-file-info-list [userFiles]="userFiles" [toReadablyBytes]="toReadablyBytes"></ph-file-info-list>
+		</mat-list>
+		<mat-list *ngIf="getDefaultFiles() | async as defaultFiles">
+			<div mat-subheader>
+				<span>Public Default Files</span>
+				<span>&nbsp;</span>
+				<a *ngIf="localProd" href="http://localhost:4566/defaultfiles/?Marker=0" target="_blank">S3 Bucket</a>
+			</div>
+			<ph-file-info-list [userFiles]="defaultFiles" [toReadablyBytes]="toReadablyBytes"></ph-file-info-list>
 		</mat-list>
 	</mat-card>
 </div>

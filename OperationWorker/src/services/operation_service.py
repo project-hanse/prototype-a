@@ -77,6 +77,16 @@ class OperationService:
 		self.local_operations[
 			"36564f26-f147-47f1-95fb-884dba993494"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_svc
 		self.local_operations[
+			"4923d3da-19a7-45da-9fbc-9a0737d6f64b"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_linear_svc
+		self.local_operations[
+			"24f097f7-08db-4e78-a7dd-b510bfa4852e"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_naive_bayes_gaussian
+		self.local_operations[
+			"e34a64ab-2c1e-4498-a9e3-40f5fe78fa5e"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_k_neighbors
+		self.local_operations[
+			"a5918ebc-5ba2-461a-8b5f-4215328d957e"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_random_forest
+		self.local_operations[
+			"93d21ed8-acc5-4a67-8678-93a705a0878b"] = OperationsSklearnClassifiers.sklearn_create_fit_classifier_decision_tree
+		self.local_operations[
 			"067c7cd4-87f6-43e2-a733-26e5c51ef875"] = OperationsSklearnClassifiers.sklearn_classifier_score
 		self.local_operations[
 			"ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba"] = OperationsSklearnClassifiers.sklearn_classifier_predict

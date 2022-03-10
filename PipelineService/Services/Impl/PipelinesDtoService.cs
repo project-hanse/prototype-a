@@ -39,14 +39,16 @@ namespace PipelineService.Services.Impl
 		public async Task<PipelineExport> ExportPipeline(Guid pipelineId)
 		{
 			_logger.LogDebug("Exporting pipeline {PipelineId}", pipelineId);
-			var p = await _pipelinesDao.GetInfoDto(pipelineId);
-			if (p == null)
+			var infoDto = await _pipelinesDao.GetInfoDto(pipelineId);
+			if (infoDto == null)
 			{
 				_logger.LogInformation("Pipeline {PipelineId} not found", pipelineId);
 				return null;
 			}
 
-			return await _pipelinesDao.ExportPipeline(pipelineId);
+			var exportObject = await _pipelinesDao.ExportPipeline(pipelineId);
+			exportObject.PipelineName = infoDto.Name;
+			return exportObject;
 		}
 
 		public async Task<Guid> ImportPipeline(PipelineExport exportObject)
@@ -77,11 +79,17 @@ namespace PipelineService.Services.Impl
 				else if (line.Contains("\"type\":\"relationship\""))
 				{
 					var relationship = JsonConvert.DeserializeObject<Neo4JRelationShip<Pipeline, Operation>>(line);
+					if (relationship == null)
+					{
+						throw new InvalidDataException("Expected relationship object");
+					}
+
 					if (pipeline == null)
 					{
 						pipeline = relationship.Start.Properties;
 						pipeline.Id = Guid.NewGuid();
 						pipeline.CreatedOn = DateTime.UtcNow;
+						pipeline.Name = exportObject.PipelineName;
 						pipeline.UserIdentifier = exportObject.CreatedBy;
 						_logger.LogDebug("Found pipeline node {OriginalPipelineId} to {NewPipelineId}",
 							relationship.Start.Properties.Id, pipeline.Id);
