@@ -257,6 +257,39 @@
 		"returns": "RandomForest"
 	},
 	{
+		"operationId": "93d21ed8-acc5-4a67-8678-93a705a0878b",
+		"operationName": "classifier_decision_tree",
+		"operationFullName": "sklearn.classifiers.decision.tree",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.decision.tree",
+		"description": "Creates and fits a Decision Tree Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"criterion": "gini",
+			"max_depth": null,
+			"min_samples_split": 2,
+			"min_samples_leaf": 1,
+			"min_weight_fraction_leaf": 0.0,
+			"max_features": "auto",
+			"max_leaf_nodes": null,
+			"min_impurity_decrease": 0.0,
+			"random_state": null,
+			"class_weight": null,
+			"ccp_alpha": 0.0
+		},
+		"returns": "DecisionTree"
+	},
+	{
 		"operationId": "067c7cd4-87f6-43e2-a733-26e5c51ef875",
 		"operationName": "classifier_score",
 		"operationFullName": "sklearn.classifiers.score",

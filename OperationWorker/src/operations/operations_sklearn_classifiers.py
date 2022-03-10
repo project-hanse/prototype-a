@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
+from sklearn.tree import DecisionTreeClassifier
 
 from src.helper.operations_helper import OperationsHelper
 
@@ -150,6 +151,38 @@ class OperationsSklearnClassifiers:
 																 bootstrap=bootstrap, oob_score=oob_score, n_jobs=n_jobs, random_state=random_state,
 																 verbose=verbose, warm_start=warm_start, class_weight=class_weight, ccp_alpha=ccp_alpha,
 																 max_samples=max_samples)
+
+		cls.fit(data[0], data[1])
+
+		return cls
+
+	@staticmethod
+	def sklearn_create_fit_classifier_decision_tree(logger: logging, operation_name: str, operation_config: dict,
+																									data: []):
+		"""
+		Create and fit a Decision Tree classifier.
+		"""
+		logger.info("Executing scikit operation sklearn_create_fit_classifier_decision_tree (%s)" % operation_name)
+		OperationsHelper.validate_input_or_throw(data, 2)
+
+		criterion = OperationsHelper.get_or_default(operation_config, "criterion", "gini")
+		splitter = OperationsHelper.get_or_default(operation_config, "splitter", "best")
+		max_depth = OperationsHelper.get_or_default(operation_config, "max_depth", None)
+		min_samples_split = OperationsHelper.get_or_default(operation_config, "min_samples_split", 2)
+		min_samples_leaf = OperationsHelper.get_or_default(operation_config, "min_samples_leaf", 1)
+		min_weight_fraction_leaf = OperationsHelper.get_or_default(operation_config, "min_weight_fraction_leaf", 0.0)
+		max_features = OperationsHelper.get_or_default(operation_config, "max_features", "auto")
+		max_leaf_nodes = OperationsHelper.get_or_default(operation_config, "max_leaf_nodes", None)
+		min_impurity_decrease = OperationsHelper.get_or_default(operation_config, "min_impurity_decrease", 0.0)
+		random_state = OperationsHelper.get_or_default(operation_config, "random_state", None)
+		class_weight = OperationsHelper.get_or_default(operation_config, "class_weight", None)
+		ccp_alpha = OperationsHelper.get_or_default(operation_config, "ccp_alpha", 0.0)
+
+		cls = DecisionTreeClassifier(criterion=criterion, splitter=splitter, max_depth=max_depth,
+																 min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf,
+																 min_weight_fraction_leaf=min_weight_fraction_leaf, max_features=max_features,
+																 max_leaf_nodes=max_leaf_nodes, min_impurity_decrease=min_impurity_decrease,
+																 random_state=random_state, class_weight=class_weight, ccp_alpha=ccp_alpha)
 
 		cls.fit(data[0], data[1])
 
