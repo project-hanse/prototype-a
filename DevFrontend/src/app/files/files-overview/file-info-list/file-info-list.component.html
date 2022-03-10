@@ -1,0 +1,10 @@
+<mat-list-item *ngFor="let userFile of userFiles">
+    <mat-icon mat-list-icon>note</mat-icon>
+    <div mat-line>
+        <span>{{userFile.fileName}}</span>
+    </div>
+    <div mat-line>
+        <span>{{userFile.lastModified | date: 'MMM dd, YYYY, HH:mm'}}</span>
+        <span *ngIf="userFile.size" style="opacity: 0.6">&nbsp;({{toReadablyBytes(userFile.size)}})</span>
+    </div>
+</mat-list-item>

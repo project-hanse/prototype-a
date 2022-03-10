@@ -21,6 +21,12 @@ namespace FileService.Controllers
 			return Ok(await _filesService.GetFileInfosForUser(HttpContext.GetUsernameFromBasicAuthHeader()));
 		}
 
+		[HttpGet("public/info")]
+		public async Task<IActionResult> GetDefaultFileInfos()
+		{
+			return Ok(await _filesService.GetDefaultFileInfos());
+		}
+
 		[HttpPost("upload")]
 		public async Task<IActionResult> Upload([FromForm] UploadFileRequest request)
 		{

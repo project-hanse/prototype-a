@@ -129,6 +129,167 @@
 		"returns": "SVC"
 	},
 	{
+		"operationId": "4923d3da-19a7-45da-9fbc-9a0737d6f64b",
+		"operationName": "classifier_linear_svc",
+		"operationFullName": "sklearn.classifiers.linear.svc",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.linear.svc",
+		"description": "Creates and fits a Linear-Support Vector Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"penalty": "l2",
+			"loss": "squared_hinge",
+			"dual": true,
+			"tol": 1e-4,
+			"C": 1.0,
+			"multi_class": "ovr",
+			"fit_intercept": true,
+			"intercept_scaling": 1,
+			"class_weight": null,
+			"verbose": 0,
+			"random_state": null,
+			"max_iter": 1000
+		},
+		"returns": "LinearSVC"
+	},
+	{
+		"operationId": "24f097f7-08db-4e78-a7dd-b510bfa4852e",
+		"operationName": "classifier_naive_bayes_gaussian",
+		"operationFullName": "sklearn.classifiers.naive.bayes.gaussian",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.naive.bayes.gaussian",
+		"description": "Creates and fits a Gaussian Naive Bayes Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"priors": null,
+			"var_smoothing": 1e-9
+		},
+		"returns": "GaussianNB"
+	},
+	{
+		"operationId": "e34a64ab-2c1e-4498-a9e3-40f5fe78fa5e",
+		"operationName": "classifier_k_neighbors",
+		"operationFullName": "sklearn.classifiers.k.neighbors",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.k.neighbors",
+		"description": "Creates and fits a K-Neighbors Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"n_neighbors": 5,
+			"weights": "uniform",
+			"algorithm": "auto",
+			"leaf_size": 30,
+			"p": 2,
+			"metric": "minkowski",
+			"metric_params": null,
+			"n_jobs": null
+		},
+		"returns": "GaussianNB"
+	},
+	{
+		"operationId": "a5918ebc-5ba2-461a-8b5f-4215328d957e",
+		"operationName": "classifier_random_forest",
+		"operationFullName": "sklearn.classifiers.random.forest",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.random.forest",
+		"description": "Creates and fits a Random Forest Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"n_estimators": 100,
+			"criterion": "gini",
+			"max_depth": null,
+			"min_samples_split": 2,
+			"min_samples_leaf": 1,
+			"min_weight_fraction_leaf": 0.0,
+			"max_features": "auto",
+			"max_leaf_nodes": null,
+			"min_impurity_decrease": 0.0,
+			"bootstrap": true,
+			"oob_score": false,
+			"n_jobs": null,
+			"random_state": null,
+			"verbose": 0,
+			"warm_start": false,
+			"class_weight": null,
+			"ccp_alpha": 0.0,
+			"max_samples": null
+		},
+		"returns": "RandomForest"
+	},
+	{
+		"operationId": "93d21ed8-acc5-4a67-8678-93a705a0878b",
+		"operationName": "classifier_decision_tree",
+		"operationFullName": "sklearn.classifiers.decision.tree",
+		"inputTypes": [
+			2,
+			1
+		],
+		"outputType": 5,
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "Custom Operations",
+		"title": "sklearn.classifiers.decision.tree",
+		"description": "Creates and fits a Decision Tree Classification model",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"criterion": "gini",
+			"max_depth": null,
+			"min_samples_split": 2,
+			"min_samples_leaf": 1,
+			"min_weight_fraction_leaf": 0.0,
+			"max_features": "auto",
+			"max_leaf_nodes": null,
+			"min_impurity_decrease": 0.0,
+			"random_state": null,
+			"class_weight": null,
+			"ccp_alpha": 0.0
+		},
+		"returns": "DecisionTree"
+	},
+	{
 		"operationId": "067c7cd4-87f6-43e2-a733-26e5c51ef875",
 		"operationName": "classifier_score",
 		"operationFullName": "sklearn.classifiers.score",

@@ -1,7 +1,10 @@
 <mat-card>
-
-	<ph-pipeline-title *ngIf="pipelineInfoDto" [pipeline]="pipelineInfoDto"></ph-pipeline-title>
-
+	<div class="mat-card-header">
+		<ph-pipeline-title *ngIf="pipelineInfoDto" [pipeline]="pipelineInfoDto"></ph-pipeline-title>
+		<mat-icon [matTooltip]="'Select a node to add a new operation.\n Use cmd + click to select multiple nodes.'">
+			help
+		</mat-icon>
+	</div>
 	<mat-card-content>
 		<mat-tab-group>
 			<mat-tab label="Operations">
@@ -80,8 +83,4 @@
 			</mat-toolbar-row>
 		</mat-toolbar>
 	</mat-card-content>
-	<mat-card-footer>
-		<p><b>Select a node</b> to add a new operation.</p>
-		<p>Use <i>cmd + click</i> to select multiple nodes.</p>
-	</mat-card-footer>
 </mat-card>

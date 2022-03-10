@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {Observable, Subscription} from 'rxjs';
+import {forkJoin, Observable, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {OperationIds} from '../../core/_model/operation-ids';
 import {FileInfoDto} from '../../files/_model/file-info-dto';
@@ -189,7 +189,12 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	getUserFiles(): Observable<Array<FileInfoDto>> {
 		if (!this.$userFiles) {
-			this.$userFiles = this.filesService.getUserFileInfos();
+			this.$userFiles = forkJoin(this.filesService.getUserFileInfos(), this.filesService.getDefaultFileInfos())
+				.pipe(
+					map(files => {
+						return files[0].concat(files[1]);
+					})
+				);
 		}
 		return this.$userFiles;
 	}
