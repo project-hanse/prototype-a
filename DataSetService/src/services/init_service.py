@@ -17,6 +17,7 @@ class InitService:
 		"""
 		self.log.info("Initializing files in S3 bucket")
 		self.file_store.assert_bucket_exists()
+
 		self.file_store.store_file_to_bucket("./datasets/21311-001Z_format.csv")
 		self.file_store.store_file_to_bucket("./datasets/Melbourne_housing_FULL.csv")
 		self.file_store.store_file_to_bucket("./datasets/MELBOURNE_HOUSE_PRICES_LESS.csv")
@@ -27,6 +28,8 @@ class InitService:
 		self.file_store.store_file_to_bucket("./datasets/simulated-vine-yield-styria.xlsx")
 		self.file_store.store_file_to_bucket("./datasets/monthly-beer-production-in-australia.csv")
 		self.file_store.store_file_to_bucket("./datasets/wdbc.csv")
+		self.file_store.store_file_to_bucket("./datasets/GlobalLandTemperatures_GlobalTemperatures.csv")
+		self.file_store.store_file_to_bucket("./datasets/iris.csv")
 
 		# Store ZAMG data Graz Flughafen
 		for year in range(1990, 2021):
