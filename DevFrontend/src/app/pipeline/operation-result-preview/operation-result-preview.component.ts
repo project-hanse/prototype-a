@@ -42,7 +42,7 @@ export class OperationResultPreviewComponent implements OnInit {
 	}
 
 	getDatasetLink(hash: string): string {
-		return `${environment.datasetApi}/api/dataframe/html/${hash}`;
+		return `${environment.datasetApi}/api/dataframe/key/${hash}?format=html`;
 	}
 
 	isDataframe(output: Dataset): boolean {
