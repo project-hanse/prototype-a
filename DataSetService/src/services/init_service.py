@@ -30,6 +30,7 @@ class InitService:
 		self.file_store.store_file_to_bucket("./datasets/wdbc.csv")
 		self.file_store.store_file_to_bucket("./datasets/GlobalLandTemperatures_GlobalTemperatures.csv")
 		self.file_store.store_file_to_bucket("./datasets/iris.csv")
+		self.file_store.store_file_to_bucket("./datasets/per_game_metrics.csv")
 
 		# Store ZAMG data Graz Flughafen
 		for year in range(1990, 2021):
