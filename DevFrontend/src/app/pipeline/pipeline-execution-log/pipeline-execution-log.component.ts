@@ -94,6 +94,6 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	}
 
 	public getHtmlLinkToDataset(ResultDatasetKey: string): string {
-		return `${environment.datasetApi}/api/dataframe/html/${ResultDatasetKey}`;
+		return `${environment.datasetApi}/api/dataframe/key/${ResultDatasetKey}`;
 	}
 }
