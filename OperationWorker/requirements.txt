@@ -6,12 +6,12 @@ paho-mqtt==1.6.1
 requests==2.27.1
 dill==0.3.4
 pytest==7.0.1
-boto3==1.21.4
+boto3==1.21.13
 chardet==4.0.0
 openpyxl==3.0.9
 scikit-learn==1.0.2
 pystan==2.19.1.1
 prophet==1.0.1
 
-botocore~=1.24.5
+botocore~=1.24.8
 setuptools~=60.9.3
