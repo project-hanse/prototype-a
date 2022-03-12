@@ -12,8 +12,8 @@ import {PipelineListViewComponent} from './pipeline-list-view/pipeline-list-view
 
 import {PipelineRoutingModule} from './pipeline-routing.module';
 import {PipelineToolboxComponent} from './pipeline-toolbox/pipeline-toolbox.component';
+import {PipelineDeleteComponent} from './util-components/pipeline-delete/pipeline-delete.component';
 import {PipelineExportComponent} from './util-components/pipeline-export/pipeline-export.component';
-import { PipelineDeleteComponent } from './util-components/pipeline-delete/pipeline-delete.component';
 
 
 @NgModule({
@@ -27,7 +27,7 @@ import { PipelineDeleteComponent } from './util-components/pipeline-delete/pipel
 		OperationConfigEditorComponent,
 		PipelineCreateComponent,
 		PipelineExportComponent,
-  PipelineDeleteComponent
+		PipelineDeleteComponent
 	],
 	imports: [
 		CommonModule,
