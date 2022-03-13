@@ -9,6 +9,9 @@ RUN mvn -B --no-transfer-progress clean package
 FROM neo4j:4.4.4
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
+ENV NEO4J_apoc_export_file_enabled=true
+ENV NEO4JLABS_PLUGINS=\[\"apoc\"\]
+
 COPY ./scripts "$NEO4J_HOME"/scripts
 
 RUN chmod +x "$NEO4J_HOME"/scripts/*.sh
