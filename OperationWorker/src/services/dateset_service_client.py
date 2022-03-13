@@ -75,10 +75,21 @@ class DatasetServiceClient:
 		else:
 			self.logging.warning('Failed to store sklearn model: (%i) %s' % (response.status_code, str(response.text)))
 			raise NotStoredError('Failed to store sklearn model: (%i) %s' % (response.status_code, str(response.reason)))
-		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key
+
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key + '?version=full'
 		self.logging.info('Storing sklearn model metadata to %s' % address)
-		params_serialized = json.dumps(model.get_params())
-		response = requests.post(address, data=params_serialized)
+		full_metadata = model.get_params()
+		full_metadata['model_type'] = model.__class__.__name__
+		self.store_metadata(address, full_metadata)
+
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key + '?version=compact'
+		self.logging.info('Storing sklearn model metadata to %s' % address)
+		compact_metadata = {'model_type': model.__class__.__name__}
+		self.store_metadata(address, compact_metadata)
+
+	def store_metadata(self, address, metadata):
+		metadata_serialized = json.dumps(metadata)
+		response = requests.post(address, data=metadata_serialized)
 		if response.status_code < 300:
 			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
 		else:
