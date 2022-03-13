@@ -7,6 +7,7 @@ from flask_bootstrap import Bootstrap
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
+from src.constants.metadata_constants import *
 from src.helper.response_helper import format_response
 from src.services.file_store import FileStore
 from src.services.import_service import ImportService
@@ -94,9 +95,12 @@ def string_by_key(key: str):
 
 @app.route('/api/metadata/key/<key>', methods=['GET', 'POST'])
 def metadata_by_key(key: str):
+	metadata_version = METADATA_VERSION_FULL
+	if 'version' in request.args:
+		metadata_version = request.args['version']
 	if request.method == 'GET':
 		dataset_store.generate_metadata_by_key(key)
-		metadata = dataset_store.get_metadata_by_key(key)
+		metadata = dataset_store.get_metadata_by_key(key, metadata_version)
 
 		if metadata is None:
 			abort(404)
@@ -110,7 +114,7 @@ def metadata_by_key(key: str):
 		else:
 			return 'Unsupported format', 400
 		if metadata is not None:
-			stored = dataset_store.store_metadata_by_key(key, metadata)
+			stored = dataset_store.store_metadata_by_key(key, metadata, metadata_version)
 			if stored:
 				return 'OK'
 			return 'Dataset does not exist', 404

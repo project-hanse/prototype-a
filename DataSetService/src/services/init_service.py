@@ -43,5 +43,5 @@ def init_default_files_s3_in_background(self):
 	"""
 	Initializes the default data files in a dedicated thread.
 	"""
-	import_thread = threading.Thread(target=self.init_default_files_s3(), name="Initializer")
+	import_thread = threading.Thread(target=self.init_default_files_s3, name="Initializer")
 	import_thread.start()
