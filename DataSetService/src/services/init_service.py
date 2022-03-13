@@ -31,6 +31,7 @@ class InitService:
 		self.file_store.store_file_to_bucket("./datasets/GlobalLandTemperatures_GlobalTemperatures.csv")
 		self.file_store.store_file_to_bucket("./datasets/iris.csv")
 		self.file_store.store_file_to_bucket("./datasets/per_game_metrics.csv")
+		self.file_store.store_file_to_bucket("./datasets/Month_Value_1_mod.csv")
 
 		# Store ZAMG data Graz Flughafen
 		for year in range(1990, 2021):
@@ -42,5 +43,5 @@ def init_default_files_s3_in_background(self):
 	"""
 	Initializes the default data files in a dedicated thread.
 	"""
-	import_thread = threading.Thread(target=self.init_default_files_s3(), name="Initializer")
+	import_thread = threading.Thread(target=self.init_default_files_s3, name="Initializer")
 	import_thread.start()

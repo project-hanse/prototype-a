@@ -1,0 +1,2 @@
+METADATA_VERSION_COMPACT: str = 'compact'
+METADATA_VERSION_FULL: str = 'full'
