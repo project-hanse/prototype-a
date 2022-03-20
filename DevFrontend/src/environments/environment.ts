@@ -8,6 +8,7 @@ export const environment = {
 	filesApi: 'http://localhost:5004',
 	datasetApi: 'http://localhost:5002',
 	messageBrokerHost: 'localhost',
+	mlflow: 'http://localhost:5005',
 	messageBrokerPath: '',
 	messageBrokerPort: 9002,
 };

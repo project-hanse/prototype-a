@@ -3,6 +3,7 @@ export const environment = {
 	pipelineApi: 'https://hanse.allteams.at/api/pipeline',
 	datasetApi: 'https://hanse.allteams.at/api/dataset',
 	filesApi: 'https://hanse.allteams.at/api/files', // TODO: change to /api/file/ and update edge server config
+	mlflow: 'https://hanse.allteams.at/mlflow',
 	messageBrokerHost: 'hanse.allteams.at',
 	messageBrokerPath: '/mqtt',
 	messageBrokerPort: 443

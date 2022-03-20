@@ -20,4 +20,8 @@ export class AppComponent {
 	getDatasetUrl(): string {
 		return `${environment.datasetApi}/index.html`;
 	}
+
+	getMlflowUrl(): string {
+		return `${environment.mlflow}`;
+	}
 }
