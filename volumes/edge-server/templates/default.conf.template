@@ -62,6 +62,17 @@ server {
         proxy_set_header    X-Forwarded-Proto  $scheme;
         proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
     }
+
+    location /mlflow {
+        proxy_pass 					http://mlflow-server:5005;
+        rewrite             /mlflow/(.*) /$1 break;
+
+        # Redefine the header fields that NGINX sends to the upstream server
+        proxy_set_header 		Host $host;
+        proxy_set_header 		X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-Proto  $scheme;
+        proxy_set_header 		X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
 #
 #     location /db/pipeline {
 #         proxy_pass          http://pipeline-database:7474;

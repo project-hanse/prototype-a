@@ -95,6 +95,29 @@ services:
     volumes:
       - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
 
+  # MLFlow Server
+  mlflow-server:
+    restart: unless-stopped
+    build: ./MLflowServer
+    depends_on:
+      - localstack-s3
+      - mysql
+    ports:
+      - "5005:5000"
+    networks:
+      - default
+    environment:
+      - S3_HOST=localstack-s3
+      - S3_PORT=4566
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=mlflowdb
+      - MYSQL_USER=mlflowuser
+      - MYSQL_PASSWORD=mlflowpassword
+      - AWS_ACCESS_KEY_ID=""
+      - AWS_SECRET_ACCESS_KEY=""
+      - AWS_DEFAULT_REGION=""
+
   # S3 Bucket
   localstack-s3:
     image: localstack/localstack:0.14.0
@@ -116,6 +139,7 @@ services:
     build:
       context: ./Neo4jPlugins
       dockerfile: ./Dockerfile
+    restart: unless-stopped
     environment:
       - NEO4J_AUTH=neo4j/test
     ports:
@@ -125,3 +149,17 @@ services:
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
+
+  # MySQL Database
+  mysql:
+    image: mysql:5.7
+    restart: unless-stopped
+    networks:
+      - default
+    environment:
+      - MYSQL_DATABASE=mlflowdb
+      - MYSQL_USER=mlflowuser
+      - MYSQL_PASSWORD=mlflowpassword
+      - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
