@@ -41,7 +41,7 @@ namespace FileService
 			{
 				ForcePathStyle = Configuration.GetValue("S3Configuration:ForcePathStyle", true),
 				ServiceURL =
-					$"{Configuration.GetValue("S3Configuration:Protocol", "http")}://{Configuration.GetValue("S3Configuration:Host", "localstack-s3")}:{Configuration.GetValue("S3Configuration:Port", 4566)}"
+					$"{Configuration.GetValue("S3Configuration:Protocol", "http")}://{Configuration.GetValue("S3Configuration:Host", "localstack")}:{Configuration.GetValue("S3Configuration:Port", 4566)}"
 			};
 			var awsCredentials = new BasicAWSCredentials(
 				Configuration.GetValue<string>("S3Configuration:AccessKey", null),

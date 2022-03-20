@@ -35,12 +35,12 @@ services:
       dockerfile: ./Dockerfile
     environment:
       Logging__LogLevel__Default: Information
-      S3_HOST: localstack-s3
+      S3_HOST: localstack
       S3_PORT: 4566
     ports:
       - "5004:80"
     depends_on:
-      - localstack-s3
+      - localstack
 
   # Operation Worker
   operation-worker:
@@ -53,7 +53,7 @@ services:
       - DATASET_PORT=5002
     depends_on:
       - message-broker
-      - localstack-s3
+      - localstack
     deploy:
       mode: replicated
       replicas: 1
@@ -68,10 +68,10 @@ services:
     expose:
       - 5002
     environment:
-      - S3_HOST=localstack-s3
+      - S3_HOST=localstack
       - S3_PORT=4566
     depends_on:
-      - localstack-s3
+      - localstack
 
   # Message Broker
   message-broker:
@@ -100,26 +100,25 @@ services:
     restart: unless-stopped
     build: ./MLflowServer
     depends_on:
-      - localstack-s3
+      - localstack
       - mysql
     ports:
       - "5005:5000"
     networks:
       - default
     environment:
-      - S3_HOST=localstack-s3
-      - S3_PORT=4566
+      - AWS_ACCESS_KEY_ID=localstack
+      - AWS_SECRET_ACCESS_KEY=localstack
+      - AWS_DEFAULT_REGION=eu-west-3
+      - MLFLOW_S3_ENDPOINT_URL=http://localstack:4566
       - MYSQL_HOST=mysql
       - MYSQL_PORT=3306
       - MYSQL_DATABASE=mlflowdb
       - MYSQL_USER=mlflowuser
       - MYSQL_PASSWORD=mlflowpassword
-      - AWS_ACCESS_KEY_ID=""
-      - AWS_SECRET_ACCESS_KEY=""
-      - AWS_DEFAULT_REGION=""
 
   # S3 Bucket
-  localstack-s3:
+  localstack:
     image: localstack/localstack:0.14.0
     environment:
       - SERVICES=s3

@@ -16,7 +16,7 @@ from src.services.init_service import InitService
 
 # Configuration
 PORT: int = os.getenv("PORT", 5002)
-S3_HOST: str = os.getenv("S3_HOST", "localstack-s3")
+S3_HOST: str = os.getenv("S3_HOST", "localstack")
 S3_PORT: str = os.getenv("S3_PORT", "4566")
 S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
 S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")

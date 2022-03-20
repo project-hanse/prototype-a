@@ -72,10 +72,10 @@ services:
     restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Information
-      S3_HOST: localstack-s3
+      S3_HOST: localstack
       S3_PORT: 4566
     depends_on:
-      - localstack-s3
+      - localstack
 
   # Dataset Store
   dataset-service:
@@ -84,10 +84,10 @@ services:
     networks:
       - default
     environment:
-      - S3_HOST=localstack-s3
+      - S3_HOST=localstack
       - S3_PORT=4566
     depends_on:
-      - localstack-s3
+      - localstack
 
   # Operation Worker
   operation-worker:
@@ -101,7 +101,7 @@ services:
       - DATASET_PORT=5002
     depends_on:
       - message-broker
-      - localstack-s3
+      - localstack
     deploy:
       mode: replicated
       replicas: 1
@@ -126,7 +126,7 @@ services:
       - ./volumes/event-bus/mosquitto/config:/mosquitto/config
 
   # S3 Bucket
-  localstack-s3:
+  localstack:
     image: localstack/localstack:0.14.0
     restart: unless-stopped
     environment:
