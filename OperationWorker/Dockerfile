@@ -14,8 +14,8 @@ ENV PATH="/home/workeruser/venv/bin:$PATH"
 
 # install requirements
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir wheel
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install wheel
+RUN pip3 install -r requirements.txt
 
 # Runner
 FROM ubuntu:20.04 AS runner-image
