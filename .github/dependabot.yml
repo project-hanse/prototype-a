@@ -67,6 +67,19 @@ updates:
     schedule:
       interval: "weekly"
 
+  # Learning Service
+  - package-ecosystem: "pip"
+    directory: "/LearningService"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/LearningService"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
   # Dev Frontend
   - package-ecosystem: "npm"
     directory: "/DevFrontend"

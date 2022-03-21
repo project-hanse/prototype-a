@@ -18,6 +18,7 @@ jobs:
     # Set job outputs to values from filter step
     outputs:
       dataset-service: ${{ steps.filter.outputs.dataset-service }}
+      learning-service: ${{ steps.filter.outputs.learning-service }}
       dev-frontend: ${{ steps.filter.outputs.dev-frontend }}
       operation-worker: ${{ steps.filter.outputs.operation-worker }}
       pipeline-service: ${{ steps.filter.outputs.pipeline-service }}
@@ -33,6 +34,8 @@ jobs:
           filters: |
             dataset-service:
               - 'DataSetService/**'
+            learning-service:
+              - 'LearningService/**'
             dev-frontend:
               - 'DevFrontend/**'
             operation-worker:
@@ -79,6 +82,49 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./DataSetService
+          builder: ${{ steps.buildx.outputs.name }}
+          pull: true
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Learning Service
+  build-learning-service:
+    name: 'Build Learning Service'
+    needs: changes
+    if: ${{ needs.changes.outputs.learning-service == 'true' || github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY_NAME }}/learning-service
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./LearningService
           builder: ${{ steps.buildx.outputs.name }}
           pull: true
           push: ${{ github.event_name != 'pull_request' }}
@@ -305,7 +351,7 @@ jobs:
   # Get Version from previous tag and commit messages
   create-release:
     name: 'Create Release'
-    needs: [ build-plugins-neo4j, build-pipeline-service, build-operation-worker, build-dev-frontend, build-dataset-service, build-file-service ]
+    needs: [ build-plugins-neo4j, build-pipeline-service, build-operation-worker, build-dev-frontend, build-dataset-service, build-file-service, build-learning-service ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
