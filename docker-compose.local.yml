@@ -107,26 +107,28 @@ services:
     networks:
       - default
     environment:
-      - AWS_ACCESS_KEY_ID=localstack
-      - AWS_SECRET_ACCESS_KEY=localstack
-      - AWS_DEFAULT_REGION=eu-west-3
-      - MLFLOW_S3_ENDPOINT_URL=http://localstack:4566
-      - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=mlflowdb
-      - MYSQL_USER=mlflowuser
-      - MYSQL_PASSWORD=mlflowpassword
+      AWS_REGION: eu-west-3
+      AWS_DEFAULT_REGION: eu-west-3
+      AWS_ACCESS_KEY_ID: localstack
+      AWS_SECRET_ACCESS_KEY: localstack
+      MLFLOW_S3_ENDPOINT_URL: http://localstack:4566
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: mlflowdb
+      MYSQL_USER: mlflowuser
+      MYSQL_PASSWORD: mlflowpassword
 
-  # S3 Bucket
+  # Localstack
   localstack:
     image: localstack/localstack:0.14.1
     environment:
-      - SERVICES=s3
-      - EAGER_SERVICE_LOADING=1
-      - DEFAULT_REGION=eu-west-2
-      - DATA_DIR=/tmp/localstack/data
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - EXTRA_CORS_ALLOWED_ORIGINS=http://localhost:4200,http://localhost:8080
+      SERVICES: s3
+      EAGER_SERVICE_LOADING: 1
+      DEFAULT_REGION: eu-west-3
+      AWS_REGION: eu-west-3
+      DATA_DIR: /tmp/localstack/data
+      DOCKER_HOST: unix:///var/run/docker.sock
+      EXTRA_CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:8080
     ports:
       - "4566:4566"
       - "4571:4571"
