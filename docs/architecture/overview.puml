@@ -21,7 +21,7 @@ rectangle "Event Bus" {
 rectangle "Service Layer" {
     component "Pipeline Service" << .NET REST API >> as pipeline_service
     collections  "Operation Worker" <<Python Worker>> as worker
-    component "ML Service" << Python REST API >> as ml_service
+    component "Learning Service" << Python REST API >> as learning_service
     component "File Service" << .NET REST API >> as file_service
 }
 
@@ -43,17 +43,17 @@ development_frontend <--> reverse_proxy
 development_frontend --> reverse_proxy
 
 reverse_proxy --> pipeline_service
-reverse_proxy --> ml_service
+reverse_proxy --> learning_service
 reverse_proxy --> file_service
 reverse_proxy <--> message_broker_edge
 'TODO: This connection should no longer exist'
 reverse_proxy --> dataset_store
 reverse_proxy --> mlflow_server
 
-ml_service --> mlflow_server
-ml_service --> dataset_store
-ml_service --> pipeline_service
-ml_service --> blob_store
+learning_service --> mlflow_server
+learning_service --> dataset_store
+learning_service --> pipeline_service
+learning_service --> blob_store
 
 pipeline_service --> graph_db
 pipeline_service <--> message_broker_internal
