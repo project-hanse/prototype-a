@@ -21,13 +21,13 @@ rectangle "Event Bus" {
 rectangle "Service Layer" {
     component "Pipeline Service" << .NET REST API >> as pipeline_service
     collections  "Operation Worker" <<Python Worker>> as worker
-    component #line.dashed "Suggestion Service" << Python REST API >> as suggestion_service
+    component "ML Service" << Python REST API >> as ml_service
     component "File Service" << .NET REST API >> as file_service
-    component "MLflow Server" << MLflow >> as mlflow_server
 }
 
 rectangle "Persistence Layer" {
     component "Dataset Store" << Python REST API >> as dataset_store
+    component "MLflow Server" << MLflow >> as mlflow_server
 }
 
 rectangle "Database Layer" {
@@ -43,27 +43,32 @@ development_frontend <--> reverse_proxy
 development_frontend --> reverse_proxy
 
 reverse_proxy --> pipeline_service
-reverse_proxy --> suggestion_service
-suggestion_service <--> message_broker_internal
+reverse_proxy --> ml_service
 reverse_proxy --> file_service
 reverse_proxy <--> message_broker_edge
+'TODO: This connection should no longer exist'
+reverse_proxy --> dataset_store
 reverse_proxy --> mlflow_server
 
+ml_service --> mlflow_server
+ml_service --> dataset_store
+ml_service --> pipeline_service
+
 pipeline_service --> graph_db
-dataset_store --> dataset_db
-file_service --> blob_store
 pipeline_service <--> message_broker_internal
-message_broker_internal <--> worker
+pipeline_service <--> message_broker_edge
+
+dataset_store --> dataset_db
+'TODO: Default files should be seeded from file service PH-213'
+dataset_store --> blob_store
+
+file_service --> blob_store
+
 mlflow_server --> mysql_db
 mlflow_server --> blob_store
 
 worker --> dataset_store
 worker --> blob_store
+worker <--> message_broker_internal
 
-message_broker_edge <--> pipeline_service
-
-'TODO: This connection should no longer exist'
-reverse_proxy --> dataset_store
-'TODO: Default files should be seeded from file service PH-213'
-dataset_store --> blob_store
 @enduml
