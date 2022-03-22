@@ -1,8 +1,11 @@
+import random
+
 import mlflow
 from mlflow.tracking import MlflowClient
 from sklearn.model_selection import train_test_split, cross_val_score
 
 from src.helper.log_helper import LogHelper
+from src.helper.mlflow_helper import infer_signature_custom
 from src.services.trainer_registry import TrainerRegistry
 
 
@@ -48,10 +51,12 @@ class ModelService:
 				ret["cv_accuracy"] = cvs.mean()
 				ret["train_size"] = len(X_train)
 				ret["test_size"] = len(X_test)
+				signature = infer_signature_custom(random.choice(X_test), model.predict(random.choice(X_test)))
 				mlflow.sklearn.log_model(
 					sk_model=model,
 					artifact_path=mlflow.get_artifact_uri().replace('s3://', ''),
-					registered_model_name=model_name
+					registered_model_name=model_name,
+					signature=signature
 				)
 			except Exception as e:
 				self.logger.error("Model training failed: %s" % e)
