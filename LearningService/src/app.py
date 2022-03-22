@@ -61,7 +61,7 @@ def dataframe_by_key():
 @app.route('/train/<model_name>', methods=['GET'])
 def train_model(model_name: str):
 	if request.method == 'GET':
-		model_service.train_model(model_name)
+		model_service.train_model(model_name=model_name, cache_data=False)
 		return 'OK'
 
 

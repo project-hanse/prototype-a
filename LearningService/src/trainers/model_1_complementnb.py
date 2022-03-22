@@ -1,7 +1,11 @@
-from sklearn.dummy import DummyClassifier
-from sklearn.pipeline import Pipeline, make_pipeline
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.feature_selection import f_classif
+from sklearn.model_selection import GridSearchCV
+from sklearn.naive_bayes import ComplementNB
+from sklearn.pipeline import Pipeline
 
 from src.helper.log_helper import LogHelper
+from src.helper.select_K_best import PipelineSelectKBest
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
 
@@ -16,26 +20,46 @@ class TrainerModel1ComplementNB:
 
 	def get_model_pipeline(self) -> Pipeline:
 		self.logger.debug("Creating model pipeline for %s", __name__)
-		ppl = make_pipeline(DummyClassifier())
+		params = {
+			'alpha': [0.1, 0.5, 1.0, 2.0, 5.0, 7.5, 10.0],
+			'norm': [True, False],
+			'fit_prior': [True, False]
+		}
+		ppl = Pipeline([
+			("vectorizer", DictVectorizer(sparse=False)),
+			("selector", PipelineSelectKBest(f_classif, k=16)),
+			("hyper_param_tuning", GridSearchCV(
+				ComplementNB(),
+				param_grid=params,
+				cv=2,
+				refit=True,
+				n_jobs=-1))
+		])
 		return ppl
 
-	def get_data(self) -> (list, list):
+	def get_data(self, cache=True) -> (list, list):
 		self.logger.debug("Getting data for %s", __name__)
-		tuples = self.pipeline_client.get_pipeline_tuples()
+		tuples = self.pipeline_client.get_pipeline_tuples(cache=cache)
 		tuples_with_metadata = []
+		loaded_input_metadata_cnt = 0
+		total_input_cnt = 0
 		for op_tuple in tuples:
 			op_tuple['targetInputMetadata'] = []
 			for op_input in op_tuple['targetInputs']:
+				metadata = {}
+				total_input_cnt += 1
 				try:
-					metadata = self.dataset_client.get_metadata(op_input['key'])
 					metadata['dataType'] = op_input['type']
+					metadata = self.dataset_client.get_metadata(op_input['key'], cache=cache)
 					op_tuple['targetInputMetadata'].append(metadata)
+					loaded_input_metadata_cnt += 1
 				except Exception as e:
-					print("Failed to load %s (%s)" % (op_input['key'], str(e)))
-					op_tuple['targetInputMetadata'].append({})
+					self.logger.warning("Failed to load %s (%s)" % (op_input['key'], str(e)))
+					op_tuple['targetInputMetadata'].append(metadata)
 					continue
 			tuples_with_metadata.append(op_tuple)
-		self.logger.info("Got %d/%d tuples with metadata" % (len(tuples_with_metadata), len(tuples)))
+		self.logger.info("Got %d tuples with metadata for %d/%d input datasets" % (
+			len(tuples), loaded_input_metadata_cnt, total_input_cnt))
 		feat, lab = self._tuples_preprocessing(tuples_with_metadata)
 		feat = self._whitelist_features(feat, self.feature_names)
 		return feat, lab
@@ -62,15 +86,16 @@ class TrainerModel1ComplementNB:
 				self.logger.warning("Missing essential keys in element: %s", element)
 				continue
 
-			lab.append(element['targetOperationIdentifier'])
-			c = 0
-			vector_element_count = 0
+			lab.append(element["targetOperationIdentifier"])
+			input_dataset_count = 0
 			feat_vec = {}
 			for input_meta in element['targetInputMetadata']:
-				for key, val in self._flatten_dict(input_meta, parent_key='input_' + str(c), sep='_').items():
+				for key, val in self._flatten_dict(input_meta, parent_key='input_' + str(input_dataset_count), sep='_').items():
 					feat_vec[key] = val
-					vector_element_count += 1
-				c += 1
+				input_dataset_count += 1
+
+			if feat_vec is {}:
+				self.logger.warning("Empty feature vector for element: %s", element)
 			feat.append(feat_vec)
 
 		return feat, lab
