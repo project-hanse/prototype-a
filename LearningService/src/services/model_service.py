@@ -22,6 +22,20 @@ class ModelService:
 		self.logger.info("Found %d models" % len(models))
 		return models
 
+	def get_model(self, model_name: str):
+		self.logger.info("Getting model %s" % model_name)
+		models = self.mlflow_client.search_model_versions("name='%s'" % model_name)
+		if len(models) == 0:
+			raise Exception("No model found with name %s" % model_name)
+
+		# find model with the latest version
+		for model in models:
+			if model.version > models[0].version:
+				models[0] = model
+
+		self.logger.info("Found model %s with version %s" % (model_name, models[0].version))
+		return mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{models[0].version}")
+
 	def train_model(self, model_name: str, cache_data: bool = True):
 		self.logger.info("Training model %s" % model_name)
 		trainer = self.model_registry.get_trainer_by_model_name(model_name)
@@ -66,3 +80,11 @@ class ModelService:
 				mlflow.end_run()
 				mlflow.sklearn.autolog(disable=True)
 		return ret
+
+	def predict(self, model_name: str, data):
+		self.logger.info("Predicting model %s" % model_name)
+		model = self.get_model(model_name)
+		try:
+			return list(model.predict(data))
+		except Exception as e:
+			self.logger.error("Model prediction failed: %s" % e)
