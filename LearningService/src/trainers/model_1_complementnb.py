@@ -11,7 +11,7 @@ from src.services.pipeline_client import PipelineClient
 
 
 class TrainerModel1ComplementNB:
-	feature_names = ['type', 'input_0_dataType', 'model_type']
+	feature_names = ['type', 'input_0_dataType', 'input_1_dataType', 'input_2_dataType', 'model_type']
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		self.dataset_client = dataset_client
@@ -25,13 +25,15 @@ class TrainerModel1ComplementNB:
 			'norm': [True, False],
 			'fit_prior': [True, False]
 		}
+		k = 16
+		cv = 2
 		ppl = Pipeline([
 			("vectorizer", DictVectorizer(sparse=False)),
-			("selector", PipelineSelectKBest(f_classif, k=16)),
+			("selector", PipelineSelectKBest(f_classif, k=k)),
 			("hyper_param_tuning", GridSearchCV(
 				ComplementNB(),
 				param_grid=params,
-				cv=2,
+				cv=cv,
 				refit=True,
 				n_jobs=-1))
 		])

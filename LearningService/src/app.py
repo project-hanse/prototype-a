@@ -1,6 +1,7 @@
 import os
 
-from flask import Flask, render_template, request
+import mlflow
+from flask import Flask, render_template, request, jsonify
 from flask_bootstrap import Bootstrap
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -34,6 +35,8 @@ app = Flask(__name__, template_folder='templates')
 CORS(app)
 socketio = SocketIO(app)
 bootstrap = Bootstrap(app)
+mlflow.set_registry_uri(MLFLOW_REGISTRY_URI)
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow_client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI, registry_uri=MLFLOW_REGISTRY_URI)
 pipeline_service_client = PipelineClient(host=PIPELINE_SERVICE_HOST, port=PIPELINE_SERVICE_PORT)
 dataset_client = DatasetClient(host=DATASET_SERVICE_HOST, port=DATASET_SERVICE_PORT)
@@ -61,8 +64,11 @@ def dataframe_by_key():
 @app.route('/train/<model_name>', methods=['GET'])
 def train_model(model_name: str):
 	if request.method == 'GET':
-		model_service.train_model(model_name=model_name, cache_data=False)
-		return 'OK'
+		cache_data = request.args.get('cache_data', default=False, type=bool)
+		ret = model_service.train_model(model_name=model_name, cache_data=cache_data)
+		return jsonify(
+			ret
+		)
 
 
 if __name__ == '__main__':
