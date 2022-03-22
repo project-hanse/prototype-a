@@ -7,7 +7,10 @@ from flask_socketio import SocketIO
 # Configuration
 from mlflow.tracking import MlflowClient
 
+from src.services.dataset_client import DatasetClient
 from src.services.model_service import ModelService
+from src.services.pipeline_client import PipelineClient
+from src.services.trainer_registry import TrainerRegistry
 
 PORT: int = os.getenv("PORT", 5006)
 S3_HOST: str = os.getenv("S3_HOST", "localstack")
@@ -16,6 +19,10 @@ S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
 S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
 MLFLOW_TRACKING_URI: str = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow-server:5005")
 MLFLOW_REGISTRY_URI: str = os.getenv("MLFLOW_REGISTRY_URI", "http://mlflow-server:5005")
+PIPELINE_SERVICE_HOST: str = os.getenv("PIPELINE_SERVICE_HOST", "pipeline-service")
+PIPELINE_SERVICE_PORT: int = os.getenv("PIPELINE_SERVICE_PORT", 5000)
+DATASET_SERVICE_HOST: str = os.getenv("DATASET_SERVICE_HOST", "dataset-service")
+DATASET_SERVICE_PORT: int = os.getenv("DATASET_SERVICE_PORT", 5002)
 
 # Set environment variables for boto3
 os.environ["AWS_ACCESS_KEY_ID"] = S3_ACCESS_KEY_ID
@@ -28,7 +35,10 @@ CORS(app)
 socketio = SocketIO(app)
 bootstrap = Bootstrap(app)
 mlflow_client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI, registry_uri=MLFLOW_REGISTRY_URI)
-model_service = ModelService(mlflow_client)
+pipeline_service_client = PipelineClient(host=PIPELINE_SERVICE_HOST, port=PIPELINE_SERVICE_PORT)
+dataset_client = DatasetClient(host=DATASET_SERVICE_HOST, port=DATASET_SERVICE_PORT)
+trainer_registry = TrainerRegistry(pipeline_service_client, dataset_client)
+model_service = ModelService(mlflow_client, trainer_registry)
 
 
 # Setting up endpoints
@@ -45,6 +55,13 @@ def root():
 @app.route('/health', methods=['GET'])
 def dataframe_by_key():
 	if request.method == 'GET':
+		return 'OK'
+
+
+@app.route('/train/<model_name>', methods=['GET'])
+def train_model(model_name: str):
+	if request.method == 'GET':
+		model_service.train_model(model_name)
 		return 'OK'
 
 
