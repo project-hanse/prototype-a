@@ -14,11 +14,11 @@ class TrainerRegistry:
 
 	def get_trainer_by_model_name(self, name):
 		self.logger.info("Getting trainer for model %s" % name)
-		if name == "model-1-comblementnb":
+		if name == "model-1-complementnb":
 			return TrainerModel1ComplementNB(self.pipeline_client, self.dataset_client)
-		elif name == "model-2-comblementnb":
+		elif name == "model-2-complementnb":
 			return TrainerModel2ComplementNB(self.pipeline_client, self.dataset_client)
-		elif name == "model-3-comblementnb":
+		elif name == "model-3-complementnb":
 			return TrainerModel3ComplementNB(self.pipeline_client, self.dataset_client)
 		else:
 			raise Exception("Model %s not found" % name)
