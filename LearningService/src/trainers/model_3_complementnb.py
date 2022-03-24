@@ -10,28 +10,29 @@ from src.services.pipeline_client import PipelineClient
 from src.trainers.model_base import TrainerModelBase
 
 
-class TrainerModel1ComplementNB(TrainerModelBase):
+class TrainerModel3ComplementNB(TrainerModelBase):
 	feature_names = ['input_0_model_type', 'input_0_type', 'input_1_model_type', 'input_1_type', 'input_2_model_type',
-									 'input_2_type']
+									 'input_2_type', 'feat_pred_id', 'feat_pred_count']
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
 
 	def get_model_pipeline(self) -> Pipeline:
 		self.logger.debug("Creating model pipeline for %s", __name__)
-		params_clf = {
-			'alpha': [0.1, 0.5, 1.0, 2.0, 5.0, 7.5, 10.0],
+		params = {
+			'alpha': [0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 5.0, 7.5, 10.0],
 			'norm': [True, False],
-			'fit_prior': [True, False]
+			'fit_prior': [True, False],
+			'class_prior': [None, 'auto']
 		}
-		k = 16
+		k = 32
 		cv = 2
 		ppl = Pipeline([
 			("encoder", DictVectorizer(sparse=False)),
 			("selector", PipelineSelectKBest(f_classif, k=k)),
 			("classifier", GridSearchCV(
 				ComplementNB(),
-				param_grid=params_clf,
+				param_grid=params,
 				cv=cv,
 				refit=True,
 				n_jobs=-1))

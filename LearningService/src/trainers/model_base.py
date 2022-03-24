@@ -76,7 +76,8 @@ class TrainerModelBase:
 				for key, val in self._flatten_dict(input_meta, parent_key='input_' + str(input_dataset_count), sep='_').items():
 					feat_vec[key] = val
 				input_dataset_count += 1
-
+			feat_vec["feat_pred_id"] = element['predecessorOperationIdentifier']
+			feat_vec['feat_pred_input_count'] = len(element['targetInputs'])
 			if feat_vec is {}:
 				self.logger.warning("Empty feature vector for element: %s", element)
 			feat.append(feat_vec)

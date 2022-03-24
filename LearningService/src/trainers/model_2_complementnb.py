@@ -26,7 +26,7 @@ class TrainerModel2ComplementNB(TrainerModelBase):
 		k = 24
 		cv = 2
 		ppl = Pipeline([
-			("vectorizer", DictVectorizer(sparse=False)),
+			("encoder", DictVectorizer(sparse=False)),
 			("selector", PipelineSelectKBest(f_classif, k=k)),
 			("classifier", GridSearchCV(
 				ComplementNB(),

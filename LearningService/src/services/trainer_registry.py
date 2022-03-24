@@ -3,6 +3,7 @@ from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
 from src.trainers.model_1_complementnb import TrainerModel1ComplementNB
 from src.trainers.model_2_complementnb import TrainerModel2ComplementNB
+from src.trainers.model_3_complementnb import TrainerModel3ComplementNB
 
 
 class TrainerRegistry:
@@ -17,5 +18,7 @@ class TrainerRegistry:
 			return TrainerModel1ComplementNB(self.pipeline_client, self.dataset_client)
 		elif name == "model-2-comblementnb":
 			return TrainerModel2ComplementNB(self.pipeline_client, self.dataset_client)
+		elif name == "model-3-comblementnb":
+			return TrainerModel3ComplementNB(self.pipeline_client, self.dataset_client)
 		else:
 			raise Exception("Model %s not found" % name)
