@@ -21,4 +21,4 @@ class TrainerRegistry:
 		elif name == "model-3-complementnb":
 			return TrainerModel3ComplementNB(self.pipeline_client, self.dataset_client)
 		else:
-			raise Exception("Model %s not found" % name)
+			raise ModuleNotFoundError("Model %s not found" % name)

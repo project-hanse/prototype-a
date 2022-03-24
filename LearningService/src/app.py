@@ -65,16 +65,22 @@ def dataframe_by_key():
 def train_model(model_name: str):
 	if request.method == 'GET':
 		cache_data = request.args.get('cache_data', default=False, type=bool)
-		ret = model_service.train_model(model_name=model_name, cache_data=cache_data)
-		return jsonify(ret)
+		try:
+			ret = model_service.train_model(model_name=model_name, cache_data=cache_data)
+			return jsonify(ret)
+		except Exception as e:
+			return jsonify({"error": str(e)}), 404
 
 
 @app.route('/predict/<model_name>', methods=['POST'])
 def predict(model_name: str):
 	if request.method == 'POST':
 		data = request.get_json()
-		ret = model_service.predict(model_name=model_name, data=data)
-		return jsonify(ret)
+		try:
+			ret = model_service.predict(model_name=model_name, data=data)
+			return jsonify(ret)
+		except Exception as e:
+			return jsonify({"error": str(e)}), 404
 
 
 if __name__ == '__main__':

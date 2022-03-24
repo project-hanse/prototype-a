@@ -38,8 +38,14 @@ services:
     expose:
       - 5006
     environment:
-      - S3_HOST=localstack
-      - S3_PORT=4566
+      S3_HOST: localstack
+      S3_PORT: 4566
+      PIPELINE_SERVICE_HOST: pipeline-service
+      PIPELINE_SERVICE_PORT: 80
+      DATASET_SERVICE_HOST: dataset-service
+      DATASET_SERVICE_PORT: 5002
+      MLFLOW_TRACKING_URI: "http://mlflow-server:5005"
+      MLFLOW_REGISTRY_URI: "http://mlflow-server:5005"
     depends_on:
       - localstack
       - dataset-service
@@ -121,7 +127,7 @@ services:
       - localstack
       - mysql
     ports:
-      - "5005:5000"
+      - "5005:5005"
     networks:
       - default
     environment:
