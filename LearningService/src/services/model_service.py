@@ -24,6 +24,7 @@ class ModelService:
 
 	def get_model(self, model_name: str):
 		self.logger.info("Getting model %s" % model_name)
+		# TODO: cache models locally
 		models = self.mlflow_client.search_model_versions("name='%s'" % model_name)
 		if len(models) == 0:
 			raise Exception("No model found with name %s" % model_name)
