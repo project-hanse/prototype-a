@@ -7,7 +7,7 @@ from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
 
 
-class TrainerModel1Base:
+class TrainerModelBase:
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		self.dataset_client = dataset_client
 		self.pipeline_client = pipeline_client
@@ -61,7 +61,7 @@ class TrainerModel1Base:
 				items.append((new_key, v))
 		return dict(items)
 
-	def _tuples_preprocessing(self, data: []) -> []:
+	def _tuples_preprocessing(self, data: []) -> ([{}], [{}]):
 		feat = []
 		lab = []
 		for element in data:
@@ -83,8 +83,10 @@ class TrainerModel1Base:
 
 		return feat, lab
 
-	@staticmethod
-	def _whitelist_features(feat: [{}], key_contains: [str]) -> [{}]:
+	def _whitelist_features(self, feat: [{}], key_contains: [str]) -> [{}]:
+		if key_contains is None or len(key_contains) == 0:
+			self.logger.debug("No whitelist keys provided")
+			return feat
 		new_feat = []
 		for element in feat:
 			new_element = {}
