@@ -35,8 +35,6 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "5006:5006"
-    expose:
-      - 5006
     environment:
       S3_HOST: localstack
       S3_PORT: 4566
