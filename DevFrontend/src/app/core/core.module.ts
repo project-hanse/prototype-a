@@ -11,6 +11,7 @@ import {MatMenuModule} from '@angular/material/menu';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatSelectModule} from '@angular/material/select';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatTooltipModule} from '@angular/material/tooltip';
@@ -34,6 +35,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 		MatProgressSpinnerModule,
 		MatTabsModule,
 		MatMenuModule,
+		MatSnackBarModule,
 	],
 	exports: [
 		MatDividerModule,
@@ -50,6 +52,7 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 		MatProgressSpinnerModule,
 		MatTabsModule,
 		MatMenuModule,
+		MatSnackBarModule,
 	]
 })
 export class CoreModule {

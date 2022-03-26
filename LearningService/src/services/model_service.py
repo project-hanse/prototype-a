@@ -1,4 +1,5 @@
 import random
+import time
 
 import mlflow
 from mlflow.protos.model_registry_pb2 import RegisteredModel
@@ -71,6 +72,8 @@ class ModelService:
 				cvs = cross_val_score(model, X_train, y_train, scoring='accuracy', cv=self.cv_folds, n_jobs=-1)
 				self.logger.info("Trained model %s with test accuracy %f and cross-validation accuracy %f" % (
 					model_name, accuracy, cvs.mean()))
+				mlflow.log_metric("training_timestamp", int(round(time.time() * 1000)))
+				mlflow.log_param("training_timestamp", int(round(time.time() * 1000)))
 				mlflow.log_metric("accuracy", accuracy)
 				mlflow.log_metric("cv_accuracy", cvs.mean())
 				mlflow.log_metric("cv_accuracy_std", cvs.std())
@@ -78,10 +81,11 @@ class ModelService:
 				mlflow.log_metric("cv_max", cvs.max())
 				mlflow.log_metric("train_size", len(X_train))
 				mlflow.log_metric("test_size", len(X_test))
+				ret["modelName"] = model_name
 				ret["accuracy"] = accuracy
-				ret["cv_accuracy"] = cvs.mean()
-				ret["train_size"] = len(X_train)
-				ret["test_size"] = len(X_test)
+				ret["cvAccuracy"] = cvs.mean()
+				ret["trainSize"] = len(X_train)
+				ret["testSize"] = len(X_test)
 				signature = infer_signature_custom(random.choice(X_test), model.predict(random.choice(X_test)))
 				mlflow.sklearn.log_model(
 					sk_model=model,

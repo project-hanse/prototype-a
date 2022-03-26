@@ -1,16 +1,18 @@
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
+import {CoreModule} from '../../core/core.module';
 
 import {ModelRoutingModule} from './model-routing.module';
-import {OverviewComponent} from './overview/overview.component';
+import {ModelsOverviewComponent} from './models-overview/models-overview.component';
 
 
 @NgModule({
 	declarations: [
-		OverviewComponent
+		ModelsOverviewComponent
 	],
 	imports: [
 		CommonModule,
+		CoreModule,
 		ModelRoutingModule
 	]
 })

@@ -10,7 +10,7 @@ export class PanelComponent implements OnInit {
 		{
 			title: 'Models',
 			path: '../model',
-			icon: 'model_training'
+			icon: 'smart_toy'
 		}
 	];
 
