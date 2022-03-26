@@ -12,9 +12,11 @@
 				<mat-form-field class="search-field" appearance="fill">
 					<mat-icon matPrefix>search</mat-icon>
 					<mat-label>Search for operations</mat-label>
-					<input matInput type="text" [(ngModel)]="operationsSearchText" autocomplete="off">
+					<input matInput type="text"
+								 (keyup)="onSearchTextChange(operationSearchText.value)"
+								 autocomplete="off" #operationSearchText>
 					<button *ngIf="operationsSearchText" matSuffix mat-icon-button aria-label="Clear"
-									(click)="operationsSearchText=''">
+									(click)="operationSearchText.value = ''; onSearchTextChange('')">
 						<mat-icon>close</mat-icon>
 					</button>
 				</mat-form-field>

@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {forkJoin, Observable, Subscription} from 'rxjs';
+import {combineLatest, debounceTime, forkJoin, Observable, ReplaySubject, Subject, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {OperationIds} from '../../core/_model/operation-ids';
 import {FileInfoDto} from '../../files/_model/file-info-dto';
@@ -20,7 +20,6 @@ import {OperationsService} from '../_service/operations.service';
 	styleUrls: ['./pipeline-toolbox.component.scss']
 })
 export class PipelineToolboxComponent implements OnInit, OnDestroy {
-	private titleClicked: boolean = false;
 
 	constructor(private operationsService: OperationTemplatesService,
 							private nodeService: OperationsService,
@@ -41,7 +40,8 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	@Output()
 	public readonly pipelineChanged: EventEmitter<VisualizationPipelineDto>;
 
-	private $operationTemplateGroups?: Observable<Array<OperationTemplateGroup>>;
+	private $operationSearchValues: Subject<string> = new ReplaySubject<string>();
+	private $operationTemplateGroups: Observable<Array<OperationTemplateGroup>>;
 	private $userFiles?: Observable<Array<FileInfoDto>>;
 
 	private readonly subscriptions: Subscription;
@@ -82,6 +82,46 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(): void {
+		this.$operationTemplateGroups = combineLatest([
+			this.$operationSearchValues.pipe(
+				debounceTime(250),
+				map(value => value.trim()),
+				map(value => value.toLowerCase()),
+			),
+			this.operationsService.getOperations()
+		])
+			.pipe(
+				map(
+					([searchValue, operationTemplates]) => {
+						console.log('operationTemplates', operationTemplates);
+						console.log('searchValue', searchValue);
+						if (searchValue.length > 0) {
+							return operationTemplates.filter(operation => {
+								const searchIn = [operation.operationName, operation.operationFullName, operation.description, operation.sectionTitle];
+								const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
+								return searchInText.includes(this.operationsSearchText.replace(' ', '').toLowerCase());
+							});
+						}
+						return operationTemplates;
+					}),
+				map(operationTemplates => {
+					// group operationTemplates by sectionTitle to OperationTemplateGroups
+					return operationTemplates.reduce((groups, operationTemplate) => {
+						const group = groups.find(grp => grp.sectionTitle === operationTemplate.sectionTitle);
+						if (group) {
+							group.operations.push(operationTemplate);
+						} else {
+							groups.push({
+								sectionTitle: operationTemplate.sectionTitle,
+								operations: [operationTemplate]
+							});
+						}
+						return groups;
+					}, []);
+				}),
+				map(operationTemplateGroups => operationTemplateGroups.filter(opg => opg.operations.length !== 0))
+			);
+		this.$operationSearchValues.next('');
 	}
 
 	ngOnDestroy(): void {
@@ -89,29 +129,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	getOperationTemplates(): Observable<Array<OperationTemplateGroup>> {
-		if (!this.$operationTemplateGroups) {
-			this.$operationTemplateGroups = this.operationsService.getOperationsGroups()
-				.pipe(
-					map(operationGroups => {
-						for (const opGroup of operationGroups) {
-							// Do not display operations that accept files
-							// opGroup.operations = opGroup.operations.filter(operation => operation.inputTypes.includes(DatasetType.File));
-						}
-						return operationGroups;
-					}),
-				);
-		}
 		return this.$operationTemplateGroups;
 	}
 
 	showInAvailable(operation: OperationTemplate): boolean {
-		if (this.operationsSearchText) {
-			const searchIn = [operation.operationName, operation.operationFullName, operation.description, operation.sectionTitle];
-			const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
-			if (!searchInText.includes(this.operationsSearchText.replace(' ', '').toLowerCase())) {
-				return false;
-			}
-		}
 		if (this.selectedOperationIds.length === 0) {
 			return true;
 		}
@@ -189,7 +210,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	getUserFiles(): Observable<Array<FileInfoDto>> {
 		if (!this.$userFiles) {
-			this.$userFiles = forkJoin(this.filesService.getUserFileInfos(), this.filesService.getDefaultFileInfos())
+			this.$userFiles = forkJoin([this.filesService.getUserFileInfos(), this.filesService.getDefaultFileInfos()])
 				.pipe(
 					map(files => {
 						return files[0].concat(files[1]);
@@ -212,8 +233,8 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		return userFile.fileName.toLowerCase().includes(this.filesSearchText.toLowerCase());
 	}
 
-	titleClick(): void {
-		console.log('Hi');
-		this.titleClicked = true;
+	onSearchTextChange(value: string): void {
+		this.operationsSearchText = value;
+		this.$operationSearchValues.next(value);
 	}
 }
