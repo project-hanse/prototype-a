@@ -61,6 +61,13 @@ def dataframe_by_key():
 		return 'OK'
 
 
+@app.route('/models', methods=['GET'])
+def get_models():
+	if request.method == 'GET':
+		models = model_service.get_model_dtos()
+		return jsonify(models)
+
+
 @app.route('/train/<model_name>', methods=['GET'])
 def train_model(model_name: str):
 	if request.method == 'GET':

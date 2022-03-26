@@ -1,6 +1,7 @@
 import random
 
 import mlflow
+from mlflow.protos.model_registry_pb2 import RegisteredModel
 from mlflow.tracking import MlflowClient
 from sklearn.model_selection import train_test_split, cross_val_score
 
@@ -17,10 +18,25 @@ class ModelService:
 		self.cv_folds = 3
 		self.logger = LogHelper.get_logger(__name__)
 
-	def get_models(self):
+	def get_models(self) -> [RegisteredModel]:
 		models = self.mlflow_client.list_registered_models()
 		self.logger.info("Found %d models" % len(models))
-		return models
+		return list(models)
+
+	def get_model_dtos(self):
+		models = self.get_models()
+		model_dtos = []
+		for model in models:
+			latest_version = model.latest_versions[len(model.latest_versions) - 1]
+			model_dtos.append({
+				"name": model.name,
+				"description": model.description,
+				"latestVersion": latest_version.version,
+				"creationTimestamp": latest_version.creation_timestamp,
+				"lastUpdatedTimestamp": latest_version.last_updated_timestamp,
+				"status": latest_version.status
+			})
+		return model_dtos
 
 	def get_model(self, model_name: str):
 		self.logger.info("Getting model %s" % model_name)
