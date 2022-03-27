@@ -56,19 +56,20 @@ def root():
 
 
 @app.route('/health', methods=['GET'])
+@app.route('/api/health', methods=['GET'])
 def dataframe_by_key():
 	if request.method == 'GET':
 		return 'OK'
 
 
-@app.route('/models', methods=['GET'])
+@app.route('/api/models', methods=['GET'])
 def get_models():
 	if request.method == 'GET':
 		models = model_service.get_model_dtos()
 		return jsonify(models)
 
 
-@app.route('/train/<model_name>', methods=['GET'])
+@app.route('/api/train/<model_name>', methods=['GET'])
 def train_model(model_name: str):
 	if request.method == 'GET':
 		cache_data = request.args.get('cache_data', default=False, type=bool)
@@ -79,7 +80,7 @@ def train_model(model_name: str):
 			return jsonify({"error": str(e)}), 404
 
 
-@app.route('/predict/<model_name>', methods=['POST'])
+@app.route('/api/predict/<model_name>', methods=['POST'])
 def predict(model_name: str):
 	if request.method == 'POST':
 		data = request.get_json()
