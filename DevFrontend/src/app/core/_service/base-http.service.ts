@@ -19,6 +19,10 @@ export class BaseHttpService {
 		return `${environment.filesApi}/${this.basePath}/${endpoint.join('/')}`;
 	}
 
+	protected getLearningUrl(...endpoint: string[]): string {
+		return `${environment.learningApi}/${this.basePath}/${endpoint.join('/')}`;
+	}
+
 	public get<T>(...endpoint: string[]): Observable<T> {
 		return this.http.get<T>(this.getPipelinesUrl(...endpoint));
 	}

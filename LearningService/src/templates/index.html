@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Learning Service</title>
+</head>
+<body>
+<h1>Learning Service</h1>
+<p>
+	I have access to a couple of models:
+</p>
+<ul>
+	{% for model in data.models %}
+		<li>
+			<b>{{ model.name }}</b>
+			<span>{{ model.description }}</span>
+			<ul>
+				{% for version in model.latest_versions %}
+					<li>
+						<span>v{{ version.version }}</span>
+						<span>{{ version.status }}</span>
+					</li>
+				{% endfor %}
+			</ul>
+		</li>
+	{% endfor %}
+</ul>
+</body>
+</html>

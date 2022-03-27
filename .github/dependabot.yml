@@ -14,16 +14,12 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "daily"
-    assignees:
-      - "SirPumpkinHead"
 
   - package-ecosystem: "docker"
     directory: "/PipelineService"
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   # Pipeline Service (Unit Tests)
   - package-ecosystem: "nuget" # See documentation for possible values
@@ -31,8 +27,6 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   # File Service
   - package-ecosystem: "nuget" # See documentation for possible values
@@ -40,16 +34,12 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   - package-ecosystem: "docker"
     directory: "/FileService"
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   # Operation Worker
   - package-ecosystem: "pip" # See documentation for possible values
@@ -57,16 +47,12 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   - package-ecosystem: "docker" # See documentation for possible values
     directory: "/OperationWorker" # Location of package manifests
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   # Dataset Service
   - package-ecosystem: "pip" # See documentation for possible values
@@ -74,16 +60,25 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   - package-ecosystem: "docker" # See documentation for possible values
     directory: "/DataSetService" # Location of package manifests
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
+
+  # Learning Service
+  - package-ecosystem: "pip"
+    directory: "/LearningService"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/LearningService"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
 
   # Dev Frontend
   - package-ecosystem: "npm"
@@ -91,16 +86,12 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   - package-ecosystem: "docker"
     directory: "/DevFrontend"
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
 
   # Neo4j Plugins
   - package-ecosystem: "maven"
@@ -108,13 +99,29 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "daily"
-    assignees:
-      - "SirPumpkinHead"
 
   - package-ecosystem: "docker"
     directory: "/Neo4jPlugins"
     target-branch: "dev"
     schedule:
       interval: "weekly"
-    assignees:
-      - "SirPumpkinHead"
+
+  # MLflow
+  - package-ecosystem: "docker"
+    directory: "/MLflowServer"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/MLflowServer"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
+  # Edge Server
+  - package-ecosystem: "docker"
+    directory: "/EdgeServer"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"

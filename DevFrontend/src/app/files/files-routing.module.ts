@@ -4,11 +4,11 @@ import {FilesOverviewComponent} from './files-overview/files-overview.component'
 
 const routes: Routes = [
 	{
-		path: 'overview',
+		path: 'models-overview',
 		component: FilesOverviewComponent
 	}, {
 		path: '**',
-		redirectTo: 'overview'
+		redirectTo: 'models-overview'
 	}
 ];
 

@@ -43,9 +43,9 @@ server {
         proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
     }
 
-    location /api/files {
+    location /api/file {
         proxy_pass          http://file-service:80;
-        rewrite             /api/files/(.*) /$1 break; # TODO: temporary fix change back to /api/file/
+        rewrite             /api/file/(.*) /$1 break; # TODO: temporary fix change back to /api/file/
         proxy_redirect      off;
         proxy_set_header    Host $host;
         proxy_set_header    X-Real-IP          $remote_addr;
@@ -61,6 +61,27 @@ server {
         proxy_set_header    X-Real-IP          $remote_addr;
         proxy_set_header    X-Forwarded-Proto  $scheme;
         proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
+    }
+
+    location /api/learning {
+    		proxy_pass          http://learning-service:5006;
+				rewrite             /api/learning/(.*) /$1 break;
+				proxy_redirect      off;
+				proxy_set_header    Host $host;
+				proxy_set_header    X-Real-IP          $remote_addr;
+				proxy_set_header    X-Forwarded-Proto  $scheme;
+				proxy_set_header    X-Forwarded-For    $proxy_add_x_forwarded_for;
+    }
+
+    location /mlflow {
+        proxy_pass 					http://mlflow-server:5005;
+        rewrite             /mlflow/(.*) /$1 break;
+
+        # Redefine the header fields that NGINX sends to the upstream server
+        proxy_set_header 		Host $host;
+        proxy_set_header 		X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-Proto  $scheme;
+        proxy_set_header 		X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 #
 #     location /db/pipeline {

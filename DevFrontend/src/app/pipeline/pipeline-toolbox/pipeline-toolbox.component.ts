@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {forkJoin, Observable, Subscription} from 'rxjs';
+import {combineLatest, debounceTime, forkJoin, Observable, ReplaySubject, Subject, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
+import {ModelService} from '../../admin/model/_service/model.service';
 import {OperationIds} from '../../core/_model/operation-ids';
 import {FileInfoDto} from '../../files/_model/file-info-dto';
 import {FilesService} from '../../utils/_services/files.service';
@@ -20,11 +21,11 @@ import {OperationsService} from '../_service/operations.service';
 	styleUrls: ['./pipeline-toolbox.component.scss']
 })
 export class PipelineToolboxComponent implements OnInit, OnDestroy {
-	private titleClicked: boolean = false;
 
 	constructor(private operationsService: OperationTemplatesService,
 							private nodeService: OperationsService,
-							private filesService: FilesService) {
+							private filesService: FilesService,
+							private modelService: ModelService) {
 		this.subscriptions = new Subscription();
 		this.pipelineChanged = new EventEmitter<VisualizationPipelineDto>();
 	}
@@ -41,7 +42,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	@Output()
 	public readonly pipelineChanged: EventEmitter<VisualizationPipelineDto>;
 
-	private $operationTemplateGroups?: Observable<Array<OperationTemplateGroup>>;
+	private $operationPredictions: Subject<string[]> = new ReplaySubject();
+	private $operationSearchValues: Subject<string> = new ReplaySubject();
+	private $selectedOperationIds: Subject<Array<VisualizationOperationDto>> = new ReplaySubject();
+	private $operationTemplateGroups: Observable<Array<OperationTemplateGroup>>;
 	private $userFiles?: Observable<Array<FileInfoDto>>;
 
 	private readonly subscriptions: Subscription;
@@ -82,6 +86,90 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(): void {
+		this.$operationTemplateGroups = combineLatest([
+			this.operationsService.getOperations(),
+			this.$operationSearchValues.pipe(
+				debounceTime(250),
+				map(value => value.trim()),
+				map(value => value.toLowerCase()),
+			),
+			this.$selectedOperationIds.pipe(map(ids => ids ?? [])),
+			this.$operationPredictions
+		])
+			.pipe(
+				map(
+					([operationTemplates, searchValue, selectedOperations, opPredictions]) => {
+						// match required amount of input-datasets
+						if (selectedOperations.length > 0) {
+							// filter operation templates that require more or less input datasets than selected nodes
+							operationTemplates = operationTemplates.filter(operation => {
+								return operation.inputTypes?.length >= selectedOperations.length;
+							});
+						}
+
+						// match required input-dataset types
+						if (selectedOperations.length > 0) {
+							operationTemplates = operationTemplates.filter(operation => {
+								// TODO this could be change to be order independent, but this requires automatically changing the order of the input-datasets
+								const selectedTypes = selectedOperations.map(o => o.output.type);
+								for (let i = 0; i < selectedTypes.length; i++) {
+									if (selectedTypes[i] !== operation.inputTypes[i]) {
+										// don't show this operation template if any of the selected type types does not match the input types of the operation template
+										return false;
+									}
+								}
+								return true;
+							});
+						}
+
+						if (searchValue.length > 0) {
+							operationTemplates = operationTemplates.filter(operation => {
+								const searchIn = [operation.operationName, operation.operationFullName, operation.description, operation.sectionTitle];
+								const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
+								return searchInText.includes(this.operationsSearchText.replace(' ', '').toLowerCase());
+							});
+						}
+
+						if (opPredictions.length > 0) {
+							operationTemplates.sort((operationA, operationB) => {
+								const combinedIdA = this.getCombinedId(operationA);
+								const combinedIdB = this.getCombinedId(operationB);
+								let indexA = opPredictions.indexOf(combinedIdA);
+								let indexB = opPredictions.indexOf(combinedIdB);
+								if (indexA === -1 && indexB === -1) {
+									return 0;
+								}
+								indexA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA;
+								indexB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB;
+								return indexA - indexB;
+							});
+						}
+						return operationTemplates;
+					}),
+				map(operationTemplates => {
+					// group operationTemplates by sectionTitle to OperationTemplateGroups
+					return operationTemplates.reduce((groups, operationTemplate) => {
+						const group = groups.find(grp => grp.sectionTitle === operationTemplate.sectionTitle);
+						if (group) {
+							group.operations.push(operationTemplate);
+						} else {
+							groups.push({
+								sectionTitle: operationTemplate.sectionTitle,
+								operations: [operationTemplate]
+							});
+						}
+						return groups;
+					}, []);
+				}),
+				map(operationTemplateGroups => operationTemplateGroups.filter(opg => opg.operations.length !== 0))
+			);
+		this.$operationSearchValues.next('');
+		this.$selectedOperationIds.next([]);
+		this.$operationPredictions.next([]);
+	}
+
+	private getCombinedId(operation: OperationTemplate): string {
+		return `${operation.operationId}-${operation.operationName}`.toLowerCase();
 	}
 
 	ngOnDestroy(): void {
@@ -89,44 +177,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	getOperationTemplates(): Observable<Array<OperationTemplateGroup>> {
-		if (!this.$operationTemplateGroups) {
-			this.$operationTemplateGroups = this.operationsService.getOperationsGroups()
-				.pipe(
-					map(operationGroups => {
-						for (const opGroup of operationGroups) {
-							// Do not display operations that accept files
-							// opGroup.operations = opGroup.operations.filter(operation => operation.inputTypes.includes(DatasetType.File));
-						}
-						return operationGroups;
-					}),
-				);
-		}
 		return this.$operationTemplateGroups;
-	}
-
-	showInAvailable(operation: OperationTemplate): boolean {
-		if (this.operationsSearchText) {
-			const searchIn = [operation.operationName, operation.operationFullName, operation.description, operation.sectionTitle];
-			const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
-			if (!searchInText.includes(this.operationsSearchText.replace(' ', '').toLowerCase())) {
-				return false;
-			}
-		}
-		if (this.selectedOperationIds.length === 0) {
-			return true;
-		}
-		if (operation.inputTypes?.length < this.selectedOperationIds.length) {
-			// more inputs selected than available in this operation template
-			return false;
-		}
-		const selectedTypes = this.selectedOperations.map(o => o.output.type);
-		for (let i = 0; i < selectedTypes.length; i++) {
-			if (selectedTypes[i] !== operation.inputTypes[i]) {
-				// don't show this operation template if any of the selected type types does not match the input types of the operation template
-				return false;
-			}
-		}
-		return true;
 	}
 
 	onAddNode(operation: OperationTemplate): void {
@@ -189,7 +240,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	getUserFiles(): Observable<Array<FileInfoDto>> {
 		if (!this.$userFiles) {
-			this.$userFiles = forkJoin(this.filesService.getUserFileInfos(), this.filesService.getDefaultFileInfos())
+			this.$userFiles = forkJoin([this.filesService.getUserFileInfos(), this.filesService.getDefaultFileInfos()])
 				.pipe(
 					map(files => {
 						return files[0].concat(files[1]);
@@ -212,8 +263,30 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		return userFile.fileName.toLowerCase().includes(this.filesSearchText.toLowerCase());
 	}
 
-	titleClick(): void {
-		console.log('Hi');
-		this.titleClicked = true;
+	onSearchTextChange(value: string): void {
+		this.operationsSearchText = value;
+		this.$operationSearchValues.next(value);
+	}
+
+	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
+		this.selectedOperationIds = selectedOps.map(op => op.id as string);
+		this.$selectedOperationIds.next(selectedOps);
+		this.subscriptions.add(forkJoin(selectedOps.map(op => {
+				return this.modelService.loadPrediction({
+					input_0_dataset_type: op.inputs[0]?.type,
+					input_1_dataset_type: op.inputs[1]?.type,
+					input_2_dataset_type: op.inputs[2]?.type,
+					feat_pred_count: op.inputs?.length ?? 0,
+					feat_pred_id: op.operationIdentifier,
+				});
+			})).pipe(
+				debounceTime(50),
+				map((predictions) => {
+					return new Array(...(new Set(...predictions)));
+				})
+			).subscribe(
+				pred => this.$operationPredictions.next(pred),
+				err => console.error(err)),
+		);
 	}
 }

@@ -8,3 +8,15 @@ body {
 	margin: 0;
 	font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+
+/* Global Styles */
+.snackbar-success {
+	background: green;
+	white-space: pre-wrap;
+}
+
+.snackbar-error {
+	background: red;
+	white-space: pre-wrap;
+}

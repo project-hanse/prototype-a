@@ -9,6 +9,7 @@ from prophet.serialize import model_to_json, model_from_json
 
 from src.exceptions.NotFoundError import NotFoundError
 from src.exceptions.NotStoredError import NotStoredError
+from src.helper.type_helper import get_type_str
 from src.models.dataset import Dataset
 
 
@@ -79,12 +80,12 @@ class DatasetServiceClient:
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key + '?version=full'
 		self.logging.info('Storing sklearn model metadata to %s' % address)
 		full_metadata = model.get_params()
-		full_metadata['model_type'] = model.__class__.__name__
+		full_metadata['model_type'] = get_type_str(type(model))
 		self.store_metadata(address, full_metadata)
 
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key + '?version=compact'
 		self.logging.info('Storing sklearn model metadata to %s' % address)
-		compact_metadata = {'model_type': model.__class__.__name__}
+		compact_metadata = {'model_type': get_type_str(type(model))}
 		self.store_metadata(address, compact_metadata)
 
 	def store_metadata(self, address, metadata):

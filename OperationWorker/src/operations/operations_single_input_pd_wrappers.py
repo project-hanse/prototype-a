@@ -17,6 +17,7 @@ class OperationsSingleInputPandasWrappers:
 		logger.info("Executing pandas operation pd_single_input_generic (%s)" % operation_name)
 
 		command = ("resulting_dataset = df.%s(**operation_config)" % operation_name)
+		# TODO: whitelist of allowed operations
 		loc = {'df': df, 'operation_config': operation_config}
 		exec(command, globals(), loc)
 		resulting_dataset = loc['resulting_dataset']

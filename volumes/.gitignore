@@ -4,3 +4,4 @@
 ./edge-server/etc/apache2/.htpasswd
 neo4j/**/**/*
 localstack/**/*
+mysql/**/*

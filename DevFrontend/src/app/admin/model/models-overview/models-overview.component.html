@@ -1,0 +1,31 @@
+<mat-card style="overflow: hidden">
+	<mat-card-header>
+		<h2>Machine Learning Models</h2>
+	</mat-card-header>
+	<mat-card-content *ngIf="getModels() | async as models">
+		<mat-list>
+			<mat-list-item *ngFor="let model of models">
+				<mat-icon mat-list-icon>smart_toy</mat-icon>
+				<div mat-line>
+					<a [href]="getMlflowUrl(model)" target="_blank">{{model.name}}</a>
+					<span>&nbsp;v{{model.latestVersion}}</span>
+				</div>
+				<div mat-line>
+					<span *ngIf="model.description">{{model.description}}&nbsp;</span>
+					<span style="opacity: 0.66">{{model.lastUpdatedTimestamp | date}}</span>
+				</div>
+				<button mat-raised-button color="accent" (click)="trainModel(model)">
+					<mat-icon>model_training</mat-icon>
+					<span>Train Model</span>
+				</button>
+			</mat-list-item>
+		</mat-list>
+	</mat-card-content>
+
+	<mat-card-footer>
+		<mat-progress-bar
+			*ngIf="training > 0"
+			[mode]="'indeterminate'">
+		</mat-progress-bar>
+	</mat-card-footer>
+</mat-card>

@@ -360,6 +360,8 @@ namespace PipelineService.Dao.Impl
 					.Return(() => new
 					{
 						Id = Return.As<Guid>($"operationNode.{nameof(Operation.Id)}"),
+						OperationIdentifier = Return.As<string>($"operationNode.{nameof(Operation.OperationIdentifier)}"),
+						OperationId = Return.As<string>($"operationNode.{nameof(Operation.OperationId)}"),
 						Label = Return.As<string>($"operationNode.{nameof(Operation.OperationIdentifier)}"),
 						InputsSerialized = Return.As<string>($"operationNode.{nameof(Operation.InputsSerialized)}"),
 						OutputSerialized = Return.As<string>($"operationNode.{nameof(Operation.OutputSerialized)}"),
@@ -371,7 +373,8 @@ namespace PipelineService.Dao.Impl
 					Id = o.Id,
 					Label = o.Label,
 					Inputs = JsonConvert.DeserializeObject<IList<Dataset>>(o.InputsSerialized),
-					Output = JsonConvert.DeserializeObject<Dataset>(o.OutputSerialized)
+					Output = JsonConvert.DeserializeObject<Dataset>(o.OutputSerialized),
+					OperationIdentifier = $"{o.OperationId}-{o.OperationIdentifier}" // TODO centralize this see tuple generation
 				});
 
 			foreach (var resultNode in resultNodes)

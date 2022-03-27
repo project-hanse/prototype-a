@@ -8,6 +8,7 @@ import pandas as pd
 
 from src.constants.metadata_constants import *
 from src.helper.log_helper import LogHelper
+from src.helper.type_helper import get_type_str
 
 
 class InMemoryStore:
@@ -90,7 +91,7 @@ class InMemoryStore:
 			if metadata is None:
 				self.log.info("Dataset %s (%s) does not have metadata" % (str(key), str(data_object['type'])))
 				return None
-		metadata['type'] = str(data_object['type'])
+		metadata['type'] = get_type_str(data_object['type'])
 		return metadata
 
 	def store_metadata_by_key(self, key: str, metadata, version: str = METADATA_VERSION_COMPACT) -> bool:
