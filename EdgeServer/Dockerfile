@@ -1,3 +1,3 @@
-FROM nginx:1.13.6
+FROM nginx:1.21.6
 
 COPY ./templates/* /etc/nginx/templates/*
