@@ -41,6 +41,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	public readonly pipelineChanged: EventEmitter<VisualizationPipelineDto>;
 
 	private $operationSearchValues: Subject<string> = new ReplaySubject<string>();
+	private $selectedOperationIds: Subject<Array<VisualizationOperationDto>> = new ReplaySubject<Array<VisualizationOperationDto>>();
 	private $operationTemplateGroups: Observable<Array<OperationTemplateGroup>>;
 	private $userFiles?: Observable<Array<FileInfoDto>>;
 
@@ -83,20 +84,42 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	ngOnInit(): void {
 		this.$operationTemplateGroups = combineLatest([
+			this.operationsService.getOperations(),
 			this.$operationSearchValues.pipe(
 				debounceTime(250),
 				map(value => value.trim()),
 				map(value => value.toLowerCase()),
 			),
-			this.operationsService.getOperations()
+			this.$selectedOperationIds.pipe(map(ids => ids ?? []))
 		])
 			.pipe(
 				map(
-					([searchValue, operationTemplates]) => {
-						console.log('operationTemplates', operationTemplates);
-						console.log('searchValue', searchValue);
+					([operationTemplates, searchValue, selectedOperations]) => {
+						// match required amount of input-datasets
+						if (selectedOperations.length > 0) {
+							// filter operation templates that require more or less input datasets than selected nodes
+							operationTemplates = operationTemplates.filter(operation => {
+								return operation.inputTypes?.length === selectedOperations.length;
+							});
+						}
+
+						// match required input-dataset types
+						if (selectedOperations.length > 0) {
+							operationTemplates = operationTemplates.filter(operation => {
+								// TODO this could be change to be order independent, but this requires automatically changing the order of the input-datasets
+								const selectedTypes = selectedOperations.map(o => o.output.type);
+								for (let i = 0; i < selectedTypes.length; i++) {
+									if (selectedTypes[i] !== operation.inputTypes[i]) {
+										// don't show this operation template if any of the selected type types does not match the input types of the operation template
+										return false;
+									}
+								}
+								return true;
+							});
+						}
+
 						if (searchValue.length > 0) {
-							return operationTemplates.filter(operation => {
+							operationTemplates = operationTemplates.filter(operation => {
 								const searchIn = [operation.operationName, operation.operationFullName, operation.description, operation.sectionTitle];
 								const searchInText = searchIn.join('').replace(' ', '').toLowerCase();
 								return searchInText.includes(this.operationsSearchText.replace(' ', '').toLowerCase());
@@ -122,6 +145,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				map(operationTemplateGroups => operationTemplateGroups.filter(opg => opg.operations.length !== 0))
 			);
 		this.$operationSearchValues.next('');
+		this.$selectedOperationIds.next([]);
 	}
 
 	ngOnDestroy(): void {
@@ -130,24 +154,6 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	getOperationTemplates(): Observable<Array<OperationTemplateGroup>> {
 		return this.$operationTemplateGroups;
-	}
-
-	showInAvailable(operation: OperationTemplate): boolean {
-		if (this.selectedOperationIds.length === 0) {
-			return true;
-		}
-		if (operation.inputTypes?.length < this.selectedOperationIds.length) {
-			// more inputs selected than available in this operation template
-			return false;
-		}
-		const selectedTypes = this.selectedOperations.map(o => o.output.type);
-		for (let i = 0; i < selectedTypes.length; i++) {
-			if (selectedTypes[i] !== operation.inputTypes[i]) {
-				// don't show this operation template if any of the selected type types does not match the input types of the operation template
-				return false;
-			}
-		}
-		return true;
 	}
 
 	onAddNode(operation: OperationTemplate): void {
@@ -236,5 +242,10 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	onSearchTextChange(value: string): void {
 		this.operationsSearchText = value;
 		this.$operationSearchValues.next(value);
+	}
+
+	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
+		this.selectedOperationIds = selectedOps.map(op => op.id as string);
+		this.$selectedOperationIds.next(selectedOps);
 	}
 }

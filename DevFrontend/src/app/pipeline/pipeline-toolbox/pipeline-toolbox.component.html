@@ -27,8 +27,7 @@
 														 [disabled]="selectedOperationIds.length === 0">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
-								<button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"
-												[matTooltip]="operation.description">
+								<button mat-list-item (click)="onAddNode(operation)" [matTooltip]="operation.description">
 									<mat-icon mat-list-icon>add_circle_outline</mat-icon>
 									<span mat-line>{{operation.operationName}}</span>
 									<span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
