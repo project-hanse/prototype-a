@@ -33,8 +33,12 @@ class TrainerModelBase:
 				metadata = {}
 				total_input_cnt += 1
 				try:
-					metadata['dataType'] = op_input['type']
-					metadata = self.dataset_client.get_metadata(op_input['key'], cache=cache)
+					metadata['dataset_type'] = op_input['type']
+					metadata_rmt = self.dataset_client.get_metadata(op_input['key'], cache=cache)
+					metadata.update(metadata_rmt)
+					if 'type' in metadata:
+						metadata['storage_type'] = metadata['type']
+						del metadata['type']
 					op_tuple['targetInputMetadata'].append(metadata)
 					loaded_input_metadata_cnt += 1
 				except Exception as e:

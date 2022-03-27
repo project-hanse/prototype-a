@@ -11,7 +11,8 @@ from src.trainers.model_base import TrainerModelBase
 
 
 class TrainerModel1ComplementNB(TrainerModelBase):
-	feature_names = ['type', 'input_0_dataType', 'model_type']
+	feature_names = ['input_0_dataset_type', 'input_0_model_type', 'input_1_dataset_type', 'input_1_model_type',
+									 'input_2_dataset_type', 'input_2_model_type']
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
