@@ -118,3 +118,10 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
+
+  # Edge Server
+  - package-ecosystem: "docker"
+    directory: "/EdgeServer"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
