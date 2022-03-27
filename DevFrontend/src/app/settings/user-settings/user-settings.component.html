@@ -1,10 +1,19 @@
 <mat-card>
 	<mat-card-header>
 		<h2>
-			Settings
+			User Settings
 		</h2>
 	</mat-card-header>
 	<mat-card-content>
-		<!-- TODO -->
+		<ng-container *ngIf="$models | async as models">
+			<mat-form-field appearance="fill" matTooltip="Select a prediction model">
+				<mat-label>Prediction Model</mat-label>
+				<mat-select (selectionChange)="selectionChange($event)" [multiple]="false" [value]="models.selection">
+					<mat-option *ngFor="let model of models.models" [value]="model">
+						{{model.name}} (v{{model.latestVersion}})
+					</mat-option>
+				</mat-select>
+			</mat-form-field>
+		</ng-container>
 	</mat-card-content>
 </mat-card>
