@@ -22,6 +22,7 @@ namespace PipelineService.Models.Dtos
 	{
 		public IList<Dataset> Inputs { get; set; }
 		public Dataset Output { get; set; }
+		public string OperationIdentifier { get; set; }
 	}
 
 	public class VisEdge

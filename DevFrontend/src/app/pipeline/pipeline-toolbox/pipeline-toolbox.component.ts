@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {combineLatest, debounceTime, forkJoin, Observable, ReplaySubject, Subject, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
+import {ModelService} from '../../admin/model/_service/model.service';
 import {OperationIds} from '../../core/_model/operation-ids';
 import {FileInfoDto} from '../../files/_model/file-info-dto';
 import {FilesService} from '../../utils/_services/files.service';
@@ -23,7 +24,8 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	constructor(private operationsService: OperationTemplatesService,
 							private nodeService: OperationsService,
-							private filesService: FilesService) {
+							private filesService: FilesService,
+							private modelService: ModelService) {
 		this.subscriptions = new Subscription();
 		this.pipelineChanged = new EventEmitter<VisualizationPipelineDto>();
 	}
@@ -40,8 +42,9 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	@Output()
 	public readonly pipelineChanged: EventEmitter<VisualizationPipelineDto>;
 
-	private $operationSearchValues: Subject<string> = new ReplaySubject<string>();
-	private $selectedOperationIds: Subject<Array<VisualizationOperationDto>> = new ReplaySubject<Array<VisualizationOperationDto>>();
+	private $operationPredictions: Subject<string[]> = new ReplaySubject();
+	private $operationSearchValues: Subject<string> = new ReplaySubject();
+	private $selectedOperationIds: Subject<Array<VisualizationOperationDto>> = new ReplaySubject();
 	private $operationTemplateGroups: Observable<Array<OperationTemplateGroup>>;
 	private $userFiles?: Observable<Array<FileInfoDto>>;
 
@@ -90,16 +93,17 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				map(value => value.trim()),
 				map(value => value.toLowerCase()),
 			),
-			this.$selectedOperationIds.pipe(map(ids => ids ?? []))
+			this.$selectedOperationIds.pipe(map(ids => ids ?? [])),
+			this.$operationPredictions
 		])
 			.pipe(
 				map(
-					([operationTemplates, searchValue, selectedOperations]) => {
+					([operationTemplates, searchValue, selectedOperations, opPredictions]) => {
 						// match required amount of input-datasets
 						if (selectedOperations.length > 0) {
 							// filter operation templates that require more or less input datasets than selected nodes
 							operationTemplates = operationTemplates.filter(operation => {
-								return operation.inputTypes?.length === selectedOperations.length;
+								return operation.inputTypes?.length >= selectedOperations.length;
 							});
 						}
 
@@ -125,6 +129,21 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 								return searchInText.includes(this.operationsSearchText.replace(' ', '').toLowerCase());
 							});
 						}
+
+						if (opPredictions.length > 0) {
+							operationTemplates.sort((operationA, operationB) => {
+								const combinedIdA = this.getCombinedId(operationA);
+								const combinedIdB = this.getCombinedId(operationB);
+								let indexA = opPredictions.indexOf(combinedIdA);
+								let indexB = opPredictions.indexOf(combinedIdB);
+								if (indexA === -1 && indexB === -1) {
+									return 0;
+								}
+								indexA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA;
+								indexB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB;
+								return indexA - indexB;
+							});
+						}
 						return operationTemplates;
 					}),
 				map(operationTemplates => {
@@ -146,6 +165,11 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 			);
 		this.$operationSearchValues.next('');
 		this.$selectedOperationIds.next([]);
+		this.$operationPredictions.next([]);
+	}
+
+	private getCombinedId(operation: OperationTemplate): string {
+		return `${operation.operationId}-${operation.operationName}`.toLowerCase();
 	}
 
 	ngOnDestroy(): void {
@@ -247,5 +271,22 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
 		this.selectedOperationIds = selectedOps.map(op => op.id as string);
 		this.$selectedOperationIds.next(selectedOps);
+		this.subscriptions.add(forkJoin(selectedOps.map(op => {
+				return this.modelService.loadPrediction({
+					input_0_dataset_type: op.inputs[0]?.type,
+					input_1_dataset_type: op.inputs[1]?.type,
+					input_2_dataset_type: op.inputs[2]?.type,
+					feat_pred_count: op.inputs?.length ?? 0,
+					feat_pred_id: op.operationIdentifier,
+				});
+			})).pipe(
+				debounceTime(50),
+				map((predictions) => {
+					return new Array(...(new Set(...predictions)));
+				})
+			).subscribe(
+				pred => this.$operationPredictions.next(pred),
+				err => console.error(err)),
+		);
 	}
 }
