@@ -2,8 +2,58 @@
 
 The goal of this project is to build a platform that allows non-technical experts to gain insights from data. The
 software tool that will be developed should make professional data science tools
-like [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/) and potentially others available to them without
-the need to learn how to code.
+like [Pandas](https://pandas.pydata.org/), [SciKitLearn](https://scikit-learn.org/stable/)
+, [Prophet](https://github.com/facebook/prophet) and potentially others available to them without the need to learn how
+to code.
+
+## Technical Architecture
+
+This is a general overview of the components involved in a somewhat functional system. The first proof of concept will
+primarily focus on implementing the communication between the `Pipeline Service`, `Operation Workers` and
+the `Dataset Store`. All data will be held in-memory and will not be persisted to disk in order to reduce the complexity
+of this step. In a second iteration it is planned to also include the `Suggegstion Service` that will allow prediction
+of potential next nodes based on previously created pipelines. In a third step a basic frontend (`Pipeline Editor`) will
+be implemented.
+
+![Architecture Diagram Overview](./docs/architecture/overview.png)
+
+The following sections will be adapted and extended as the project progresses.
+
+### Implementation
+
+The code for the proof of concept is stored in this git
+repository [https://github.com/project-hanse/prototype-a][git-repo].
+
+The technologies used for this project are primarily [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0)
+using [C#](https://docs.microsoft.com/en-us/dotnet/csharp/) for the services that are not directly interacting with
+datasets. Services handling datasets (e.g. `Dataset Service` when importing new datasets) or services that execute
+single nodes of pipelines (e.g. `Operation Worker`) will be implemented using [Python](https://www.python.org/) and
+appropriate libraries like [Pandas](https://pandas.pydata.org/) and [NumPy](https://numpy.org/). For storing data in a
+persistent way databases like [MongoDB](https://www.mongodb.com/) and [GraphDB](https://graphdb.ontotext.com/) could be
+used. For the `Event Bus` a [MQTT](https://mqtt.org/) message broker like [Eclipse Mosquitto](https://mosquitto.org/)
+will be used. This can be replaced by a more scalable technology like [RabbitMQ](https://www.rabbitmq.com/) in the
+future. All services will be [dockerized](https://www.docker.com/) to allow for a simple deployment.
+
+### How to get started
+
+An installation of [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) is required
+for running the prototype. Please checkout the installation guides
+for [Docker Desktop](https://www.docker.com/products/docker-desktop)
+for [Mac](https://docs.docker.com/docker-for-mac/install/)
+or [Windows](https://docs.docker.com/docker-for-windows/install/).
+
+`docker-compose -f docker-compose.local.yml up -d` will start the services for local development. For convenience
+a `Makefile` is provided that can be used to build and run the services:
+
+| Command      | Description                                     |
+|--------------|-------------------------------------------------|
+| `make all`   | Builds and runs the services.                   |
+| `make start` | Runs the services.                              |
+| `make stop`  | Stops the services.                             |
+| `make clean` | Removes the services.                           |
+| `make down`  | Removes the services.                           |
+| `make purge` | Removes the services and all volumes.           |
+| `make prod`  | Pulls and runs the services in production mode. |
 
 ## Coding Guidelines
 
@@ -57,52 +107,6 @@ transformed.
 A web-based pipeline editor will make those features available. As a first step a user will be able to upload their own
 datasets (e.g. csv-files), in the future, however, it should also be possible make this tool available as a platform
 that allows trading and sharing of datasets.
-
-## Technical Architecture
-
-### Overview
-
-This is a general overview of the components involved in a somewhat functional system. The first proof of concept will
-primarily focus on implementing the communication between the `Pipeline Service`, `Python Workers` and
-the `Dataset Store`. All data will be held in-memory and will not be persisted to disk in order to reduce the complexity
-of this step. In a second iteration it is planned to also include the `Suggegstion Service` that will allow prediction
-of potential next nodes based on previously created pipelines. In a third step a basic frontend (`Pipeline Editor`) will
-be implemented.
-
-![Architecture Diagram Overview](./docs/architecture/overview.png)
-
-The following sections will be adapted and extended as the project progresses.
-
-## Implementation
-
-The code for the proof of concept is stored in this git
-repository [https://github.com/project-hanse/prototype-a][git-repo].
-
-The technologies used for this project are primarily [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0)
-using [C#](https://docs.microsoft.com/en-us/dotnet/csharp/) for the services that are not directly interacting with
-datasets. Services handling datasets (e.g. `Dataset Service` when importing new datasets) or services that execute
-single nodes of pipelines (e.g. `Operation Worker`) will be implemented using [Python](https://www.python.org/) and
-appropriate libraries like [Pandas](https://pandas.pydata.org/) and [NumPy](https://numpy.org/). For storing data in a
-persistent way databases like [MongoDB](https://www.mongodb.com/) and [GraphDB](https://graphdb.ontotext.com/) could be
-used. For the `Event Bus` a [MQTT](https://mqtt.org/) message broker like [Eclipse Mosquitto](https://mosquitto.org/)
-will be used. This can be replaced by a more scalable technology like [RabbitMQ](https://www.rabbitmq.com/) in the
-future. All services will be [dockerized](https://www.docker.com/) to allow for a simple deployment.
-
-### How to get started
-
-An installation of [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) is required
-for running the prototype. Please checkout the installation guides
-for [Docker Desktop](https://www.docker.com/products/docker-desktop)
-for [Mac](https://docs.docker.com/docker-for-mac/install/)
-or [Windows](https://docs.docker.com/docker-for-windows/install/).
-
-For starting the prototype open a shell ([cmd.exe](https://g.co/kgs/U27TRZ) on
-Windows, [Terminal](https://g.co/kgs/RH4MXv) on Mac), navigate to the project's root directory and run:
-`docker-compose build && docker-compose up`.
-
-You can then open a new browser window and navigate to http://localhost:5000/index.html. You can then test the Pipeline
-Service via the provided [Swagger UI](https://swagger.io/tools/swagger-ui/). To stop the prototype go back to your shell
-and press <kbd>ctrl</kbd> + <kbd>C</kbd> (this will send a `SIGINT` signal to the prototype telling it to shutdown).
 
 ## Vision
 

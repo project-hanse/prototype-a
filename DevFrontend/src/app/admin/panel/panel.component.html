@@ -1,0 +1,15 @@
+<mat-card>
+	<mat-card-title>
+		<h2>Administration Panel</h2>
+	</mat-card-title>
+	<mat-card-content>
+		<mat-nav-list>
+			<mat-list-item *ngFor="let link of links">
+				<mat-icon>{{link.icon}}</mat-icon>
+				<a matLine [routerLink]="link.path">
+					<span>{{ link.title }}</span>
+				</a>
+			</mat-list-item>
+		</mat-nav-list>
+	</mat-card-content>
+</mat-card>

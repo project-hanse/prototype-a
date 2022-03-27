@@ -3,6 +3,8 @@ export const environment = {
 	pipelineApi: 'http://localhost:5000',
 	filesApi: 'http://localhost:5004',
 	datasetApi: 'http://localhost:5002',
+	learningApi: 'http://localhost:5006',
+	mlflow: 'http://localhost:5005',
 	messageBrokerHost: 'localhost',
 	messageBrokerPath: '',
 	messageBrokerPort: 9002,

@@ -5,7 +5,7 @@ import {FilesService} from '../../utils/_services/files.service';
 import {FileInfoDto} from '../_model/file-info-dto';
 
 @Component({
-	selector: 'ph-files-overview',
+	selector: 'ph-files-models-overview',
 	templateUrl: './files-overview.component.html',
 	styleUrls: ['./files-overview.component.scss']
 })

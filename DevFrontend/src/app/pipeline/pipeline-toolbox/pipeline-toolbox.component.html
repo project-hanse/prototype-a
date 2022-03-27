@@ -12,9 +12,11 @@
 				<mat-form-field class="search-field" appearance="fill">
 					<mat-icon matPrefix>search</mat-icon>
 					<mat-label>Search for operations</mat-label>
-					<input matInput type="text" [(ngModel)]="operationsSearchText" autocomplete="off">
+					<input matInput type="text"
+								 (keyup)="onSearchTextChange(operationSearchText.value)"
+								 autocomplete="off" #operationSearchText>
 					<button *ngIf="operationsSearchText" matSuffix mat-icon-button aria-label="Clear"
-									(click)="operationsSearchText=''">
+									(click)="operationSearchText.value = ''; onSearchTextChange('')">
 						<mat-icon>close</mat-icon>
 					</button>
 				</mat-form-field>
@@ -25,8 +27,7 @@
 														 [disabled]="selectedOperationIds.length === 0">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
-								<button mat-list-item *ngIf="showInAvailable(operation)" (click)="onAddNode(operation)"
-												[matTooltip]="operation.description">
+								<button mat-list-item (click)="onAddNode(operation)" [matTooltip]="operation.description">
 									<mat-icon mat-list-icon>add_circle_outline</mat-icon>
 									<span mat-line>{{operation.operationName}}</span>
 									<span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
