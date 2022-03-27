@@ -1,3 +1,6 @@
+all:
+	docker-compose -f docker-compose.local.yml build && docker-compose -f docker-compose.local.yml up -d
+
 start:
 	docker-compose -f docker-compose.local.yml up -d
 
@@ -13,5 +16,11 @@ restart:
 build:
 	docker-compose -f docker-compose.local.yml build
 
+clean:
+	docker-compose -f docker-compose.local.yml down
+
 purge:
 	docker-compose -f docker-compose.local.yml down -v --rmi all --remove-orphans
+
+prod:
+	docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d
