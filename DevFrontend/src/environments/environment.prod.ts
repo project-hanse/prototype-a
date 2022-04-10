@@ -4,7 +4,7 @@ export const environment = {
 	datasetApi: 'https://hanse.allteams.at/api/dataset',
 	filesApi: 'https://hanse.allteams.at/api/file', // TODO: change to /api/file/ and update edge server config
 	learningApi: 'https://hanse.allteams.at/api/learning',
-	mlflow: 'https://hanse.allteams.at/mlflow',
+	mlflow: 'https://hanse.allteams.at/mlflow/#',
 	messageBrokerHost: 'hanse.allteams.at',
 	messageBrokerPath: '/mqtt',
 	messageBrokerPort: 443
