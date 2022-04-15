@@ -5,7 +5,7 @@ export interface OperationTemplate {
 	operationName: string;
 	operationFullName: string;
 	inputTypes: Array<DatasetType>;
-	outputType: DatasetType;
+	outputTypes: Array<DatasetType>;
 	framework: string;
 	description: string;
 	signature: string;

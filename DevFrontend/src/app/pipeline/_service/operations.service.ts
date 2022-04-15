@@ -30,8 +30,8 @@ export class OperationsService extends BaseHttpService {
 		return this.httpClient.post<RemoveOperationsResponse>(this.getPipelinesUrl('remove'), request);
 	}
 
-	public getOutputDataset(pipelineId: string, operationId: string): Observable<Dataset> {
-		return this.httpClient.get<Dataset>(this.getPipelinesUrl(pipelineId, operationId, 'output/dataset'));
+	public getOutputDataset(pipelineId: string, operationId: string): Observable<Array<Dataset>> {
+		return this.httpClient.get<Array<Dataset>>(this.getPipelinesUrl(pipelineId, operationId, 'output/datasets'));
 	}
 
 	public getPreviewHtml(outputKey: string): Observable<string> {

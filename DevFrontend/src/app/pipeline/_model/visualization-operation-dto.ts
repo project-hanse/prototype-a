@@ -4,5 +4,5 @@ import {Dataset} from './dataset';
 export interface VisualizationOperationDto extends Node {
 	operationIdentifier: string;
 	inputs: Array<Dataset>;
-	output: Dataset;
+	outputs: Array<Dataset>;
 }

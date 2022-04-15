@@ -63,7 +63,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				operationName: 'read_csv',
 				operationFullName: 'Read CSV File',
 				inputTypes: [DatasetType.File],
-				outputType: DatasetType.PdDataFrame,
+				outputTypes: [DatasetType.PdDataFrame],
 				framework: 'pandas',
 				description: '',
 				signature: '',
@@ -78,7 +78,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 			framework: 'pandas',
 			description: '',
 			inputTypes: [DatasetType.File],
-			outputType: DatasetType.PdDataFrame,
+			outputTypes: [DatasetType.PdDataFrame],
 			signature: '',
 			defaultConfig: new Map<string, string>(),
 			sectionTitle: ''
@@ -111,7 +111,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 						if (selectedOperations.length > 0) {
 							operationTemplates = operationTemplates.filter(operation => {
 								// TODO this could be change to be order independent, but this requires automatically changing the order of the input-datasets
-								const selectedTypes = selectedOperations.map(o => o.output.type);
+								const selectedTypes = selectedOperations.map(o => o.outputs[0].type);
 								for (let i = 0; i < selectedTypes.length; i++) {
 									if (selectedTypes[i] !== operation.inputTypes[i]) {
 										// don't show this operation template if any of the selected type types does not match the input types of the operation template

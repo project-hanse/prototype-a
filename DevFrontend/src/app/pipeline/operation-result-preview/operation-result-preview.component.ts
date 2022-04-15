@@ -27,7 +27,7 @@ export class OperationResultPreviewComponent implements OnInit {
 	ngOnInit(): void {
 	}
 
-	getOutputDataset(operationId: string): Observable<Dataset> {
+	getOutputDatasets(operationId: string): Observable<Array<Dataset>> {
 		if (!this.$datasetOutputs[operationId]) {
 			this.$datasetOutputs[operationId] = this.operationsService.getOutputDataset(this.pipelineId, operationId);
 		}
