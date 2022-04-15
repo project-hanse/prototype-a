@@ -1,0 +1,31 @@
+import logging
+
+from sklearn.datasets import fetch_openml
+
+from src.helper.operations_helper import OperationsHelper
+
+
+class OperationsProphet:
+	def __init__(self):
+		pass
+
+	@staticmethod
+	def load_data_from_openml(logger: logging, operation_name: str, operation_config: dict, data: []) -> []:
+		"""
+		Fetch dataset from openml by name or dataset id.
+		"""
+		logger.info("Executing openml operation load_data_from_openml (%s)" % operation_name)
+
+		OperationsHelper.validate_input_or_throw(data, 0)
+		name = OperationsHelper.get_or_default(operation_config, 'name', None)
+		version = OperationsHelper.get_or_default(operation_config, 'version', 'active')
+		data_id = OperationsHelper.get_or_default(operation_config, 'data_id', None)
+		data_home = OperationsHelper.get_or_default(operation_config, 'data_home', None)
+		target_column = OperationsHelper.get_or_default(operation_config, 'target_column', 'default-target')
+		cache = OperationsHelper.get_or_default(operation_config, 'cache', True)
+		# return_X_y = OperationsHelper.get_or_default(operation_config, 'return_X_y', True)
+		# as_frame = OperationsHelper.get_or_default(operation_config, 'as_frame', True)
+		data, target = fetch_openml(name=name, version=version, data_id=data_id, data_home=data_home,
+																target_column=target_column, cache=cache, return_X_y=True, as_frame=True)
+
+		return [data, target]
