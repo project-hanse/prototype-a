@@ -210,8 +210,8 @@ namespace PipelineService.Services.Impl
 					OperationsInExecution = executionRecord.InExecution.Count,
 					OperationsToBeExecuted = executionRecord.ToBeExecuted.Count,
 					OperationsFailedToExecute = executionRecord.Failed.Count,
-					ResultDataset = operationExecutionRecord?.ResultDataset,
-					ResultDatasetKey = operationExecutionRecord?.ResultDataset.Key
+					ResultDatasets = operationExecutionRecord?.ResultDatasets,
+					ResultDatasetKeys = operationExecutionRecord?.ResultDatasets.Select(d => d?.Key)
 				});
 		}
 
