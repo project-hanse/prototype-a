@@ -11,7 +11,7 @@ namespace PipelineService.Services
 		public Task<IList<string>> GetInputDatasetKeysForOperation(Guid pipelineId, Guid operationId);
 		public Task<AddOperationResponse> AddOperationToPipeline(AddOperationRequest request);
 		public Task<RemoveNodesResponse> RemoveOperationsFromPipeline(RemoveOperationsRequest request);
-		public Task<Dataset> GetOutputDataset(Guid pipelineId, Guid operationId);
+		public Task<IList<Dataset>> GetOutputDatasets(Guid pipelineId, Guid operationId);
 		public Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId);
 		public Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, Dictionary<string, string> config);
 		public Task<Operation> FindOperationOrDefault(Guid pipelineId, Guid nodeId);

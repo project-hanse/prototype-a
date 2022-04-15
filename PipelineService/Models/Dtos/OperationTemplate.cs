@@ -18,7 +18,13 @@ namespace PipelineService.Models.Dtos
 		/// <summary>
 		/// The dataset type this operation produces.
 		/// </summary>
+		[Obsolete("This is not used anymore. Use OutputTypes instead.")]
 		public DatasetType? OutputType { get; set; }
+
+		/// <summary>
+		/// The dataset types this operation produces.
+		/// </summary>
+		public IList<DatasetType?> OutputTypes { get; set; }
 
 		public string Framework { get; set; }
 		public string FrameworkVersion { get; set; }

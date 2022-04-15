@@ -164,6 +164,8 @@ namespace PipelineService.Services.Impl
 					operationDto.OutputType = null;
 				}
 
+				operationDto.OutputTypes = new List<DatasetType?> { operationDto.OutputType };
+
 				if (operationDto.DefaultConfig == null)
 				{
 					operationDto.DefaultConfig = new Dictionary<string, string>();

@@ -82,22 +82,34 @@ namespace PipelineService.Services.Impl
 
 			// TODO reimplement this in a general way that does can handle any number of predecessors and checks if dataset types match
 			var newOperation = new Operation();
-			if (request.OperationTemplate.OutputType.HasValue)
+			if (request.OperationTemplate.OutputTypes.Count > 1)
 			{
-				newOperation.Output.Type = request.OperationTemplate.OutputType.Value;
+				response.StatusCode = HttpStatusCode.BadRequest;
+				response.Errors.Add(new Error
+				{
+					Message = $"Operations with more than 1 output type are not supported yet",
+					Code = "P400"
+				});
+				return response;
+			}
+
+			newOperation.Outputs = new List<Dataset> {new()};
+			if (request.OperationTemplate.OutputTypes[0].HasValue)
+			{
+				newOperation.Outputs[0].Type = request.OperationTemplate.OutputTypes[0].Value;
 			}
 
 			// Hardcoded default values for plotting
 			// TODO: potentially move this to the frontend
-			if (newOperation.Output.Type == DatasetType.StaticPlot)
+			if (newOperation.Outputs[0].Type == DatasetType.StaticPlot)
 			{
-				newOperation.Output.Store = "plots";
-				newOperation.Output.Key = $"{Guid.NewGuid()}.svg";
+				newOperation.Outputs[0].Store = "plots";
+				newOperation.Outputs[0].Key = $"{Guid.NewGuid()}.svg";
 			}
-			else if (newOperation.Output.Type == DatasetType.Prophet)
+			else if (newOperation.Outputs[0].Type == DatasetType.Prophet)
 			{
-				newOperation.Output.Store = "generic_json";
-				newOperation.Output.Key = $"{Guid.NewGuid()}.prophet";
+				newOperation.Outputs[0].Store = "generic_json";
+				newOperation.Outputs[0].Key = $"{Guid.NewGuid()}.prophet";
 			}
 
 			if (request.PredecessorOperationIds.Count == 0)
@@ -185,9 +197,9 @@ namespace PipelineService.Services.Impl
 			return response;
 		}
 
-		public async Task<Dataset> GetOutputDataset(Guid pipelineId, Guid operationId)
+		public async Task<IList<Dataset>> GetOutputDatasets(Guid pipelineId, Guid operationId)
 		{
-			return (await _pipelinesDao.GetOperation(operationId)).Output;
+			return (await _pipelinesDao.GetOperation(operationId)).Outputs;
 		}
 
 		public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)

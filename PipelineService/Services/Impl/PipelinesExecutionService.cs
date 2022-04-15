@@ -419,7 +419,7 @@ namespace PipelineService.Services.Impl
 				WorkerOperationIdentifier = operation.OperationIdentifier,
 				OperationConfiguration = operation.OperationConfiguration,
 				Inputs = operation.Inputs,
-				Output = operation.Output
+				Outputs = operation.Outputs
 			};
 		}
 	}

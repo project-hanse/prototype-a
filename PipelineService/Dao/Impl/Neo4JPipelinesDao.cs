@@ -7,6 +7,7 @@ using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
 using Newtonsoft.Json;
+using PipelineService.Extensions;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
@@ -325,7 +326,7 @@ namespace PipelineService.Dao.Impl
 					PredecessorOperationIdentifier = $"{tuple.predecessor.OperationId}-{tuple.predecessor.OperationIdentifier}",
 					PredecessorOperationConfiguration = tuple.predecessor.OperationConfiguration,
 					PredecessorOperationInputs = tuple.predecessor.Inputs,
-					PredecessorOperationOutput = tuple.predecessor.Output,
+					PredecessorOperationOutput = tuple.predecessor.Outputs,
 					TargetOperationIdentifier = $"{tuple.target.OperationId}-{tuple.target.OperationIdentifier}",
 					TargetInputs = tuple.target.Inputs,
 				})
@@ -373,7 +374,9 @@ namespace PipelineService.Dao.Impl
 					Id = o.Id,
 					Label = o.Label,
 					Inputs = JsonConvert.DeserializeObject<IList<Dataset>>(o.InputsSerialized),
-					Output = JsonConvert.DeserializeObject<Dataset>(o.OutputSerialized),
+					Outputs = JsonConvert.DeserializeObject<IList<Dataset>>(o.OutputSerialized.StartsWith("{")
+						? $"[{o.OutputSerialized}]"
+						: o.OutputSerialized),
 					OperationIdentifier = $"{o.OperationId}-{o.OperationIdentifier}" // TODO centralize this see tuple generation
 				});
 
@@ -419,9 +422,12 @@ namespace PipelineService.Dao.Impl
 						.Where((Operation o) => o.Id == operationId)
 						.Return(() => new { OutputSerialized = Return.As<string>("o.OutputSerialized") })
 						.ResultsAsync)
-					.Select(o => JsonConvert.DeserializeObject<Dataset>(o.OutputSerialized))
+					.Select(o =>
+						JsonConvert.DeserializeObject<IList<Dataset>>(o.OutputSerialized.StartsWith("{")
+							? $"[{o.OutputSerialized}]"
+							: o.OutputSerialized))
 					.SingleOrDefault();
-				datasets.Add(dataset);
+				datasets.AddAll(dataset);
 			}
 
 			_logger.LogInformation("Loaded {DatasetCount} output datasets for operations {@OperationIds}",

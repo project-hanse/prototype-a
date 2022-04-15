@@ -21,7 +21,7 @@ namespace PipelineService.Models.Dtos
 	public class VisualizationOperationDto : VisNode
 	{
 		public IList<Dataset> Inputs { get; set; }
-		public Dataset Output { get; set; }
+		public IList<Dataset> Outputs { get; set; }
 		public string OperationIdentifier { get; set; }
 	}
 
