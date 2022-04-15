@@ -12,7 +12,7 @@ namespace PipelineService.Helper
 			{
 				successor.Inputs.Add(predecessor.Outputs[0]);
 			}
-			else
+			else if (predecessor.Outputs.Count > 1)
 			{
 				throw new NotImplementedException("Multiple outputs not supported at this time.");
 			}

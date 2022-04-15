@@ -13,6 +13,6 @@ export interface FrontendExecutionNotification {
 	OperationsInExecution: number;
 	OperationsToBeExecuted: number;
 	OperationsFailedToExecute: number;
-	ResultDatasetKey: string;
-	ResultDataset: Dataset;
+	ResultDatasetKeys: Array<string>;
+	ResultDatasets: Array<Dataset>;
 }

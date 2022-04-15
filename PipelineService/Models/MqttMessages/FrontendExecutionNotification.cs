@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Models.MqttMessages
@@ -17,7 +18,7 @@ namespace PipelineService.Models.MqttMessages
 		public int OperationsFailedToExecute { get; set; }
 		public string OperationName { get; set; }
 		public DateTime CompletedAt { get; set; }
-		public Dataset ResultDataset { get; set; }
-		public string ResultDatasetKey { get; set; }
+		public IList<Dataset> ResultDatasets { get; set; }
+		public IEnumerable<string> ResultDatasetKeys { get; set; }
 	}
 }
