@@ -99,6 +99,44 @@ namespace PipelineService.Services.Impl
 				return null;
 			}
 
+			// foreach (var node in dto.Nodes.ToArray())
+			// {
+			// 	if (typeof(VisualizationOperationDto) == node.GetType())
+			// 	{
+			// 		foreach (var dataset in ((VisualizationOperationDto)node).Outputs)
+			// 		{
+			// 			var datasetNode = new VisualizationDatasetDto()
+			// 			{
+			// 				Id = Guid.NewGuid(),
+			// 				Shape = "square",
+			// 				Title = dataset.Type.ToString(),
+			// 				Key = dataset.Key,
+			// 				Store = dataset.Store,
+			// 				Type = dataset.Type
+			// 			};
+			// 			dto.Nodes.Add(datasetNode);
+			// 			dto.Edges.Add(new VisEdge()
+			// 			{
+			// 				From = node.Id,
+			// 				To = datasetNode.Id
+			// 			});
+			// 			var targetNode = dto.Nodes
+			// 				.Where(n => n.GetType() == typeof(VisualizationOperationDto))
+			// 				.Select(n => (VisualizationOperationDto)n)
+			// 				.FirstOrDefault(n => n.Inputs.Any(i => i.Key == dataset.Key));
+			//
+			// 			if (targetNode != default)
+			// 			{
+			// 				dto.Edges.Add(new VisEdge()
+			// 				{
+			// 					From = datasetNode.Id,
+			// 					To = targetNode.Id
+			// 				});
+			// 			}
+			// 		}
+			// 	}
+			// }
+
 			return dto;
 		}
 

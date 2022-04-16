@@ -382,6 +382,7 @@ namespace PipelineService.Dao.Impl
 
 			foreach (var resultNode in resultNodes)
 			{
+				resultNode.Title = string.Join(" | ", resultNode.Outputs.Select(o => o.Type.ToString()));
 				dto.Nodes.Add(resultNode);
 			}
 
