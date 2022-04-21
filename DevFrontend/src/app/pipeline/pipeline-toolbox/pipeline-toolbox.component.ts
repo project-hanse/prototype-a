@@ -109,9 +109,12 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 						// match required input-dataset types
 						if (selectedOperations.length > 0) {
+							const selectedTypes = selectedOperations
+								.map(o => o.outputs?.map(d => d?.type) ?? [])
+								.reduce((a, b) => a.concat(b), []);
+
 							operationTemplates = operationTemplates.filter(operation => {
 								// TODO this could be change to be order independent, but this requires automatically changing the order of the input-datasets
-								const selectedTypes = selectedOperations.map(o => o.outputs[0].type);
 								for (let i = 0; i < selectedTypes.length; i++) {
 									if (selectedTypes[i] !== operation.inputTypes[i]) {
 										// don't show this operation template if any of the selected type types does not match the input types of the operation template
