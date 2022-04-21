@@ -36,15 +36,12 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	@Input()
 	public selectedOperationIds: Array<string> = [];
 
-	@Input()
-	public selectedOperations: Array<VisualizationOperationDto> = [];
-
 	@Output()
 	public readonly pipelineChanged: EventEmitter<VisualizationPipelineDto>;
 
 	private $operationPredictions: Subject<string[]> = new ReplaySubject();
 	private $operationSearchValues: Subject<string> = new ReplaySubject();
-	private $selectedOperationIds: Subject<Array<VisualizationOperationDto>> = new ReplaySubject();
+	$selectedOperations: Subject<Array<VisualizationOperationDto>> = new ReplaySubject();
 	private $operationTemplateGroups: Observable<Array<OperationTemplateGroup>>;
 	private $userFiles?: Observable<Array<FileInfoDto>>;
 
@@ -93,7 +90,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				map(value => value.trim()),
 				map(value => value.toLowerCase()),
 			),
-			this.$selectedOperationIds.pipe(map(ids => ids ?? [])),
+			this.$selectedOperations.pipe(map(ids => ids ?? [])),
 			this.$operationPredictions
 		])
 			.pipe(
@@ -167,7 +164,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				map(operationTemplateGroups => operationTemplateGroups.filter(opg => opg.operations.length !== 0))
 			);
 		this.$operationSearchValues.next('');
-		this.$selectedOperationIds.next([]);
+		this.$selectedOperations.next([]);
 		this.$operationPredictions.next([]);
 	}
 
@@ -273,7 +270,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
 		this.selectedOperationIds = selectedOps.map(op => op.id as string);
-		this.$selectedOperationIds.next(selectedOps);
+		this.$selectedOperations.next(selectedOps);
 		this.subscriptions.add(forkJoin(selectedOps.map(op => {
 				return this.modelService.loadPrediction({
 					input_0_dataset_type: op.inputs[0]?.type,
