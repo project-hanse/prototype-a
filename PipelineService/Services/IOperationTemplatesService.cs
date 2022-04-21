@@ -8,6 +8,6 @@ namespace PipelineService.Services
 	public interface IOperationTemplatesService
 	{
 		Task<IList<OperationTemplate>> GetOperationDtos();
-		Task<OperationTemplate> GetTemplate(Guid operationId, string operationIdentifier);
+		Task<OperationTemplate> GetTemplate(Guid operationId, string operationName);
 	}
 }

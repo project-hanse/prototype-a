@@ -377,7 +377,10 @@ namespace PipelineService.Dao.Impl
 					Outputs = JsonConvert.DeserializeObject<IList<Dataset>>(o.OutputSerialized.StartsWith("{")
 						? $"[{o.OutputSerialized}]"
 						: o.OutputSerialized),
-					OperationIdentifier = $"{o.OperationId}-{o.OperationIdentifier}" // TODO centralize this see tuple generation
+					OperationIdentifier = $"{o.OperationId}-{o.OperationIdentifier}", // TODO centralize this see tuple generation
+					OperationId = o.Id,
+					OperationTemplateId = Guid.Parse(o.OperationId),
+					OperationName = o.OperationIdentifier
 				});
 
 			foreach (var resultNode in resultNodes)

@@ -34,7 +34,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	public pipelineInfoDto?: PipelineInfoDto;
 
 	@Input()
-	public selectedOperationIds: Array<string> = [];
+	public selectedOperations: Array<VisualizationOperationDto> = [];
 
 	@Output()
 	public readonly pipelineChanged: EventEmitter<VisualizationPipelineDto>;
@@ -183,8 +183,20 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	onAddNode(operation: OperationTemplate): void {
 		const request: AddOperationRequest = {
 			pipelineId: this.pipelineInfoDto.id,
-			operationTemplate: operation,
-			predecessorOperationIds: this.selectedOperationIds
+			newOperationTemplate: operation,
+			predecessorOperationDtos: this.selectedOperations.map(selectedOp => {
+				const dto = {
+					operationId: selectedOp.operationId,
+					operationName: selectedOp.operationName,
+					outputDatasets: []
+				};
+				if (selectedOp.outputs.length === 1) {
+					dto.outputDatasets.push(selectedOp.outputs[0]);
+				} else {
+					// TODO: check radio button selection(s)
+				}
+				return dto;
+			})
 		};
 		this.subscriptions.add(
 			this.nodeService.addOperation(request).subscribe(
@@ -200,7 +212,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	onRemoveNodes(): void {
 		const request: RemoveOperationsRequest = {
 			pipelineId: this.pipelineInfoDto.id,
-			operationIdsToBeRemoved: this.selectedOperationIds
+			operationIdsToBeRemoved: this.selectedOperations.map(op => op.id as string)
 		};
 		this.subscriptions.add(
 			this.nodeService.removeOperations(request).subscribe(
@@ -219,8 +231,8 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		}
 		const request: AddOperationRequest = {
 			pipelineId: this.pipelineInfoDto.id,
-			predecessorOperationIds: [],
-			operationTemplate: PipelineToolboxComponent.getFileInputOperation(userFile),
+			predecessorOperationDtos: [],
+			newOperationTemplate: PipelineToolboxComponent.getFileInputOperation(userFile),
 			options: {
 				objectBucket: userFile.bucketName,
 				objectKey: userFile.objectKey
@@ -269,7 +281,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
-		this.selectedOperationIds = selectedOps.map(op => op.id as string);
+		this.selectedOperations = selectedOps;
 		this.$selectedOperations.next(selectedOps);
 		this.subscriptions.add(forkJoin(selectedOps.map(op => {
 				return this.modelService.loadPrediction({
