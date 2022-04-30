@@ -10,10 +10,6 @@ namespace PipelineService.Models.Dtos
 		/// The pipeline that will be modified.
 		/// </summary>
 		public Guid PipelineId { get; set; }
-
-		[Obsolete("Use PredecessorOperationDtos instead.")]
-		public IList<Guid> PredecessorOperationIds { get; set; }
-
 		public IList<PredecessorOperationDto> PredecessorOperationDtos { get; set; } = new List<PredecessorOperationDto>();
 		public OperationTemplate NewOperationTemplate { get; set; }
 		public IDictionary<string, string> Options { get; set; } = new Dictionary<string, string>();

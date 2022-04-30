@@ -238,6 +238,17 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				objectKey: userFile.objectKey
 			}
 		};
+		request.predecessorOperationDtos.push({
+			operationId: null,
+			operationTemplateId: null,
+			outputDatasets: request.newOperationTemplate.outputTypes.map(outputType => {
+				return {
+					type: outputType,
+					key: userFile.objectKey,
+					store: userFile.bucketName
+				};
+			})
+		});
 		this.subscriptions.add(
 			this.nodeService.addOperation(request).subscribe(
 				response => {

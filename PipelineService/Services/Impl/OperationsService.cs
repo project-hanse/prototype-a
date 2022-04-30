@@ -169,35 +169,35 @@ namespace PipelineService.Services.Impl
 					predecessorIds.Add(operationInputVector[i].PredecessorOperationId.Value);
 				}
 
-				_logger.LogDebug("Crating output datasets for new operation...");
-
-				newOperation.Outputs = new List<Dataset>();
-				foreach (var datasetType in request.NewOperationTemplate.OutputTypes)
-				{
-					if (!datasetType.HasValue) continue;
-					var newOutput = new Dataset
-					{
-						Type = datasetType.Value
-					};
-
-					// Hardcoded default values for plotting
-					// TODO: potentially move this to the frontend
-					if (newOutput.Type == DatasetType.StaticPlot)
-					{
-						newOutput.Store = "plots";
-						newOutput.Key = $"{Guid.NewGuid()}.svg";
-					}
-					else if (newOutput.Type == DatasetType.Prophet)
-					{
-						newOutput.Store = "generic_json";
-						newOutput.Key = $"{Guid.NewGuid()}.prophet";
-					}
-
-					newOperation.Outputs.Add(newOutput);
-				}
-
 				_logger.LogDebug("Storing new operation {OperationId}...", newOperation.Id);
 				await _pipelinesDao.CreateSuccessor(predecessorIds, newOperation);
+			}
+
+			_logger.LogDebug("Creating output datasets for new operation...");
+
+			newOperation.Outputs = new List<Dataset>();
+			foreach (var datasetType in request.NewOperationTemplate.OutputTypes)
+			{
+				if (!datasetType.HasValue) continue;
+				var newOutput = new Dataset
+				{
+					Type = datasetType.Value
+				};
+
+				// Hardcoded default values for plotting
+				// TODO: potentially move this to the frontend
+				if (newOutput.Type == DatasetType.StaticPlot)
+				{
+					newOutput.Key = $"{Guid.NewGuid()}.svg";
+				}
+				else if (newOutput.Type == DatasetType.Prophet)
+				{
+					newOutput.Key = $"{Guid.NewGuid()}.prophet";
+				}
+
+				newOutput.Store = GetStore(datasetType);
+
+				newOperation.Outputs.Add(newOutput);
 			}
 
 			await _pipelinesDao.UpdateOperation(newOperation);
@@ -210,6 +210,25 @@ namespace PipelineService.Services.Impl
 			response.PipelineId = request.PipelineId;
 			response.Success = true;
 			return response;
+		}
+
+		private static string GetStore(DatasetType? datasetType)
+		{
+			switch (datasetType)
+			{
+				case DatasetType.StaticPlot:
+					return "plots";
+				case DatasetType.Prophet:
+					return "generic_json";
+				case DatasetType.PdSeries:
+					return "dataframes";
+				case DatasetType.PdDataFrame:
+					return "dataframes";
+				case DatasetType.SklearnModel:
+					return "generic_json";
+				default:
+					return "default";
+			}
 		}
 
 		public async Task<RemoveNodesResponse> RemoveOperationsFromPipeline(RemoveOperationsRequest request)
