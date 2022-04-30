@@ -6,7 +6,7 @@ COPY . .
 
 RUN mvn -B --no-transfer-progress clean package
 
-FROM neo4j:4.4.5
+FROM neo4j:4.4.6
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
 ENV NEO4J_apoc_export_file_enabled=true
