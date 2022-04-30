@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace PipelineService.Models.Pipeline.Execution
 {
@@ -11,7 +12,7 @@ namespace PipelineService.Models.Pipeline.Execution
 		/// <summary>
 		/// The dataset resulting from this execution of the operation.
 		/// </summary>
-		public Dataset ResultDataset { get; set; }
+		public IList<Dataset?> ResultDatasets { get; set; }
 
 		/// <summary>
 		/// The hash of the operation state (config, inputs, etc.) at the time the operation was enqueued to be executed.

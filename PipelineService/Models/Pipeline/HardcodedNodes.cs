@@ -21,10 +21,13 @@ namespace PipelineService.Models.Pipeline
 					}
 				},
 				PipelineId = pipelineId,
-				Output = new Dataset
+				Outputs = new List<Dataset>
 				{
-					Type = DatasetType.PdDataFrame,
-					Store = "dataframes"
+					new()
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					}
 				},
 				OperationIdentifier = "read_csv",
 				OperationId = OpIdPdFileReadCsv,
@@ -43,10 +46,13 @@ namespace PipelineService.Models.Pipeline
 			return new Operation
 			{
 				PipelineId = pipelineId,
-				Output = new Dataset
+				Outputs = new List<Dataset>
 				{
-					Type = DatasetType.PdDataFrame,
-					Store = "dataframes"
+					new()
+					{
+						Type = DatasetType.PdDataFrame,
+						Store = "dataframes"
+					}
 				},
 				OperationIdentifier = "trim",
 				OperationDescription = $"trim_{year}",

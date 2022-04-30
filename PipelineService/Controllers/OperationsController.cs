@@ -40,10 +40,10 @@ namespace PipelineService.Controllers
 			return Ok(result);
 		}
 
-		[HttpGet("{pipelineId:Guid}/{operationId:Guid}/output/dataset")]
+		[HttpGet("{pipelineId:Guid}/{operationId:Guid}/output/datasets")]
 		public async Task<IActionResult> GetResultHash(Guid pipelineId, Guid operationId)
 		{
-			var dataset = await _operationsService.GetOutputDataset(pipelineId, operationId);
+			var dataset = await _operationsService.GetOutputDatasets(pipelineId, operationId);
 			if (dataset == null)
 			{
 				return NotFound();

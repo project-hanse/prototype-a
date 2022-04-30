@@ -142,7 +142,7 @@ services:
 
   # Localstack
   localstack:
-    image: localstack/localstack:0.14.1
+    image: localstack/localstack:0.14.2
     environment:
       SERVICES: s3
       EAGER_SERVICE_LOADING: 1

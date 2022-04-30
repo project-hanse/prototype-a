@@ -1,9 +1,11 @@
 import datetime
 import json
 import logging
+import os
 
 import pandas as pd
 
+from src.helper.operations_helper import OperationsHelper
 from src.models.dataset import Dataset
 from src.models.dataset_type import DatasetType
 from src.models.operation_executed_message import OperationExecutedMessage
@@ -34,26 +36,32 @@ class OperationExecutionService:
 		response = OperationExecutedMessage()
 		self.set_initial_response_values(request, response)
 		try:
-			data = self.load_datasets(request.inputs, response)
+			data = self.load_datasets(request.get_inputs(), response)
 			operation_config = self.preprocess_operation_config(request.get_operation_configuration())
+			self.set_missing_configurations(operation_config, request)
 
 			if response.get_error_description() is not None:
 				return response
 
-			# TODO Change method signature for plotting to make this special treatment obsolete
-			if request.get_output().dataset_type == DatasetType.StaticPlot:
-				self.execute_plotting_operation(data[0], request.worker_operation_identifier, request.worker_operation_id,
-																				operation_config, request.get_output())
-				success = self.file_store_client.store_file(request.get_output())
-				if not success:
-					response.set_error_description('Failed to store plot')
-				response.set_successful(success)
-			else:
-				result = self.execute_operation(request.worker_operation_identifier, request.worker_operation_id,
-																				operation_config, data)
-				self.store_dataset(request.output, result)
+			results = self.execute_operation(request._worker_operation_identifier,
+																			 request._worker_operation_id,
+																			 operation_config, data)
+
+			if type(results) is not []:
+				self.logger.warning("Fixing backwards compatibility: results is not a list")
+				results = [results]
+
+			self.logger.info("Storing %d resulting dataset(s)" % len(results))
+			for output, result in zip(request.get_outputs(), results):
+				try:
+					self.store_dataset(output, result)
+				except Exception as e:
+					self.logger.info("Failed to store dataset %s: %s" % (output.get_name(), str(e)))
+					response.set_successful(False)
+					response.set_error_description(str(e))
+
 		except Exception as e:
-			self.logger.info("Failed to execute operation %s: %s" % (request.worker_operation_identifier, str(e)))
+			self.logger.info("Failed to execute operation %s: %s" % (request._worker_operation_identifier, str(e)))
 			response.set_successful(False)
 			response.set_error_description(str(e))
 
@@ -63,11 +71,11 @@ class OperationExecutionService:
 
 	def set_initial_response_values(self, request: OperationExecutionMessage, response: OperationExecutedMessage):
 		self.logger.debug("Generating basic response message")
-		response.set_pipeline_id(request.pipeline_id)
-		response.set_operation_id(request.operation_id)
-		response.set_worker_operation_id(request.worker_operation_id)
-		response.set_worker_operation_identifier(request.worker_operation_identifier)
-		response.set_execution_id(request.execution_id)
+		response.set_pipeline_id(request._pipeline_id)
+		response.set_operation_id(request._operation_id)
+		response.set_worker_operation_id(request._worker_operation_id)
+		response.set_worker_operation_identifier(request._worker_operation_identifier)
+		response.set_execution_id(request._execution_id)
 		response.set_successful(True)
 		response.set_start_time(datetime.datetime.now(datetime.timezone.utc))
 
@@ -80,12 +88,12 @@ class OperationExecutionService:
 			self.logger.warning(
 				"Failed to call operation method, trying backwards compatible signatures\n Error: %s" % str(e))
 			try:
-				return operation_callable(self.logger, operation_name, operation_config, data[0])
+				return operation_callable(self.logger, operation_name, operation_config, data[0], data[1])
 			except Exception as e:
 				self.logger.warning(
 					"Failed to call operation method, trying backwards compatible signatures\n Error: %s" % str(e))
 				try:
-					return operation_callable(self.logger, operation_name, operation_config, data[0], data[1])
+					return operation_callable(self.logger, operation_name, operation_config, data[0])
 				except Exception as e:
 					self.logger.error("Failed to call operation method Error: %s" % str(e))
 					raise e
@@ -182,3 +190,18 @@ class OperationExecutionService:
 		else:
 			logging.error("%s is not a supported type" % dataset.get_type())
 			raise NotImplemented("%s is not a supported type" % dataset.get_type())
+
+	def set_missing_configurations(self, operation_config, request):
+		self.logger.debug("Setting missing configurations")
+		for output in request.get_outputs():
+			if output.get_type() == DatasetType.StaticPlot:
+				target_path = OperationsHelper.get_temporary_file_path(output)
+				filename, file_extension = os.path.splitext(target_path)
+				operation_config['output_file_extension'] = file_extension
+				operation_config['output_file_name'] = filename
+				operation_config['output_file_path'] = target_path
+				if file_extension == '':
+					self.logger.warning(
+						"No file extension found for dataset '%s' store '%s'" % (output.get_key(), output.get_store()))
+					raise ValueError(
+						"No file extension found for dataset '%s' store '%s'" % (output.get_key(), output.get_store()))

@@ -34,9 +34,6 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	public pipelineInfoDto?: PipelineInfoDto;
 
 	@Input()
-	public selectedOperationIds: Array<string> = [];
-
-	@Input()
 	public selectedOperations: Array<VisualizationOperationDto> = [];
 
 	@Output()
@@ -44,7 +41,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 	private $operationPredictions: Subject<string[]> = new ReplaySubject();
 	private $operationSearchValues: Subject<string> = new ReplaySubject();
-	private $selectedOperationIds: Subject<Array<VisualizationOperationDto>> = new ReplaySubject();
+	$selectedOperations: Subject<Array<VisualizationOperationDto>> = new ReplaySubject();
 	private $operationTemplateGroups: Observable<Array<OperationTemplateGroup>>;
 	private $userFiles?: Observable<Array<FileInfoDto>>;
 
@@ -63,7 +60,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				operationName: 'read_csv',
 				operationFullName: 'Read CSV File',
 				inputTypes: [DatasetType.File],
-				outputType: DatasetType.PdDataFrame,
+				outputTypes: [DatasetType.PdDataFrame],
 				framework: 'pandas',
 				description: '',
 				signature: '',
@@ -78,7 +75,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 			framework: 'pandas',
 			description: '',
 			inputTypes: [DatasetType.File],
-			outputType: DatasetType.PdDataFrame,
+			outputTypes: [DatasetType.PdDataFrame],
 			signature: '',
 			defaultConfig: new Map<string, string>(),
 			sectionTitle: ''
@@ -93,7 +90,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				map(value => value.trim()),
 				map(value => value.toLowerCase()),
 			),
-			this.$selectedOperationIds.pipe(map(ids => ids ?? [])),
+			this.$selectedOperations.pipe(map(ids => ids ?? [])),
 			this.$operationPredictions
 		])
 			.pipe(
@@ -109,9 +106,12 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 
 						// match required input-dataset types
 						if (selectedOperations.length > 0) {
+							const selectedTypes = selectedOperations
+								.map(o => o.outputs?.map(d => d?.type) ?? [])
+								.reduce((a, b) => a.concat(b), []);
+
 							operationTemplates = operationTemplates.filter(operation => {
 								// TODO this could be change to be order independent, but this requires automatically changing the order of the input-datasets
-								const selectedTypes = selectedOperations.map(o => o.output.type);
 								for (let i = 0; i < selectedTypes.length; i++) {
 									if (selectedTypes[i] !== operation.inputTypes[i]) {
 										// don't show this operation template if any of the selected type types does not match the input types of the operation template
@@ -164,7 +164,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				map(operationTemplateGroups => operationTemplateGroups.filter(opg => opg.operations.length !== 0))
 			);
 		this.$operationSearchValues.next('');
-		this.$selectedOperationIds.next([]);
+		this.$selectedOperations.next([]);
 		this.$operationPredictions.next([]);
 	}
 
@@ -183,8 +183,20 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	onAddNode(operation: OperationTemplate): void {
 		const request: AddOperationRequest = {
 			pipelineId: this.pipelineInfoDto.id,
-			operationTemplate: operation,
-			predecessorOperationIds: this.selectedOperationIds
+			newOperationTemplate: operation,
+			predecessorOperationDtos: this.selectedOperations.map(selectedOp => {
+				const dto = {
+					operationId: selectedOp.operationId,
+					operationName: selectedOp.operationName,
+					outputDatasets: []
+				};
+				if (selectedOp.outputs.length === 1) {
+					dto.outputDatasets.push(selectedOp.outputs[0]);
+				} else {
+					// TODO: check radio button selection(s)
+				}
+				return dto;
+			})
 		};
 		this.subscriptions.add(
 			this.nodeService.addOperation(request).subscribe(
@@ -200,7 +212,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	onRemoveNodes(): void {
 		const request: RemoveOperationsRequest = {
 			pipelineId: this.pipelineInfoDto.id,
-			operationIdsToBeRemoved: this.selectedOperationIds
+			operationIdsToBeRemoved: this.selectedOperations.map(op => op.id as string)
 		};
 		this.subscriptions.add(
 			this.nodeService.removeOperations(request).subscribe(
@@ -219,13 +231,24 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		}
 		const request: AddOperationRequest = {
 			pipelineId: this.pipelineInfoDto.id,
-			predecessorOperationIds: [],
-			operationTemplate: PipelineToolboxComponent.getFileInputOperation(userFile),
+			predecessorOperationDtos: [],
+			newOperationTemplate: PipelineToolboxComponent.getFileInputOperation(userFile),
 			options: {
 				objectBucket: userFile.bucketName,
 				objectKey: userFile.objectKey
 			}
 		};
+		request.predecessorOperationDtos.push({
+			operationId: null,
+			operationTemplateId: null,
+			outputDatasets: request.newOperationTemplate.outputTypes.map(outputType => {
+				return {
+					type: outputType,
+					key: userFile.objectKey,
+					store: userFile.bucketName
+				};
+			})
+		});
 		this.subscriptions.add(
 			this.nodeService.addOperation(request).subscribe(
 				response => {
@@ -269,8 +292,8 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 	}
 
 	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
-		this.selectedOperationIds = selectedOps.map(op => op.id as string);
-		this.$selectedOperationIds.next(selectedOps);
+		this.selectedOperations = selectedOps;
+		this.$selectedOperations.next(selectedOps);
 		this.subscriptions.add(forkJoin(selectedOps.map(op => {
 				return this.modelService.loadPrediction({
 					input_0_dataset_type: op.inputs[0]?.type,

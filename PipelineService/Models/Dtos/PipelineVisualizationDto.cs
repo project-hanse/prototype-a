@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Models.Dtos
@@ -16,13 +17,26 @@ namespace PipelineService.Models.Dtos
 	{
 		public Guid? Id { get; set; }
 		public string Label { get; set; }
+		public string Color { get; set; }
+		public string Shape { get; set; }
+		public string Title { get; set; }
 	}
 
 	public class VisualizationOperationDto : VisNode
 	{
 		public IList<Dataset> Inputs { get; set; }
-		public Dataset Output { get; set; }
+		public IList<Dataset> Outputs { get; set; }
 		public string OperationIdentifier { get; set; }
+		public Guid OperationId { get; set; }
+		public string OperationName { get; set; }
+		public Guid OperationTemplateId { get; set; }
+	}
+
+	public class VisualizationDatasetDto : VisNode
+	{
+		public string Key { get; set; }
+		public string Store { get; set; }
+		public DatasetType Type { get; set; }
 	}
 
 	public class VisEdge

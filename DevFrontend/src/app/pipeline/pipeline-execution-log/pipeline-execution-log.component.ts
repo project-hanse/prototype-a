@@ -3,6 +3,8 @@ import {MqttService} from 'ngx-mqtt';
 import {Observable} from 'rxjs';
 import {map, scan} from 'rxjs/operators';
 import {environment} from '../../../environments/environment';
+import {FilesService} from '../../utils/_services/files.service';
+import {Dataset, DatasetType} from '../_model/dataset';
 import {FrontendExecutionNotification} from '../_model/frontend-execution-notification';
 
 @Component({
@@ -16,7 +18,7 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	private readonly mqttService: MqttService;
 	private $executionEvents: Observable<any>;
 
-	constructor() {
+	constructor(private filesService: FilesService) {
 		this.mqttService = new MqttService({
 			connectOnCreate: false,
 			hostname: environment.messageBrokerHost,
@@ -93,7 +95,18 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	public getHtmlLinkToDataset(ResultDatasetKey: string): string {
-		return `${environment.datasetApi}/api/dataframe/key/${ResultDatasetKey}`;
+	public getHtmlLinkToDataset(dataset: Dataset): string {
+		// needs to be fixed in serialization of MQTT messages
+		// @ts-ignore
+		if (dataset['Store'] === 'dataframes') {
+			return `${environment.datasetApi}/api/dataframe/key/${dataset['Key']}?format=html`;
+		} else if (dataset['Type'] === DatasetType.StaticPlot) {
+			return this.filesService.getPlotUrl({
+				type: dataset['Type'],
+				key: dataset['Key'],
+				store: dataset['Store']
+			});
+		}
+		return '#';
 	}
 }

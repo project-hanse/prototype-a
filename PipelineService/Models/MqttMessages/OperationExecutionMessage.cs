@@ -38,9 +38,9 @@ namespace PipelineService.Models.MqttMessages
 		public IList<Dataset> Inputs { get; set; }
 
 		/// <summary>
-		/// The dataset that will be produced by this operation.
+		/// The datasets that will be produced by this operation.
 		/// </summary>
-		public Dataset Output { get; set; }
+		public IList<Dataset> Outputs { get; set; }
 
 		/// <summary>
 		/// The key the resulting dataset will be stored as.

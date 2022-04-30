@@ -20,11 +20,26 @@
 						<mat-icon>close</mat-icon>
 					</button>
 				</mat-form-field>
+				<ng-container *ngIf="$selectedOperations | async as selectedOperations">
+					<ng-container *ngFor="let selectedOperation of selectedOperations">
+						<div *ngIf="selectedOperation.outputs.length > 1"
+								 aria-label="Select an datatype"
+								 matTooltip="Select the operation result that should be used for the next operation.">
+							<b>
+								{{selectedOperation.label}}
+							</b>
+							<ng-container *ngFor="let output of selectedOperation.outputs">
+								<input type="radio" [id]="output.key" name="fav_language" [value]="output">
+								<label [for]="output.key">Type {{output.type}}</label>
+							</ng-container>
+						</div>
+					</ng-container>
+				</ng-container>
 				<!-- Operations -->
 				<div class="scrollable-content-wrapper">
 					<ng-container *ngIf="getOperationTemplates() | async as operationTemplateGroups">
 						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups"
-														 [disabled]="selectedOperationIds.length === 0">
+														 [disabled]="selectedOperations.length === 0">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
 								<button mat-list-item (click)="onAddNode(operation)" [matTooltip]="operation.description">
@@ -72,7 +87,7 @@
 		<mat-toolbar>
 			<mat-toolbar-row>
 				<button mat-stroked-button color="warn"
-								[disabled]="selectedOperationIds.length === 0"
+								[disabled]="selectedOperations.length === 0"
 								(click)="onRemoveNodes()">
 					<mat-icon>
 						remove_circle_outline
