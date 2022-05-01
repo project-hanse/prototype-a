@@ -24,6 +24,30 @@
 		"returns": "DataFrame"
 	},
 	{
+		"operationId": "fa66798e-81d4-4656-a92f-00e84a2f8436",
+		"operationName": "split_v2",
+		"operationFullName": "sklearn.custom.split",
+		"inputTypes": [
+			2, 1
+		],
+		"outputTypes": [2, 2, 1, 1],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.custom.split",
+		"description": "Split arrays or matrices into random train and test subsets.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html",
+		"defaultConfig": {
+			"random_state": 42,
+			"split_size": 0.8,
+			"shuffle": true
+		},
+		"returns": "DataFrames and Series"
+	},
+	{
 		"operationId": "c3ed2e34-0f7b-492c-9152-e3d5cf3ebeb0",
 		"operationName": "transform",
 		"operationFullName": "sklearn.custom.transform",
