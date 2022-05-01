@@ -47,7 +47,7 @@ class OperationExecutionService:
 																			 request._worker_operation_id,
 																			 operation_config, data)
 
-			if type(results) is not []:
+			if type(results) is not list:
 				self.logger.warning("Fixing backwards compatibility: results is not a list")
 				results = [results]
 

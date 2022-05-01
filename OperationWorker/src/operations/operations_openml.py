@@ -5,7 +5,7 @@ from sklearn.datasets import fetch_openml
 from src.helper.operations_helper import OperationsHelper
 
 
-class OperationsProphet:
+class OperationsOpenML:
 	def __init__(self):
 		pass
 

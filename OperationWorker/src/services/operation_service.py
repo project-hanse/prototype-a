@@ -4,6 +4,7 @@ from typing import Callable
 import pandas as pd
 
 from src.operations.operations_file_input import OperationsFileInputCollection
+from src.operations.operations_openml import OperationsOpenML
 from src.operations.operations_plots_matplotlib import PlotsMatPlotLib
 from src.operations.operations_prophet import OperationsProphet
 from src.operations.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
@@ -102,6 +103,7 @@ class OperationService:
 			"1991ccdb-c8ba-4a71-a325-420e48471379"] = OperationsSingleInputPandasCustom.pd_single_input_groupby
 		self.local_operations[
 			"0b60e908-fae2-4d33-aa81-5d1fdc706c12"] = PlotsMatPlotLib.matplot_plot_pd
+		self.local_operations["9c876745-9d61-4b0b-a32a-2de523b44d0b"] = OperationsOpenML.load_data_from_openml
 
 		# Prophet Operations
 		self.local_operations["c01f8b5a-3c71-466a-b2ab-2abb2aa105ba"] = OperationsProphet.prophet_fit

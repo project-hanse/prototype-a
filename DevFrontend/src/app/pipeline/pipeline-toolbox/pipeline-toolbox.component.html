@@ -38,17 +38,21 @@
 				<!-- Operations -->
 				<div class="scrollable-content-wrapper">
 					<ng-container *ngIf="getOperationTemplates() | async as operationTemplateGroups">
-						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups"
-														 [disabled]="selectedOperations.length === 0">
+						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
-								<button mat-list-item (click)="onAddNode(operation)" [matTooltip]="operation.description">
+								<button mat-list-item (click)="onAddNode(operation)"
+												[matTooltip]="operation.description"
+												[disabled]="selectedOperations.length !== operation.inputTypes.length">
 									<mat-icon mat-list-icon>add_circle_outline</mat-icon>
 									<span mat-line>{{operation.operationName}}</span>
 									<span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
 									<a *ngIf="operation.framework === 'pandas'"
 										 target="_blank"
 										 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+									<a *ngIf="operation.sourceUrl && operation.framework !== 'pandas'"
+										 target="_blank"
+										 [href]="operation.sourceUrl">Docs</a>
 								</button>
 							</ng-container>
 						</mat-action-list>

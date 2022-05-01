@@ -113,12 +113,18 @@ namespace PipelineService.Services.Impl
 			{
 				_logger.LogInformation("Detected no predecessor nodes - creating new root operation");
 				newOperation.Inputs.Clear();
-				newOperation.Inputs.Add(new Dataset
+				if (request.Options.ContainsKey("objectBucket") && request.Options.ContainsKey("objectKey"))
 				{
-					Type = DatasetType.File,
-					Store = request.Options["objectBucket"],
-					Key = request.Options["objectKey"]
-				});
+					_logger.LogInformation("Detected new file as root operation");
+					newOperation.Inputs.Clear();
+					newOperation.Inputs.Add(new Dataset
+					{
+						Type = DatasetType.File,
+						Store = request.Options["objectBucket"],
+						Key = request.Options["objectKey"]
+					});
+				}
+
 				await _pipelinesDao.CreateRootOperation(request.PipelineId, newOperation);
 			}
 			else
