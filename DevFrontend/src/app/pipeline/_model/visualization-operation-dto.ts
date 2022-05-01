@@ -1,5 +1,5 @@
 import {Node} from 'vis';
-import {Dataset} from './dataset';
+import {Dataset, DatasetView} from './dataset';
 
 export interface VisualizationOperationDto extends Node {
 	operationId: string;
@@ -7,5 +7,5 @@ export interface VisualizationOperationDto extends Node {
 	operationName: string;
 	operationIdentifier: string;
 	inputs: Array<Dataset>;
-	outputs: Array<Dataset>;
+	outputs: Array<DatasetView>;
 }

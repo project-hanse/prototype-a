@@ -28,10 +28,13 @@
 							<b>
 								{{selectedOperation.label}}
 							</b>
-							<ng-container *ngFor="let output of selectedOperation.outputs">
-								<input type="radio" [id]="output.key" name="fav_language" [value]="output">
-								<label [for]="output.key">Type {{output.type}}</label>
-							</ng-container>
+							<section class="output-selection" #outputSelection>
+								<ng-container *ngFor="let output of selectedOperation.outputs">
+									<mat-checkbox [value]="output.key"
+																[checked]="false"
+																[(ngModel)]="output.selected">Type {{output.type}}</mat-checkbox>
+								</ng-container>
+							</section>
 						</div>
 					</ng-container>
 				</ng-container>
@@ -41,9 +44,7 @@
 						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
-								<button mat-list-item (click)="onAddNode(operation)"
-												[matTooltip]="operation.description"
-												[disabled]="selectedOperations.length !== operation.inputTypes.length">
+								<button mat-list-item (click)="onAddNode(operation)" [matTooltip]="operation.description">
 									<mat-icon mat-list-icon>add_circle_outline</mat-icon>
 									<span mat-line>{{operation.operationName}}</span>
 									<span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>

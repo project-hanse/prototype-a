@@ -17,3 +17,9 @@ mat-card-footer {
 ph-pipeline-title {
 	width: 100%;
 }
+
+.output-selection {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+}

@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {combineLatest, debounceTime, forkJoin, Observable, ReplaySubject, Subject, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {ModelService} from '../../admin/model/_service/model.service';
@@ -21,6 +21,8 @@ import {OperationsService} from '../_service/operations.service';
 	styleUrls: ['./pipeline-toolbox.component.scss']
 })
 export class PipelineToolboxComponent implements OnInit, OnDestroy {
+
+	@ViewChild('outputSelection') outputSelection?: ElementRef;
 
 	constructor(private operationsService: OperationTemplatesService,
 							private nodeService: OperationsService,
@@ -105,6 +107,7 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 						}
 
 						// match required input-dataset types
+						// TODO consider selected output datasets
 						if (selectedOperations.length > 0) {
 							const selectedTypes = selectedOperations
 								.map(o => o.outputs?.map(d => d?.type) ?? [])
@@ -193,7 +196,9 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				if (selectedOp.outputs.length === 1) {
 					dto.outputDatasets.push(selectedOp.outputs[0]);
 				} else {
-					// TODO: check radio button selection(s)
+					selectedOp.outputs.filter(output => output.selected).forEach(output => {
+						dto.outputDatasets.push(output);
+					});
 				}
 				return dto;
 			})
