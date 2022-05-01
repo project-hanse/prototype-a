@@ -64,6 +64,26 @@ class OperationsSklearnCustom:
 		return split_train
 
 	@staticmethod
+	def sklearn_split_v2(logger: logging, operation_name: str, operation_config: dict, data: []) -> []:
+		"""
+		Get a split of data from a dataframe.
+		Same operation as sklearn_split but takes dataframe + series as input and returns an array of dataframes instead
+		of a single dataframe.
+		"""
+		logger.info("Executing scikit operation sklearn_get_split_v2 (%s)" % operation_name)
+
+		OperationsHelper.validate_input_or_throw(data, 2)
+
+		random_state = OperationsHelper.get_or_default(operation_config, 'random_state', random.randint(0, 1000))
+		split_size = OperationsHelper.get_or_default(operation_config, 'split_size', 0.8)
+		shuffle = OperationsHelper.get_or_default(operation_config, 'shuffle', True)
+
+		X_train, X_test, y_train, y_test = train_test_split(data[0], data[1], train_size=split_size,
+																												random_state=random_state, shuffle=shuffle)
+
+		return [X_train, X_test, y_train, y_test]
+
+	@staticmethod
 	def min_max_scaling(column):
 		return (column - column.min()) / (column.max() - column.min())
 

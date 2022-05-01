@@ -72,6 +72,7 @@ class OperationService:
 		# SkLearn Operations
 		self.local_operations["2878ca36-8e03-4825-8afa-552064686337"] = OperationsSklearnCustom.sklearn_double_input_predict
 		self.local_operations["ed0beb29-a853-4421-ba3e-eb2bdc050117"] = OperationsSklearnCustom.sklearn_split
+		self.local_operations["fa66798e-81d4-4656-a92f-00e84a2f8436"] = OperationsSklearnCustom.sklearn_split_v2
 		self.local_operations["c3ed2e34-0f7b-492c-9152-e3d5cf3ebeb0"] = OperationsSklearnCustom.sklearn_transform
 		self.local_operations["95cd82c3-01cf-488c-b156-22e06993b2f3"] = OperationsSklearnCustom.sklearn_extract_features
 		self.local_operations["34c12968-f79b-43b8-a934-39ce4e2e763d"] = OperationsSklearnCustom.sklearn_extract_targets
