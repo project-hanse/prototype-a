@@ -1,5 +1,5 @@
 import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {combineLatest, debounceTime, forkJoin, Observable, ReplaySubject, Subject, Subscription} from 'rxjs';
+import {combineLatest, debounceTime, forkJoin, Observable, of, ReplaySubject, Subject, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {ModelService} from '../../admin/model/_service/model.service';
 import {OperationIds} from '../../core/_model/operation-ids';
@@ -110,8 +110,12 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 						// TODO consider selected output datasets
 						if (selectedOperations.length > 0) {
 							const selectedTypes = selectedOperations
-								.map(o => o.outputs?.map(d => d?.type) ?? [])
-								.reduce((a, b) => a.concat(b), []);
+								.map(o => o.outputs?.map(d => d) ?? [])
+								.reduce((a, b) => a.concat(b), [])
+								.filter(dt => dt.selected || dt.selected === undefined)
+								.map(dt => dt.type);
+							/*console.log('selectedOperations', selectedOperations);
+							console.log('selectedTypes', selectedTypes);*/
 
 							operationTemplates = operationTemplates.filter(operation => {
 								// TODO this could be change to be order independent, but this requires automatically changing the order of the input-datasets
@@ -296,10 +300,25 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		this.$operationSearchValues.next(value);
 	}
 
+	onOutputSelectionChange(): void {
+		// triggers new run on $operationTemplateGroups
+		this.$operationSearchValues.next(this.operationsSearchText ?? '');
+	}
+
 	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
+		for (const selectedOp of selectedOps) {
+			for (const output of selectedOp.outputs) {
+				if (output.selected === undefined) {
+					output.selected = false;
+				}
+			}
+		}
 		this.selectedOperations = selectedOps;
 		this.$selectedOperations.next(selectedOps);
 		this.subscriptions.add(forkJoin(selectedOps.map(op => {
+				if (!op.inputs || op.inputs.length < 1) {
+					return of([]);
+				}
 				return this.modelService.loadPrediction({
 					input_0_dataset_type: op.inputs[0]?.type,
 					input_1_dataset_type: op.inputs[1]?.type,

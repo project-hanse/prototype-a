@@ -31,7 +31,8 @@
 							<section class="output-selection" #outputSelection>
 								<ng-container *ngFor="let output of selectedOperation.outputs">
 									<mat-checkbox [value]="output.key"
-																[checked]="false"
+																[checked]="!!output.selected"
+																(change)="onOutputSelectionChange()"
 																[(ngModel)]="output.selected">Type {{output.type}}</mat-checkbox>
 								</ng-container>
 							</section>
