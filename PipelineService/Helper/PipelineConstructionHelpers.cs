@@ -1,3 +1,4 @@
+using System;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Helper
@@ -7,7 +8,15 @@ namespace PipelineService.Helper
 		public static Operation Successor(Operation predecessor, Operation successor)
 		{
 			predecessor.Successors.Add(successor);
-			successor.Inputs.Add(predecessor.Output);
+			if (predecessor.Outputs.Count == 1)
+			{
+				successor.Inputs.Add(predecessor.Outputs[0]);
+			}
+			else if (predecessor.Outputs.Count > 1)
+			{
+				throw new NotImplementedException("Multiple outputs not supported at this time.");
+			}
+
 			return successor;
 		}
 

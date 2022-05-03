@@ -62,25 +62,23 @@ namespace PipelineService.Services.Impl
 			return operations;
 		}
 
-		public async Task<OperationTemplate> GetTemplate(Guid operationId, string operationIdentifier)
+		public async Task<OperationTemplate> GetTemplate(Guid operationId, string operationName)
 		{
-			_logger.LogDebug("Loading operation template for {OperationId} {OperationIdentifier}",
-				operationId, operationIdentifier);
+			_logger.LogDebug("Loading operation template for {OperationId} {OperationName}", operationId, operationName);
 
 			// TODO make this more efficient
 			var template = (await GetOperationDtos())
-				.FirstOrDefault(op => op.OperationId == operationId && op.OperationName == operationIdentifier);
+				.FirstOrDefault(op => op.OperationId == operationId && op.OperationName == operationName);
 
 			if (template == default)
 			{
-				_logger.LogInformation("Operation template not found for {OperationId} {OperationIdentifier}",
-					operationId, operationIdentifier);
+				_logger.LogInformation("Operation template not found for {OperationId} {OperationName}",
+					operationId, operationName);
 
 				return null;
 			}
 
-			_logger.LogInformation("Loaded operation template for {OperationId} {OperationIdentifier}",
-				operationId, operationIdentifier);
+			_logger.LogInformation("Loaded operation template for {OperationId} {OperationName}", operationId, operationName);
 			return template;
 		}
 
@@ -114,7 +112,19 @@ namespace PipelineService.Services.Impl
 
 			var content = await streamReader.ReadToEndAsync();
 
-			return JsonConvert.DeserializeObject<IList<OperationTemplate>>(content);
+			var ops = JsonConvert.DeserializeObject<IList<OperationTemplate>>(content);
+
+			if (ops == null) return new List<OperationTemplate>();
+
+			foreach (var operationTemplate in ops)
+			{
+				if (operationTemplate.OutputTypes == null || operationTemplate.OutputTypes?.Count == 0)
+				{
+					operationTemplate.OutputTypes = new List<DatasetType?> { operationTemplate.OutputType };
+				}
+			}
+
+			return ops;
 		}
 
 		[Obsolete("Deprecated in favor of LoadTemplatesFromFiles() - Postprocessing is no longer needed")]
@@ -163,6 +173,8 @@ namespace PipelineService.Services.Impl
 				{
 					operationDto.OutputType = null;
 				}
+
+				operationDto.OutputTypes = new List<DatasetType?> { operationDto.OutputType };
 
 				if (operationDto.DefaultConfig == null)
 				{

@@ -1,19 +1,20 @@
 import logging
-import os.path
 
 import numpy as np
-import pandas as pd
 
 from src.helper.operations_helper import OperationsHelper
-from src.models.dataset import Dataset
 
 
 class PlotsMatPlotLib:
 
 	@staticmethod
-	def matplot_plot_pd(logger: logging, operation_config: dict, df: pd.DataFrame, dataset: Dataset) -> None:
-		logger.info("Plotting dataframe with matplotlib backend")
+	def matplot_plot_pd(logger: logging, operation_name: str, operation_config: dict, data: []) -> []:
+		logger.info("Plotting dataframe with matplotlib backend '%s'", operation_name)
 
+		OperationsHelper.validate_input_or_throw(data, 1)
+		df = data[0]
+
+		output_file_path = OperationsHelper.get_or_throw(operation_config, 'output_file_path')
 		x = OperationsHelper.get_or_default(operation_config, 'x', None)
 		y = OperationsHelper.get_or_default(operation_config, 'y', None)
 		kind = OperationsHelper.get_or_default(operation_config, 'kind', 'line')
@@ -35,20 +36,15 @@ class PlotsMatPlotLib:
 		except Exception as e:
 			logger.error("Error while plotting dataframe with matplotlib backend: %s" % str(e))
 			raise e
-		target_path = OperationsHelper.get_temporary_file_path(dataset)
-		filename, file_extension = os.path.splitext(target_path)
-		if file_extension == '':
-			logger.warning("No file extension found for dataset '%s' store '%s'" % (dataset.get_key(), dataset.get_store()))
-			raise ValueError("No file extension found for dataset '%s' store '%s'" % (dataset.get_key(), dataset.get_store()))
 
 		if type(plots) == np.ndarray:
 			if len(plots) > 1:
 				logger.info('Produced multiple plots using first one')
 				plots = [plots[0]]
 			fig = plots[0].get_figure()
-			fig.savefig(target_path)
+			fig.savefig(output_file_path)
 		else:
 			fig = plots.get_figure()
-			fig.savefig(target_path)
+			fig.savefig(output_file_path)
 
-		logger.info('Saved plot to temporary file %s' % target_path)
+		logger.info('Saved plot to temporary file %s' % output_file_path)

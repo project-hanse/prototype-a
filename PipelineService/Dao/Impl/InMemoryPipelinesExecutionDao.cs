@@ -79,7 +79,7 @@ namespace PipelineService.Dao.Impl
 				.Where("n._visited=$visited_stamp").WithParam("visited_stamp", partitionResult.VisitedStamp)
 				.Return(() => new
 				{
-					ResultDataset = Return.As<string>($"n.{nameof(Operation.OutputSerialized)}"),
+					ResultDatasets = Return.As<string>($"n.{nameof(Operation.OutputSerialized)}"),
 					OperationId = Return.As<Guid>($"n.{nameof(Operation.Id)}"),
 					PipelineId = Return.As<Guid>($"n.{nameof(Operation.PipelineId)}"),
 					Level = Return.As<int>("n._level"),
@@ -91,7 +91,9 @@ namespace PipelineService.Dao.Impl
 			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync)
 				.Select(r => new OperationExecutionRecord
 				{
-					ResultDataset = JsonConvert.DeserializeObject<Dataset>(r.ResultDataset),
+					ResultDatasets = r.ResultDatasets.StartsWith("{")
+						? new List<Dataset> { JsonConvert.DeserializeObject<Dataset>(r.ResultDatasets) }
+						: JsonConvert.DeserializeObject<IList<Dataset>>(r.ResultDatasets),
 					OperationId = r.OperationId,
 					PipelineId = r.PipelineId,
 					Level = r.Level,

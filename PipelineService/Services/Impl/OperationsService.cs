@@ -5,7 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
-using PipelineService.Helper;
+using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline;
@@ -44,123 +44,197 @@ namespace PipelineService.Services.Impl
 				Success = false
 			};
 
-			_logger.LogDebug("Validating predecessor counts");
-			if (request.PredecessorOperationIds.Count != 0 &&
-			    request.PredecessorOperationIds.Count != request.OperationTemplate.InputTypes.Count)
-			{
-				_logger.LogDebug(
-					"Unexpected amount of predecessor operations. Got {ReceivedPredecessorCount}, expected {ExpectedPredecessorCount}",
-					request.PredecessorOperationIds.Count, request.OperationTemplate.InputTypes.Count);
-				response.StatusCode = HttpStatusCode.BadRequest;
-				response.Errors.Add(new Error
-				{
-					Message = $"This operation requires {request.OperationTemplate.InputTypes.Count} predecessor(s)",
-					Code = "P400"
-				});
-				return response;
-			}
+			var newOperationTemplate = await _operationTemplatesService.GetTemplate(
+				request.NewOperationTemplate.OperationId, request.NewOperationTemplate.OperationName);
 
-			_logger.LogDebug("Validating predecessor types");
-			var predecessorTypes = (await _pipelinesDao.GetOutputDatasets(request.PredecessorOperationIds))
-				.Select(ds => ds.Type).ToList();
-
-			for (var i = 0; i < predecessorTypes.Count; i++)
+			if (newOperationTemplate == null)
 			{
-				if (predecessorTypes[i] == request.OperationTemplate.InputTypes[i]) continue;
-				_logger.LogDebug(
-					"Unexpected predecessor type. Got {ReceivedPredecessorType}, expected {ExpectedPredecessorType}",
-					predecessorTypes[i], request.OperationTemplate.InputTypes[i]);
 				response.StatusCode = HttpStatusCode.BadRequest;
 				response.Errors.Add(new Error
 				{
 					Message =
-						$"This operation requires the following types: {string.Join(", ", request.OperationTemplate.InputTypes)}",
-					Code = "P400"
+						$"This operation template ({request.NewOperationTemplate.OperationId} / {request.NewOperationTemplate.OperationName}) is not found",
+					Code = "O404"
 				});
 				return response;
 			}
 
-			// TODO reimplement this in a general way that does can handle any number of predecessors and checks if dataset types match
-			var newOperation = new Operation();
-			if (request.OperationTemplate.OutputType.HasValue)
+			var operationInputVector = new List<OperationInputValue>();
+			foreach (var predecessorOperationDto in request.PredecessorOperationDtos)
 			{
-				newOperation.Output.Type = request.OperationTemplate.OutputType.Value;
-			}
-
-			// Hardcoded default values for plotting
-			// TODO: potentially move this to the frontend
-			if (newOperation.Output.Type == DatasetType.StaticPlot)
-			{
-				newOperation.Output.Store = "plots";
-				newOperation.Output.Key = $"{Guid.NewGuid()}.svg";
-			}
-			else if (newOperation.Output.Type == DatasetType.Prophet)
-			{
-				newOperation.Output.Store = "generic_json";
-				newOperation.Output.Key = $"{Guid.NewGuid()}.prophet";
-			}
-
-			if (request.PredecessorOperationIds.Count == 0)
-			{
-				_logger.LogDebug("Detected no predecessor nodes");
-				newOperation.Inputs.Clear();
-				newOperation.Inputs.Add(new Dataset
+				foreach (var outputDataset in predecessorOperationDto.OutputDatasets)
 				{
-					Type = DatasetType.File,
-					Store = request.Options["objectBucket"],
-					Key = request.Options["objectKey"]
+					operationInputVector.Add(new OperationInputValue
+					{
+						PredecessorOperationId = predecessorOperationDto.OperationId,
+						PredecessorOperationTemplateId = predecessorOperationDto.OperationTemplateId,
+						OutputDataset = outputDataset
+					});
+				}
+			}
+
+			_logger.LogDebug("New operation input vector: {@OperationInputVector}", operationInputVector);
+
+			if (operationInputVector.Count != newOperationTemplate.InputTypes.Count)
+			{
+				response.StatusCode = HttpStatusCode.BadRequest;
+				response.Errors.Add(new Error
+				{
+					Message =
+						$"The number of provided datasets ({operationInputVector.Count}) does not match the number of input types ({newOperationTemplate.InputTypes.Count})",
+					Code = "O400"
 				});
-				await _pipelinesDao.CreateRootOperation(request.PipelineId, newOperation);
+				_logger.LogInformation(
+					"The number of provided datasets ({ProvidedDatasetCount}) does not match the number of input types ({ExpectedDatasetCount})",
+					operationInputVector.Count, newOperationTemplate.InputTypes.Count);
+				return response;
 			}
-			else if (request.PredecessorOperationIds.Count == 1)
+
+			var newOperation = new Operation
 			{
-				_logger.LogDebug("Detected 1 predecessor operation {OperationId}", request.PredecessorOperationIds);
-				var predecessor = await _pipelinesDao.GetOperation(request.PredecessorOperationIds[0]);
-				if (predecessor == null)
+				CreatedOn = DateTime.UtcNow,
+				PipelineId = request.PipelineId,
+				OperationId = newOperationTemplate.OperationId,
+				OperationIdentifier = newOperationTemplate.OperationName,
+				OperationConfiguration = newOperationTemplate.DefaultConfig,
+			};
+
+			// merge newOperation.OperationConfiguration with request.Options
+			try
+			{
+				newOperation.OperationConfiguration.AddAll(request.Options);
+			}
+			catch (Exception e)
+			{
+				_logger.LogWarning("Failure to merge operation configuration with options: {@Exception}", e);
+			}
+
+			if (operationInputVector.All(v => !v.PredecessorOperationId.HasValue))
+			{
+				_logger.LogInformation("Detected no predecessor nodes - creating new root operation");
+				newOperation.Inputs.Clear();
+				if (request.Options.ContainsKey("objectBucket") && request.Options.ContainsKey("objectKey"))
 				{
-					response.StatusCode = HttpStatusCode.NotFound;
-					return response;
+					_logger.LogInformation("Detected new file as root operation");
+					newOperation.Inputs.Clear();
+					newOperation.Inputs.Add(new Dataset
+					{
+						Type = DatasetType.File,
+						Store = request.Options["objectBucket"],
+						Key = request.Options["objectKey"]
+					});
 				}
 
-				newOperation = PipelineConstructionHelpers.Successor(predecessor, newOperation);
-				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
+				await _pipelinesDao.CreateRootOperation(request.PipelineId, newOperation);
 			}
 			else
 			{
-				_logger.LogDebug("Detected {PredecessorCount} predecessor nodes {@OperationIds}",
-					request.PredecessorOperationIds.Count, request.PredecessorOperationIds);
-				foreach (var predecessorOperationId in request.PredecessorOperationIds)
+				_logger.LogInformation("Detected {PredecessorCount} predecessor nodes - creating new operation",
+					operationInputVector.Count);
+				_logger.LogDebug("Verifying provided dataset types with operation template input types...");
+				var predecessorIds = new List<Guid>();
+				for (var i = 0; i < newOperationTemplate.InputTypes.Count; i++)
 				{
-					var predecessor = await _pipelinesDao.GetOperation(predecessorOperationId);
-					if (predecessor == default)
+					if (operationInputVector[i].OutputDataset.Type != newOperationTemplate.InputTypes[i])
 					{
-						_logger.LogInformation("Predecessor operation {PredecessorOperationId} not found",
-							predecessorOperationId);
-						response.StatusCode = HttpStatusCode.NotFound;
+						_logger.LogInformation(
+							"Provided dataset type ({ProvidedDatasetType}) does not match operation template input type ({ExpectedDatasetType})",
+							operationInputVector[i].OutputDataset.Type, newOperationTemplate.InputTypes[i]);
+						response.StatusCode = HttpStatusCode.BadRequest;
+						response.Errors.Add(new Error
+						{
+							Message =
+								$"Provided dataset type ({operationInputVector[i].OutputDataset.Type}) does not match operation template input type ({newOperationTemplate.InputTypes[i]})",
+							Code = "O400"
+						});
 						return response;
 					}
 
-					newOperation = PipelineConstructionHelpers.Successor(predecessor, newOperation);
+					if (!operationInputVector[i].PredecessorOperationId.HasValue)
+					{
+						response.StatusCode = HttpStatusCode.NotFound;
+						_logger.LogInformation("Predecessor operation requires an id");
+						return response;
+					}
+
+					var predecessor = await _pipelinesDao.GetOperation(operationInputVector[i].PredecessorOperationId.Value);
+					if (predecessor == null)
+					{
+						response.StatusCode = HttpStatusCode.NotFound;
+						_logger.LogInformation("Predecessor operation {PredecessorId} not found",
+							operationInputVector[i].PredecessorOperationId);
+						return response;
+					}
+
+					newOperation.Inputs.Add(new Dataset
+					{
+						Key = operationInputVector[i].OutputDataset.Key,
+						Type = operationInputVector[i].OutputDataset.Type,
+						Store = operationInputVector[i].OutputDataset.Store
+					});
+					predecessorIds.Add(operationInputVector[i].PredecessorOperationId.Value);
 				}
 
-				await _pipelinesDao.CreateSuccessor(request.PredecessorOperationIds, newOperation);
+				_logger.LogDebug("Storing new operation {OperationId}...", newOperation.Id);
+				await _pipelinesDao.CreateSuccessor(predecessorIds, newOperation);
 			}
 
-			newOperation.PipelineId = request.PipelineId;
-			newOperation.OperationId = request.OperationTemplate.OperationId;
-			newOperation.OperationIdentifier = request.OperationTemplate.OperationName;
-			newOperation.OperationConfiguration = request.OperationTemplate.DefaultConfig;
+			_logger.LogDebug("Creating output datasets for new operation...");
+
+			newOperation.Outputs = new List<Dataset>();
+			foreach (var datasetType in request.NewOperationTemplate.OutputTypes)
+			{
+				if (!datasetType.HasValue) continue;
+				var newOutput = new Dataset
+				{
+					Type = datasetType.Value
+				};
+
+				// Hardcoded default values for plotting
+				// TODO: potentially move this to the frontend
+				if (newOutput.Type == DatasetType.StaticPlot)
+				{
+					newOutput.Key = $"{Guid.NewGuid()}.svg";
+				}
+				else if (newOutput.Type == DatasetType.Prophet)
+				{
+					newOutput.Key = $"{Guid.NewGuid()}.prophet";
+				}
+
+				newOutput.Store = GetStore(datasetType);
+
+				newOperation.Outputs.Add(newOutput);
+			}
 
 			await _pipelinesDao.UpdateOperation(newOperation);
 
-			_logger.LogDebug(
-				"Added node {OperationId} from operation template {OperationName} ({OperationTemplateId}) to pipeline {PipelineId}",
+			_logger.LogInformation(
+				"Added operation {OperationId} from operation template {OperationName} ({OperationTemplateId}) to pipeline {PipelineId}",
 				newOperation.Id, newOperation.OperationIdentifier, newOperation.OperationId, request.PipelineId);
 
 			response.OperationId = newOperation.Id;
 			response.PipelineId = request.PipelineId;
 			response.Success = true;
 			return response;
+		}
+
+		private static string GetStore(DatasetType? datasetType)
+		{
+			switch (datasetType)
+			{
+				case DatasetType.StaticPlot:
+					return "plots";
+				case DatasetType.Prophet:
+					return "generic_json";
+				case DatasetType.PdSeries:
+					return "dataframes";
+				case DatasetType.PdDataFrame:
+					return "dataframes";
+				case DatasetType.SklearnModel:
+					return "generic_json";
+				default:
+					return "default";
+			}
 		}
 
 		public async Task<RemoveNodesResponse> RemoveOperationsFromPipeline(RemoveOperationsRequest request)
@@ -185,9 +259,9 @@ namespace PipelineService.Services.Impl
 			return response;
 		}
 
-		public async Task<Dataset> GetOutputDataset(Guid pipelineId, Guid operationId)
+		public async Task<IList<Dataset>> GetOutputDatasets(Guid pipelineId, Guid operationId)
 		{
-			return (await _pipelinesDao.GetOperation(operationId)).Output;
+			return (await _pipelinesDao.GetOperation(operationId)).Outputs;
 		}
 
 		public async Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId)
@@ -240,5 +314,12 @@ namespace PipelineService.Services.Impl
 		{
 			return await _pipelinesDao.GetOperation(nodeId);
 		}
+	}
+
+	public class OperationInputValue
+	{
+		public Guid? PredecessorOperationId { get; set; }
+		public Guid? PredecessorOperationTemplateId { get; set; }
+		public Dataset OutputDataset { get; set; }
 	}
 }

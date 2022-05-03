@@ -8,3 +8,4 @@ class DatasetType(Enum):
 	StaticPlot = 3
 	Prophet = 4
 	SklearnModel = 5
+	SklearnEncoder = 6

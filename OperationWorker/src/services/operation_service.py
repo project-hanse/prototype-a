@@ -4,12 +4,14 @@ from typing import Callable
 import pandas as pd
 
 from src.operations.operations_file_input import OperationsFileInputCollection
+from src.operations.operations_openml import OperationsOpenML
 from src.operations.operations_plots_matplotlib import PlotsMatPlotLib
 from src.operations.operations_prophet import OperationsProphet
 from src.operations.operations_single_input_pd_custom import OperationsSingleInputPandasCustom
 from src.operations.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
 from src.operations.operations_sklearn_classifiers import OperationsSklearnClassifiers
 from src.operations.operations_sklearn_custom import OperationsSklearnCustom
+from src.operations.operations_sklearn_preprocessing_wrappers import OperationsSklearnPreprocessingWrappers
 
 
 class OperationService:
@@ -71,6 +73,7 @@ class OperationService:
 		# SkLearn Operations
 		self.local_operations["2878ca36-8e03-4825-8afa-552064686337"] = OperationsSklearnCustom.sklearn_double_input_predict
 		self.local_operations["ed0beb29-a853-4421-ba3e-eb2bdc050117"] = OperationsSklearnCustom.sklearn_split
+		self.local_operations["fa66798e-81d4-4656-a92f-00e84a2f8436"] = OperationsSklearnCustom.sklearn_split_v2
 		self.local_operations["c3ed2e34-0f7b-492c-9152-e3d5cf3ebeb0"] = OperationsSklearnCustom.sklearn_transform
 		self.local_operations["95cd82c3-01cf-488c-b156-22e06993b2f3"] = OperationsSklearnCustom.sklearn_extract_features
 		self.local_operations["34c12968-f79b-43b8-a934-39ce4e2e763d"] = OperationsSklearnCustom.sklearn_extract_targets
@@ -89,7 +92,21 @@ class OperationService:
 		self.local_operations[
 			"067c7cd4-87f6-43e2-a733-26e5c51ef875"] = OperationsSklearnClassifiers.sklearn_classifier_score
 		self.local_operations[
-			"ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba"] = OperationsSklearnClassifiers.sklearn_classifier_predict
+			"ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba"] = OperationsSklearnClassifiers.sklearn_classifier_predict_join
+		self.local_operations[
+			"46ae1799-92f0-4337-b06b-de2c981f4ed9"] = OperationsSklearnClassifiers.sklearn_classifier_predict
+
+		# SkLearn Preprocessing
+		self.local_operations[
+			"f3fc1084-4c1a-495d-846c-013f6f37985c"] = OperationsSklearnPreprocessingWrappers.sklearn_label_encoder
+		self.local_operations[
+			"49d1775b-b61d-4dcf-afbf-45a561c580ad"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_fit
+		self.local_operations[
+			"07af5ae2-7785-4bf4-8cee-8622d3281f5f"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_transform
+		self.local_operations[
+			"3ed065e7-dcbb-4400-aa9e-38bc6dd21f58"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_fit_transform
+		self.local_operations[
+			"9eedb02b-f2de-4354-8be7-565e90c90907"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_inverse_transform
 
 		# Custom Operations
 		self.local_operations[
@@ -102,6 +119,7 @@ class OperationService:
 			"1991ccdb-c8ba-4a71-a325-420e48471379"] = OperationsSingleInputPandasCustom.pd_single_input_groupby
 		self.local_operations[
 			"0b60e908-fae2-4d33-aa81-5d1fdc706c12"] = PlotsMatPlotLib.matplot_plot_pd
+		self.local_operations["9c876745-9d61-4b0b-a32a-2de523b44d0b"] = OperationsOpenML.load_data_from_openml
 
 		# Prophet Operations
 		self.local_operations["c01f8b5a-3c71-466a-b2ab-2abb2aa105ba"] = OperationsProphet.prophet_fit
