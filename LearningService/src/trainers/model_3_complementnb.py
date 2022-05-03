@@ -9,6 +9,7 @@ from src.helper.select_K_best import PipelineSelectKBest
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
 from src.trainers.model_base import TrainerModelBase
+from src.transformers.feature_selector import FeatureSelector
 
 
 class TrainerModel3ComplementNB(TrainerModelBase):
@@ -21,13 +22,15 @@ class TrainerModel3ComplementNB(TrainerModelBase):
 	def get_model_pipeline(self) -> BaseSearchCV:
 		self.logger.debug("Creating model pipeline for %s", __name__)
 		params = {
-			'selector__k': np.linspace(1, len(self.feature_names) * 20, 50, dtype=int),
+			'feature_selector__mark_missing_features': [True, False],
+			'selector__k': np.linspace(1, 250, 250),
 			'classifier__alpha': np.linspace(0.1, 1.0, 50),
 			'classifier__norm': [True, False],
 			'classifier__fit_prior': [True, False]
 		}
 		cv = 2
 		ppl = Pipeline([
+			('feature_selector', FeatureSelector(self.feature_names)),
 			("encoder", DictVectorizer(sparse=False)),
 			("selector", PipelineSelectKBest(f_classif)),
 			("classifier", ComplementNB())
@@ -36,5 +39,4 @@ class TrainerModel3ComplementNB(TrainerModelBase):
 
 	def get_data(self, cache=True) -> (list, list):
 		feat, lab = self._load_data(cache)
-		feat = self._select_features(feat, self.feature_names)
 		return feat, lab

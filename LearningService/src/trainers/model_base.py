@@ -87,23 +87,3 @@ class TrainerModelBase:
 			feat.append(feat_vec)
 
 		return feat, lab
-
-	def _select_features(self, feat: [{}], keys: [str]) -> [{}]:
-		"""
-		Selects features (by key) from the feature values array.
-		If a value is not found, it is set to None.
-		"""
-		if keys is None or len(keys) == 0:
-			self.logger.debug("No feature keys provided")
-			return feat
-		self.logger.info("Selecting features with keys %s", keys)
-		new_feat = []
-		for element in feat:
-			new_element = {}
-			for key, val in element.items():
-				if key in keys:
-					new_element[key] = val
-				else:
-					new_element[key] = '-1'
-			new_feat.append(new_element)
-		return new_feat
