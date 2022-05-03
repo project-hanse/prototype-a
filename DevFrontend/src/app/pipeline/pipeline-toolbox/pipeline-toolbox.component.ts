@@ -107,14 +107,13 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 						}
 
 						// match required input-dataset types
-						// TODO consider selected output datasets
 						if (selectedOperations.length > 0) {
 							const selectedTypes = selectedOperations
 								.map(o => o.outputs?.map(d => d) ?? [])
 								.reduce((a, b) => a.concat(b), [])
-								.filter(dt => dt.selected || dt.selected === undefined)
+								.filter(dt => dt.selected)
 								.map(dt => dt.type);
-							/*console.log('selectedOperations', selectedOperations);
+/*							console.log('selectedOperations', selectedOperations);
 							console.log('selectedTypes', selectedTypes);*/
 
 							operationTemplates = operationTemplates.filter(operation => {
@@ -312,18 +311,21 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 					output.selected = false;
 				}
 			}
+			if (selectedOp.outputs.length === 1) {
+				selectedOp.outputs[0].selected = true;
+			}
 		}
 		this.selectedOperations = selectedOps;
 		this.$selectedOperations.next(selectedOps);
 		this.subscriptions.add(forkJoin(selectedOps.map(op => {
-				if (!op.inputs || op.inputs.length < 1) {
+				if (!op.outputs || op.outputs.length < 1) {
 					return of([]);
 				}
 				return this.modelService.loadPrediction({
-					input_0_dataset_type: op.inputs[0]?.type,
-					input_1_dataset_type: op.inputs[1]?.type,
-					input_2_dataset_type: op.inputs[2]?.type,
-					feat_pred_count: op.inputs?.length ?? 0,
+					input_0_dataset_type: op.outputs[0]?.type,
+					input_1_dataset_type: op.outputs[1]?.type,
+					input_2_dataset_type: op.outputs[2]?.type,
+					feat_pred_count: op.outputs?.length ?? 0,
 					feat_pred_id: op.operationIdentifier,
 				});
 			})).pipe(
