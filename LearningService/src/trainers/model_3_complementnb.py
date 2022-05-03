@@ -1,6 +1,7 @@
+import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_selection import f_classif
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection._search import BaseSearchCV, RandomizedSearchCV
 from sklearn.naive_bayes import ComplementNB
 from sklearn.pipeline import Pipeline
 
@@ -17,29 +18,23 @@ class TrainerModel3ComplementNB(TrainerModelBase):
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
 
-	def get_model_pipeline(self) -> Pipeline:
+	def get_model_pipeline(self) -> BaseSearchCV:
 		self.logger.debug("Creating model pipeline for %s", __name__)
 		params = {
-			'alpha': [0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 5.0, 7.5, 10.0],
-			'norm': [True, False],
-			'fit_prior': [True, False],
-			'class_prior': [None, 'auto']
+			'selector__k': np.linspace(1, len(self.feature_names) * 20, 50, dtype=int),
+			'classifier__alpha': np.linspace(0.1, 1.0, 50),
+			'classifier__norm': [True, False],
+			'classifier__fit_prior': [True, False]
 		}
-		k = 32
 		cv = 2
 		ppl = Pipeline([
 			("encoder", DictVectorizer(sparse=False)),
-			("selector", PipelineSelectKBest(f_classif, k=k)),
-			("classifier", GridSearchCV(
-				ComplementNB(),
-				param_grid=params,
-				cv=cv,
-				refit=True,
-				n_jobs=-1))
+			("selector", PipelineSelectKBest(f_classif)),
+			("classifier", ComplementNB())
 		])
-		return ppl
+		return RandomizedSearchCV(ppl, params, cv=cv, refit=True, n_jobs=-1, n_iter=50)
 
 	def get_data(self, cache=True) -> (list, list):
 		feat, lab = self._load_data(cache)
-		feat = self._whitelist_features(feat, self.feature_names)
+		feat = self._select_features(feat, self.feature_names)
 		return feat, lab

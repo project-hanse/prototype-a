@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from sklearn.pipeline import Pipeline
+from sklearn.model_selection._search import BaseSearchCV
 
 from src.helper.log_helper import LogHelper
 from src.services.dataset_client import DatasetClient
@@ -14,7 +14,7 @@ class TrainerModelBase:
 		self.logger = LogHelper.get_logger(__name__)
 
 	@abstractmethod
-	def get_model_pipeline(self) -> Pipeline:
+	def get_model_pipeline(self) -> BaseSearchCV:
 		raise NotImplementedError()
 
 	@abstractmethod
@@ -88,16 +88,23 @@ class TrainerModelBase:
 
 		return feat, lab
 
-	def _whitelist_features(self, feat: [{}], key_contains: [str]) -> [{}]:
-		if key_contains is None or len(key_contains) == 0:
-			self.logger.debug("No whitelist keys provided")
+	def _select_features(self, feat: [{}], keys: [str]) -> [{}]:
+		"""
+		Selects features (by key) from the feature values array.
+		If a value is not found, it is set to None.
+		"""
+		if keys is None or len(keys) == 0:
+			self.logger.debug("No feature keys provided")
 			return feat
+		self.logger.info("Selecting features with keys %s", keys)
 		new_feat = []
 		for element in feat:
 			new_element = {}
 			for key, val in element.items():
-				for contains in key_contains:
+				for contains in keys:
 					if contains in key:
 						new_element[key] = val
+					# else:
+					# 	new_element[key] = 0
 			new_feat.append(new_element)
 		return new_feat

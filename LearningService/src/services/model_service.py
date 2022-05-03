@@ -59,7 +59,7 @@ class ModelService:
 		trainer = self.model_registry.get_trainer_by_model_name(model_name)
 		feat, lab = trainer.get_data(cache=cache_data)
 		X_train, X_test, y_train, y_test = train_test_split(feat, lab, test_size=self.train_split)
-		pipeline = trainer.get_model_pipeline()
+		search_cv = trainer.get_model_pipeline()
 		expr_name = model_name + "-experiment"
 		mlflow.set_experiment(expr_name)
 		mlflow.sklearn.autolog(disable=False)
@@ -67,13 +67,19 @@ class ModelService:
 		with mlflow.start_run():
 			try:
 				self.logger.info("Training model %s" % model_name)
-				model = pipeline.fit(X_train, y_train)
+				start_time = time.time()
+				search_cv.fit(X_train, y_train)
+				end_time = time.time()
+				model = search_cv.best_estimator_
 				accuracy = model.score(X_test, y_test)
 				cvs = cross_val_score(model, X_train, y_train, scoring='accuracy', cv=self.cv_folds, n_jobs=-1)
 				self.logger.info("Trained model %s with test accuracy %f and cross-validation accuracy %f" % (
 					model_name, accuracy, cvs.mean()))
 				mlflow.log_metric("training_timestamp", int(round(time.time() * 1000)))
 				mlflow.log_param("training_timestamp", int(round(time.time() * 1000)))
+				mlflow.log_metric("training_time", end_time - start_time)
+				mlflow.log_param("model_name", model_name)
+				mlflow.log_param("best_params", search_cv.best_params_)
 				mlflow.log_metric("accuracy", accuracy)
 				mlflow.log_metric("cv_accuracy", cvs.mean())
 				mlflow.log_metric("cv_accuracy_std", cvs.std())
