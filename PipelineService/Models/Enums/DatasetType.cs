@@ -7,6 +7,7 @@ namespace PipelineService.Models.Enums
 		PdDataFrame = 2,
 		StaticPlot = 3,
 		Prophet = 4,
-		SklearnModel = 5
+		SklearnModel = 5,
+		SklearnEncoder = 6,
 	}
 }

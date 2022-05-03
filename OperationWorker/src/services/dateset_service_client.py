@@ -6,6 +6,7 @@ import pandas as pd
 import requests
 from prophet import Prophet
 from prophet.serialize import model_to_json, model_from_json
+from sklearn.base import BaseEstimator
 
 from src.exceptions.NotFoundError import NotFoundError
 from src.exceptions.NotStoredError import NotStoredError
@@ -66,7 +67,7 @@ class DatasetServiceClient:
 			self.logging.warning('Failed to store series: (%i) %s' % (response.status_code, str(response.text)))
 			raise NotStoredError('Failed to store series: (%i) %s' % (response.status_code, str(response.reason)))
 
-	def store_sklearn_model(self, dataset: Dataset, model):
+	def store_sklearn_model(self, dataset: Dataset, model: BaseEstimator):
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + dataset.key
 		self.logging.info('Storing sklearn model to %s' % address)
 		serialized = self.serialize_sklearn_model(model)
@@ -88,6 +89,28 @@ class DatasetServiceClient:
 		compact_metadata = {'model_type': get_type_str(type(model))}
 		self.store_metadata(address, compact_metadata)
 
+	def store_sklearn_encoder(self, dataset: Dataset, encoder: BaseEstimator):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + dataset.key
+		self.logging.info('Storing sklearn encoder to %s' % address)
+		serialized = self.serialize_sklearn_encoder(encoder)
+		response = requests.post(address, data=serialized)
+		if response.status_code < 300:
+			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
+		else:
+			self.logging.warning('Failed to store sklearn encoder: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError('Failed to store sklearn encoder: (%i) %s' % (response.status_code, str(response.reason)))
+
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key + '?version=full'
+		self.logging.info('Storing sklearn encoder metadata to %s' % address)
+		full_metadata = encoder.get_params()
+		full_metadata['encoder_type'] = get_type_str(type(encoder))
+		self.store_metadata(address, full_metadata)
+
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/metadata/key/' + dataset.key + '?version=compact'
+		self.logging.info('Storing sklearn encoder metadata to %s' % address)
+		compact_metadata = {'encoder_type': get_type_str(type(encoder))}
+		self.store_metadata(address, compact_metadata)
+
 	def store_metadata(self, address, metadata):
 		metadata_serialized = json.dumps(metadata)
 		response = requests.post(address, data=metadata_serialized)
@@ -99,13 +122,21 @@ class DatasetServiceClient:
 			raise NotStoredError(
 				'Failed to store sklearn model metadata: (%i) %s' % (response.status_code, str(response.reason)))
 
-	def get_sklearn_model_by_key(self, key: str) -> pd.DataFrame:
+	def get_sklearn_model_by_key(self, key: str) -> BaseEstimator:
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
 		self.logging.info('Loading sklearn model from %s' % address)
 		response = requests.get(address)
 		if response.status_code == 404:
 			raise NotFoundError("No model with key found")
 		return self.deserialize_sklearn_model(response.text)
+
+	def get_sklearn_encoder_by_key(self, key: str) -> BaseEstimator:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Loading sklearn encoder from %s' % address)
+		response = requests.get(address)
+		if response.status_code == 404:
+			raise NotFoundError("No encoder with key found")
+		return self.deserialize_sklearn_encoder(response.text)
 
 	def get_prophet_model_by_key(self, key: str) -> pd.DataFrame:
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
@@ -153,6 +184,18 @@ class DatasetServiceClient:
 
 	def deserialize_sklearn_model(self, text: str):
 		self.logging.debug('Deserializing sklearn model')
+		b = base64.b64decode(text)
+		m = pickle.loads(b)
+		return m
+
+	def serialize_sklearn_encoder(self, encoder) -> str:
+		self.logging.debug('Serializing sklearn encoder')
+		b = pickle.dumps(encoder)
+		s = base64.b64encode(b).decode('utf-8')
+		return s
+
+	def deserialize_sklearn_encoder(self, text: str):
+		self.logging.debug('Deserializing sklearn encoder')
 		b = base64.b64decode(text)
 		m = pickle.loads(b)
 		return m

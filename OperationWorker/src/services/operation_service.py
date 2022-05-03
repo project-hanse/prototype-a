@@ -11,6 +11,7 @@ from src.operations.operations_single_input_pd_custom import OperationsSingleInp
 from src.operations.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
 from src.operations.operations_sklearn_classifiers import OperationsSklearnClassifiers
 from src.operations.operations_sklearn_custom import OperationsSklearnCustom
+from src.operations.operations_sklearn_preprocessing_wrappers import OperationsSklearnPreprocessingWrappers
 
 
 class OperationService:
@@ -91,7 +92,21 @@ class OperationService:
 		self.local_operations[
 			"067c7cd4-87f6-43e2-a733-26e5c51ef875"] = OperationsSklearnClassifiers.sklearn_classifier_score
 		self.local_operations[
-			"ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba"] = OperationsSklearnClassifiers.sklearn_classifier_predict
+			"ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba"] = OperationsSklearnClassifiers.sklearn_classifier_predict_join
+		self.local_operations[
+			"46ae1799-92f0-4337-b06b-de2c981f4ed9"] = OperationsSklearnClassifiers.sklearn_classifier_predict
+
+		# SkLearn Preprocessing
+		self.local_operations[
+			"f3fc1084-4c1a-495d-846c-013f6f37985c"] = OperationsSklearnPreprocessingWrappers.sklearn_label_encoder
+		self.local_operations[
+			"49d1775b-b61d-4dcf-afbf-45a561c580ad"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_fit
+		self.local_operations[
+			"07af5ae2-7785-4bf4-8cee-8622d3281f5f"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_transform
+		self.local_operations[
+			"3ed065e7-dcbb-4400-aa9e-38bc6dd21f58"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_fit_transform
+		self.local_operations[
+			"9eedb02b-f2de-4354-8be7-565e90c90907"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_inverse_transform
 
 		# Custom Operations
 		self.local_operations[

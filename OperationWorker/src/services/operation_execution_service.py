@@ -167,6 +167,8 @@ class OperationExecutionService:
 			return self.dataset_client.get_prophet_model_by_key(dataset.get_key())
 		elif dataset.get_type() == DatasetType.SklearnModel:
 			return self.dataset_client.get_sklearn_model_by_key(dataset.get_key())
+		elif dataset.get_type() == DatasetType.SklearnEncoder:
+			return self.dataset_client.get_sklearn_encoder_by_key(dataset.get_key())
 		# TODO: implement remaining dataset types
 		else:
 			raise NotImplemented("%s is not a supported type" % dataset.get_type())
@@ -186,6 +188,8 @@ class OperationExecutionService:
 			self.file_store_client.store_file(dataset)
 		elif dataset.get_type() == DatasetType.SklearnModel:
 			self.dataset_client.store_sklearn_model(dataset, data)
+		elif dataset.get_type() == DatasetType.SklearnEncoder:
+			self.dataset_client.store_sklearn_encoder(dataset, data)
 		# TODO: implement remaining dataset types
 		else:
 			logging.error("%s is not a supported type" % dataset.get_type())

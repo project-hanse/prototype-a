@@ -28,9 +28,15 @@
 		"operationName": "split_v2",
 		"operationFullName": "sklearn.custom.split",
 		"inputTypes": [
-			2, 1
+			2,
+			1
 		],
-		"outputTypes": [2, 2, 1, 1],
+		"outputTypes": [
+			2,
+			2,
+			1,
+			1
+		],
 		"framework": "scikit-learn",
 		"frameworkVersion": "1.0.2",
 		"sectionTitle": "SciKit Learn",
@@ -338,8 +344,8 @@
 	},
 	{
 		"operationId": "ca3a3e8e-9618-4450-bab7-c0a2d6cc48ba",
-		"operationName": "classifier_predict",
-		"operationFullName": "sklearn.classifiers.predict",
+		"operationName": "classifier_predict_join",
+		"operationFullName": "sklearn.classifiers.predict_join",
 		"inputTypes": [
 			5,
 			2
@@ -348,8 +354,8 @@
 		"framework": "scikit-learn",
 		"frameworkVersion": "1.0.2",
 		"sectionTitle": "SciKit Learn",
-		"title": "sklearn.classifiers.predict",
-		"description": "Predicts labels using a classifier",
+		"title": "sklearn.classifiers.predict_join",
+		"description": "Predicts labels using a classifier and returns the results alongside the input data.",
 		"signature": null,
 		"signatureName": null,
 		"returnsDescription": null,
@@ -357,6 +363,31 @@
 		"defaultConfig": {
 			"prediction_column_name": "prediction"
 		},
-		"returns": "Series"
+		"returns": "PdDataframe"
+	},
+	{
+		"operationId": "46ae1799-92f0-4337-b06b-de2c981f4ed9",
+		"operationName": "classifier_predict",
+		"operationFullName": "sklearn.classifiers.predict",
+		"inputTypes": [
+			5,
+			2
+		],
+		"outputTypes": [
+			1
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.classifiers.predict",
+		"description": "Predicts labels using a classifier.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {
+			"prediction_column_name": "prediction"
+		},
+		"returns": "PdSeries"
 	}
 ]
