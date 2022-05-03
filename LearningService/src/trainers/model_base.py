@@ -101,10 +101,9 @@ class TrainerModelBase:
 		for element in feat:
 			new_element = {}
 			for key, val in element.items():
-				for contains in keys:
-					if contains in key:
-						new_element[key] = val
-					# else:
-					# 	new_element[key] = 0
+				if key in keys:
+					new_element[key] = val
+				else:
+					new_element[key] = '-1'
 			new_feat.append(new_element)
 		return new_feat
