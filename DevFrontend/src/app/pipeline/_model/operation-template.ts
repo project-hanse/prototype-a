@@ -11,6 +11,7 @@ export interface OperationTemplate {
 	signature: string;
 	defaultConfig: Map<string, string>;
 	sectionTitle: string;
+	sourceUrl?: string;
 }
 
 export interface OperationTemplateGroup {

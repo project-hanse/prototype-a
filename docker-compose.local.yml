@@ -8,6 +8,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         - "NG_CONFIG=local"
+    restart: unless-stopped
     ports:
       - "8080:80"
     depends_on:
@@ -18,6 +19,7 @@ services:
     build:
       context: ./PipelineService
       dockerfile: ./Dockerfile
+    restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Debug
       EVENT_BUS__MQTT_HOST: message-broker
@@ -33,6 +35,7 @@ services:
     build:
       context: ./LearningService
       dockerfile: ./Dockerfile
+    restart: unless-stopped
     ports:
       - "5006:5006"
     environment:
@@ -55,6 +58,7 @@ services:
     build:
       context: ./FileService
       dockerfile: ./Dockerfile
+    restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Information
       S3_HOST: localstack
@@ -69,6 +73,7 @@ services:
     build:
       context: ./OperationWorker
       dockerfile: ./Dockerfile
+    restart: unless-stopped
     environment:
       - MQTT_HOST=message-broker
       - DATASET_HOST=dataset-service
@@ -85,6 +90,7 @@ services:
     build:
       context: ./DataSetService
       dockerfile: ./Dockerfile
+    restart: unless-stopped
     ports:
       - "5002:5002"
     expose:
@@ -98,6 +104,7 @@ services:
   # Message Broker
   message-broker:
     image: eclipse-mosquitto
+    restart: unless-stopped
     networks:
       - default
     ports:
@@ -109,6 +116,7 @@ services:
   # Edge Message Broker
   edge-message-broker:
     image: eclipse-mosquitto
+    restart: unless-stopped
     networks:
       - default
     ports:
@@ -119,8 +127,8 @@ services:
 
   # MLFlow Server
   mlflow-server:
-    restart: unless-stopped
     build: ./MLflowServer
+    restart: unless-stopped
     depends_on:
       - localstack
       - mysql
@@ -143,6 +151,7 @@ services:
   # Localstack
   localstack:
     image: localstack/localstack:0.14.2
+    restart: unless-stopped
     environment:
       SERVICES: s3
       EAGER_SERVICE_LOADING: 1

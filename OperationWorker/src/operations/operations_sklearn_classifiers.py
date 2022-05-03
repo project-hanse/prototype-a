@@ -207,6 +207,24 @@ class OperationsSklearnClassifiers:
 		return df
 
 	@staticmethod
+	def sklearn_classifier_predict_join(logger: logging, operation_name: str, operation_config: dict, data: []):
+		"""
+		Predicts labels using a classifier and returns the results alongside the input data.
+		"""
+		logger.info("Executing scikit operation sklearn_classifier_predict_join (%s)" % operation_name)
+		OperationsHelper.validate_input_or_throw(data, 2)
+
+		prediction_column_name = OperationsHelper.get_or_default(operation_config, "prediction_column_name", 'prediction')
+
+		cls = data[0]
+		df = data[1]
+
+		prediction = cls.predict(df)
+		df[prediction_column_name] = prediction
+
+		return df
+
+	@staticmethod
 	def sklearn_classifier_predict(logger: logging, operation_name: str, operation_config: dict, data: []):
 		"""
 		Predicts labels using a classifier.
@@ -220,6 +238,4 @@ class OperationsSklearnClassifiers:
 		df = data[1]
 
 		prediction = cls.predict(df)
-		df[prediction_column_name] = prediction
-
-		return df
+		return [pd.Series(prediction, name=prediction_column_name)]

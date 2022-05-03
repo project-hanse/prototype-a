@@ -1,0 +1,27 @@
+[
+	{
+		"operationId": "9c876745-9d61-4b0b-a32a-2de523b44d0b",
+		"operationName": "load_data_from_openml",
+		"operationFullName": "openml.datasets.load",
+		"inputTypes": [],
+		"outputTypes": [2, 1],
+		"framework": "openml",
+		"frameworkVersion": "1.0.0",
+		"sectionTitle": "OpenML",
+		"title": "openml.datasets.load",
+		"description": "Fetch dataset from OpenML by name or dataset id.",
+		"signature": "load_data_from_openml",
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": "https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_openml.html",
+		"defaultConfig": {
+			"name": null,
+			"version": "active",
+			"data_id": null,
+			"data_home": null,
+			"target_column": "default-target",
+			"cache": true,
+		},
+		"returns": "Dataframes"
+	}
+]

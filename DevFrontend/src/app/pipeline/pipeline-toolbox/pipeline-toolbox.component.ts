@@ -1,5 +1,5 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {combineLatest, debounceTime, forkJoin, Observable, ReplaySubject, Subject, Subscription} from 'rxjs';
+import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {combineLatest, debounceTime, forkJoin, Observable, of, ReplaySubject, Subject, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {ModelService} from '../../admin/model/_service/model.service';
 import {OperationIds} from '../../core/_model/operation-ids';
@@ -21,6 +21,8 @@ import {OperationsService} from '../_service/operations.service';
 	styleUrls: ['./pipeline-toolbox.component.scss']
 })
 export class PipelineToolboxComponent implements OnInit, OnDestroy {
+
+	@ViewChild('outputSelection') outputSelection?: ElementRef;
 
 	constructor(private operationsService: OperationTemplatesService,
 							private nodeService: OperationsService,
@@ -107,8 +109,12 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 						// match required input-dataset types
 						if (selectedOperations.length > 0) {
 							const selectedTypes = selectedOperations
-								.map(o => o.outputs?.map(d => d?.type) ?? [])
-								.reduce((a, b) => a.concat(b), []);
+								.map(o => o.outputs?.map(d => d) ?? [])
+								.reduce((a, b) => a.concat(b), [])
+								.filter(dt => dt.selected)
+								.map(dt => dt.type);
+/*							console.log('selectedOperations', selectedOperations);
+							console.log('selectedTypes', selectedTypes);*/
 
 							operationTemplates = operationTemplates.filter(operation => {
 								// TODO this could be change to be order independent, but this requires automatically changing the order of the input-datasets
@@ -193,7 +199,9 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 				if (selectedOp.outputs.length === 1) {
 					dto.outputDatasets.push(selectedOp.outputs[0]);
 				} else {
-					// TODO: check radio button selection(s)
+					selectedOp.outputs.filter(output => output.selected).forEach(output => {
+						dto.outputDatasets.push(output);
+					});
 				}
 				return dto;
 			})
@@ -291,15 +299,33 @@ export class PipelineToolboxComponent implements OnInit, OnDestroy {
 		this.$operationSearchValues.next(value);
 	}
 
+	onOutputSelectionChange(): void {
+		// triggers new run on $operationTemplateGroups
+		this.$operationSearchValues.next(this.operationsSearchText ?? '');
+	}
+
 	public setSelectedOperations(selectedOps: Array<VisualizationOperationDto>): void {
+		for (const selectedOp of selectedOps) {
+			for (const output of selectedOp.outputs) {
+				if (output.selected === undefined) {
+					output.selected = false;
+				}
+			}
+			if (selectedOp.outputs.length === 1) {
+				selectedOp.outputs[0].selected = true;
+			}
+		}
 		this.selectedOperations = selectedOps;
 		this.$selectedOperations.next(selectedOps);
 		this.subscriptions.add(forkJoin(selectedOps.map(op => {
+				if (!op.outputs || op.outputs.length < 1) {
+					return of([]);
+				}
 				return this.modelService.loadPrediction({
-					input_0_dataset_type: op.inputs[0]?.type,
-					input_1_dataset_type: op.inputs[1]?.type,
-					input_2_dataset_type: op.inputs[2]?.type,
-					feat_pred_count: op.inputs?.length ?? 0,
+					input_0_dataset_type: op.outputs[0]?.type,
+					input_1_dataset_type: op.outputs[1]?.type,
+					input_2_dataset_type: op.outputs[2]?.type,
+					feat_pred_count: op.outputs?.length ?? 0,
 					feat_pred_id: op.operationIdentifier,
 				});
 			})).pipe(

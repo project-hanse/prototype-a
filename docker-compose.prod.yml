@@ -68,6 +68,7 @@ services:
   # Learning Store
   learning-service:
     image: ghcr.io/project-hanse/prototype-a/learning-service:main
+    restart: unless-stopped
     ports:
       - "5006:5006"
     environment:

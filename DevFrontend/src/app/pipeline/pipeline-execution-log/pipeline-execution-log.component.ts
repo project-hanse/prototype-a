@@ -98,8 +98,11 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	public getHtmlLinkToDataset(dataset: Dataset): string {
 		// needs to be fixed in serialization of MQTT messages
 		// @ts-ignore
-		if (dataset['Store'] === 'dataframes') {
+		if (dataset['Type'] === DatasetType.PdDataFrame) {
 			return `${environment.datasetApi}/api/dataframe/key/${dataset['Key']}?format=html`;
+		}
+		if (dataset['Type'] === DatasetType.PdSeries) {
+			return `${environment.datasetApi}/api/series/key/${dataset['Key']}?format=html`;
 		} else if (dataset['Type'] === DatasetType.StaticPlot) {
 			return this.filesService.getPlotUrl({
 				type: dataset['Type'],

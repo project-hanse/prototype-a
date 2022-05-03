@@ -28,18 +28,21 @@
 							<b>
 								{{selectedOperation.label}}
 							</b>
-							<ng-container *ngFor="let output of selectedOperation.outputs">
-								<input type="radio" [id]="output.key" name="fav_language" [value]="output">
-								<label [for]="output.key">Type {{output.type}}</label>
-							</ng-container>
+							<section class="output-selection" #outputSelection>
+								<ng-container *ngFor="let output of selectedOperation.outputs">
+									<mat-checkbox [value]="output.key"
+																[checked]="!!output.selected"
+																(change)="onOutputSelectionChange()"
+																[(ngModel)]="output.selected">Type {{output.type}}</mat-checkbox>
+								</ng-container>
+							</section>
 						</div>
 					</ng-container>
 				</ng-container>
 				<!-- Operations -->
 				<div class="scrollable-content-wrapper">
 					<ng-container *ngIf="getOperationTemplates() | async as operationTemplateGroups">
-						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups"
-														 [disabled]="selectedOperations.length === 0">
+						<mat-action-list *ngFor="let operationsGroup of operationTemplateGroups">
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
 								<button mat-list-item (click)="onAddNode(operation)" [matTooltip]="operation.description">
@@ -49,6 +52,9 @@
 									<a *ngIf="operation.framework === 'pandas'"
 										 target="_blank"
 										 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+									<a *ngIf="operation.sourceUrl && operation.framework !== 'pandas'"
+										 target="_blank"
+										 [href]="operation.sourceUrl">Docs</a>
 								</button>
 							</ng-container>
 						</mat-action-list>

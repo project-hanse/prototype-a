@@ -16,9 +16,12 @@
 				<div mat-line>
 					<ng-container *ngFor="let dataset of e.ResultDatasets">
 						<!-- TODO to not call a function here -> extremely inefficient -->
-						<a *ngIf="e.Successful" target="_blank" [href]="getHtmlLinkToDataset(dataset)">
-							Result Type {{dataset.Type}}
-						</a>
+						<span>
+							<a *ngIf="e.Successful" target="_blank" [href]="getHtmlLinkToDataset(dataset)">
+								Result Type {{dataset.Type}}
+							</a>
+							&nbsp;
+						</span>
 					</ng-container>
 					<span *ngIf="e.ErrorDescription" style="color: red">{{e.ErrorDescription}}</span>
 					&nbsp;
