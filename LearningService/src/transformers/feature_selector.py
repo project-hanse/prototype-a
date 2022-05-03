@@ -11,25 +11,25 @@ class FeatureSelector(BaseEstimator, TransformerMixin):
 		return self
 
 	def transform(self, X, y=None):
-		if type(X) is not list:
-			logger.error('X must be a list of dictionaries')
+		if self.feature_names is None or len(self.feature_names) == 0:
+			logger.warning("No feature_names provided.")
 			return X
-		return self._select_features(X, self.feature_names)
+		if hasattr(X, '__iter__'):
+			for feat in X:
+				self._select_features(feat, self.feature_names)
+		else:
+			self._select_features(X, self.feature_names)
+		return X
 
-	def _select_features(self, feat: [{}], keys: [str]) -> [{}]:
+	def _select_features(self, feat: {}, keys: [str]) -> {}:
 		"""
 		Selects features (by key) from the feature values array.
 		If a value is not found, it is set to None.
 		"""
-		if keys is None or len(keys) == 0:
-			return feat
-		new_feat = []
-		for element in feat:
-			new_element = {}
-			for key, val in element.items():
-				if key in keys:
-					new_element[key] = val
-				elif self.mark_missing_features:
-					new_element[key] = '-1'
-			new_feat.append(new_element)
-		return new_feat
+		new_element = {}
+		for key, val in feat.items():
+			if key in keys:
+				new_element[key] = val
+			elif self.mark_missing_features:
+				new_element[key] = '-1'
+		return new_element

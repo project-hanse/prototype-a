@@ -9,6 +9,7 @@ from src.helper.select_K_best import PipelineSelectKBest
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
 from src.trainers.model_base import TrainerModelBase
+from src.transformers.dataset_types_to_category import DatasetTypesToCategory
 from src.transformers.feature_selector import FeatureSelector
 
 
@@ -30,6 +31,7 @@ class TrainerModel3ComplementNB(TrainerModelBase):
 		}
 		cv = 2
 		ppl = Pipeline([
+			('datatype_to_category', DatasetTypesToCategory('dataset_type')),
 			('feature_selector', FeatureSelector(self.feature_names)),
 			("encoder", DictVectorizer(sparse=False)),
 			("selector", PipelineSelectKBest(f_classif)),
