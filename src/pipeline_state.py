@@ -11,7 +11,7 @@ class PipelineBuildingState:
         self.helper_factory = helper_factory
         self.available_datasets = available_datasets
         self.depth = depth
-        self.producing_action = producing_action
+        self.producing_action: Action = producing_action
         self.parent = parent
         self.terminal_operation_ids = get_terminal_operation_ids()
 
