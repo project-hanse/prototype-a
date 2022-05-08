@@ -1,3 +1,4 @@
+import math
 import random
 from itertools import product
 
@@ -44,6 +45,7 @@ class PipelineBuildingState:
         new_state = PipelineBuildingState(helper_factory=self.helper_factory,
                                           available_datasets=action.datasets,
                                           producing_action=action,
+                                          # TODO: make depth dependent on amount of preceding operations not depth of search tree
                                           depth=self.depth + 1,
                                           parent=self)
 
@@ -63,12 +65,11 @@ class PipelineBuildingState:
         if self.isTerminal():
             return False
         if self.producing_action is None:
-            return -1
-        # TODO: tie to OpenML Ranking
+            return 0
         if self.producing_action.operation['operationId'] in self.terminal_operation_ids:
-            return 5
-        # punish greater depth
-        return 3 / self.depth
+            # punish greater depth
+            return 1 / (math.log(self.depth) + 1)
+        return False
 
     def get_datatype_vector(self, dataset_combination):
         vector = []

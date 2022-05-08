@@ -19,7 +19,7 @@ def model3_policy(state: PipelineBuildingState):
     while not state.isTerminal():
         action = None
         try:
-            if state.producing_action is None or random.random() < 0.75:
+            if state.producing_action is None or random.random() < 0.5:
                 # Using random policy if no action is being produced or if 75% of the time
                 action = random.choice(state.getPossibleActions())
             else:
