@@ -19,7 +19,7 @@
     "@angular/forms": "~13.3.4",
     "@angular/material": "~13.3.4",
     "@angular/platform-browser": "~13.3.4",
-    "@angular/platform-browser-dynamic": "~13.3.4",
+    "@angular/platform-browser-dynamic": "~13.3.6",
     "@angular/router": "~13.3.4",
     "@egjs/hammerjs": "^2.0.17",
     "keycharm": "^0.4.0",
