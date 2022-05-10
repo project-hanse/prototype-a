@@ -1,11 +1,29 @@
+import random
+import uuid
 from datetime import timedelta
 
+import openml as openml
 import requests_cache
 from mcts import mcts
 
+from src.config.config import load_open_ml_operation
 from src.helper.expert_policy import model3_policy
 from src.helper.helper_factory import HelperFactory
 from src.pipeline_state import PipelineBuildingState
+
+open_ml_task_ids = [31]
+
+
+def get_initial_state():
+    task = openml.tasks.get_task(random.choice(open_ml_task_ids))
+    if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
+        return PipelineBuildingState(helper_factory=HelperFactory(),
+                                     available_datasets=[{'dataType': 2, 'id': uuid.uuid4()},
+                                                         {'dataType': 1, 'id': uuid.uuid4()}],
+                                     producing_operation=load_open_ml_operation)
+
+    raise Exception('Task type not supported')
+
 
 if __name__ == '__main__':
     requests_cache.install_cache('mcts_cache',
@@ -13,9 +31,10 @@ if __name__ == '__main__':
                                  cache_control=False,
                                  allowable_methods=['GET', 'POST'])
 
-    currentState = PipelineBuildingState(helper_factory=HelperFactory(),
-                                         available_datasets=[{'dataType': 2}, {'dataType': 1}, {'dataType': 5}])
-    searcher = mcts(iterationLimit=100, rolloutPolicy=model3_policy)
+    task = get_initial_state()
+
+    currentState = get_initial_state()
+    searcher = mcts(iterationLimit=50, rolloutPolicy=model3_policy)
 
     while not currentState.isTerminal():
         action = searcher.search(initialState=currentState)

@@ -19,16 +19,16 @@ def model3_policy(state: PipelineBuildingState):
     while not state.isTerminal():
         action = None
         try:
-            if state.producing_action is None or random.random() < 0.5:
+            if state.producing_operation is None or random.random() < 0.5:
                 # Using random policy if no action is being produced or if 75% of the time
                 action = random.choice(state.getPossibleActions())
             else:
                 payload = {
                     'feat_pred_count': 1,
-                    'feat_pred_id': get_operation_identifier(state.producing_action.operation)
+                    'feat_pred_id': get_operation_identifier(state.producing_operation)
                 }
-                for i, input_datatype in zip(range(len(state.producing_action.input_vector)),
-                                             state.producing_action.input_vector):
+                for i, input_datatype in zip(range(len(state.producing_operation['outputTypes'])),
+                                             state.producing_operation['outputTypes']):
                     payload["input_%d_dataset_type" % i] = input_datatype
                 request = requests.post(url=get_api_base_url_learning_service() + "/api/predict/model-3-complementnb",
                                         auth=(get_api_user(), get_api_secret()),
