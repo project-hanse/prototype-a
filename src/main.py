@@ -27,14 +27,14 @@ def get_initial_state():
 
 if __name__ == '__main__':
     requests_cache.install_cache('mcts_cache',
-                                 expire_after=timedelta(days=1),
+                                 expire_after=timedelta(minutes=1),
                                  cache_control=False,
                                  allowable_methods=['GET', 'POST'])
 
     task = get_initial_state()
 
     currentState = get_initial_state()
-    searcher = mcts(iterationLimit=50, rolloutPolicy=model3_policy)
+    searcher = mcts(iterationLimit=10, rolloutPolicy=model3_policy)
 
     while not currentState.isTerminal():
         action = searcher.search(initialState=currentState)

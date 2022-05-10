@@ -3,7 +3,7 @@ import random
 import uuid
 from itertools import product
 
-from src.config.config import get_terminal_operation_ids
+from src.config.config import get_terminal_operation_ids, max_dataset_inputs_per_operation
 from src.helper.helper_factory import HelperFactory
 
 
@@ -18,6 +18,7 @@ class PipelineBuildingState:
         self.producing_operation: {} = producing_operation
         # All datasets (including the newly computed dataset) that are available for the current state
         self.available_datasets = available_datasets
+
         if random.random() < 0.1:
             print("%s (%s)" % (self.producing_operation['operationName'], str(self.available_datasets)))
 
@@ -34,8 +35,10 @@ class PipelineBuildingState:
         operation_loader = self.helper_factory.get_operation_loader()
         actions = []
         # get all possible combinations of available_datasets
-        for k in range(len(self.available_datasets)):
-            for dataset_combination in product(self.available_datasets, repeat=(k + 1)):
+        for k in range(min(len(self.available_datasets), max_dataset_inputs_per_operation)):
+            k += 1
+            # print("k(%d) -> %d" % (len(self.available_datasets), (k)))
+            for dataset_combination in product(self.available_datasets, repeat=(k)):
                 for operation in operation_loader.load_operations():
                     datasets_comb_datatype_vec = self.get_datatype_vector(dataset_combination)
                     op_input_datatype_vec = operation['inputTypes']
@@ -45,6 +48,8 @@ class PipelineBuildingState:
         if actions is None or len(actions) == 0:
             print("No actions available")
             return []
+        if random.random() < 0.1:
+            print("%s actions available" % len(actions))
         random.shuffle(actions)
         return actions
 

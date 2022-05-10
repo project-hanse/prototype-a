@@ -18,6 +18,8 @@ def get_api_secret():
     return 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
 
 
+max_dataset_inputs_per_operation = 4
+
 load_open_ml_operation = {
     "operationId": "9c876745-9d61-4b0b-a32a-2de523b44d0b",
     "operationName": "load_data_from_openml",
