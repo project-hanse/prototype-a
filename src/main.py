@@ -20,7 +20,8 @@ def get_initial_state():
         return PipelineBuildingState(helper_factory=HelperFactory(),
                                      available_datasets=[{'dataType': 2, 'id': uuid.uuid4()},
                                                          {'dataType': 1, 'id': uuid.uuid4()}],
-                                     producing_operation=load_open_ml_operation)
+                                     producing_operation=load_open_ml_operation,
+                                     max_look_ahead=10)
 
     raise Exception('Task type not supported')
 
@@ -34,9 +35,10 @@ if __name__ == '__main__':
     task = get_initial_state()
 
     currentState = get_initial_state()
-    searcher = mcts(iterationLimit=10, rolloutPolicy=model3_policy)
+    searcher = mcts(iterationLimit=20, rolloutPolicy=model3_policy)
 
     while not currentState.isTerminal():
         action = searcher.search(initialState=currentState)
         currentState = currentState.takeAction(action)
-        print("%s (%d)" % (action, currentState.depth))
+        currentState.look_ahead_cnt = 0
+        print("(%d) *** %s " % (currentState.depth, action))

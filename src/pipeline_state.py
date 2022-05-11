@@ -13,17 +13,24 @@ def are_vectors_equal(vec_a, vec_b) -> bool:
 
 class PipelineBuildingState:
     def __init__(self, helper_factory: HelperFactory, available_datasets: [{}], producing_operation: {},
-                 depth: int = 0, parent: 'PipelineBuildingState' = None):
+                 max_look_ahead: int = None, look_ahead_cnt: int = 0, max_actions: int = None,
+                 max_available_datasets: int = None, depth: int = 0, parent: 'PipelineBuildingState' = None,
+                 verbose: float = 0):
         # The operation that produces the newly added dataset
         self.producing_operation: {} = producing_operation
         # All datasets (including the newly computed dataset) that are available for the current state
         self.available_datasets = available_datasets
+        self.verbose = verbose
 
-        if random.random() < 0.1:
+        if self.print():
             print("%s (%s)" % (self.producing_operation['operationName'], str(self.available_datasets)))
 
         self.helper_factory = helper_factory
         self.depth = depth
+        self.look_ahead_cnt = look_ahead_cnt
+        self.max_look_ahead = max_look_ahead
+        self.max_actions = max_actions
+        self.max_available_datasets = max_available_datasets
         self.parent = parent
         self.terminal_operation_ids = get_terminal_operation_ids()
 
@@ -37,8 +44,8 @@ class PipelineBuildingState:
         # get all possible combinations of available_datasets
         for k in range(min(len(self.available_datasets), max_dataset_inputs_per_operation)):
             k += 1
-            # print("k(%d) -> %d" % (len(self.available_datasets), (k)))
-            for dataset_combination in product(self.available_datasets, repeat=(k)):
+            # print("k(%d) -> %d" % (len(self.available_datasets), k))
+            for dataset_combination in product(self.available_datasets, repeat=k):
                 for operation in operation_loader.load_operations():
                     datasets_comb_datatype_vec = self.get_datatype_vector(dataset_combination)
                     op_input_datatype_vec = operation['inputTypes']
@@ -48,8 +55,11 @@ class PipelineBuildingState:
         if actions is None or len(actions) == 0:
             print("No actions available")
             return []
-        if random.random() < 0.1:
+        if self.print():
             print("%s actions available" % len(actions))
+        # maximum n possible (random) actions to reduce search tree size
+        if self.max_actions is not None:
+            actions = random.sample(actions, min(len(actions), self.max_actions))
         random.shuffle(actions)
         return actions
 
@@ -72,18 +82,31 @@ class PipelineBuildingState:
             new_available_datasets.extend(self.available_datasets)
             new_available_datasets.extend(action.get_resulting_datasets())
 
+        if self.max_available_datasets is not None:
+            # take maximum n random available datasets to reduce search tree size (TODO: change to n most recent)
+            new_available_datasets = random.sample(new_available_datasets,
+                                                   min(len(new_available_datasets), self.max_available_datasets))
+
         new_state = PipelineBuildingState(helper_factory=self.helper_factory,
                                           available_datasets=new_available_datasets,
                                           producing_operation=action.operation,
+                                          max_look_ahead=self.max_look_ahead,
+                                          max_available_datasets=self.max_available_datasets,
+                                          max_actions=self.max_actions,
+                                          look_ahead_cnt=self.look_ahead_cnt + 1,
                                           # TODO: make depth dependent on amount of preceding operations not depth of search tree
                                           depth=self.depth + 1,
+                                          verbose=self.verbose,
                                           parent=self)
 
         return new_state
 
     def isTerminal(self):
-        # TODO: change this to a more sophisticated check (e.g. assembly index, check for OpenML result)
+        # TODO: change this to a more sophisticated check (e.g. assembly index)
         if not self.available_datasets:
+            return True
+        if self.look_ahead_cnt == self.max_look_ahead:
+            # abort search if maximum look ahead is reached
             return True
         if self.producing_operation is not None:
             if self.producing_operation['operationId'] in self.terminal_operation_ids:
@@ -92,20 +115,28 @@ class PipelineBuildingState:
         return False
 
     def getReward(self):
-        if self.isTerminal():
-            return False
         if self.producing_operation is None:
             return 0
+        if self.look_ahead_cnt >= self.max_look_ahead:
+            # reward for reaching maximum look ahead
+            return self.reward_function(self.depth)
         if self.producing_operation['operationId'] in self.terminal_operation_ids:
-            # punish greater depth
-            return 1 / (math.log(self.depth) + 1)
+            return self.reward_function(self.depth)
         return False
+
+    def reward_function(self, depth):
+        # punish greater depth
+        negative_reward_from = 5
+        return (negative_reward_from / (negative_reward_from * math.log(depth, negative_reward_from))) - 1
 
     def get_datatype_vector(self, dataset_combination):
         vector = []
         for dataset in dataset_combination:
             vector.append(dataset['dataType'])
         return vector
+
+    def print(self) -> bool:
+        return self.verbose > 0 and random.random() < self.verbose
 
 
 class Action:
