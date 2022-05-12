@@ -4,7 +4,7 @@ from datetime import timedelta
 
 import openml as openml
 import requests_cache
-from mcts import mcts
+from mcts.searcher.mcts import MCTS
 
 from src.config.config import load_open_ml_operation
 from src.helper.expert_policy import model3_policy
@@ -35,10 +35,10 @@ if __name__ == '__main__':
     task = get_initial_state()
 
     currentState = get_initial_state()
-    searcher = mcts(iterationLimit=20, rolloutPolicy=model3_policy)
+    searcher = MCTS(iterationLimit=20, rolloutPolicy=model3_policy)
 
-    while not currentState.isTerminal():
+    while not currentState.is_terminal():
         action = searcher.search(initialState=currentState)
-        currentState = currentState.takeAction(action)
+        currentState = currentState.take_action(action)
         currentState.look_ahead_cnt = 0
         print("(%d) *** %s " % (currentState.depth, action))

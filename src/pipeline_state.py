@@ -3,6 +3,8 @@ import random
 import uuid
 from itertools import product
 
+from mcts.base.base import BaseState
+
 from src.config.config import get_terminal_operation_ids, max_dataset_inputs_per_operation
 from src.helper.helper_factory import HelperFactory
 
@@ -11,7 +13,7 @@ def are_vectors_equal(vec_a, vec_b) -> bool:
     return len(vec_a) == len(vec_b) and all(x == y for x, y in zip(vec_b, vec_a))
 
 
-class PipelineBuildingState:
+class PipelineBuildingState(BaseState):
     def __init__(self, helper_factory: HelperFactory, available_datasets: [{}], producing_operation: {},
                  max_look_ahead: int = None, look_ahead_cnt: int = 0, max_actions: int = None,
                  max_available_datasets: int = None, depth: int = 0, parent: 'PipelineBuildingState' = None,
@@ -34,11 +36,11 @@ class PipelineBuildingState:
         self.parent = parent
         self.terminal_operation_ids = get_terminal_operation_ids()
 
-    def getCurrentPlayer(self):
+    def get_current_player(self) -> int:
         # Always maximizing player
         return 1
 
-    def getPossibleActions(self):
+    def get_possible_actions(self) -> []:
         operation_loader = self.helper_factory.get_operation_loader()
         actions = []
         # get all possible combinations of available_datasets
@@ -63,7 +65,7 @@ class PipelineBuildingState:
         random.shuffle(actions)
         return actions
 
-    def takeAction(self, action):
+    def take_action(self, action):
         new_available_datasets = []
 
         # reduce search space by not adding datasets to available datasets where operation input vector and outpue
@@ -101,7 +103,7 @@ class PipelineBuildingState:
 
         return new_state
 
-    def isTerminal(self):
+    def is_terminal(self) -> bool:
         # TODO: change this to a more sophisticated check (e.g. assembly index)
         if not self.available_datasets:
             return True
@@ -114,7 +116,7 @@ class PipelineBuildingState:
                 return True
         return False
 
-    def getReward(self):
+    def get_reward(self) -> float:
         if self.producing_operation is None:
             return 0
         if self.look_ahead_cnt >= self.max_look_ahead:

@@ -16,12 +16,12 @@ from src.pipeline_state import PipelineBuildingState
 
 
 def model3_policy(state: PipelineBuildingState):
-    while not state.isTerminal():
+    while not state.is_terminal():
         action = None
         try:
             if state.producing_operation is None or random.random() < 0.5:
                 # Using random policy if no action is being produced or if 75% of the time
-                action = random.choice(state.getPossibleActions())
+                action = random.choice(state.get_possible_actions())
             else:
                 payload = {
                     'feat_pred_count': 1,
@@ -36,17 +36,17 @@ def model3_policy(state: PipelineBuildingState):
                 request.raise_for_status()
                 response = request.json()
                 suggested_op_identifier = response[0]
-                for possible_action in state.getPossibleActions():
+                for possible_action in state.get_possible_actions():
                     if get_operation_identifier(possible_action.operation) == suggested_op_identifier:
                         action = possible_action
                         break
                 if action is None:
-                    action = random.choice(state.getPossibleActions())
+                    action = random.choice(state.get_possible_actions())
 
         except IndexError:
             raise Exception("Non-terminal state has no possible actions: " + str(state))
-        state = state.takeAction(action)
-    return state.getReward()
+        state = state.take_action(action)
+    return state.get_reward()
 
 
 def get_operation_identifier(operation: dict):
