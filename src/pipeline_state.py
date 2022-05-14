@@ -3,7 +3,7 @@ import random
 import uuid
 from itertools import product
 
-from mcts.base.base import BaseState
+from mcts.base.base import BaseState, BaseAction
 
 from src.config.config import get_terminal_operation_ids, max_dataset_inputs_per_operation
 from src.helper.helper_factory import HelperFactory
@@ -129,7 +129,7 @@ class PipelineBuildingState(BaseState):
     def reward_function(self, depth):
         # punish greater depth
         negative_reward_from = 5
-        return (negative_reward_from / (negative_reward_from * math.log(depth, negative_reward_from))) - 1
+        return (negative_reward_from / (negative_reward_from * (math.log(depth, negative_reward_from) + 1))) - 1
 
     def get_datatype_vector(self, dataset_combination):
         vector = []
@@ -141,12 +141,15 @@ class PipelineBuildingState(BaseState):
         return self.verbose > 0 and random.random() < self.verbose
 
 
-class Action:
+class Action(BaseAction):
     def __init__(self, operation: dict, input_datasets: [{}]):
         # the operation that is added to the pipeline
         self.operation = operation
         # the datasets that are used in the operation
         self.input_datasets = input_datasets
+
+    def get_dict(self) -> dict:
+        return {'operation': self.operation, 'input_datasets': self.input_datasets}
 
     def __repr__(self):
         return str(self)

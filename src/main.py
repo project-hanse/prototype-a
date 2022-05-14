@@ -1,29 +1,42 @@
+import json
+import math
+import os
 import random
+import time
 import uuid
 from datetime import timedelta
 
 import openml as openml
 import requests_cache
 from mcts.searcher.mcts import MCTS
+from openml import OpenMLTask
 
 from src.config.config import load_open_ml_operation
 from src.helper.expert_policy import model3_policy
 from src.helper.helper_factory import HelperFactory
+from src.helper.serializer import TMCSerializer
 from src.pipeline_state import PipelineBuildingState
 
 open_ml_task_ids = [31]
 
 
-def get_initial_state():
+def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
     task = openml.tasks.get_task(random.choice(open_ml_task_ids))
     if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
-        return PipelineBuildingState(helper_factory=HelperFactory(),
-                                     available_datasets=[{'dataType': 2, 'id': uuid.uuid4()},
-                                                         {'dataType': 1, 'id': uuid.uuid4()}],
-                                     producing_operation=load_open_ml_operation,
-                                     max_look_ahead=10)
+        return task, PipelineBuildingState(helper_factory=HelperFactory(),
+                                           available_datasets=[{'dataType': 2, 'id': uuid.uuid4()},
+                                                               {'dataType': 1, 'id': uuid.uuid4()}],
+                                           producing_operation=load_open_ml_operation,
+                                           max_look_ahead=10)
 
     raise Exception('Task type not supported')
+
+
+def save_pipeline(pipeline: dict):
+    pipelines_dir = 'pipelines'
+    os.makedirs(pipelines_dir, exist_ok=True)
+    with open(os.path.join(pipelines_dir, 'pipeline-%s.json' % math.floor(time.time())), 'w') as f:
+        json.dump(pipeline, f, cls=TMCSerializer)
 
 
 if __name__ == '__main__':
@@ -32,13 +45,24 @@ if __name__ == '__main__':
                                  cache_control=False,
                                  allowable_methods=['GET', 'POST'])
 
-    task = get_initial_state()
-
-    currentState = get_initial_state()
     searcher = MCTS(iterationLimit=20, rolloutPolicy=model3_policy)
-
-    while not currentState.is_terminal():
-        action = searcher.search(initialState=currentState)
-        currentState = currentState.take_action(action)
-        currentState.look_ahead_cnt = 0
-        print("(%d) *** %s " % (currentState.depth, action))
+    ps = 100
+    for i in range(ps):
+        task, currentState = get_initial_state()
+        pipeline = {
+            'actions': [],
+            'pipeline_id': uuid.uuid4(),
+            'started_at': math.floor(time.time()),
+            'task_id': task.id,
+            'dataset_id': task.dataset_id,
+            'task_type_id': task.task_type_id,
+            'batch_number': i
+        }
+        while not currentState.is_terminal():
+            action = searcher.search(initialState=currentState)
+            pipeline['actions'].append(action.get_dict())
+            currentState = currentState.take_action(action)
+            currentState.look_ahead_cnt = 0
+            print("(%d) *** %s " % (currentState.depth, action))
+        pipeline['completed_at'] = math.floor(time.time())
+        save_pipeline(pipeline)
