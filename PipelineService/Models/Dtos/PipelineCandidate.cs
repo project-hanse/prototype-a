@@ -45,6 +45,9 @@ public class PipelineCandidate
 	/// </summary>
 	[JsonProperty("actions")]
 	public IList<PipelineAction> Actions { get; set; }
+
+	[JsonProperty("created_by")]
+	public string CreatedBy { get; set; }
 }
 
 /// <summary>

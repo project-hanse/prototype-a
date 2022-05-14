@@ -52,6 +52,8 @@ namespace PipelineService
 
 			services.AddNeo4jAnnotations<PipelineContext>();
 
+			services.AddHttpClient();
+
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();
 			services.AddSingleton<EdgeEventBusService>();

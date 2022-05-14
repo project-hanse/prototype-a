@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +19,7 @@ namespace PipelineService.Services.Impl
 		private readonly ILogger<PipelinesDtoService> _logger;
 		private readonly IConfiguration _configuration;
 		private readonly IPipelinesDao _pipelinesDao;
+		private readonly IHttpClientFactory _httpClientFactory;
 
 		public string DefaultPipelinesPath => Path.Combine(
 			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
@@ -27,11 +30,12 @@ namespace PipelineService.Services.Impl
 			_configuration.GetValue("PipelineCandidatesFolder", ""));
 
 		public PipelinesDtoService(ILogger<PipelinesDtoService> logger, IConfiguration configuration,
-			IPipelinesDao pipelinesDao)
+			IPipelinesDao pipelinesDao, IHttpClientFactory httpClientFactory)
 		{
 			_logger = logger;
 			_configuration = configuration;
 			_pipelinesDao = pipelinesDao;
+			_httpClientFactory = httpClientFactory;
 		}
 
 		public async Task<IList<OperationTuples>> GetOperationTuples()
@@ -168,6 +172,30 @@ namespace PipelineService.Services.Impl
 		public async Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate)
 		{
 			_logger.LogInformation("Importing pipeline candidate {PipelineCandidateId}", pipelineCandidate.PipelineId);
+
+			var client = _httpClientFactory.CreateClient();
+			client.BaseAddress = new Uri("https://old.openml.org");
+			var response = await client.GetAsync($"api/v1/json/task/{pipelineCandidate.TaskId}");
+			var task = JsonConvert.DeserializeObject<OpenMlTaskResponse>(await response.Content.ReadAsStringAsync());
+
+			if (task?.Task?.Id == null)
+			{
+				_logger.LogInformation("Could not find task {TaskId}", pipelineCandidate.TaskId);
+				return Guid.Empty;
+			}
+
+			_logger.LogDebug("Loaded task {TaskId}", task.Task.Id);
+
+			var pipeline = new Pipeline
+			{
+				Id = pipelineCandidate.PipelineId,
+				Name = $"[Simulated] {task.Task.Name}",
+				CreatedOn = DateTime.UtcNow,
+				UserIdentifier = pipelineCandidate.CreatedBy ?? "simulated"
+			};
+
+			await _pipelinesDao.CreatePipeline(pipeline);
+
 
 			throw new NotImplementedException();
 		}

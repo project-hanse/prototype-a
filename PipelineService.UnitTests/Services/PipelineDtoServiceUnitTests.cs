@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Http;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -45,6 +47,9 @@ namespace PipelineService.UnitTests.Services
 			mockPipelineDao.Setup(s => s.CreateSuccessor(It.IsAny<List<Guid>>(), It.IsAny<Operation>()))
 				.Returns(Task.CompletedTask);
 
+			var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+			mockHttpClientFactory.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
+
 			var pipelinesDtoService = new PipelinesDtoService(
 				GeneralHelper.CreateLogger<PipelinesDtoService>(),
 				GeneralHelper.Configuration(new Dictionary<string, string>()
@@ -52,7 +57,9 @@ namespace PipelineService.UnitTests.Services
 					{ "DefaultPipelinesFolder", Path.Combine("Resources", "DefaultPipelines") },
 					{ "PipelineCandidatesFolder", Path.Combine("Resources", "PipelineCandidates") }
 				}),
-				mockPipelineDao.Object);
+				mockPipelineDao.Object,
+				mockHttpClientFactory.Object
+			);
 
 			_defaultPipelinesPath = pipelinesDtoService.DefaultPipelinesPath;
 			_pipelineCandidatesPath = pipelinesDtoService.PipelineCandidatesPath;
