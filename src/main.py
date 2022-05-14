@@ -15,7 +15,7 @@ from src.config.config import load_open_ml_operation
 from src.helper.expert_policy import model3_policy
 from src.helper.helper_factory import HelperFactory
 from src.helper.serializer import TMCSerializer
-from src.pipeline_state import PipelineBuildingState
+from src.model.pipeline_state import PipelineBuildingState
 
 open_ml_task_ids = [31]
 

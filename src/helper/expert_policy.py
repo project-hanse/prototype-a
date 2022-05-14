@@ -4,7 +4,7 @@ import requests
 
 from src.config.config import get_api_secret, get_api_user, \
     get_api_base_url_learning_service
-from src.pipeline_state import PipelineBuildingState
+from src.model.pipeline_state import PipelineBuildingState
 
 """
 {
