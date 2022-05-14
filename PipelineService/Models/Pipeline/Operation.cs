@@ -75,6 +75,9 @@ namespace PipelineService.Models.Pipeline
 		[JsonIgnore]
 		public IList<Dataset> Outputs { get; set; } = new List<Dataset>();
 
+		/// <summary>
+		/// Should be <c>OutputsSerialized</c> but kept OutputSerialized for backwards compatibility.
+		/// </summary>
 		public string OutputSerialized
 		{
 			get => Outputs != null ? JsonConvert.SerializeObject(Outputs) : null;
