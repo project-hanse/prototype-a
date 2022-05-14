@@ -70,15 +70,20 @@ namespace PipelineService.Models.Pipeline
 		}
 
 		/// <summary>
-		/// The output of this operation.
+		/// The outputs of this operation.
 		/// </summary>
 		[JsonIgnore]
-		public Dataset Output { get; set; } = new();
+		public IList<Dataset> Outputs { get; set; } = new List<Dataset>();
 
 		public string OutputSerialized
 		{
-			get => Output != null ? JsonConvert.SerializeObject(Output) : null;
-			set => Output = JsonConvert.DeserializeObject<Dataset>(value);
+			get => Outputs != null ? JsonConvert.SerializeObject(Outputs) : null;
+			set
+			{
+				if (value.Trim().StartsWith("{"))
+					value = $"[{value}]";
+				Outputs = JsonConvert.DeserializeObject<IList<Dataset>>(value);
+			}
 		}
 
 		/// <summary>

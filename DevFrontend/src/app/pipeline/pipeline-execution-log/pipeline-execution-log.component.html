@@ -14,9 +14,15 @@
 				<mat-icon mat-list-icon>{{e.Successful ? 'check' : 'error'}}</mat-icon>
 				<div mat-line>{{e.OperationName}} </div>
 				<div mat-line>
-					<a *ngIf="e.Successful" target="_blank" [href]="getHtmlLinkToDataset(e.ResultDatasetKey)">
-						Result Dataset
-					</a>
+					<ng-container *ngFor="let dataset of e.ResultDatasets">
+						<!-- TODO to not call a function here -> extremely inefficient -->
+						<span>
+							<a *ngIf="e.Successful" target="_blank" [href]="getHtmlLinkToDataset(dataset)">
+								Result Type {{dataset.Type}}
+							</a>
+							&nbsp;
+						</span>
+					</ng-container>
 					<span *ngIf="e.ErrorDescription" style="color: red">{{e.ErrorDescription}}</span>
 					&nbsp;
 					<span [matTooltip]="e.CompletedAt | date: 'medium'">{{e.ExecutionTime}} ms</span>

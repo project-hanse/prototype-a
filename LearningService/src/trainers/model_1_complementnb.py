@@ -1,6 +1,8 @@
+import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_selection import f_classif
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection._search import BaseSearchCV
 from sklearn.naive_bayes import ComplementNB
 from sklearn.pipeline import Pipeline
 
@@ -8,6 +10,8 @@ from src.helper.select_K_best import PipelineSelectKBest
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
 from src.trainers.model_base import TrainerModelBase
+from src.transformers.dataset_types_to_category import DatasetTypesToCategory
+from src.transformers.feature_selector import FeatureSelector
 
 
 class TrainerModel1ComplementNB(TrainerModelBase):
@@ -17,28 +21,26 @@ class TrainerModel1ComplementNB(TrainerModelBase):
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
 
-	def get_model_pipeline(self) -> Pipeline:
-		self.logger.debug("Creating model pipeline for %s", __name__)
+	def get_model_pipeline(self) -> BaseSearchCV:
+		self.logger.debug("Creating model 1 pipeline for %s", __name__)
+		# need k greater than just number of features since DictVectorizer will create a feature for each key
 		params_clf = {
-			'alpha': [0.1, 0.5, 1.0, 2.0, 5.0, 7.5, 10.0],
-			'norm': [True, False],
-			'fit_prior': [True, False]
+			'feature_selector__mark_missing_features': [True, False],
+			'selector__k': np.linspace(1, 100, 100),
+			'classifier__alpha': np.linspace(0.1, 1.0, 50),
+			'classifier__norm': [True, False],
+			'classifier__fit_prior': [True, False]
 		}
-		k = 16
 		cv = 2
 		ppl = Pipeline([
+			('datatype_to_category', DatasetTypesToCategory('dataset_type')),
+			('feature_selector', FeatureSelector(self.feature_names)),
 			("encoder", DictVectorizer(sparse=False)),
-			("selector", PipelineSelectKBest(f_classif, k=k)),
-			("classifier", GridSearchCV(
-				ComplementNB(),
-				param_grid=params_clf,
-				cv=cv,
-				refit=True,
-				n_jobs=-1))
+			("selector", PipelineSelectKBest(f_classif)),
+			("classifier", ComplementNB())
 		])
-		return ppl
+		return RandomizedSearchCV(ppl, params_clf, cv=cv, refit=True, n_jobs=-1, n_iter=25)
 
 	def get_data(self, cache=True) -> (list, list):
 		feat, lab = self._load_data(cache)
-		feat = self._whitelist_features(feat, self.feature_names)
 		return feat, lab

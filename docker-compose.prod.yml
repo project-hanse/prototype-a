@@ -68,6 +68,7 @@ services:
   # Learning Store
   learning-service:
     image: ghcr.io/project-hanse/prototype-a/learning-service:main
+    restart: unless-stopped
     ports:
       - "5006:5006"
     environment:
@@ -169,7 +170,7 @@ services:
 
   # S3 Bucket
   localstack:
-    image: localstack/localstack:0.14.1
+    image: localstack/localstack:0.14.2
     restart: unless-stopped
     environment:
       - SERVICES=s3
