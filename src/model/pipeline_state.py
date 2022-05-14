@@ -134,7 +134,7 @@ class PipelineBuildingState(BaseState):
     def get_datatype_vector(self, dataset_combination):
         vector = []
         for dataset in dataset_combination:
-            vector.append(dataset['dataType'])
+            vector.append(dataset['type'])
         return vector
 
     def print(self) -> bool:
@@ -170,5 +170,5 @@ class Action(BaseAction):
     def get_resulting_datasets(self) -> [{}]:
         new_datasets = []
         for output_type in self.operation['outputTypes']:
-            new_datasets.append({'dataType': output_type, 'id': uuid.uuid4()})
+            new_datasets.append({'type': output_type, 'id': uuid.uuid4()})
         return new_datasets

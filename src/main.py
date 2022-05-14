@@ -24,8 +24,8 @@ def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
     task = openml.tasks.get_task(random.choice(open_ml_task_ids))
     if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
         return task, PipelineBuildingState(helper_factory=HelperFactory(),
-                                           available_datasets=[{'dataType': 2, 'id': uuid.uuid4()},
-                                                               {'dataType': 1, 'id': uuid.uuid4()}],
+                                           available_datasets=[{'type': 2, 'id': uuid.uuid4()},
+                                                               {'type': 1, 'id': uuid.uuid4()}],
                                            producing_operation=load_open_ml_operation,
                                            max_look_ahead=10)
 
@@ -50,7 +50,10 @@ if __name__ == '__main__':
     for i in range(ps):
         task, currentState = get_initial_state()
         pipeline = {
-            'actions': [],
+            'actions': [{
+                'operation': currentState.producing_operation,
+                'input_datasets': currentState.available_datasets
+            }],
             'pipeline_id': uuid.uuid4(),
             'started_at': math.floor(time.time()),
             'task_id': task.id,
