@@ -18,5 +18,7 @@ namespace PipelineService.Services
 		/// <exception cref="InvalidDataException">If the provided data in the export object can not be parsed.</exception>
 		/// <returns></returns>
 		public Task<Guid> ImportPipeline(PipelineExport exportObject);
+
+		public Task<Guid> ImportPipelineCandidate(PipelineCandidate	pipelineCandidate);
 	}
 }

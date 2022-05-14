@@ -22,7 +22,15 @@ namespace PipelineService.UnitTests.Services
 			"beer-australia.json"
 		};
 
+		private static string[] _pipelineCandidateFileNames =
+		{
+			"pipeline-1652383756.json",
+			"pipeline-1652384137.json",
+			"pipeline-1652384281.json"
+		};
+
 		private string _defaultPipelinesPath;
+		private string _pipelineCandidatesPath;
 		private IPipelinesDtoService _pipelinesDtoService;
 
 		[SetUp]
@@ -32,18 +40,22 @@ namespace PipelineService.UnitTests.Services
 			var mockPipelineDao = new Mock<IPipelinesDao>();
 
 			mockPipelineDao.Setup(s => s.CreatePipeline(It.IsAny<Pipeline>())).Returns(Task.CompletedTask);
-			mockPipelineDao.Setup(s => s.CreateRootOperation(It.IsAny<Guid>(), It.IsAny<Operation>())).Returns(Task.CompletedTask);
-			mockPipelineDao.Setup(s => s.CreateSuccessor(It.IsAny<List<Guid>>(), It.IsAny<Operation>())).Returns(Task.CompletedTask);
+			mockPipelineDao.Setup(s => s.CreateRootOperation(It.IsAny<Guid>(), It.IsAny<Operation>()))
+				.Returns(Task.CompletedTask);
+			mockPipelineDao.Setup(s => s.CreateSuccessor(It.IsAny<List<Guid>>(), It.IsAny<Operation>()))
+				.Returns(Task.CompletedTask);
 
 			var pipelinesDtoService = new PipelinesDtoService(
 				GeneralHelper.CreateLogger<PipelinesDtoService>(),
 				GeneralHelper.Configuration(new Dictionary<string, string>()
 				{
-					{ "DefaultPipelinesFolder", "Resources/DefaultPipelines" }
+					{ "DefaultPipelinesFolder", Path.Combine("Resources", "DefaultPipelines") },
+					{ "PipelineCandidatesFolder", Path.Combine("Resources", "PipelineCandidates") }
 				}),
 				mockPipelineDao.Object);
 
 			_defaultPipelinesPath = pipelinesDtoService.DefaultPipelinesPath;
+			_pipelineCandidatesPath = pipelinesDtoService.PipelineCandidatesPath;
 			_pipelinesDtoService = pipelinesDtoService;
 		}
 
@@ -67,68 +79,25 @@ namespace PipelineService.UnitTests.Services
 			Assert.AreNotEqual(Guid.Empty, pipelineId);
 		}
 
-		// private static NodeTupleTestCase[] _getNodeTupleTestCases =
-		// {
-		//     new()
-		//     {
-		//         Pipeline = HardcodedDefaultPipelines.MelbourneHousingPipeline(),
-		//         ExpectedSingleInputTuples = 3,
-		//         ExpectedDoubleInputTuples = 0
-		//     },
-		//     new()
-		//     {
-		//         Pipeline = HardcodedDefaultPipelines.InfluenzaInterpolation(),
-		//         ExpectedSingleInputTuples = 3,
-		//         ExpectedDoubleInputTuples = 0
-		//     },
-		//     new()
-		//     {
-		//         Pipeline = HardcodedDefaultPipelines.ChemnitzStudentAndJobsPipeline(),
-		//         ExpectedSingleInputTuples = 13,
-		//         ExpectedDoubleInputTuples = 1
-		//     }
-		// };
-		//
-		// private IPipelinesDaoInMemory _pipelinesDaoInMemory;
-		// private IPipelinesExecutionDao _pipelinesExecutionDao;
-		// private IPipelinesDtoService _pipelinesDtoService;
-		//
-		// [SetUp]
-		// public void SetUp()
-		// {
-		//     var mock = new Mock<IPipelinesExecutionDao>();
-		//     mock.Setup(dao => dao.GetLastExecutionForPipeline(It.IsAny<Guid>()))
-		//         .ReturnsAsync((Guid pipelineId) => new PipelineExecutionRecord
-		//         {
-		//             PipelineId = pipelineId,
-		//             CompletedOn = DateTime.UtcNow
-		//         });
-		//     _pipelinesExecutionDao = mock.Object;
-		//
-		//     _pipelinesDaoInMemory = new InMemoryPipelinesDaoInMemory(GeneralHelper.CreateLogger<InMemoryPipelinesDaoInMemory>());
-		//     _pipelinesDtoService = new PipelinesDtoService(_pipelinesDaoInMemory, _pipelinesExecutionDao);
-		// }
-		//
-		// [Test]
-		// [TestCaseSource(nameof(_getNodeTupleTestCases))]
-		// public async Task GetSingleInputNodeTuples_ExecutedPipeline(NodeTupleTestCase testCase)
-		// {
-		//     // arrange
-		//     await _pipelinesDaoInMemory.Add(testCase.Pipeline);
-		//
-		//     // act
-		//     var results = await _pipelinesDtoService.GetSingleInputNodeTuples(testCase.Pipeline.Id);
-		//
-		//     // assert
-		//     Assert.NotNull(results);
-		//     Assert.AreEqual(testCase.ExpectedSingleInputTuples, results.Count);
-		// }
-	}
+		[Test]
+		[TestCaseSource(nameof(_pipelineCandidateFileNames))]
+		public async Task ImportPipelineCandidate_ShouldGeneratePipelineFromCandidate_ReturnPipelineGuid(
+			string pipelineFileName)
+		{
+			// arrange
+			var pipelineCandidate =
+				JsonConvert.DeserializeObject<PipelineCandidate>(
+					await File.ReadAllTextAsync(
+						Path.Combine(_pipelineCandidatesPath, pipelineFileName)));
+			Assert.NotNull(pipelineCandidate, "Fail to load pipeline candidate from file");
 
-	public class NodeTupleTestCase
-	{
-		public Pipeline Pipeline { get; set; }
-		public int ExpectedSingleInputTuples { get; set; }
-		public int ExpectedDoubleInputTuples { get; set; }
+			// act
+			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(pipelineCandidate);
+
+			// assert
+			Assert.NotNull(pipelineId);
+			Assert.AreNotEqual(pipelineCandidate.PipelineId, pipelineId);
+			Assert.AreNotEqual(Guid.Empty, pipelineId);
+		}
 	}
 }

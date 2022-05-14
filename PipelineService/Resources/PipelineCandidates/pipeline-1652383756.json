@@ -1,0 +1,168 @@
+{
+  "actions": [
+    {
+      "operation": {
+        "operationId": "e34a64ab-2c1e-4498-a9e3-40f5fe78fa5e",
+        "operationName": "classifier_k_neighbors",
+        "operationFullName": "sklearn.classifiers.k.neighbors",
+        "inputTypes": [
+          2,
+          1
+        ],
+        "outputType": 5,
+        "outputTypes": [
+          5
+        ],
+        "framework": "scikit-learn",
+        "frameworkVersion": "1.0.2",
+        "sectionTitle": "SciKit Learn",
+        "title": "sklearn.classifiers.k.neighbors",
+        "description": "Creates and fits a K-Neighbors Classification model",
+        "signature": null,
+        "signatureName": null,
+        "returnsDescription": null,
+        "sourceUrl": null,
+        "defaultConfig": {
+          "n_neighbors": "5",
+          "weights": "uniform",
+          "algorithm": "auto",
+          "leaf_size": "30",
+          "p": "2",
+          "metric": "minkowski",
+          "metric_params": null,
+          "n_jobs": null
+        },
+        "returns": "GaussianNB"
+      },
+      "input_datasets": [
+        {
+          "type": 2,
+          "id": "a8905527-8047-47b3-91ac-98bfca7c92ff"
+        },
+        {
+          "type": 1,
+          "id": "d2b35a79-3a98-4c22-bdec-d7f46e55618c"
+        }
+      ]
+    },
+    {
+      "operation": {
+        "operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+        "operationName": "query",
+        "operationFullName": "pandas.DataFrame.query",
+        "inputTypes": [
+          2
+        ],
+        "outputType": 2,
+        "outputTypes": [
+          2
+        ],
+        "framework": "pandas",
+        "frameworkVersion": "1.3.3",
+        "sectionTitle": "Indexing, iteration",
+        "title": "pandas.DataFrame.query",
+        "description": "Query the columns of a DataFrame with a boolean expression.",
+        "signature": "DataFrame.query(expr)",
+        "signatureName": "query",
+        "returnsDescription": "DataFrame resulting from the provided query expression or\nNone if inplace=True.",
+        "sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/frame.py#L3910-L4073",
+        "defaultConfig": {
+          "expr": ""
+        },
+        "returns": "DataFrame or None"
+      },
+      "input_datasets": [
+        {
+          "type": 2,
+          "id": "a8905527-8047-47b3-91ac-98bfca7c92ff"
+        }
+      ]
+    },
+    {
+      "operation": {
+        "operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+        "operationName": "backfill",
+        "operationFullName": "pandas.DataFrame.backfill",
+        "inputTypes": [
+          2
+        ],
+        "outputType": 2,
+        "outputTypes": [
+          2
+        ],
+        "framework": "pandas",
+        "frameworkVersion": "1.3.3",
+        "sectionTitle": "Missing data handling",
+        "title": "pandas.DataFrame.backfill",
+        "description": "Synonym for DataFrame.fillna() with method='bfill'.",
+        "signature": "DataFrame.backfill(axis=None, limit=None, downcast=None)",
+        "signatureName": "backfill",
+        "returnsDescription": "Object with missing values filled or None if inplace=True.",
+        "sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/generic.py#L6418-L6436",
+        "defaultConfig": {
+          "axis": "None",
+          "limit": "None",
+          "downcast": "None"
+        },
+        "returns": "Series/DataFrame or None"
+      },
+      "input_datasets": [
+        {
+          "type": 2,
+          "id": "67a1b876-82e3-40d2-a662-ad6542261953"
+        }
+      ]
+    },
+    {
+      "operation": {
+        "operationId": "0b60e908-fae2-4d33-aa81-5d1fdc706c12",
+        "operationName": "plot",
+        "operationFullName": "PlotDataframe",
+        "inputTypes": [
+          2
+        ],
+        "outputType": 3,
+        "outputTypes": [
+          3
+        ],
+        "framework": "pandas",
+        "frameworkVersion": "1.3.3",
+        "sectionTitle": "Plotting",
+        "title": "PlotDataframe",
+        "description": "Plot a dataframe using matplotlib",
+        "signature": null,
+        "signatureName": null,
+        "returnsDescription": null,
+        "sourceUrl": null,
+        "defaultConfig": {
+          "x": "None",
+          "y": "None",
+          "kind": "line",
+          "ax": "None",
+          "subplots": "false",
+          "sharex": "false",
+          "sharey": "false",
+          "layout": "None",
+          "use_index": "true",
+          "title": "None",
+          "grid": "None",
+          "legend": "true"
+        },
+        "returns": "StaticPlot"
+      },
+      "input_datasets": [
+        {
+          "type": 2,
+          "id": "29e92642-2d31-4ef9-a717-e9811dccd2b9"
+        }
+      ]
+    }
+  ],
+  "pipeline_id": "49fcaf43-9a84-4143-814f-d64be6613352",
+  "started_at": 1652383676,
+  "task_id": 31,
+  "dataset_id": 31,
+  "task_type_id": "TaskType.SUPERVISED_CLASSIFICATION",
+  "batch_number": 0,
+  "completed_at": 1652383756
+}

@@ -22,6 +22,10 @@ namespace PipelineService.Services.Impl
 			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
 			_configuration.GetValue("DefaultPipelinesFolder", ""));
 
+		public string PipelineCandidatesPath => Path.Combine(
+			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
+			_configuration.GetValue("PipelineCandidatesFolder", ""));
+
 		public PipelinesDtoService(ILogger<PipelinesDtoService> logger, IConfiguration configuration,
 			IPipelinesDao pipelinesDao)
 		{
@@ -159,6 +163,13 @@ namespace PipelineService.Services.Impl
 			}
 
 			return pipeline.Id;
+		}
+
+		public async Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate)
+		{
+			_logger.LogInformation("Importing pipeline candidate {PipelineCandidateId}", pipelineCandidate.PipelineId);
+
+			throw new NotImplementedException();
 		}
 	}
 }
