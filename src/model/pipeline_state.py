@@ -68,7 +68,7 @@ class PipelineBuildingState(BaseState):
     def take_action(self, action):
         new_available_datasets = []
 
-        # reduce search space by not adding datasets to available datasets where operation input vector and outpue
+        # reduce search space by not adding datasets to available datasets where operation input vector and output
         # vector are the same - it is likely that only the results of the previous operation are relevant
         input_vector = self.get_datatype_vector(action.input_datasets)
         output_vector = self.get_datatype_vector(action.get_resulting_datasets())
@@ -86,6 +86,7 @@ class PipelineBuildingState(BaseState):
 
         if self.max_available_datasets is not None:
             # take maximum n random available datasets to reduce search tree size (TODO: change to n most recent)
+            # and make sure all dataset types are covered
             new_available_datasets = random.sample(new_available_datasets,
                                                    min(len(new_available_datasets), self.max_available_datasets))
 
@@ -120,8 +121,8 @@ class PipelineBuildingState(BaseState):
         if self.producing_operation is None:
             return 0
         if self.look_ahead_cnt >= self.max_look_ahead:
-            # reward for reaching maximum look ahead
-            return self.reward_function(self.depth)
+            # no reward if maximum look ahead is reached
+            return 0
         if self.producing_operation['operationId'] in self.terminal_operation_ids:
             return self.reward_function(self.depth)
         return False
