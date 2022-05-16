@@ -27,7 +27,8 @@ def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
                                            available_datasets=[{'type': 2, 'id': uuid.uuid4()},
                                                                {'type': 1, 'id': uuid.uuid4()}],
                                            producing_operation=load_open_ml_operation,
-                                           max_look_ahead=10)
+                                           max_look_ahead=10,
+                                           verbose=0)
 
     raise Exception('Task type not supported')
 
@@ -67,5 +68,9 @@ if __name__ == '__main__':
             currentState = currentState.take_action(action)
             currentState.look_ahead_cnt = 0
             print("(%d) *** %s " % (currentState.depth, action))
+            if len(pipeline['actions']) > 30:
+                pipeline['abort'] = True
+                print("Aborting pipeline")
+                break
         pipeline['completed_at'] = math.floor(time.time())
         save_pipeline(pipeline)
