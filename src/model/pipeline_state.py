@@ -150,7 +150,11 @@ class Action(BaseAction):
         self.input_datasets = input_datasets
 
     def get_dict(self) -> dict:
-        return {'operation': self.operation, 'input_datasets': self.input_datasets}
+        return {
+            'operation': self.operation,
+            'input_datasets': self.input_datasets,
+            'output_datasets': self.get_resulting_datasets()
+        }
 
     def __repr__(self):
         return str(self)

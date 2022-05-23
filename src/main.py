@@ -11,7 +11,7 @@ import requests_cache
 from mcts.searcher.mcts import MCTS
 from openml import OpenMLTask
 
-from src.config.config import load_open_ml_operation
+from src.config.config import load_open_ml_operation, verbose_level, max_actions_per_pipeline
 from src.helper.expert_policy import model3_policy
 from src.helper.helper_factory import HelperFactory
 from src.helper.serializer import TMCSerializer
@@ -28,7 +28,7 @@ def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
                                                                {'type': 1, 'id': uuid.uuid4()}],
                                            producing_operation=load_open_ml_operation,
                                            max_look_ahead=10,
-                                           verbose=0)
+                                           verbose=verbose_level)
 
     raise Exception('Task type not supported')
 
@@ -53,7 +53,8 @@ if __name__ == '__main__':
         pipeline = {
             'actions': [{
                 'operation': currentState.producing_operation,
-                'input_datasets': currentState.available_datasets
+                'input_datasets': [],
+                'output_dataset': currentState.available_datasets
             }],
             'pipeline_id': uuid.uuid4(),
             'started_at': math.floor(time.time()),
@@ -68,7 +69,7 @@ if __name__ == '__main__':
             currentState = currentState.take_action(action)
             currentState.look_ahead_cnt = 0
             print("(%d) *** %s " % (currentState.depth, action))
-            if len(pipeline['actions']) > 30:
+            if len(pipeline['actions']) > max_actions_per_pipeline:
                 pipeline['abort'] = True
                 print("Aborting pipeline")
                 break

@@ -1,24 +1,34 @@
+# Static configuration values for the application with defaults
+max_dataset_inputs_per_operation = 4
+# default to score operation
+terminal_operation_ids = ['067c7cd4-87f6-43e2-a733-26e5c51ef875']
+base_url_pipeline_service = "https://hanse.allteams.at/api/pipeline"
+base_url_learning_service = "https://hanse.allteams.at/api/learning"
+api_user = 'api_user'
+api_secret = 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
+verbose_level = 0
+max_actions_per_pipeline = 30
+
+
 def get_terminal_operation_ids():
-    return ['067c7cd4-87f6-43e2-a733-26e5c51ef875', '0b60e908-fae2-4d33-aa81-5d1fdc706c12']
+    return terminal_operation_ids
 
 
 def get_api_base_url_pipeline_service():
-    return "https://hanse.allteams.at/api/pipeline"
+    return base_url_pipeline_service
 
 
 def get_api_base_url_learning_service():
-    return "https://hanse.allteams.at/api/learning"
+    return base_url_learning_service
 
 
 def get_api_user():
-    return 'api_user'
+    return api_user
 
 
 def get_api_secret():
-    return 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
+    return api_secret
 
-
-max_dataset_inputs_per_operation = 4
 
 load_open_ml_operation = {
     "operationId": "9c876745-9d61-4b0b-a32a-2de523b44d0b",
