@@ -8,6 +8,8 @@ api_user = 'api_user'
 api_secret = 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
 verbose_level = 0
 max_actions_per_pipeline = 30
+partial_rewards_for_max_lookahead = 0.5
+variance_reward_factor = 0.3
 
 
 def get_terminal_operation_ids():

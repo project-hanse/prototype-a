@@ -3,9 +3,10 @@ import random
 import uuid
 from itertools import product
 
+import numpy as np
 from mcts.base.base import BaseState, BaseAction
 
-from src.config.config import get_terminal_operation_ids, max_dataset_inputs_per_operation
+from src.config.config import *
 from src.helper.helper_factory import HelperFactory
 
 
@@ -77,7 +78,7 @@ class PipelineBuildingState(BaseState):
             for available_dataset in self.available_datasets:
                 # only add a dataset to the newly available if it is not an input of the operation (= processed by the
                 # operation)
-                if available_dataset['id'] not in [dataset['id'] for dataset in action.input_datasets]:
+                if available_dataset['key'] not in [dataset['key'] for dataset in action.input_datasets]:
                     new_available_datasets.append(available_dataset)
         else:
             # keep all existing available datasets + the newly computed dataset
@@ -121,16 +122,22 @@ class PipelineBuildingState(BaseState):
         if self.producing_operation is None:
             return 0
         if self.look_ahead_cnt >= self.max_look_ahead:
-            # no reward if maximum look ahead is reached
-            return 0
+            return partial_rewards_for_max_lookahead * self.reward_function(self.depth)
         if self.producing_operation['operationId'] in self.terminal_operation_ids:
             return self.reward_function(self.depth)
         return False
 
+    def get_variance_of_available_datasets(self) -> float:
+        datatypes = [dataset['type'] for dataset in self.available_datasets]
+        if len(datatypes) == 0:
+            return 0
+        return np.var(datatypes)
+
     def reward_function(self, depth):
         # punish greater depth
         negative_reward_from = 5
-        return (negative_reward_from / (negative_reward_from * (math.log(depth, negative_reward_from) + 1))) - 1
+        return ((negative_reward_from / (negative_reward_from * (math.log(depth, negative_reward_from) + 1))) - 1) + (
+                self.get_variance_of_available_datasets() * variance_reward_factor)
 
     def get_datatype_vector(self, dataset_combination):
         vector = []
@@ -148,6 +155,7 @@ class Action(BaseAction):
         self.operation = operation
         # the datasets that are used in the operation
         self.input_datasets = input_datasets
+        self.output_datasets = None
 
     def get_dict(self) -> dict:
         return {
@@ -173,7 +181,9 @@ class Action(BaseAction):
         return self.operation['outputTypes']
 
     def get_resulting_datasets(self) -> [{}]:
-        new_datasets = []
+        if self.output_datasets is not None:
+            return self.output_datasets
+        self.output_datasets = []
         for output_type in self.operation['outputTypes']:
-            new_datasets.append({'type': output_type, 'id': uuid.uuid4()})
-        return new_datasets
+            self.output_datasets.append({'type': output_type, 'key': uuid.uuid4()})
+        return self.output_datasets
