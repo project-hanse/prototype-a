@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Http;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -40,8 +39,10 @@ namespace PipelineService.UnitTests.Services
 		{
 			// mock IPipelineDao
 			var mockPipelineDao = new Mock<IPipelinesDao>();
+			var mockOperationsService = new Mock<IOperationsService>();
 
-			mockPipelineDao.Setup(s => s.CreatePipeline(It.IsAny<Pipeline>())).Returns(Task.CompletedTask);
+			mockPipelineDao.Setup(s => s.CreatePipeline(It.IsAny<Pipeline>()))
+				.Returns(Task.CompletedTask);
 			mockPipelineDao.Setup(s => s.CreateRootOperation(It.IsAny<Guid>(), It.IsAny<Operation>()))
 				.Returns(Task.CompletedTask);
 			mockPipelineDao.Setup(s => s.CreateSuccessor(It.IsAny<List<Guid>>(), It.IsAny<Operation>()))
@@ -58,6 +59,7 @@ namespace PipelineService.UnitTests.Services
 					{ "PipelineCandidatesFolder", Path.Combine("Resources", "PipelineCandidates") }
 				}),
 				mockPipelineDao.Object,
+				mockOperationsService.Object,
 				mockHttpClientFactory.Object
 			);
 

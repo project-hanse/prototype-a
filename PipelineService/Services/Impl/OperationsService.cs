@@ -215,6 +215,7 @@ namespace PipelineService.Services.Impl
 			response.OperationId = newOperation.Id;
 			response.PipelineId = request.PipelineId;
 			response.Success = true;
+			response.ResultingDatasets = newOperation.Outputs;
 			return response;
 		}
 

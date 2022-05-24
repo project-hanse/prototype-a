@@ -48,6 +48,9 @@ public class PipelineCandidate
 
 	[JsonProperty("created_by")]
 	public string CreatedBy { get; set; }
+
+	[JsonProperty("abort")]
+	public bool? Aborted { get; set; }
 }
 
 /// <summary>
@@ -61,4 +64,7 @@ public class PipelineAction
 
 	[JsonProperty("input_datasets")]
 	public IList<Dataset> InputDatasets { get; set; }
+
+	[JsonProperty("output_datasets")]
+	public IList<Dataset> OutputDatasets { get; set; }
 }

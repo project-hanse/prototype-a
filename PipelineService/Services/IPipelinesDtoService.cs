@@ -20,5 +20,6 @@ namespace PipelineService.Services
 		public Task<Guid> ImportPipeline(PipelineExport exportObject);
 
 		public Task<Guid> ImportPipelineCandidate(PipelineCandidate	pipelineCandidate);
+		public string PipelineCandidatesPath { get; }
 	}
 }

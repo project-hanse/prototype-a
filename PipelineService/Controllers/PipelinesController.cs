@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
-using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
@@ -151,6 +150,22 @@ namespace PipelineService.Controllers
 			Response.Headers.Add("Content-Length", stream.Length.ToString());
 			Response.ContentType = "plain/text";
 			stream.WriteTo(Response.BodyWriter.AsStream());
+		}
+
+		[HttpGet("import-candidate/{pipelineFileName}")]
+		public async Task<IActionResult> ImportPipelineCandidate(string pipelineFileName)
+		{
+
+			// arrange
+			var pipelineCandidate =
+				JsonConvert.DeserializeObject<PipelineCandidate>(
+					await System.IO.File.ReadAllTextAsync(
+						Path.Combine(_pipelinesDtoService.PipelineCandidatesPath, pipelineFileName)));
+
+			// act
+			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(pipelineCandidate);
+
+			return Ok(pipelineId);
 		}
 
 		[HttpPost("import")]
