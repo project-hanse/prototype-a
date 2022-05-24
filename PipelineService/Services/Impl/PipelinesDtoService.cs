@@ -261,6 +261,14 @@ namespace PipelineService.Services.Impl
 					continue;
 				}
 
+				var updateConfig = await _operationsService
+					.UpdateConfig(pipeline.Id, response.OperationId, action.Operation.DefaultConfig);
+				if (!updateConfig)
+				{
+					_logger.LogWarning("Failed to update configuration for operation {OperationId} in pipeline {PipelineId}",
+						action.Operation.OperationId, pipeline.Id);
+				}
+
 				if (response.ResultingDatasets.Count != action.OutputDatasets.Count)
 				{
 					throw new InvalidDataException(
