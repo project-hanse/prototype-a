@@ -23,12 +23,14 @@ open_ml_task_ids = [31]
 def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
     task = openml.tasks.get_task(random.choice(open_ml_task_ids))
     if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
-        return task, PipelineBuildingState(helper_factory=HelperFactory(),
+        state = PipelineBuildingState(helper_factory=HelperFactory(),
                                            available_datasets=[{'type': 2, 'key': uuid.uuid4()},
                                                                {'type': 1, 'key': uuid.uuid4()}],
                                            producing_operation=load_open_ml_operation,
                                            max_look_ahead=10,
                                            verbose=verbose_level)
+        state.producing_operation['defaultConfig']['data_id'] = task.dataset_id
+        return task, state
 
     raise Exception('Task type not supported')
 
