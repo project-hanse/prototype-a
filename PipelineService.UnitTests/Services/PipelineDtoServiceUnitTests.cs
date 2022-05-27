@@ -23,15 +23,7 @@ namespace PipelineService.UnitTests.Services
 			"beer-australia.json"
 		};
 
-		private static string[] _pipelineCandidateFileNames =
-		{
-			"pipeline-1652383756.json",
-			"pipeline-1652384137.json",
-			"pipeline-1652384281.json"
-		};
-
 		private string _defaultPipelinesPath;
-		private string _pipelineCandidatesPath;
 		private IPipelinesDtoService _pipelinesDtoService;
 
 		[SetUp]
@@ -64,7 +56,6 @@ namespace PipelineService.UnitTests.Services
 			);
 
 			_defaultPipelinesPath = pipelinesDtoService.DefaultPipelinesPath;
-			_pipelineCandidatesPath = pipelinesDtoService.PipelineCandidatesPath;
 			_pipelinesDtoService = pipelinesDtoService;
 		}
 
@@ -85,27 +76,6 @@ namespace PipelineService.UnitTests.Services
 			// assert
 			Assert.NotNull(pipelineId);
 			Assert.AreNotEqual(pipelineExport.PipelineId, pipelineId);
-			Assert.AreNotEqual(Guid.Empty, pipelineId);
-		}
-
-		[Test]
-		[TestCaseSource(nameof(_pipelineCandidateFileNames))]
-		public async Task ImportPipelineCandidate_ShouldGeneratePipelineFromCandidate_ReturnPipelineGuid(
-			string pipelineFileName)
-		{
-			// arrange
-			var pipelineCandidate =
-				JsonConvert.DeserializeObject<PipelineCandidate>(
-					await File.ReadAllTextAsync(
-						Path.Combine(_pipelineCandidatesPath, pipelineFileName)));
-			Assert.NotNull(pipelineCandidate, "Fail to load pipeline candidate from file");
-
-			// act
-			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(pipelineCandidate);
-
-			// assert
-			Assert.NotNull(pipelineId);
-			Assert.AreNotEqual(pipelineCandidate.PipelineId, pipelineId);
 			Assert.AreNotEqual(Guid.Empty, pipelineId);
 		}
 	}

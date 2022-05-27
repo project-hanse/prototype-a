@@ -27,10 +27,6 @@ namespace PipelineService.Services.Impl
 			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
 			_configuration.GetValue("DefaultPipelinesFolder", ""));
 
-		public string PipelineCandidatesPath => Path.Combine(
-			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
-			_configuration.GetValue("PipelineCandidatesFolder", ""));
-
 		public PipelinesDtoService(ILogger<PipelinesDtoService> logger,
 			IConfiguration configuration,
 			IPipelinesDao pipelinesDao,

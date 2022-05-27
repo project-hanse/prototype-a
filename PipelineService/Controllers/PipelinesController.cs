@@ -18,15 +18,18 @@ namespace PipelineService.Controllers
 		private readonly ILogger<PipelinesController> _logger;
 		private readonly IPipelineExecutionService _pipelineExecutionService;
 		private readonly IPipelinesDtoService _pipelinesDtoService;
+		private readonly IPipelineCandidateService _pipelineCandidateService;
 
 		public PipelinesController(
 			ILogger<PipelinesController> logger,
 			IPipelineExecutionService pipelineExecutionService,
-			IPipelinesDtoService pipelinesDtoService)
+			IPipelinesDtoService pipelinesDtoService,
+			IPipelineCandidateService pipelineCandidateService)
 		{
 			_logger = logger;
 			_pipelineExecutionService = pipelineExecutionService;
 			_pipelinesDtoService = pipelinesDtoService;
+			_pipelineCandidateService = pipelineCandidateService;
 		}
 
 		[HttpGet("create/defaults")]
@@ -152,18 +155,22 @@ namespace PipelineService.Controllers
 			stream.WriteTo(Response.BodyWriter.AsStream());
 		}
 
-		[HttpGet("import-candidate/{pipelineFileName}")]
-		public async Task<IActionResult> ImportPipelineCandidate(string pipelineFileName)
+		[HttpGet("candidate")]
+		public async Task<IList<PipelineCandidate>> GetPipelineCandidates()
 		{
+			return await _pipelineCandidateService.GetPipelineCandidateDtos();
+		}
 
-			// arrange
-			var pipelineCandidate =
-				JsonConvert.DeserializeObject<PipelineCandidate>(
-					await System.IO.File.ReadAllTextAsync(
-						Path.Combine(_pipelinesDtoService.PipelineCandidatesPath, pipelineFileName)));
-
-			// act
-			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(pipelineCandidate);
+		[HttpGet("candidate/import/{pipelineCandidateId:Guid}")]
+		public async Task<IActionResult> ImportPipelineCandidate(Guid pipelineCandidateId,
+			[FromQuery] bool deleteAfterImport = false)
+		{
+			var candidate = await _pipelineCandidateService.GetCandidateById(pipelineCandidateId);
+			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(candidate);
+			if (deleteAfterImport)
+			{
+				await _pipelineCandidateService.DeletePipelineCandidate(pipelineCandidateId);
+			}
 
 			return Ok(pipelineId);
 		}

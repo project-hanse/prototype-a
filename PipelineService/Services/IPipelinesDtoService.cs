@@ -19,7 +19,6 @@ namespace PipelineService.Services
 		/// <returns></returns>
 		public Task<Guid> ImportPipeline(PipelineExport exportObject);
 
-		public Task<Guid> ImportPipelineCandidate(PipelineCandidate	pipelineCandidate);
-		public string PipelineCandidatesPath { get; }
+		public Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate);
 	}
 }

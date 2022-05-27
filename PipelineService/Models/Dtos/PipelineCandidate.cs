@@ -51,6 +51,8 @@ public class PipelineCandidate
 
 	[JsonProperty("abort")]
 	public bool? Aborted { get; set; }
+
+	public string SourceFileName { get; set; }
 }
 
 /// <summary>

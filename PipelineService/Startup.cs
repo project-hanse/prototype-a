@@ -62,6 +62,7 @@ namespace PipelineService
 			services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
 			services.AddSingleton<IPipelinesDaoInMemory, InMemoryPipelinesDaoInMemory>();
 			services.AddSingleton<IPipelinesDao, Neo4JPipelinesDao>();
+			services.AddSingleton<IPipelineCandidateDao, PipelineCandidateDaoFileSystem>();
 
 			// Registering transient services
 			services.AddTransient<IHashService, HashService>();
@@ -69,6 +70,7 @@ namespace PipelineService
 			services.AddTransient<IOperationsService, OperationsService>();
 			services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
 			services.AddTransient<IOperationTemplatesService, OperationTemplatesService>();
+			services.AddTransient<IPipelineCandidateService, PipelineCandidateService>();
 
 			services.AddHostedService<HostedSubscriptionService>();
 
