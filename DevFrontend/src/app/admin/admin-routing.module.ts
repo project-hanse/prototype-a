@@ -12,6 +12,10 @@ const routes: Routes = [
 		loadChildren: () => import('./model/model.module').then(m => m.ModelModule)
 	},
 	{
+		path: 'pipeline-candidates',
+		loadChildren: () => import('./pipeline-candidates/pipeline-candidates.module').then(m => m.PipelineCandidatesModule)
+	},
+	{
 		path: '',
 		redirectTo: 'panel',
 		pathMatch: 'full'

@@ -37,6 +37,7 @@ namespace PipelineService.Models.Dtos
 		public string SourceUrl { get; set; }
 		public Dictionary<string, string> DefaultConfig { get; set; }
 
-		[Obsolete("Replaced by OutputType")] public string Returns { get; set; }
+		[Obsolete("Replaced by OutputType")]
+		public string Returns { get; set; }
 	}
 }

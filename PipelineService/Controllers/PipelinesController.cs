@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
-using PipelineService.Models.Pipeline;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
@@ -19,15 +18,18 @@ namespace PipelineService.Controllers
 		private readonly ILogger<PipelinesController> _logger;
 		private readonly IPipelineExecutionService _pipelineExecutionService;
 		private readonly IPipelinesDtoService _pipelinesDtoService;
+		private readonly IPipelineCandidateService _pipelineCandidateService;
 
 		public PipelinesController(
 			ILogger<PipelinesController> logger,
 			IPipelineExecutionService pipelineExecutionService,
-			IPipelinesDtoService pipelinesDtoService)
+			IPipelinesDtoService pipelinesDtoService,
+			IPipelineCandidateService pipelineCandidateService)
 		{
 			_logger = logger;
 			_pipelineExecutionService = pipelineExecutionService;
 			_pipelinesDtoService = pipelinesDtoService;
+			_pipelineCandidateService = pipelineCandidateService;
 		}
 
 		[HttpGet("create/defaults")]
@@ -151,6 +153,27 @@ namespace PipelineService.Controllers
 			Response.Headers.Add("Content-Length", stream.Length.ToString());
 			Response.ContentType = "plain/text";
 			stream.WriteTo(Response.BodyWriter.AsStream());
+		}
+
+		[HttpGet("candidate")]
+		public async Task<PaginatedList<PipelineCandidate>> GetPipelineCandidates([FromQuery] Pagination pagination)
+		{
+			return await _pipelineCandidateService.GetPipelineCandidateDtos(pagination);
+		}
+
+		[HttpGet("candidate/import/{pipelineCandidateId:Guid}")]
+		public async Task<IActionResult> ImportPipelineCandidate(Guid pipelineCandidateId,
+			[FromQuery] bool deleteAfterImport = false,
+			[FromQuery] string username = null)
+		{
+			var candidate = await _pipelineCandidateService.GetCandidateById(pipelineCandidateId);
+			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(candidate, username);
+			if (deleteAfterImport)
+			{
+				await _pipelineCandidateService.DeletePipelineCandidate(pipelineCandidateId);
+			}
+
+			return Ok(pipelineId);
 		}
 
 		[HttpPost("import")]

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Moq;
 using Newtonsoft.Json;
@@ -30,18 +31,29 @@ namespace PipelineService.UnitTests.Services
 		{
 			// mock IPipelineDao
 			var mockPipelineDao = new Mock<IPipelinesDao>();
+			var mockOperationsService = new Mock<IOperationsService>();
 
-			mockPipelineDao.Setup(s => s.CreatePipeline(It.IsAny<Pipeline>())).Returns(Task.CompletedTask);
-			mockPipelineDao.Setup(s => s.CreateRootOperation(It.IsAny<Guid>(), It.IsAny<Operation>())).Returns(Task.CompletedTask);
-			mockPipelineDao.Setup(s => s.CreateSuccessor(It.IsAny<List<Guid>>(), It.IsAny<Operation>())).Returns(Task.CompletedTask);
+			mockPipelineDao.Setup(s => s.CreatePipeline(It.IsAny<Pipeline>()))
+				.Returns(Task.CompletedTask);
+			mockPipelineDao.Setup(s => s.CreateRootOperation(It.IsAny<Guid>(), It.IsAny<Operation>()))
+				.Returns(Task.CompletedTask);
+			mockPipelineDao.Setup(s => s.CreateSuccessor(It.IsAny<List<Guid>>(), It.IsAny<Operation>()))
+				.Returns(Task.CompletedTask);
+
+			var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+			mockHttpClientFactory.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
 
 			var pipelinesDtoService = new PipelinesDtoService(
 				GeneralHelper.CreateLogger<PipelinesDtoService>(),
 				GeneralHelper.Configuration(new Dictionary<string, string>()
 				{
-					{ "DefaultPipelinesFolder", "Resources/DefaultPipelines" }
+					{ "DefaultPipelinesFolder", Path.Combine("Resources", "DefaultPipelines") },
+					{ "PipelineCandidatesFolder", Path.Combine("Resources", "PipelineCandidates") }
 				}),
-				mockPipelineDao.Object);
+				mockPipelineDao.Object,
+				mockOperationsService.Object,
+				mockHttpClientFactory.Object
+			);
 
 			_defaultPipelinesPath = pipelinesDtoService.DefaultPipelinesPath;
 			_pipelinesDtoService = pipelinesDtoService;
@@ -66,69 +78,5 @@ namespace PipelineService.UnitTests.Services
 			Assert.AreNotEqual(pipelineExport.PipelineId, pipelineId);
 			Assert.AreNotEqual(Guid.Empty, pipelineId);
 		}
-
-		// private static NodeTupleTestCase[] _getNodeTupleTestCases =
-		// {
-		//     new()
-		//     {
-		//         Pipeline = HardcodedDefaultPipelines.MelbourneHousingPipeline(),
-		//         ExpectedSingleInputTuples = 3,
-		//         ExpectedDoubleInputTuples = 0
-		//     },
-		//     new()
-		//     {
-		//         Pipeline = HardcodedDefaultPipelines.InfluenzaInterpolation(),
-		//         ExpectedSingleInputTuples = 3,
-		//         ExpectedDoubleInputTuples = 0
-		//     },
-		//     new()
-		//     {
-		//         Pipeline = HardcodedDefaultPipelines.ChemnitzStudentAndJobsPipeline(),
-		//         ExpectedSingleInputTuples = 13,
-		//         ExpectedDoubleInputTuples = 1
-		//     }
-		// };
-		//
-		// private IPipelinesDaoInMemory _pipelinesDaoInMemory;
-		// private IPipelinesExecutionDao _pipelinesExecutionDao;
-		// private IPipelinesDtoService _pipelinesDtoService;
-		//
-		// [SetUp]
-		// public void SetUp()
-		// {
-		//     var mock = new Mock<IPipelinesExecutionDao>();
-		//     mock.Setup(dao => dao.GetLastExecutionForPipeline(It.IsAny<Guid>()))
-		//         .ReturnsAsync((Guid pipelineId) => new PipelineExecutionRecord
-		//         {
-		//             PipelineId = pipelineId,
-		//             CompletedOn = DateTime.UtcNow
-		//         });
-		//     _pipelinesExecutionDao = mock.Object;
-		//
-		//     _pipelinesDaoInMemory = new InMemoryPipelinesDaoInMemory(GeneralHelper.CreateLogger<InMemoryPipelinesDaoInMemory>());
-		//     _pipelinesDtoService = new PipelinesDtoService(_pipelinesDaoInMemory, _pipelinesExecutionDao);
-		// }
-		//
-		// [Test]
-		// [TestCaseSource(nameof(_getNodeTupleTestCases))]
-		// public async Task GetSingleInputNodeTuples_ExecutedPipeline(NodeTupleTestCase testCase)
-		// {
-		//     // arrange
-		//     await _pipelinesDaoInMemory.Add(testCase.Pipeline);
-		//
-		//     // act
-		//     var results = await _pipelinesDtoService.GetSingleInputNodeTuples(testCase.Pipeline.Id);
-		//
-		//     // assert
-		//     Assert.NotNull(results);
-		//     Assert.AreEqual(testCase.ExpectedSingleInputTuples, results.Count);
-		// }
-	}
-
-	public class NodeTupleTestCase
-	{
-		public Pipeline Pipeline { get; set; }
-		public int ExpectedSingleInputTuples { get; set; }
-		public int ExpectedDoubleInputTuples { get; set; }
 	}
 }

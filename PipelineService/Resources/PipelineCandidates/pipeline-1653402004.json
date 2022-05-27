@@ -1,0 +1,601 @@
+{
+	"actions": [
+		{
+			"operation": {
+				"operationId": "9c876745-9d61-4b0b-a32a-2de523b44d0b",
+				"operationName": "load_data_from_openml",
+				"operationFullName": "openml.datasets.load",
+				"inputTypes": [],
+				"outputType": null,
+				"outputTypes": [
+					2,
+					1
+				],
+				"framework": "openml",
+				"frameworkVersion": "1.0.0",
+				"sectionTitle": "OpenML",
+				"title": "openml.datasets.load",
+				"description": "Fetch dataset from OpenML by name or dataset id.",
+				"signature": "load_data_from_openml",
+				"signatureName": null,
+				"returnsDescription": null,
+				"sourceUrl": "https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_openml.html",
+				"defaultConfig": {
+					"name": null,
+					"version": "active",
+					"data_id": 31,
+					"data_home": null,
+					"target_column": "default-target",
+					"cache": "true"
+				},
+				"returns": "Dataframes"
+			},
+			"input_datasets": [],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "8be0979e-30c6-4381-a8ef-5be87997e877"
+				},
+				{
+					"type": 1,
+					"key": "3fce9463-9ed6-46a9-9c17-941c926a2913"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+				"operationName": "dropna",
+				"operationFullName": "pandas.DataFrame.dropna",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Missing data handling",
+				"title": "pandas.DataFrame.dropna",
+				"description": "Remove missing values.",
+				"signature": "DataFrame.dropna(axis=0, how='any', thresh=None, subset=None)",
+				"signatureName": "dropna",
+				"returnsDescription": "DataFrame with NA entries dropped from it or None if inplace=True.",
+				"sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/frame.py#L5827-L5975",
+				"defaultConfig": {
+					"axis": "0",
+					"how": "any",
+					"thresh": "None",
+					"subset": "None"
+				},
+				"returns": "DataFrame or None"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "8be0979e-30c6-4381-a8ef-5be87997e877"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "8610d66c-26b2-4835-b980-f37eaf249e91"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+				"operationName": "unstack",
+				"operationFullName": "pandas.DataFrame.unstack",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Reshaping, sorting, transposing",
+				"title": "pandas.DataFrame.unstack",
+				"description": "Pivot a level of the (necessarily hierarchical) index labels.",
+				"signature": "DataFrame.unstack(level=- 1, fill_value=None)",
+				"signatureName": "unstack",
+				"returnsDescription": "",
+				"sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/frame.py#L8266-L8327",
+				"defaultConfig": {
+					"level": "- 1",
+					"fill_value": "None"
+				},
+				"returns": "Series or DataFrame"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "8610d66c-26b2-4835-b980-f37eaf249e91"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "517e96bf-3687-4e05-a605-5acbb2b96af3"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+				"operationName": "ewm",
+				"operationFullName": "pandas.DataFrame.ewm",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Function application, GroupBy & window",
+				"title": "pandas.DataFrame.ewm",
+				"description": "Provide exponential weighted (EW) functions.",
+				"signature": "DataFrame.ewm(com=None, span=None, halflife=None, alpha=None, min_periods=0, adjust=True, ignore_na=False, axis=0, times=None)",
+				"signatureName": "ewm",
+				"returnsDescription": "A Window sub-classed for the particular operation.",
+				"sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/generic.py#L10903-L10931",
+				"defaultConfig": {
+					"com": "None",
+					"span": "None",
+					"halflife": "None",
+					"alpha": "None",
+					"min_periods": "0",
+					"adjust": "True",
+					"ignore_na": "False",
+					"axis": "0",
+					"times": "None"
+				},
+				"returns": "DataFrame"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "517e96bf-3687-4e05-a605-5acbb2b96af3"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "cf48115e-8669-4ce4-ab41-4e45ef1deed2"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "36564f26-f147-47f1-95fb-884dba993494",
+				"operationName": "classifier_svc",
+				"operationFullName": "sklearn.classifiers.svc",
+				"inputTypes": [
+					2,
+					1
+				],
+				"outputType": 5,
+				"outputTypes": [
+					5
+				],
+				"framework": "scikit-learn",
+				"frameworkVersion": "1.0.2",
+				"sectionTitle": "SciKit Learn",
+				"title": "sklearn.classifiers.svc",
+				"description": "Creates and fits a C-Support Vector Classification model",
+				"signature": null,
+				"signatureName": null,
+				"returnsDescription": null,
+				"sourceUrl": null,
+				"defaultConfig": {
+					"C": "1.0",
+					"kernel": "rbf",
+					"degree": "3",
+					"gamma": "scale",
+					"coef0": "0.0",
+					"shrinking": "true",
+					"probability": "false",
+					"tol": "0.001",
+					"cache_size": "200",
+					"class_weight": null,
+					"verbose": "false",
+					"max_iter": "-1",
+					"decision_function_shape": "ovr",
+					"break_ties": "false",
+					"random_state": null
+				},
+				"returns": "SVC"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "cf48115e-8669-4ce4-ab41-4e45ef1deed2"
+				},
+				{
+					"type": 1,
+					"key": "3fce9463-9ed6-46a9-9c17-941c926a2913"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 5,
+					"key": "bc6c1ed5-a812-423c-adbc-6f507897f7d8"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+				"operationName": "rename",
+				"operationFullName": "pandas.DataFrame.rename",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Reindexing / selection / label manipulation",
+				"title": "pandas.DataFrame.rename",
+				"description": "Alter axes labels.",
+				"signature": "DataFrame.rename(mapper=None, index=None, columns=None, axis=None, copy=True, level=None, errors='ignore')",
+				"signatureName": "rename",
+				"returnsDescription": "DataFrame with the renamed axis labels or None if inplace=True.",
+				"sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/frame.py#L4916-L5048",
+				"defaultConfig": {
+					"mapper": "None",
+					"index": "None",
+					"columns": "None",
+					"axis": "None",
+					"copy": "True",
+					"level": "None",
+					"errors": "ignore"
+				},
+				"returns": "DataFrame or None"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "cf48115e-8669-4ce4-ab41-4e45ef1deed2"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "04a04ab6-6fe6-4adf-852a-57faf0a09e47"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+				"operationName": "pivot_table",
+				"operationFullName": "pandas.DataFrame.pivot_table",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Reshaping, sorting, transposing",
+				"title": "pandas.DataFrame.pivot_table",
+				"description": "Create a spreadsheet-style pivot table as a DataFrame.",
+				"signature": "DataFrame.pivot_table(values=None, index=None, columns=None, aggfunc='mean', fill_value=None, margins=False, dropna=True, margins_name='All', observed=False, sort=True)",
+				"signatureName": "pivot_table",
+				"returnsDescription": "An Excel style pivot table.",
+				"sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/frame.py#L7934-L7963",
+				"defaultConfig": {
+					"values": "None",
+					"index": "None",
+					"columns": "None",
+					"aggfunc": "mean",
+					"fill_value": "None",
+					"margins": "False",
+					"dropna": "True",
+					"margins_name": "All",
+					"observed": "False",
+					"sort": "True"
+				},
+				"returns": "DataFrame"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "04a04ab6-6fe6-4adf-852a-57faf0a09e47"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "22d06e45-f9fa-4466-ab9c-dca5740e2a81"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "46ae1799-92f0-4337-b06b-de2c981f4ed9",
+				"operationName": "classifier_predict",
+				"operationFullName": "sklearn.classifiers.predict",
+				"inputTypes": [
+					5,
+					2
+				],
+				"outputType": null,
+				"outputTypes": [
+					1
+				],
+				"framework": "scikit-learn",
+				"frameworkVersion": "1.0.2",
+				"sectionTitle": "SciKit Learn",
+				"title": "sklearn.classifiers.predict",
+				"description": "Predicts labels using a classifier.",
+				"signature": null,
+				"signatureName": null,
+				"returnsDescription": null,
+				"sourceUrl": null,
+				"defaultConfig": {
+					"prediction_column_name": "prediction"
+				},
+				"returns": "PdSeries"
+			},
+			"input_datasets": [
+				{
+					"type": 5,
+					"key": "bc6c1ed5-a812-423c-adbc-6f507897f7d8"
+				},
+				{
+					"type": 2,
+					"key": "22d06e45-f9fa-4466-ab9c-dca5740e2a81"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 1,
+					"key": "f8f6ad6e-b6e3-4cf6-9930-de23d6e22089"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+				"operationName": "isnull",
+				"operationFullName": "pandas.DataFrame.isnull",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Missing data handling",
+				"title": "pandas.DataFrame.isnull",
+				"description": "Detect missing values.",
+				"signature": "DataFrame.isnull()",
+				"signatureName": "isnull",
+				"returnsDescription": "Mask of bool values for each element in DataFrame that\nindicates whether an element is an NA value.",
+				"sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/frame.py#L5815-L5817",
+				"defaultConfig": {
+					"": ""
+				},
+				"returns": "DataFrame"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "22d06e45-f9fa-4466-ab9c-dca5740e2a81"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "cec13489-6fda-4fd7-bcea-220b27e6496a"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "de26c7a0-0444-414d-826f-458cd3b8979c",
+				"operationName": "set_index",
+				"operationFullName": "OpIdPdSingleSetIndex",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Custom Operations",
+				"title": "OpIdPdSingleSetIndex",
+				"description": null,
+				"signature": null,
+				"signatureName": null,
+				"returnsDescription": null,
+				"sourceUrl": null,
+				"defaultConfig": {
+					"keys": null,
+					"drop": "true"
+				},
+				"returns": "DataFrame"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "cec13489-6fda-4fd7-bcea-220b27e6496a"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "a72ea144-14de-4192-a6eb-fcdd77e78538"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "36564f26-f147-47f1-95fb-884dba993494",
+				"operationName": "classifier_svc",
+				"operationFullName": "sklearn.classifiers.svc",
+				"inputTypes": [
+					2,
+					1
+				],
+				"outputType": 5,
+				"outputTypes": [
+					5
+				],
+				"framework": "scikit-learn",
+				"frameworkVersion": "1.0.2",
+				"sectionTitle": "SciKit Learn",
+				"title": "sklearn.classifiers.svc",
+				"description": "Creates and fits a C-Support Vector Classification model",
+				"signature": null,
+				"signatureName": null,
+				"returnsDescription": null,
+				"sourceUrl": null,
+				"defaultConfig": {
+					"C": "1.0",
+					"kernel": "rbf",
+					"degree": "3",
+					"gamma": "scale",
+					"coef0": "0.0",
+					"shrinking": "true",
+					"probability": "false",
+					"tol": "0.001",
+					"cache_size": "200",
+					"class_weight": null,
+					"verbose": "false",
+					"max_iter": "-1",
+					"decision_function_shape": "ovr",
+					"break_ties": "false",
+					"random_state": null
+				},
+				"returns": "SVC"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "a72ea144-14de-4192-a6eb-fcdd77e78538"
+				},
+				{
+					"type": 1,
+					"key": "f8f6ad6e-b6e3-4cf6-9930-de23d6e22089"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 5,
+					"key": "f6bf2a04-cd9b-4ed4-b65d-60fce4fe71e4"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "0759dede-2cee-433c-b314-10a8fa456e62",
+				"operationName": "droplevel",
+				"operationFullName": "pandas.DataFrame.droplevel",
+				"inputTypes": [
+					2
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "pandas",
+				"frameworkVersion": "1.3.3",
+				"sectionTitle": "Reshaping, sorting, transposing",
+				"title": "pandas.DataFrame.droplevel",
+				"description": "Return Series/DataFrame with requested index / column level(s) removed.",
+				"signature": "DataFrame.droplevel(level, axis=0)",
+				"signatureName": "droplevel",
+				"returnsDescription": "Series/DataFrame with requested index / column level(s) removed.",
+				"sourceUrl": "https://github.com/pandas-dev/pandas/blob/v1.3.3/pandas/core/generic.py#L806-L867",
+				"defaultConfig": {
+					"level": "",
+					"axis": "0"
+				},
+				"returns": "Series/DataFrame"
+			},
+			"input_datasets": [
+				{
+					"type": 2,
+					"key": "a72ea144-14de-4192-a6eb-fcdd77e78538"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "adedf14c-7985-4b12-a8b8-b7fefd225d49"
+				}
+			]
+		},
+		{
+			"operation": {
+				"operationId": "067c7cd4-87f6-43e2-a733-26e5c51ef875",
+				"operationName": "classifier_score",
+				"operationFullName": "sklearn.classifiers.score",
+				"inputTypes": [
+					5,
+					2,
+					1
+				],
+				"outputType": 2,
+				"outputTypes": [
+					2
+				],
+				"framework": "scikit-learn",
+				"frameworkVersion": "1.0.2",
+				"sectionTitle": "SciKit Learn",
+				"title": "sklearn.classifiers.score",
+				"description": "Scores a classifier on test data",
+				"signature": null,
+				"signatureName": null,
+				"returnsDescription": null,
+				"sourceUrl": null,
+				"defaultConfig": {},
+				"returns": "DataFrame"
+			},
+			"input_datasets": [
+				{
+					"type": 5,
+					"key": "bc6c1ed5-a812-423c-adbc-6f507897f7d8"
+				},
+				{
+					"type": 2,
+					"key": "adedf14c-7985-4b12-a8b8-b7fefd225d49"
+				},
+				{
+					"type": 1,
+					"key": "f8f6ad6e-b6e3-4cf6-9930-de23d6e22089"
+				}
+			],
+			"output_datasets": [
+				{
+					"type": 2,
+					"key": "980cf8fd-244e-49ad-8a18-ee036afbb38e"
+				}
+			]
+		}
+	],
+	"pipeline_id": "7c5a1295-49d4-4bf3-903c-81262dff629b",
+	"started_at": 1653401754,
+	"task_id": 31,
+	"dataset_id": 31,
+	"task_type_id": "TaskType.SUPERVISED_CLASSIFICATION",
+	"batch_number": 0,
+	"completed_at": 1653402004
+}
