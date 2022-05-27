@@ -19,6 +19,6 @@ namespace PipelineService.Services
 		/// <returns></returns>
 		public Task<Guid> ImportPipeline(PipelineExport exportObject);
 
-		public Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate);
+		public Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate, string username = null);
 	}
 }

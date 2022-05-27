@@ -163,10 +163,11 @@ namespace PipelineService.Controllers
 
 		[HttpGet("candidate/import/{pipelineCandidateId:Guid}")]
 		public async Task<IActionResult> ImportPipelineCandidate(Guid pipelineCandidateId,
-			[FromQuery] bool deleteAfterImport = false)
+			[FromQuery] bool deleteAfterImport = false,
+			[FromQuery] string username = null)
 		{
 			var candidate = await _pipelineCandidateService.GetCandidateById(pipelineCandidateId);
-			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(candidate);
+			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(candidate, username);
 			if (deleteAfterImport)
 			{
 				await _pipelineCandidateService.DeletePipelineCandidate(pipelineCandidateId);

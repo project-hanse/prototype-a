@@ -171,7 +171,7 @@ namespace PipelineService.Services.Impl
 			return pipeline.Id;
 		}
 
-		public async Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate)
+		public async Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate, string username = null)
 		{
 			_logger.LogInformation("Importing pipeline candidate {PipelineCandidateId}", pipelineCandidate.PipelineId);
 
@@ -199,7 +199,7 @@ namespace PipelineService.Services.Impl
 				Id = pipelineCandidate.PipelineId,
 				Name = $"[Simulated] {task.Task.Name}",
 				CreatedOn = DateTime.UtcNow,
-				UserIdentifier = pipelineCandidate.CreatedBy ?? "simulated"
+				UserIdentifier = username ?? pipelineCandidate.CreatedBy ?? "simulated"
 			};
 
 			await _pipelinesDao.CreatePipeline(pipeline);
