@@ -1,6 +1,9 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
+import {SortDirection} from '@angular/material/sort';
 import {Observable} from 'rxjs';
+import {PipelineCandidate} from '../../admin/pipeline-candidates/_model/pipeline-candidate';
+import {PaginatedList} from '../../core/_model/paginated-list';
 import {BaseHttpService} from '../../core/_service/base-http.service';
 import {CreatePipelineFromTemplateRequest} from '../_model/create-pipeline-from-template-request';
 import {CreatePipelineFromTemplateResponse} from '../_model/create-pipeline-from-template-response';
@@ -59,5 +62,9 @@ export class PipelineService extends BaseHttpService {
 
 	public deletePipeline(pipelineId: string): Observable<PipelineInfoDto> {
 		return this.httpClient.delete<PipelineInfoDto>(this.getPipelinesUrl(pipelineId));
+	}
+
+	public getPipelineCandidates(sort: string, order: SortDirection, page: number): Observable<PaginatedList<PipelineCandidate>> {
+		return this.httpClient.get<PaginatedList<PipelineCandidate>>(this.getPipelinesUrl('candidate'), {params: {sort, order, page}});
 	}
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -19,20 +18,37 @@ public class PipelineCandidateService : IPipelineCandidateService
 		_pipelineCandidateDao = pipelineCandidateDao;
 	}
 
-	public async Task<IList<PipelineCandidate>> GetPipelineCandidateDtos()
+	public async Task<PaginatedList<PipelineCandidate>> GetPipelineCandidateDtos(Pagination pagination)
 	{
 		_logger.LogDebug("Loading available pipeline candidates...");
 
+		// TODO make this more efficient (not in memory)
 		var candidates = await _pipelineCandidateDao.GetPipelineCandidates();
 
-		foreach (var pipelineCandidate in candidates)
+		var sortProperty = typeof(PipelineCandidate).GetProperty(pagination.Sort);
+		if (sortProperty == null)
+		{
+			sortProperty = typeof(PipelineCandidate).GetProperty(nameof(PipelineCandidate.CompletedAt));
+		}
+
+		candidates = pagination.Order == "desc"
+			? candidates.OrderBy(x => sortProperty.GetValue(x)).ToList()
+			: candidates.OrderByDescending(x => sortProperty.GetValue(x)).ToList();
+
+		var response = new PaginatedList<PipelineCandidate>
+		{
+			TotalItems = candidates.Count,
+			Items = candidates.Skip(pagination.PageSize * (pagination.Page - 1)).Take(pagination.PageSize).ToList()
+		};
+
+		foreach (var pipelineCandidate in response.Items)
 		{
 			pipelineCandidate.Actions = null;
 		}
 
 		_logger.LogInformation("Loaded {PipelineCandidateCount} pipeline candidates", candidates.Count);
 
-		return candidates;
+		return response;
 	}
 
 	public async Task<PipelineCandidate> GetCandidateById(Guid pipelineCandidateId)

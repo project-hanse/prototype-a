@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Models.Dtos;
 
@@ -10,7 +9,8 @@ public interface IPipelineCandidateService
 	/// <summary>
 	/// Loads all pipeline candidates, but sets actions to null to reduce object size.
 	/// </summary>
-	Task<IList<PipelineCandidate>> GetPipelineCandidateDtos();
+	/// <param name="pagination"></param>
+	Task<PaginatedList<PipelineCandidate>> GetPipelineCandidateDtos(Pagination pagination);
 
 
 	Task<PipelineCandidate> GetCandidateById(Guid pipelineCandidateId);

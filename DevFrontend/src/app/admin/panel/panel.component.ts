@@ -11,6 +11,11 @@ export class PanelComponent implements OnInit {
 			title: 'Models',
 			path: '../model',
 			icon: 'smart_toy'
+		},
+		{
+			title: 'Pipeline Candidates',
+			path: '../pipeline-candidates',
+			icon: 'list'
 		}
 	];
 

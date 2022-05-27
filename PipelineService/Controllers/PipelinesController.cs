@@ -156,9 +156,9 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpGet("candidate")]
-		public async Task<IList<PipelineCandidate>> GetPipelineCandidates()
+		public async Task<PaginatedList<PipelineCandidate>> GetPipelineCandidates([FromQuery] Pagination pagination)
 		{
-			return await _pipelineCandidateService.GetPipelineCandidateDtos();
+			return await _pipelineCandidateService.GetPipelineCandidateDtos(pagination);
 		}
 
 		[HttpGet("candidate/import/{pipelineCandidateId:Guid}")]
