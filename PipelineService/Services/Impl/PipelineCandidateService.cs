@@ -31,9 +31,12 @@ public class PipelineCandidateService : IPipelineCandidateService
 			pagination.Sort = string.Concat(pagination.Sort.FirstOrDefault().ToString().ToUpper(), pagination.Sort.AsSpan(1));
 		}
 
-		var sortProperty = typeof(PipelineCandidate).GetProperty(pagination.Sort == ""
-			? nameof(PipelineCandidate.CompletedAt)
-			: pagination.Sort);
+		var sortProperty = typeof(PipelineCandidate).GetProperty(pagination.Sort);
+		if (sortProperty == null)
+		{
+			sortProperty = typeof(PipelineCandidate).GetProperty(nameof(PipelineCandidate.CompletedAt));
+		}
+
 		if (sortProperty == null)
 		{
 			throw new ArgumentException($"{pagination.Sort} is not a valid sort property");
