@@ -25,13 +25,21 @@ public class PipelineCandidateService : IPipelineCandidateService
 		// TODO make this more efficient (not in memory)
 		var candidates = await _pipelineCandidateDao.GetPipelineCandidates();
 
-		var sortProperty = typeof(PipelineCandidate).GetProperty(pagination.Sort);
-		if (sortProperty == null)
+		pagination.Sort = pagination.Sort?.Trim() ?? "";
+		if (!string.IsNullOrEmpty(pagination.Sort))
 		{
-			sortProperty = typeof(PipelineCandidate).GetProperty(nameof(PipelineCandidate.CompletedAt));
+			pagination.Sort = string.Concat(pagination.Sort.FirstOrDefault().ToString().ToUpper(), pagination.Sort.AsSpan(1));
 		}
 
-		candidates = pagination.Order == "desc"
+		var sortProperty = typeof(PipelineCandidate).GetProperty(pagination.Sort == ""
+			? nameof(PipelineCandidate.CompletedAt)
+			: pagination.Sort);
+		if (sortProperty == null)
+		{
+			throw new ArgumentException($"{pagination.Sort} is not a valid sort property");
+		}
+
+		candidates = pagination.Order == "asc"
 			? candidates.OrderBy(x => sortProperty.GetValue(x)).ToList()
 			: candidates.OrderByDescending(x => sortProperty.GetValue(x)).ToList();
 
