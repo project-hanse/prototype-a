@@ -80,6 +80,19 @@ updates:
     schedule:
       interval: "weekly"
 
+  # Pipeline Simulation (MCTS)
+  - package-ecosystem: "pip"
+    directory: "/PipelineSimulationMcts"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "docker"
+    directory: "/PipelineSimulationMcts"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
   # Dev Frontend
   - package-ecosystem: "npm"
     directory: "/DevFrontend"

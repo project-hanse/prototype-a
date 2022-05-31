@@ -22,6 +22,7 @@ jobs:
       dev-frontend: ${{ steps.filter.outputs.dev-frontend }}
       operation-worker: ${{ steps.filter.outputs.operation-worker }}
       pipeline-service: ${{ steps.filter.outputs.pipeline-service }}
+      pipeline-simulation-mcts: ${{ steps.filter.outputs.pipeline-simulation-mcts }}
       file-service: ${{ steps.filter.outputs.file-service }}
       plugins-neo4j: ${{ steps.filter.outputs.plugins-neo4j }}
       mlflow-server: ${{ steps.filter.outputs.mlflow-server }}
@@ -44,6 +45,8 @@ jobs:
               - 'OperationWorker/**'
             pipeline-service:
               - 'PipelineService/**'
+            pipeline-simulation-mcts:
+              - 'PipelineSimulationMcts/**'
             file-service:
               - 'FileService/**'
             plugins-neo4j:
@@ -268,6 +271,49 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # Pipeline Simulation MCTS
+  build-pipeline-simulation-mcts:
+    name: 'Build Pipeline Simulation MCTS'
+    needs: changes
+    if: ${{ needs.changes.outputs.pipeline-simulation-mcts == 'true' || github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY_NAME }}/pipeline-simulation-mcts
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./PipelineSimulationMcts
+          builder: ${{ steps.buildx.outputs.name }}
+          pull: true
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   # File Service
   build-file-service:
     name: 'Build File Service'
@@ -443,7 +489,7 @@ jobs:
   # Get Version from previous tag and commit messages
   create-release:
     name: 'Create Release'
-    needs: [ build-plugins-neo4j, build-pipeline-service, build-operation-worker, build-dev-frontend, build-dataset-service, build-file-service, build-learning-service, build-edge-server, build-mlflow-server ]
+    needs: [ build-plugins-neo4j, build-pipeline-service, build-pipeline-simulation-mcts, build-operation-worker, build-dev-frontend, build-dataset-service, build-file-service, build-learning-service, build-edge-server, build-mlflow-server ]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
