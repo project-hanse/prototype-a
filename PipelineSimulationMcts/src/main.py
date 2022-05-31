@@ -18,7 +18,7 @@ from src.model.pipeline_state import PipelineBuildingState
 
 
 def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
-	task = openml.tasks.get_task(random.choice(get_open_ml_task_ids()))
+	task = openml.tasks.get_task(random.choice(open_ml_task_ids))
 	if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
 		state = PipelineBuildingState(helper_factory=HelperFactory(),
 																	available_datasets=[{'type': 2, 'key': uuid.uuid4()},
@@ -40,6 +40,7 @@ def save_pipeline(pipeline: dict):
 
 
 if __name__ == '__main__':
+	init_config()
 	requests_cache.install_cache('mcts_cache',
 															 expire_after=timedelta(minutes=1),
 															 cache_control=False,

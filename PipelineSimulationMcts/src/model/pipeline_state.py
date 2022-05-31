@@ -35,7 +35,7 @@ class PipelineBuildingState(BaseState):
 		self.max_actions = max_actions
 		self.max_available_datasets = max_available_datasets
 		self.parent = parent
-		self.terminal_operation_ids = get_terminal_operation_ids()
+		self.terminal_operation_ids = terminal_operation_ids
 
 	def get_current_player(self) -> int:
 		# Always maximizing player

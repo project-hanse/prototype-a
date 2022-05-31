@@ -1,5 +1,6 @@
 import os
 
+open_ml_task_ids = ['31']
 # Static configuration values for the application with defaults
 max_dataset_inputs_per_operation = 4
 # default to score operation
@@ -16,12 +17,18 @@ max_look_ahead_steps = 10
 mcts_iteration_limit = 20
 
 
-def get_open_ml_task_ids() -> [str]:
-	return os.getenv("OPEN_ML_TASK_IDS", '31').strip().replace(' ', '').split(',')
-
-
-def get_terminal_operation_ids() -> [str]:
-	return os.getenv("TERMINAL_OPERATION_IDS", '067c7cd4-87f6-43e2-a733-26e5c51ef875').strip().replace(' ', '').split(',')
+def init_config():
+	for key, value in globals().items():
+		if key.startswith('get_') or key.startswith('__'):
+			continue
+		if type(value) is list or type(value) is tuple:
+			globals()[key] = os.getenv(key.upper(), ','.join(value)).strip().replace(' ', '').split(',')
+		elif type(key) is int:
+			globals()[key] = int(os.getenv(key.upper(), value))
+		elif type(value) is bool:
+			globals()[key] = os.getenv(key.upper(), value).strip().lower() == 'true'
+		else:
+			globals()[key] = os.getenv(key.upper(), value)
 
 
 def get_api_base_url_pipeline_service():
