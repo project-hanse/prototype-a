@@ -11,24 +11,22 @@ import requests_cache
 from mcts.searcher.mcts import MCTS
 from openml import OpenMLTask
 
-from src.config.config import load_open_ml_operation, verbose_level, max_actions_per_pipeline
+from src.config.config import *
 from src.helper.expert_policy import model3_policy
 from src.helper.helper_factory import HelperFactory
 from src.helper.serializer import TMCSerializer
 from src.model.pipeline_state import PipelineBuildingState
-
-open_ml_task_ids = [31]
 
 
 def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
     task = openml.tasks.get_task(random.choice(open_ml_task_ids))
     if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
         state = PipelineBuildingState(helper_factory=HelperFactory(),
-                                           available_datasets=[{'type': 2, 'key': uuid.uuid4()},
-                                                               {'type': 1, 'key': uuid.uuid4()}],
-                                           producing_operation=load_open_ml_operation,
-                                           max_look_ahead=10,
-                                           verbose=verbose_level)
+                                      available_datasets=[{'type': 2, 'key': uuid.uuid4()},
+                                                          {'type': 1, 'key': uuid.uuid4()}],
+                                      producing_operation=load_open_ml_operation,
+                                      max_look_ahead=max_look_ahead_steps,
+                                      verbose=verbose_level)
         state.producing_operation['defaultConfig']['data_id'] = task.dataset_id
         return task, state
 
@@ -48,7 +46,7 @@ if __name__ == '__main__':
                                  cache_control=False,
                                  allowable_methods=['GET', 'POST'])
 
-    searcher = MCTS(iterationLimit=20, rolloutPolicy=model3_policy)
+    searcher = MCTS(iterationLimit=mcts_iteration_limit, rolloutPolicy=model3_policy)
     ps = 100
     for i in range(ps):
         task, currentState = get_initial_state()
