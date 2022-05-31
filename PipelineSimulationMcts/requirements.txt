@@ -1,2 +1,2 @@
-monte-carlo-tree-search==2.0.0
+monte-carlo-tree-search==2.0.2
 requests-cache==0.9.4
