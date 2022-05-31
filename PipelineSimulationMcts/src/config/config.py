@@ -15,6 +15,8 @@ partial_rewards_for_max_lookahead = 0.5
 variance_reward_factor = 0.3
 max_look_ahead_steps = 10
 mcts_iteration_limit = 20
+sleep_time_after_new_actions = 1.0
+pipeline_iterations = 100
 
 
 def init_config():
@@ -25,6 +27,8 @@ def init_config():
 			globals()[key] = os.getenv(key.upper(), ','.join(value)).strip().replace(' ', '').split(',')
 		elif type(key) is int:
 			globals()[key] = int(os.getenv(key.upper(), value))
+		elif type(value) is float:
+			globals()[key] = float(os.getenv(key.upper(), value))
 		elif type(value) is bool:
 			globals()[key] = os.getenv(key.upper(), value).strip().lower() == 'true'
 		else:

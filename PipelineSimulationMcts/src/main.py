@@ -47,8 +47,8 @@ if __name__ == '__main__':
 															 allowable_methods=['GET', 'POST'])
 
 	searcher = MCTS(iterationLimit=mcts_iteration_limit, rolloutPolicy=model3_policy)
-	ps = 100
-	for i in range(ps):
+	batch_number = random.randint(0, 10000)
+	for i in range(pipeline_iterations):
 		task, currentState = get_initial_state()
 		pipeline = {
 			'actions': [{
@@ -61,7 +61,8 @@ if __name__ == '__main__':
 			'task_id': task.id,
 			'dataset_id': task.dataset_id,
 			'task_type_id': task.task_type_id,
-			'batch_number': i
+			'batch_number': batch_number,
+			'pipeline_number': i
 		}
 		while not currentState.is_terminal():
 			action = searcher.search(initialState=currentState)
@@ -73,5 +74,6 @@ if __name__ == '__main__':
 				pipeline['abort'] = True
 				print("Aborting pipeline")
 				break
+			time.sleep(sleep_time_after_new_actions)
 		pipeline['completed_at'] = math.floor(time.time())
 		save_pipeline(pipeline)
