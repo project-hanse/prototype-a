@@ -49,7 +49,9 @@ class PipelineBuildingState(BaseState):
 		for k in range(min(len(self.available_datasets), max_dataset_inputs_per_operation)):
 			k += 1
 			# self.logger.info( "k(%d) -> %d" % (len(self.available_datasets), k))
-			for dataset_combination in product(self.available_datasets, repeat=k):
+			dataset_combinations = list(product(self.available_datasets, repeat=k))
+			dataset_combinations.append(())
+			for dataset_combination in dataset_combinations:
 				for operation in operation_loader.load_operations():
 					datasets_comb_datatype_vec = self.get_datatype_vector(dataset_combination)
 					op_input_datatype_vec = operation['inputTypes']
