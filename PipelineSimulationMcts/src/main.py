@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import random
 import time
 import uuid
@@ -10,22 +11,25 @@ import requests_cache
 from mcts.searcher.mcts import MCTS
 from openml import OpenMLTask
 
-from src.config.config import *
+from src.config.config import get_config, init_config
 from src.helper.expert_policy import model3_policy
 from src.helper.helper_factory import HelperFactory
+from src.helper.log_helper import LogHelper
 from src.helper.serializer import TMCSerializer
 from src.model.pipeline_state import PipelineBuildingState
 
+logger = LogHelper.get_logger('main')
+
 
 def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
-	task = openml.tasks.get_task(random.choice(open_ml_task_ids))
+	task = openml.tasks.get_task(random.choice(get_config('open_ml_task_ids')))
 	if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
 		state = PipelineBuildingState(helper_factory=HelperFactory(),
 																	available_datasets=[{'type': 2, 'key': uuid.uuid4()},
 																											{'type': 1, 'key': uuid.uuid4()}],
-																	producing_operation=load_open_ml_operation,
-																	max_look_ahead=max_look_ahead_steps,
-																	verbose=verbose_level)
+																	producing_operation=get_config('load_open_ml_operation'),
+																	max_look_ahead=get_config('max_look_ahead_steps'),
+																	verbose=get_config('verbose_level'))
 		state.producing_operation['defaultConfig']['data_id'] = task.dataset_id
 		return task, state
 
@@ -33,8 +37,9 @@ def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
 
 
 def save_pipeline(pipeline: dict):
-	os.makedirs(pipelines_dir, exist_ok=True)
-	with open(os.path.join(pipelines_dir, 'pipeline-%s.json' % math.floor(time.time())), 'w') as f:
+	os.makedirs(get_config('pipelines_dir'), exist_ok=True)
+	with open(os.path.join(get_config('pipelines_dir'), 'pipeline-%s.json' % math.floor(time.time())), 'w') as f:
+		logger.info('Saving pipeline %d (batch %d) to %s' % (pipeline['pipeline_number'], pipeline['batch_number'], f.name))
 		json.dump(pipeline, f, cls=TMCSerializer)
 
 
@@ -45,9 +50,10 @@ if __name__ == '__main__':
 															 cache_control=False,
 															 allowable_methods=['GET', 'POST'])
 
-	searcher = MCTS(iterationLimit=mcts_iteration_limit, rolloutPolicy=model3_policy)
+	searcher = MCTS(iterationLimit=get_config('mcts_iteration_limit'), rolloutPolicy=model3_policy)
 	batch_number = random.randint(0, 10000)
-	for i in range(pipeline_iterations):
+	for i in range(get_config('pipeline_iterations')):
+		logger.info('Simulating pipeline %s' % i)
 		task, currentState = get_initial_state()
 		pipeline = {
 			'actions': [{
@@ -68,11 +74,13 @@ if __name__ == '__main__':
 			pipeline['actions'].append(action.get_dict())
 			currentState = currentState.take_action(action)
 			currentState.look_ahead_cnt = 0
-			print("(%d.%d) *** %s " % (i, currentState.depth, action))
-			if len(pipeline['actions']) > max_actions_per_pipeline:
+			logger.info("(%d.%d) *** %s " % (i, currentState.depth, action))
+			if len(pipeline['actions']) > get_config('max_actions_per_pipeline'):
 				pipeline['abort'] = True
-				print("Aborting pipeline")
+				logger.info("Aborting pipeline")
 				break
-			time.sleep(sleep_time_after_new_actions)
+			if get_config('sleep_time_after_new_actions') > 0:
+				logger.info("Sleeping for %1.2f" % get_config('sleep_time_after_new_actions'))
+				time.sleep(get_config('sleep_time_after_new_actions'))
 		pipeline['completed_at'] = math.floor(time.time())
 		save_pipeline(pipeline)

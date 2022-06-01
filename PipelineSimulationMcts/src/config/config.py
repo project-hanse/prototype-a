@@ -1,5 +1,7 @@
 import os
 
+from src.helper.log_helper import LogHelper
+
 open_ml_task_ids = ['31']
 # Static configuration values for the application with defaults
 max_dataset_inputs_per_operation = 4
@@ -16,11 +18,13 @@ partial_rewards_for_max_lookahead = 0.5
 variance_reward_factor = 0.3
 max_look_ahead_steps = 10
 mcts_iteration_limit = 20
-sleep_time_after_new_actions = 1.0
+sleep_time_after_new_actions = 0.0
 pipeline_iterations = 100
 
 
 def init_config():
+	logger = LogHelper.get_logger(__name__)
+	logger.info("Initializing configuration")
 	for key, value in globals().items():
 		if key.startswith('get_') or key.startswith('__'):
 			continue
@@ -34,6 +38,8 @@ def init_config():
 			globals()[key] = os.getenv(key.upper(), value).strip().lower() == 'true'
 		else:
 			globals()[key] = os.getenv(key.upper(), value)
+		if globals()[key] != value:
+			logger.info("Overriding default value for key '{}' with value '{}'".format(key, globals()[key]))
 
 
 def get_api_base_url_pipeline_service():
@@ -50,6 +56,10 @@ def get_api_user():
 
 def get_api_secret():
 	return api_secret
+
+
+def get_config(key: str):
+	return globals()[key]
 
 
 load_open_ml_operation = {
