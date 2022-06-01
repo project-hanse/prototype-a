@@ -1,0 +1,46 @@
+[
+	{
+		"operationId": "939e96e1-76e3-4a50-a484-472690d8fd6c",
+		"operationName": "dataframe_to_dict",
+		"operationFullName": "data_converter.df_to_dict",
+		"inputTypes": [
+			2
+		],
+		"outputTypes": [
+			7
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.0",
+		"sectionTitle": "Data Converter",
+		"title": "data_converter.df_to_dict",
+		"description": "Convert a dataframe to a list of dictionaries",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "Dict"
+	},
+	{
+		"operationId": "ec5aaf96-b940-41fd-b1b1-f55d933282df",
+		"operationName": "array_to_dataframe",
+		"operationFullName": "data_converter.np_array_to_df",
+		"inputTypes": [
+			9
+		],
+		"outputTypes": [
+			2
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.0",
+		"sectionTitle": "Data Converter",
+		"title": "data_converter.np_array_to_df",
+		"description": "Convert a numpy array to a dataframe",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "Dataframe"
+	}
+]

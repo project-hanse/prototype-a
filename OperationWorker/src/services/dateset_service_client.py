@@ -2,11 +2,13 @@ import base64
 import json
 import pickle
 
+import numpy as np
 import pandas as pd
 import requests
 from prophet import Prophet
 from prophet.serialize import model_to_json, model_from_json
 from sklearn.base import BaseEstimator
+from sklearn.feature_extraction import DictVectorizer
 
 from src.exceptions.NotFoundError import NotFoundError
 from src.exceptions.NotStoredError import NotStoredError
@@ -156,6 +158,60 @@ class DatasetServiceClient:
 			self.logging.warning('Failed to store prophet model: (%i) %s' % (response.status_code, str(response.text)))
 			raise NotStoredError('Failed to store prophet model: (%i) %s' % (response.status_code, str(response.reason)))
 
+	def store_dict_by_key(self, key: str, dict: dict):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Storing dict to %s' % address)
+		response = requests.post(address, data=json.dumps(dict))
+		if response.status_code < 300:
+			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
+		else:
+			self.logging.warning('Failed to store dict: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError('Failed to store dict: (%i) %s' % (response.status_code, str(response.reason)))
+
+	def get_dict_by_key(self, key: str) -> dict:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Loading dict from %s' % address)
+		response = requests.get(address)
+		if response.status_code == 404:
+			raise NotFoundError("No dict with key found")
+		return json.loads(response.text)
+
+	def store_dict_vectorizer_by_key(self, key: str, vectorizer: DictVectorizer):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Storing dict vectorizer to %s' % address)
+		response = requests.post(address, data=self.serialize_sklearn_model(vectorizer))
+		if response.status_code < 300:
+			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
+		else:
+			self.logging.warning('Failed to store dict vectorizer: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError('Failed to store dict vectorizer: (%i) %s' % (response.status_code, str(response.reason)))
+
+	def get_dict_vectorizer_by_key(self, key: str) -> DictVectorizer:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Loading dict vectorizer from %s' % address)
+		response = requests.get(address)
+		if response.status_code == 404:
+			raise NotFoundError("No dict vectorizer with key found")
+		return self.deserialize_sklearn_model(response.text)
+
+	def store_numpy_array_by_key(self, key: str, array: np.ndarray):
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Storing numpy array to %s' % address)
+		response = requests.post(address, data=self.serialize_numpy_array(array))
+		if response.status_code < 300:
+			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))
+		else:
+			self.logging.warning('Failed to store numpy array: (%i) %s' % (response.status_code, str(response.text)))
+			raise NotStoredError('Failed to store numpy array: (%i) %s' % (response.status_code, str(response.reason)))
+
+	def get_numpy_array_by_key(self, key: str) -> np.ndarray:
+		address = 'http://' + self.host + ':' + str(self.port) + '/api/string/key/' + key
+		self.logging.info('Loading numpy array from %s' % address)
+		response = requests.get(address)
+		if response.status_code == 404:
+			raise NotFoundError("No numpy array with key found")
+		return self.deserialize_numpy_array(response.text)
+
 	def serialize_dataframe(self, dataframe: pd.DataFrame) -> str:
 		try:
 			return dataframe.to_json(date_format='iso')
@@ -196,6 +252,18 @@ class DatasetServiceClient:
 
 	def deserialize_sklearn_encoder(self, text: str):
 		self.logging.debug('Deserializing sklearn encoder')
+		b = base64.b64decode(text)
+		m = pickle.loads(b)
+		return m
+
+	def serialize_numpy_array(self, array: np.ndarray) -> str:
+		self.logging.debug('Serializing numpy array')
+		b = pickle.dumps(array)
+		s = base64.b64encode(b).decode('utf-8')
+		return s
+
+	def deserialize_numpy_array(self, text: str) -> np.ndarray:
+		self.logging.debug('Deserializing numpy array')
 		b = base64.b64decode(text)
 		m = pickle.loads(b)
 		return m

@@ -1,7 +1,7 @@
 import logging
 
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 from src.helper.operations_helper import OperationsHelper
 
@@ -20,6 +20,27 @@ class OperationsSklearnPreprocessingWrappers:
 
 		OperationsHelper.validate_input_or_throw(data, 0)
 		return LabelEncoder()
+
+	@staticmethod
+	def sklearn_one_hot_encoder(logger: logging, operation_name: str, operation_config: dict, data: []) -> []:
+		"""
+		Creates a OneHotEncoder to encode categorical features as a one-hot numeric array.
+
+		This transformer should be used to encode categorical features.
+		https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html
+		"""
+		logger.info("Executing scikit operation sklearn_one_hot_encoder (%s)" % operation_name)
+
+		OperationsHelper.validate_input_or_throw(data, 0)
+		OperationsHelper.get_or_default(operation_config, "categories", 'auto')
+		OperationsHelper.get_or_default(operation_config, "drop", None)
+		OperationsHelper.get_or_default(operation_config, "sparse", True)
+		OperationsHelper.get_or_default(operation_config, "dtype", float)
+		OperationsHelper.get_or_default(operation_config, "handle_unknown", 'error')
+		OperationsHelper.get_or_default(operation_config, "min_frequency", None)
+		OperationsHelper.get_or_default(operation_config, "max_categories", None)
+
+		return OneHotEncoder()
 
 	@staticmethod
 	def sklearn_encoder_fit(logger: logging, operation_name: str, operation_config: dict, data: []) -> []:
