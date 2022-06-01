@@ -9,6 +9,7 @@ base_url_pipeline_service = "https://hanse.allteams.at/api/pipeline"
 base_url_learning_service = "https://hanse.allteams.at/api/learning"
 api_user = 'api_user'
 api_secret = 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
+pipelines_dir = 'pipelines'
 verbose_level = 0
 max_actions_per_pipeline = 30
 partial_rewards_for_max_lookahead = 0.5

@@ -12,9 +12,10 @@ RUN pip install -r ./requirements.txt
 
 COPY setup.py .
 COPY entrypoint.sh .
+COPY wait-for-it.sh .
 
 COPY src ./src
 
 RUN chmod +x ./*.sh
 
-CMD ./entrypoint.sh
+CMD ./wait-for-it.sh && ./entrypoint.sh

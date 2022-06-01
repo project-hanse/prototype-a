@@ -33,7 +33,6 @@ def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
 
 
 def save_pipeline(pipeline: dict):
-	pipelines_dir = 'pipelines'
 	os.makedirs(pipelines_dir, exist_ok=True)
 	with open(os.path.join(pipelines_dir, 'pipeline-%s.json' % math.floor(time.time())), 'w') as f:
 		json.dump(pipeline, f, cls=TMCSerializer)
