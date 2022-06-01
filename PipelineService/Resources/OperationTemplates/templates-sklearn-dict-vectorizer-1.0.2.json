@@ -1,0 +1,118 @@
+[
+	{
+		"operationId": "53972402-11e2-46db-98fd-ca3c0481081d",
+		"operationName": "sklearn_dict_vectorizer",
+		"operationFullName": "sklearn.preprocessing.feature_extraction.sklearn_dict_vectorizer",
+		"inputTypes": [],
+		"outputTypes": [
+			8
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.preprocessing.feature_extraction.sklearn_dict_vectorizer",
+		"description": "Create a DictVectorizer to convert a collection of text documents to a matrix of token counts.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": "https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.DictVectorizer.html",
+		"defaultConfig": {
+			"sort": true,
+			"separator": "="
+		},
+		"returns": "SklearnDictVectorizer"
+	},
+	{
+		"operationId": "5a193830-9c94-4141-963e-02b1c835174b",
+		"operationName": "sklearn_dict_vectorizer_fit",
+		"operationFullName": "sklearn.preprocessing.dict_vectorizer.fit",
+		"inputTypes": [
+			8,
+			7
+		],
+		"outputTypes": [
+			8
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.preprocessing.dict_vectorizer.fit",
+		"description": "Learn a list of feature names. This is useful if you have a variable number of features and want to iteratively add features as they are discovered.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "SklearnDictVectorizer"
+	},
+	{
+		"operationId": "ab3a7503-1bc6-4a40-9120-a59d0e31055f",
+		"operationName": "sklearn_dict_vectorizer_fit_transform",
+		"operationFullName": "sklearn.preprocessing.dict_vectorizer.fit_transform",
+		"inputTypes": [
+			8,
+			7
+		],
+		"outputTypes": [
+			8,
+			9
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.preprocessing.dict_vectorizer.fit_transform",
+		"description": "Learn a list of feature names and return a transformed matrix. This is useful if you have a variable number of features and want to iteratively add features as they are discovered.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "SklearnDictVectorizer and NumpyArray"
+	},
+	{
+		"operationId": "383d001f-26f4-4d31-8ce3-59ff2655f711",
+		"operationName": "sklearn_dict_vectorizer_transform",
+		"operationFullName": "sklearn.preprocessing.dict_vectorizer.transform",
+		"inputTypes": [
+			8,
+			7
+		],
+		"outputTypes": [
+			9
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.preprocessing.dict_vectorizer.fit_transform",
+		"description": "Transform a list of feature names to an encoded matrix.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "NumpyArray"
+	},
+	{
+		"operationId": "e9c6d795-57c1-40f5-ad50-9cda4fa170de",
+		"operationName": "sklearn_dict_vectorizer_inverse_transform",
+		"operationFullName": "sklearn.preprocessing.dict_vectorizer.inverse_transform",
+		"inputTypes": [
+			8,
+			9
+		],
+		"outputTypes": [
+			7
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.preprocessing.dict_vectorizer.inverse_transform",
+		"description": "Transform a list of feature names to an encoded matrix.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": null,
+		"defaultConfig": {},
+		"returns": "Dict"
+	}
+]

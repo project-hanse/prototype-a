@@ -9,5 +9,8 @@ namespace PipelineService.Models.Enums
 		Prophet = 4,
 		SklearnModel = 5,
 		SklearnEncoder = 6,
+		Dict = 7,
+		DictVectorizer = 8,
+		NpArray = 9,
 	}
 }

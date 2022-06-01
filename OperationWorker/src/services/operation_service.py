@@ -3,6 +3,7 @@ from typing import Callable
 
 import pandas as pd
 
+from src.operations.operations_data_converter import OperationsDataConverter
 from src.operations.operations_file_input import OperationsFileInputCollection
 from src.operations.operations_openml import OperationsOpenML
 from src.operations.operations_plots_matplotlib import PlotsMatPlotLib
@@ -11,6 +12,7 @@ from src.operations.operations_single_input_pd_custom import OperationsSingleInp
 from src.operations.operations_single_input_pd_wrappers import OperationsSingleInputPandasWrappers
 from src.operations.operations_sklearn_classifiers import OperationsSklearnClassifiers
 from src.operations.operations_sklearn_custom import OperationsSklearnCustom
+from src.operations.operations_sklearn_dict_vectorizer import OperationsSklearnDictVectorizer
 from src.operations.operations_sklearn_preprocessing_wrappers import OperationsSklearnPreprocessingWrappers
 
 
@@ -96,9 +98,27 @@ class OperationService:
 		self.local_operations[
 			"46ae1799-92f0-4337-b06b-de2c981f4ed9"] = OperationsSklearnClassifiers.sklearn_classifier_predict
 
+		# Data Converter
+		self.local_operations["939e96e1-76e3-4a50-a484-472690d8fd6c"] = OperationsDataConverter.data_converter_df_to_dict
+		self.local_operations["ec5aaf96-b940-41fd-b1b1-f55d933282df"] = OperationsDataConverter.data_converter_np_array_to_df
+
+		# SkLearn DictVectorizer
+		self.local_operations[
+			"53972402-11e2-46db-98fd-ca3c0481081d"] = OperationsSklearnDictVectorizer.sklearn_dict_vectorizer
+		self.local_operations[
+			"5a193830-9c94-4141-963e-02b1c835174b"] = OperationsSklearnDictVectorizer.sklearn_dict_vectorizer_fit
+		self.local_operations[
+			"ab3a7503-1bc6-4a40-9120-a59d0e31055f"] = OperationsSklearnDictVectorizer.sklearn_dict_vectorizer_fit_transform
+		self.local_operations[
+			"383d001f-26f4-4d31-8ce3-59ff2655f711"] = OperationsSklearnDictVectorizer.sklearn_dict_vectorizer_transform
+		self.local_operations[
+			"e9c6d795-57c1-40f5-ad50-9cda4fa170de"] = OperationsSklearnDictVectorizer.sklearn_dict_vectorizer_inverse_transform
+
 		# SkLearn Preprocessing
 		self.local_operations[
 			"f3fc1084-4c1a-495d-846c-013f6f37985c"] = OperationsSklearnPreprocessingWrappers.sklearn_label_encoder
+		self.local_operations[
+			"d90eb613-335d-416d-a4a8-91bcd6aa57aa"] = OperationsSklearnPreprocessingWrappers.sklearn_one_hot_encoder
 		self.local_operations[
 			"49d1775b-b61d-4dcf-afbf-45a561c580ad"] = OperationsSklearnPreprocessingWrappers.sklearn_encoder_fit
 		self.local_operations[

@@ -1,6 +1,8 @@
 import os
 import tempfile
 
+import numpy as np
+
 
 class OperationsHelper:
 	tmp_dir = None
@@ -30,3 +32,9 @@ class OperationsHelper:
 	def validate_input_or_throw(cls, data, expected_length: int):
 		if len(data) != expected_length:
 			raise ValueError("Expected %i input datasets but got %i" % (expected_length, len(data)))
+
+	@classmethod
+	def to_np_array(cls, transformed):
+		if not isinstance(transformed, np.ndarray):
+			transformed = transformed.toarray()
+		return transformed
