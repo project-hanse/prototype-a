@@ -20,6 +20,33 @@
 		"returns": "SklearnLabelEncoder"
 	},
 	{
+		"operationId": "d90eb613-335d-416d-a4a8-91bcd6aa57aa",
+		"operationName": "sklearn_one_hot_encoder",
+		"operationFullName": "sklearn.preprocessing.encoder.sklearn_one_hot_encoder",
+		"inputTypes": [],
+		"outputTypes": [
+			6
+		],
+		"framework": "scikit-learn",
+		"frameworkVersion": "1.0.2",
+		"sectionTitle": "SciKit Learn",
+		"title": "sklearn.preprocessing.encoder.sklearn_one_hot_encoder",
+		"description": "Create a one-hot encoder to encode categorical features as binary vectors.",
+		"signature": null,
+		"signatureName": null,
+		"returnsDescription": null,
+		"sourceUrl": "https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html",
+		"defaultConfig": {
+			"categories": "auto",
+			"drop": null,
+			"sparse": true,
+			"handle_unknown": "error",
+			"min_frequency": null,
+			"max_categories": null
+		},
+		"returns": "SklearnOneHotEncoder"
+	},
+	{
 		"operationId": "49d1775b-b61d-4dcf-afbf-45a561c580ad",
 		"operationName": "encoder_fit",
 		"operationFullName": "sklearn.preprocessing.encoder.fit",
