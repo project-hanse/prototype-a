@@ -1,6 +1,10 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
+import {SortDirection} from '@angular/material/sort';
 import {Observable} from 'rxjs';
+import {PipelineCandidate} from '../../admin/pipeline-candidates/_model/pipeline-candidate';
+import {PaginatedList} from '../../core/_model/paginated-list';
+import {Pagination} from '../../core/_model/pagination';
 import {BaseHttpService} from '../../core/_service/base-http.service';
 import {CreatePipelineFromTemplateRequest} from '../_model/create-pipeline-from-template-request';
 import {CreatePipelineFromTemplateResponse} from '../_model/create-pipeline-from-template-response';
@@ -59,5 +63,18 @@ export class PipelineService extends BaseHttpService {
 
 	public deletePipeline(pipelineId: string): Observable<PipelineInfoDto> {
 		return this.httpClient.delete<PipelineInfoDto>(this.getPipelinesUrl(pipelineId));
+	}
+
+	public getPipelineCandidates(pagination: Pagination): Observable<PaginatedList<PipelineCandidate>> {
+		return this.httpClient.get<PaginatedList<PipelineCandidate>>(this.getPipelinesUrl('candidate'), {params: {...pagination}});
+	}
+
+	public importPipelineCandidate(pipelineCandidateId: string, deleteAfterImport: boolean = false, username: string = null): Observable<string> {
+		return this.httpClient.get<string>(this.getPipelinesUrl('candidate', 'import', pipelineCandidateId), {
+			params: {
+				deleteAfterImport,
+				username
+			}
+		});
 	}
 }

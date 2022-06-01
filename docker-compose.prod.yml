@@ -64,6 +64,8 @@ services:
     depends_on:
       - message-broker
       - pipeline-database
+    volumes:
+      - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
 
   # Learning Store
   learning-service:
@@ -126,6 +128,23 @@ services:
       mode: replicated
       replicas: 1
 
+  # Pipeline Simulation
+  pipeline-simulation:
+    build:
+      context: ./PipelineSimulationMcts
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - pipeline-service
+      - learning-service
+    environment:
+      BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
+      BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
+      PIPELINES_DIR: '/simulation/pipelines'
+      SLEEP_TIME_AFTER_NEW_ACTIONS: '15.0'
+    volumes:
+      - ./volumes/pipeline-simulation:/simulation/pipelines
+
   # MLFlow Server
   mlflow-server:
     image: ghcr.io/project-hanse/prototype-a/hanse-mlflow-server:main
@@ -170,7 +189,7 @@ services:
 
   # S3 Bucket
   localstack:
-    image: localstack/localstack:0.14.2
+    image: localstack/localstack:0.14.3
     restart: unless-stopped
     environment:
       - SERVICES=s3
