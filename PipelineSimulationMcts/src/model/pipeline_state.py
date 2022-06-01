@@ -19,6 +19,7 @@ class PipelineBuildingState(BaseState):
 							 max_look_ahead: int = None, look_ahead_cnt: int = 0, max_actions: int = None,
 							 max_available_datasets: int = None, depth: int = 0, parent: 'PipelineBuildingState' = None,
 							 verbose: float = 0):
+		self.logger = LogHelper.get_logger(self.__class__.__name__)
 		# The operation that produces the newly added dataset
 		self.producing_operation: {} = producing_operation
 		# All datasets (including the newly computed dataset) that are available for the current state
@@ -26,7 +27,7 @@ class PipelineBuildingState(BaseState):
 		self.verbose = verbose
 
 		if self.print():
-			print("%s (%s)" % (self.producing_operation['operationName'], str(self.available_datasets)))
+			self.logger.info("%s (%s)" % (self.producing_operation['operationName'], str(self.available_datasets)))
 
 		self.helper_factory = helper_factory
 		self.depth = depth
@@ -47,7 +48,7 @@ class PipelineBuildingState(BaseState):
 		# get all possible combinations of available_datasets
 		for k in range(min(len(self.available_datasets), max_dataset_inputs_per_operation)):
 			k += 1
-			# print("k(%d) -> %d" % (len(self.available_datasets), k))
+			# self.logger.info( "k(%d) -> %d" % (len(self.available_datasets), k))
 			for dataset_combination in product(self.available_datasets, repeat=k):
 				for operation in operation_loader.load_operations():
 					datasets_comb_datatype_vec = self.get_datatype_vector(dataset_combination)
@@ -56,10 +57,10 @@ class PipelineBuildingState(BaseState):
 					if are_vectors_equal(datasets_comb_datatype_vec, op_input_datatype_vec):
 						actions.append(Action(operation=operation, input_datasets=dataset_combination))
 		if actions is None or len(actions) == 0:
-			print("No actions available")
+			self.logger.info("No actions available")
 			return []
 		if self.print():
-			print("%s actions available" % len(actions))
+			self.logger.info("%s actions available" % len(actions))
 		# maximum n possible (random) actions to reduce search tree size
 		if self.max_actions is not None:
 			actions = random.sample(actions, min(len(actions), self.max_actions))
@@ -114,7 +115,7 @@ class PipelineBuildingState(BaseState):
 			return True
 		if self.producing_operation is not None:
 			if self.producing_operation['operationId'] in self.terminal_operation_ids:
-				# print("Terminal operation (%s) reached" % self.producing_action.operation['operationName'])
+				# self.logger.info( "Terminal operation (%s) reached" % self.producing_action.operation['operationName'])
 				return True
 		return False
 
