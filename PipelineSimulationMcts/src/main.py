@@ -68,7 +68,7 @@ if __name__ == '__main__':
 			pipeline['actions'].append(action.get_dict())
 			currentState = currentState.take_action(action)
 			currentState.look_ahead_cnt = 0
-			print("(%d) *** %s " % (currentState.depth, action))
+			print("(%d.%d) *** %s " % (i, currentState.depth, action))
 			if len(pipeline['actions']) > max_actions_per_pipeline:
 				pipeline['abort'] = True
 				print("Aborting pipeline")

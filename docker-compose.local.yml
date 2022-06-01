@@ -87,6 +87,7 @@ services:
       mode: replicated
       replicas: 1
 
+  # Pipeline Simulation
   pipeline-simulation:
     build:
       context: ./PipelineSimulationMcts
@@ -102,7 +103,6 @@ services:
       SLEEP_TIME_AFTER_NEW_ACTIONS: '15.0'
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
-
 
   # Dataset Store
   dataset-service:
