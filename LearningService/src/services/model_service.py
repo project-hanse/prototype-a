@@ -92,7 +92,12 @@ class ModelService:
 				ret["cvAccuracy"] = cvs.mean()
 				ret["trainSize"] = len(X_train)
 				ret["testSize"] = len(X_test)
-				signature = infer_signature_custom(random.choice(X_test), model.predict(random.choice(X_test)))
+				if len(X_test) > 10:
+					model_input = random.sample(X_test, 10)
+					mode_output = model.predict(model_input)
+					signature = infer_signature_custom(model_input, mode_output)
+				else:
+					signature = None
 				mlflow.sklearn.log_model(
 					sk_model=model,
 					artifact_path=mlflow.get_artifact_uri().replace('s3://', ''),

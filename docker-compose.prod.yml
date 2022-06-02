@@ -130,9 +130,7 @@ services:
 
   # Pipeline Simulation
   pipeline-simulation:
-    build:
-      context: ./PipelineSimulationMcts
-      dockerfile: ./Dockerfile
+    image: ghcr.io/project-hanse/prototype-a/pipeline-simulation-mcts:main
     restart: unless-stopped
     depends_on:
       - pipeline-service
