@@ -132,6 +132,7 @@ class PipelineBuildingState(BaseState):
 
 	def get_variance_of_available_datasets(self) -> float:
 		datatypes = [dataset['type'] for dataset in self.available_datasets]
+		# datatypes = [datatype / len(datatypes) for datatype in datatypes]
 		if len(datatypes) == 0:
 			return 0
 		return np.var(datatypes)
@@ -139,8 +140,9 @@ class PipelineBuildingState(BaseState):
 	def reward_function(self, depth):
 		# punish greater depth
 		negative_reward_from = 5
-		return ((negative_reward_from / (negative_reward_from * (math.log(depth, negative_reward_from) + 1))) - 1) + (
-			self.get_variance_of_available_datasets() * variance_reward_factor)
+		r = (negative_reward_from / (negative_reward_from * math.log(depth + 1, negative_reward_from))) - 1
+		v = self.get_variance_of_available_datasets() * variance_reward_factor
+		return r + v
 
 	def get_datatype_vector(self, dataset_combination):
 		vector = []
