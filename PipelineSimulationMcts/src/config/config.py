@@ -13,6 +13,7 @@ api_user = 'api_user'
 api_secret = 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
 pipelines_dir = 'pipelines'
 verbose_level = 0
+expert_policy_model_name = 'model-3-complementnb'
 max_actions_per_pipeline = 30
 partial_rewards_for_max_lookahead = 0.5
 variance_reward_factor = 0.3
