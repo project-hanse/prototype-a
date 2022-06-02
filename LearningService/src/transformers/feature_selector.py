@@ -14,11 +14,15 @@ class FeatureSelector(BaseEstimator, TransformerMixin):
 		if self.feature_names is None or len(self.feature_names) == 0:
 			logger.warning("No feature_names provided.")
 			return X
-		if hasattr(X, '__iter__'):
+		if type(X) is dict:
+			self._select_features(X, self.feature_names)
+		elif hasattr(X, '__iter__'):
 			for feat in X:
 				self._select_features(feat, self.feature_names)
 		else:
-			self._select_features(X, self.feature_names)
+			logger.warning("X is not iterable.")
+			return X
+
 		return X
 
 	def _select_features(self, feat: {}, keys: [str]) -> {}:
