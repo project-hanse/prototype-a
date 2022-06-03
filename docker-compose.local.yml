@@ -101,6 +101,7 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '15.0'
+      OPEN_ML_TASK_IDS: 31,10101,9914,145804,146065,146064,125923,3913,9946
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
