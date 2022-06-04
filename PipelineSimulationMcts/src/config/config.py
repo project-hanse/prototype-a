@@ -21,6 +21,7 @@ max_look_ahead_steps = 10
 mcts_iteration_limit = 20
 sleep_time_after_new_actions = 0.0
 pipeline_iterations = 100
+expert_policy_probability = 0.5
 
 
 def init_config():
