@@ -8,6 +8,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using PipelineService.Dao;
+using PipelineService.Helper;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
 
@@ -19,6 +21,7 @@ namespace PipelineService.Services.Impl
 
 		private readonly ILogger<OperationTemplatesService> _logger;
 		private readonly IConfiguration _configuration;
+		private readonly IPipelinesDao _pipelinesDao;
 		private readonly IMemoryCache _memoryCache;
 
 		private string OperationTemplatesPath => Path.Combine(
@@ -28,18 +31,20 @@ namespace PipelineService.Services.Impl
 		public OperationTemplatesService(
 			ILogger<OperationTemplatesService> logger,
 			IConfiguration configuration,
+			IPipelinesDao pipelinesDao,
 			IMemoryCache memoryCache)
 		{
 			_logger = logger;
 			_configuration = configuration;
+			_pipelinesDao = pipelinesDao;
 			_memoryCache = memoryCache;
 		}
 
-		public async Task<IList<OperationTemplate>> GetOperationDtos()
+		public async Task<IList<OperationTemplate>> GetOperationDtos(GetOperationTemplatesRequest request)
 		{
-			if (_memoryCache.TryGetValue(OperationTemplatesCacheKey, out IList<OperationTemplate> operations))
+			if (_memoryCache.TryGetValue(request, out IList<OperationTemplate> operations))
 			{
-				_logger.LogDebug("OperationTemplates found in cache");
+				_logger.LogDebug("No OperationTemplates in cache for request {@GetOperationTemplatesRequest}", request);
 				return operations;
 			}
 
@@ -51,9 +56,19 @@ namespace PipelineService.Services.Impl
 				.ThenBy(op => op.OperationName)
 				.ToList();
 
+			if (request.FilterUnused)
+			{
+				_logger.LogDebug("Removing operation templates that have not been used in a pipeline");
+				var usedOperationIds = (await _pipelinesDao.GetUsedOperationIdentifiers(true)).ToList();
+				operations = operations
+					.Where(op => usedOperationIds.Contains(OperationHelper.GetGlobalUniqueOperationIdentifier(op)))
+					.ToList();
+			}
+
 			_logger.LogInformation("Loaded {OperationsCount} operations", operations.Count);
 
-			_memoryCache.Set(OperationTemplatesCacheKey, operations, TimeSpan.FromHours(6));
+			_memoryCache.Set(request, operations,
+				TimeSpan.FromMinutes(_configuration.GetValue("Cache:OperationTemplatesMinutes", 15)));
 
 			return operations;
 		}
@@ -63,7 +78,7 @@ namespace PipelineService.Services.Impl
 			_logger.LogDebug("Loading operation template for {OperationId} {OperationName}", operationId, operationName);
 
 			// TODO make this more efficient
-			var template = (await GetOperationDtos())
+			var template = (await GetOperationDtos(new GetOperationTemplatesRequest()))
 				.FirstOrDefault(op => op.OperationId == operationId && op.OperationName == operationName);
 
 			if (template == default)

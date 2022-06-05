@@ -7,7 +7,7 @@ namespace PipelineService.Services
 {
 	public interface IOperationTemplatesService
 	{
-		Task<IList<OperationTemplate>> GetOperationDtos();
+		Task<IList<OperationTemplate>> GetOperationDtos(GetOperationTemplatesRequest request);
 		Task<OperationTemplate> GetTemplate(Guid operationId, string operationName);
 	}
 }
