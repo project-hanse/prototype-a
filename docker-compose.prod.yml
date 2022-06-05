@@ -141,6 +141,7 @@ services:
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '15.0'
       OPEN_ML_TASK_IDS: 31,10101,9914,145804,146065,146064,125923,3913,9946
+      EXPERT_POLICY_MODEL_NAME: 'model-3-randomforest'
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 

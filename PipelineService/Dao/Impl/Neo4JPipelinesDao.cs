@@ -8,6 +8,7 @@ using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
+using PipelineService.Helper;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
@@ -327,7 +328,9 @@ namespace PipelineService.Dao.Impl
 					PredecessorOperationConfiguration = tuple.predecessor.OperationConfiguration,
 					PredecessorOperationInputs = tuple.predecessor.Inputs,
 					PredecessorOperationOutput = tuple.predecessor.Outputs,
-					TargetOperationIdentifier = $"{tuple.target.OperationId}-{tuple.target.OperationIdentifier}",
+					TargetOperationIdentifier =
+						OperationHelper.GetGlobalUniqueOperationIdentifier(tuple.target.OperationId,
+							tuple.target.OperationIdentifier),
 					TargetInputs = tuple.target.Inputs,
 				})
 				.ToList();
@@ -478,6 +481,34 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation("Exported pipeline {PipelineId}", pipelineId);
 
 			return results;
+		}
+
+		public async Task<IEnumerable<string>> GetUsedOperationIdentifiers(bool unique = false)
+		{
+			_logger.LogDebug("Loading operation ids from all available pipelines...");
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+				.Match(path => path.Pattern<Operation>("o"))
+				.Return(() => new
+				{
+					OperationId = Return.As<Guid>($"o.{nameof(Operation.OperationId)}"),
+					OperationIdentifier = Return.As<string>($"o.{nameof(Operation.OperationIdentifier)}")
+				});
+
+			var ids = (await query.ResultsAsync)
+				.Select(o => OperationHelper.GetGlobalUniqueOperationIdentifier(o.OperationId, o.OperationIdentifier))
+				.ToList();
+
+			if (unique)
+			{
+				_logger.LogInformation("Loaded unique operation ids from all stored pipelines");
+				return ids.ToHashSet();
+			}
+
+			_logger.LogInformation("Loaded all operation ids from all pipelines");
+			return ids;
 		}
 	}
 }

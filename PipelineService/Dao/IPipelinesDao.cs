@@ -83,5 +83,7 @@ namespace PipelineService.Dao
 
 		Task<IList<Dataset>> GetOutputDatasets(IList<Guid> operationIds);
 		Task<PipelineExport> ExportPipeline(Guid pipelineId);
+
+		Task<IEnumerable<string>> GetUsedOperationIdentifiers(bool unique = false);
 	}
 }

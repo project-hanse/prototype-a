@@ -13,7 +13,7 @@ class OperationLoader:
 	def load_operations(self) -> list:
 		if self.operations_cache is None:
 			self.logger.info("Loading operations from %s..." % self.api_base_url)
-			response = requests.get(self.api_base_url + "/api/v1/operationTemplates", auth=self.auth)
+			response = requests.get(self.api_base_url + "/api/v1/operationTemplates?filterUnused=true", auth=self.auth)
 			response.raise_for_status()
 			self.operations_cache = response.json()
 			self.logger.info("Loaded %d operations" % len(self.operations_cache))
