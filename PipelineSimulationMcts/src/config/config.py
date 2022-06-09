@@ -20,8 +20,9 @@ variance_reward_factor = 0.3
 max_look_ahead_steps = 10
 mcts_iteration_limit = 20
 sleep_time_after_new_actions = 0.0
-pipeline_iterations = 100
+pipeline_iterations = 25
 expert_policy_probability = 0.5
+cache_requests = True
 
 
 def init_config():
@@ -37,7 +38,7 @@ def init_config():
 		elif type(value) is float:
 			globals()[key] = float(os.getenv(key.upper(), value))
 		elif type(value) is bool:
-			globals()[key] = os.getenv(key.upper(), value).strip().lower() == 'true'
+			globals()[key] = os.getenv(key.upper(), str(value)).strip().lower() == 'true'
 		else:
 			globals()[key] = os.getenv(key.upper(), value)
 		if globals()[key] != value:

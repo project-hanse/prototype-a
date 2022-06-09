@@ -1,4 +1,5 @@
 import requests as requests
+from cachetools import cached, TTLCache
 
 from src.helper.log_helper import LogHelper
 
@@ -10,6 +11,7 @@ class OperationLoader:
 		self.operations_cache = None
 		self.logger = LogHelper.get_logger(__name__)
 
+	@cached(cache=TTLCache(maxsize=4048, ttl=6000))
 	def load_operations(self) -> list:
 		if self.operations_cache is None:
 			self.logger.info("Loading operations from %s..." % self.api_base_url)
