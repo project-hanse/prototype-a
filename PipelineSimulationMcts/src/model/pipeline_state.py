@@ -10,7 +10,7 @@ from src.config.config import *
 from src.helper.helper_factory import HelperFactory
 
 
-def are_vectors_equal(vec_a, vec_b) -> bool:
+def are_vectors_equal(vec_a: list, vec_b: list) -> bool:
 	return len(vec_a) == len(vec_b) and all(x == y for x, y in zip(vec_b, vec_a))
 
 
@@ -144,11 +144,9 @@ class PipelineBuildingState(BaseState):
 		v = self.get_variance_of_available_datasets() * variance_reward_factor
 		return r + v
 
-	def get_datatype_vector(self, dataset_combination):
-		vector = []
-		for dataset in dataset_combination:
-			vector.append(dataset['type'])
-		return vector
+	@staticmethod
+	def get_datatype_vector(dataset_combination) -> list[str]:
+		return [dataset['type'] for dataset in dataset_combination]
 
 	def print(self) -> bool:
 		return self.verbose > 0 and random.random() < self.verbose
