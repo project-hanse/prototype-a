@@ -24,7 +24,7 @@
     "@egjs/hammerjs": "^2.0.17",
     "keycharm": "^0.4.0",
     "lodash": "^4.17.21",
-    "ngx-file-drop": "^13.0.0",
+    "ngx-file-drop": "^14.0.0",
     "ngx-mqtt": "^9.0.5",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "rxjs": "~7.5.5",
