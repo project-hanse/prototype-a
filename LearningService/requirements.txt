@@ -12,4 +12,4 @@ mlflow==1.26.1
 sklearn==0.0
 scikit-learn==1.1.1
 requests==2.27.1
-setuptools==62.3.2
+setuptools==62.6.0
