@@ -6,7 +6,7 @@ paho-mqtt==1.6.1
 requests==2.27.1
 dill==0.3.5.1
 pytest==7.1.2
-boto3==1.24.3
+boto3==1.24.17
 chardet==4.0.0
 openpyxl==3.0.10
 scikit-learn==1.1.1
