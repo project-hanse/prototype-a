@@ -171,7 +171,7 @@ services:
 
   # Localstack
   localstack:
-    image: localstack/localstack:0.14.3
+    image: localstack/localstack:0.14.4
     restart: unless-stopped
     environment:
       SERVICES: s3
