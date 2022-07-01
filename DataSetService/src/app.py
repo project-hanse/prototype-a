@@ -1,3 +1,4 @@
+import io
 import json
 import os
 
@@ -54,8 +55,7 @@ def dataframe_by_key(key: str):
 		return format_response(df, requested_format)
 
 	if request.method == 'POST':
-		data = request.data
-		df = pd.read_json(data)
+		df = pd.read_json(io.BytesIO(request.data))
 		dataset_store.store_by_key(key, df)
 		return 'OK'
 
@@ -70,7 +70,7 @@ def series_by_key(key: str):
 		requested_format = request.args.get('format')
 		return format_response(series, requested_format)
 	if request.method == 'POST':
-		data = request.data
+		data = io.BytesIO(request.data)
 		series = pd.read_json(data, typ='series')
 		dataset_store.store_by_key(key, series)
 		return 'OK'
