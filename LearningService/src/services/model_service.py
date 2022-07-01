@@ -17,6 +17,7 @@ class ModelService:
 		self.mlflow_client = mlflow_client
 		self.train_split = 0.2
 		self.cv_folds = 3
+		self._model_cache = {}
 		self.logger = LogHelper.get_logger(__name__)
 
 	def get_models(self) -> [RegisteredModel]:
@@ -40,8 +41,10 @@ class ModelService:
 		return model_dtos
 
 	def get_model(self, model_name: str):
-		self.logger.info("Getting model %s" % model_name)
-		# TODO: cache models locally
+		if model_name in self._model_cache:
+			self.logger.debug("Model %s found in cache" % model_name)
+			return self._model_cache[model_name]
+		self.logger.info("Loading model %s" % model_name)
 		models = self.mlflow_client.search_model_versions("name='%s'" % model_name)
 		if len(models) == 0:
 			raise Exception("No model found with name %s" % model_name)
@@ -52,7 +55,8 @@ class ModelService:
 				models[0] = model
 
 		self.logger.info("Found model %s with version %s" % (model_name, models[0].version))
-		return mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{models[0].version}")
+		self._model_cache[model_name] = mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{models[0].version}")
+		return self._model_cache[model_name]
 
 	def train_model(self, model_name: str, cache_data: bool = True):
 		self.logger.info("Training model %s" % model_name)
@@ -111,6 +115,7 @@ class ModelService:
 				mlflow.log_param("cross_validation_folds", self.cv_folds)
 				mlflow.end_run()
 				mlflow.sklearn.autolog(disable=True)
+				self._model_cache.clear()
 		return ret
 
 	def predict(self, model_name: str, data):
