@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using HealthChecks.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -47,12 +48,15 @@ namespace PipelineService
 			{
 				DefaultDatabase = Configuration.GetValue("NeoServerConfiguration:DefaultDatabase", "neo4j")
 			});
+			var defaultMySqlConnectionString = Configuration.GetConnectionString("DefaultConnection");
 
+			// external services
 			services.AddMemoryCache();
-
-			services.AddNeo4jAnnotations<PipelineContext>();
-
 			services.AddHttpClient();
+
+			// databases
+			services.AddNeo4jAnnotations<PipelineGraphContext>();
+
 
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();
@@ -75,7 +79,9 @@ namespace PipelineService
 			services.AddHostedService<HostedSubscriptionService>();
 
 			// TODO: Add health checks to required services: https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks
-			services.AddHealthChecks().AddCheck<Neo4JHealthCheck>("neo4j_health_check");
+			services.AddHealthChecks()
+				.AddCheck<Neo4JHealthCheck>("neo4j_health_check")
+				.AddMySql(connectionString: defaultMySqlConnectionString, name: "mysql_health_check");
 
 			services.AddControllers();
 			services.AddSwaggerGen(c =>

@@ -32,8 +32,8 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			_graphClient.WithAnnotations<PipelineContext>().Cypher.CreateUniqueConstraint<Operation>(n => n.Id);
-			_graphClient.WithAnnotations<PipelineContext>().Cypher.CreateUniqueConstraint<Pipeline>(n => n.Id);
+			_graphClient.WithAnnotations<PipelineGraphContext>().Cypher.CreateUniqueConstraint<Operation>(n => n.Id);
+			_graphClient.WithAnnotations<PipelineGraphContext>().Cypher.CreateUniqueConstraint<Pipeline>(n => n.Id);
 
 			_logger.LogInformation("Neo4j database setup complete");
 		}
@@ -99,7 +99,7 @@ namespace PipelineService.Dao.Impl
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			var results = await _graphClient
-				.WithAnnotations<PipelineContext>().Cypher
+				.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(path => path.Pattern<Pipeline>("pipeline")
 					.Constrain(p => p.Id == pipelineId))
 				.Return(pipeline => pipeline.As<PipelineInfoDto>())
@@ -125,7 +125,7 @@ namespace PipelineService.Dao.Impl
 			try
 			{
 				await _graphClient
-					.WithAnnotations<PipelineContext>().Cypher
+					.WithAnnotations<PipelineGraphContext>().Cypher
 					.Match(path => path.Pattern<Pipeline>("pipeline")
 						.Constrain(p => p.Id == pipelineId))
 					.Match(path => path.Pattern<Operation>("operation")
@@ -147,7 +147,7 @@ namespace PipelineService.Dao.Impl
 			_logger.LogDebug("Updating pipeline {PipelineId}", pipelineDto.Id);
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Merge(path => path.Pattern<Pipeline>("p").Constrain(n => n.Id == pipelineDto.Id))
 				.Set("p", () => pipelineDto)
 				.ExecuteWithoutResultsAsync();
@@ -163,7 +163,7 @@ namespace PipelineService.Dao.Impl
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			var query = _graphClient
-				.WithAnnotations<PipelineContext>().Cypher
+				.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(path => path.Pattern<Pipeline>("pipeline"));
 
 			if (userIdentifier != default)
@@ -185,7 +185,7 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var results = (await _graphClient.WithAnnotations<PipelineContext>().Tx.Cypher
+			var results = (await _graphClient.WithAnnotations<PipelineGraphContext>().Tx.Cypher
 				.Merge(path => path.Pattern<Pipeline>("ppln").Constrain(ppl => ppl.Id == pipeline.Id))
 				.OnCreate()
 				.Set("ppln", () => pipeline)
@@ -217,13 +217,13 @@ namespace PipelineService.Dao.Impl
 			root.ChangedOn = DateTime.UtcNow;
 
 			// TODO: Merge this into a single db call using annotations
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Merge(path => path.Pattern<TN>("operationNode").Constrain(operationNode => operationNode.Id == root.Id))
 				.OnCreate()
 				.Set("operationNode", () => root)
 				.ExecuteWithoutResultsAsync();
 
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(path => path.Pattern<TN>("rootoperation").Constrain(rootoperation => rootoperation.Id == root.Id))
 				.Match(path => path.Pattern<Pipeline>("pipeline").Constrain(pipeline => pipeline.Id == pipelineId))
 				.Merge("(pipeline)-[r:HAS_ROOT_NODE]->(rootoperation)")
@@ -242,7 +242,7 @@ namespace PipelineService.Dao.Impl
 			successor.ChangedOn = DateTime.UtcNow;
 
 			// TODO: Merge this into a single db call using annotations
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Merge(path => path.Pattern<T>("operationNode").Constrain(operationNode => operationNode.Id == successor.Id))
 				.OnCreate()
 				.Set("operationNode", () => successor)
@@ -250,7 +250,7 @@ namespace PipelineService.Dao.Impl
 
 			foreach (var predecessorId in predecessorIds)
 			{
-				await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 					.Match(path => path.Pattern<Operation>("predNode").Constrain(predNode => predNode.Id == predecessorId))
 					.Match(path => path.Pattern<Operation>("sucNode").Constrain(sucNode => sucNode.Id == successor.Id))
 					.Merge("(predNode)-[r:HAS_SUCCESSOR]->(sucNode)")
@@ -267,7 +267,7 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var operation = await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var operation = await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(path => path.Pattern<Operation>("operationNode")
 					.Constrain(operationNode => operationNode.Id == operationId))
 				.Return<Operation>("operationNode")
@@ -285,7 +285,7 @@ namespace PipelineService.Dao.Impl
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 			operation.ChangedOn = DateTime.UtcNow;
 
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Merge(path => path.Pattern<T>("n").Constrain(n => n.Id == operation.Id))
 				.Set("n", () => operation)
 				.ExecuteWithoutResultsAsync();
@@ -297,7 +297,7 @@ namespace PipelineService.Dao.Impl
 		{
 			_logger.LogDebug("Deleting node {OperationId}", operationId);
 
-			await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(path => path.Pattern<Operation>("operationNode")
 					.Constrain(operationNode => operationNode.Id == operationId))
 				.DetachDelete("operationNode")
@@ -312,7 +312,7 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var query = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(path => path.Pattern<Operation, Operation>("predecessor", "target"))
 				.Return(() => new
 				{
@@ -358,7 +358,7 @@ namespace PipelineService.Dao.Impl
 				PipelineName = infoDto.Name
 			};
 
-			var resultNodes = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var resultNodes = (await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 					.Match(path => path.Pattern<Operation>("operationNode"))
 					.Where((Operation operationNode) => operationNode.PipelineId == pipelineId)
 					.Return(() => new
@@ -392,7 +392,7 @@ namespace PipelineService.Dao.Impl
 				dto.Nodes.Add(resultNode);
 			}
 
-			var resultEdges = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var resultEdges = (await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 					.Match(path => path.Pattern<Operation, Operation>("operationNode", "successor"))
 					.Where((Operation operationNode, Operation successor) =>
 						operationNode.PipelineId == pipelineId && successor.PipelineId == pipelineId)
@@ -424,7 +424,7 @@ namespace PipelineService.Dao.Impl
 			// TODO: This is a very inefficient way of doing this, but it keeps the order of datasets the same as the order of operationIds.
 			foreach (var operationId in operationIds)
 			{
-				var dataset = (await _graphClient.WithAnnotations<PipelineContext>().Cypher
+				var dataset = (await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 						.Match(path => path.Pattern<Operation>("o"))
 						.Where((Operation o) => o.Id == operationId)
 						.Return(() => new { OutputSerialized = Return.As<string>("o.OutputSerialized") })
@@ -448,7 +448,7 @@ namespace PipelineService.Dao.Impl
 			_logger.LogDebug("Exporting pipeline {PipelineId}", pipelineId);
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
-			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var query = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(op => op.Pattern("op"))
 				.Where((Operation op) => op.PipelineId == pipelineId)
 				.Match("(op)-[rl]->()")
@@ -489,7 +489,7 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var query = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match(path => path.Pattern<Operation>("o"))
 				.Return(() => new
 				{
