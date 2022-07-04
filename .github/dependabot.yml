@@ -119,6 +119,13 @@ updates:
     schedule:
       interval: "weekly"
 
+  # MySqlDatabase
+  - package-ecosystem: "docker"
+    directory: "/MySqlDatabase"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+
   # MLflow
   - package-ecosystem: "docker"
     directory: "/MLflowServer"

@@ -48,7 +48,7 @@ namespace PipelineService.Dao.Impl
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
-			var partitionRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var partitionRequest = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match($"(n:{nameof(Operation)})")
 				.Where("n.PipelineId=$pipeline_id").WithParam("pipeline_id", pipelineId)
 				.AndWhere("NOT (n)-[:HAS_SUCCESSOR]->()")
@@ -74,7 +74,7 @@ namespace PipelineService.Dao.Impl
 			_logger.LogDebug("Partitioned graph of pipeline {PipelineId} into {PartitionCount} partitions",
 				pipelineId, partitionResult.MaxLevel);
 
-			var executionRecordsRequest = _graphClient.WithAnnotations<PipelineContext>().Cypher
+			var executionRecordsRequest = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match($"(n:{nameof(Operation)})")
 				.Where("n._visited=$visited_stamp").WithParam("visited_stamp", partitionResult.VisitedStamp)
 				.Return(() => new

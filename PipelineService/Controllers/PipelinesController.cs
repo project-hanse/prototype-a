@@ -163,8 +163,10 @@ namespace PipelineService.Controllers
 
 		[HttpGet("candidate/import/{pipelineCandidateId:Guid}")]
 		public async Task<IActionResult> ImportPipelineCandidate(Guid pipelineCandidateId,
-			[FromQuery] bool deleteAfterImport = false,
-			[FromQuery] string username = null)
+			[FromQuery]
+			bool deleteAfterImport = false,
+			[FromQuery]
+			string username = null)
 		{
 			var candidate = await _pipelineCandidateService.GetCandidateById(pipelineCandidateId);
 			var pipelineId = await _pipelinesDtoService.ImportPipelineCandidate(candidate, username);
@@ -175,6 +177,14 @@ namespace PipelineService.Controllers
 
 			return Ok(pipelineId);
 		}
+
+		[HttpGet("candidate/process")]
+		public async Task<IActionResult> ProcessPipelineCandidate([FromQuery] int numberOfCandidates = 1)
+		{
+			await _pipelinesDtoService.ProcessPipelineCandidates(numberOfCandidates);
+			return Ok(numberOfCandidates);
+		}
+
 
 		[HttpPost("import")]
 		public async Task<IActionResult> Upload([FromForm] UploadFileRequest request)

@@ -58,6 +58,7 @@ learning_service --> blob_store
 pipeline_service --> graph_db
 pipeline_service <--> message_broker_internal
 pipeline_service <--> message_broker_edge
+pipeline_service --> mysql_db
 
 'dataset_store --> dataset_db
 'TODO: Default files should be seeded from file service PH-213'

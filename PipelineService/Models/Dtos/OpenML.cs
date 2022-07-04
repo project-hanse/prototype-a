@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace PipelineService.Models.Dtos;
@@ -22,7 +21,4 @@ public class OpenMlTask
 
 	[JsonProperty("task_type")]
 	public string TaskType { get; set; }
-
-	[JsonProperty("tag")]
-	public IList<string> Tags { get; set; }
 }

@@ -71,8 +71,6 @@ services:
   learning-service:
     image: ghcr.io/project-hanse/prototype-a/learning-service:main
     restart: unless-stopped
-    ports:
-      - "5006:5006"
     environment:
       S3_HOST: localstack
       S3_PORT: 4566
@@ -152,8 +150,6 @@ services:
     depends_on:
       - localstack
       - mysql
-    ports:
-      - "5005:5005"
     networks:
       - default
     environment:
@@ -202,15 +198,16 @@ services:
 
   # MySQL Database
   mysql:
-    image: mysql:5.7
+    image: ghcr.io/project-hanse/prototype-a/hanse-mysql-database
     restart: unless-stopped
     networks:
       - default
     environment:
-      MYSQL_DATABASE: mlflowdb
-      MYSQL_USER: mlflowuser
-      MYSQL_PASSWORD: O0vP2RrMraDz
-      MYSQL_ROOT_PASSWORD: aNIdBLTOIC4XuHgk66
+      - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
     volumes:
       - ./volumes/mysql:/var/lib/mysql
 
+  # Adminer
+  adminer:
+    image: adminer
+    restart: unless-stopped

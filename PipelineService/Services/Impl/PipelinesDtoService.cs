@@ -10,7 +10,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Dao;
 using PipelineService.Extensions;
+using PipelineService.Models;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Metrics;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Services.Impl
@@ -20,7 +22,10 @@ namespace PipelineService.Services.Impl
 		private readonly ILogger<PipelinesDtoService> _logger;
 		private readonly IConfiguration _configuration;
 		private readonly IPipelinesDao _pipelinesDao;
+		private readonly IPipelineExecutionService _pipelineExecutionService;
+		private readonly IPipelineCandidateService _pipelineCandidateService;
 		private readonly IOperationsService _operationsService;
+		private readonly EfMetricsContext _metricsContext;
 		private readonly IHttpClientFactory _httpClientFactory;
 
 		public string DefaultPipelinesPath => Path.Combine(
@@ -30,13 +35,19 @@ namespace PipelineService.Services.Impl
 		public PipelinesDtoService(ILogger<PipelinesDtoService> logger,
 			IConfiguration configuration,
 			IPipelinesDao pipelinesDao,
+			IPipelineExecutionService pipelineExecutionService,
+			IPipelineCandidateService pipelineCandidateService,
 			IOperationsService operationsService,
+			EfMetricsContext metricsContext,
 			IHttpClientFactory httpClientFactory)
 		{
 			_logger = logger;
 			_configuration = configuration;
 			_pipelinesDao = pipelinesDao;
+			_pipelineExecutionService = pipelineExecutionService;
+			_pipelineCandidateService = pipelineCandidateService;
 			_operationsService = operationsService;
+			_metricsContext = metricsContext;
 			_httpClientFactory = httpClientFactory;
 		}
 
@@ -292,6 +303,86 @@ namespace PipelineService.Services.Impl
 			}
 
 			return pipeline.Id;
+		}
+
+		public async Task ProcessPipelineCandidates(int numberOfCandidates)
+		{
+			_logger.LogInformation("Processing {NumberOfCandidates} pipeline candidates", numberOfCandidates);
+
+			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination()
+			{
+				Page = 1,
+				PageSize = numberOfCandidates
+			});
+
+			var processed = 0;
+			foreach (var candidate in candidates)
+			{
+				await ProcessPipelineCandidate(candidate);
+				processed++;
+			}
+
+			_logger.LogDebug("Processed {Processed} pipeline candidates", processed);
+		}
+
+		private async Task ProcessPipelineCandidate(PipelineCandidate candidate)
+		{
+			_logger.LogDebug("Processing pipeline candidate with id {PipelineCandidateId}", candidate.PipelineId);
+			var metric = new CandidateProcessingMetric
+			{
+				CandidateCreatedOn = candidate.CompletedAt,
+				ProcessingStartTime = DateTime.UtcNow,
+				TaskId = candidate.TaskId,
+				PipelineId = candidate.PipelineId,
+				ActionCount = candidate.Actions.Count,
+				BatchNumber = candidate.BatchNumber
+			};
+			try
+			{
+				metric.ImportStartTime = DateTime.UtcNow;
+				var pipelineId = await ImportPipelineCandidate(candidate);
+				metric.ImportSuccess = true;
+				metric.ImportEndTime = DateTime.UtcNow;
+				_logger.LogInformation("Imported pipeline candidate with id {PipelineCandidateId} in {CandidateImportDuration}",
+					candidate.PipelineId, metric.ImportDuration);
+
+				var executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
+				metric.Success = executionRecord.Failed.Count == 0;
+				if (metric.Success)
+				{
+					var lastOperation = executionRecord.Executed.LastOrDefault();
+					metric.ProcessingEndTime = lastOperation?.ExecutionCompletedAt ?? DateTime.UtcNow;
+				}
+				else
+				{
+					var failedOperationRecord = executionRecord.Failed.FirstOrDefault();
+					metric.ProcessingEndTime = failedOperationRecord?.ExecutionCompletedAt ?? DateTime.UtcNow;
+					metric.Error = failedOperationRecord != default
+						? $"Operation {failedOperationRecord.OperationId} (name: {failedOperationRecord.Name}) failed"
+						: $"{executionRecord.Failed.Count} operations failed";
+				}
+
+				await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
+			}
+			catch (Exception e)
+			{
+				metric.Success = false;
+				metric.Error = e.Message;
+				_logger.LogInformation("Failed to process pipeline candidate with id {PipelineCandidateId} - {Error}",
+					candidate.PipelineId, e.Message);
+
+				await _pipelinesDao.DeletePipeline(candidate.PipelineId);
+			}
+			finally
+			{
+				metric.ProcessingEndTime = DateTime.UtcNow;
+
+				_logger.LogInformation("Finished processing pipeline candidate with id {PipelineCandidateId} in {Duration}",
+					candidate.PipelineId, metric.ProcessingDuration);
+
+				_metricsContext.CandidateProcessingMetrics.Add(metric);
+				await _metricsContext.SaveChangesAsync();
+			}
 		}
 	}
 }
