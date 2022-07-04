@@ -209,6 +209,8 @@ services:
       context: ./MySqlDatabase
       dockerfile: ./Dockerfile
     restart: unless-stopped
+    ports:
+      - "3306:3306"
     networks:
       - default
     environment:

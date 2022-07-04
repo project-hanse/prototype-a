@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HealthChecks.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -56,7 +57,10 @@ namespace PipelineService
 
 			// databases
 			services.AddNeo4jAnnotations<PipelineGraphContext>();
-
+			services.AddDbContext<EfMetricsContext>(options =>
+			{
+				options.UseMySQL(connectionString: defaultMySqlConnectionString);
+			});
 
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();

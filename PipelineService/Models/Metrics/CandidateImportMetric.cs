@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PipelineService.Models.Metrics;
@@ -36,6 +37,7 @@ public record CandidateImportMetric : BasePersistentModel
 	/// <summary>
 	/// The OpenML task ID of the pipeline candidate.
 	/// </summary>
+	[MaxLength(256)]
 	public string TaskId { get; set; }
 
 	/// <summary>
