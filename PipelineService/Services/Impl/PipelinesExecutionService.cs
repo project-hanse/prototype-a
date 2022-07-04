@@ -156,6 +156,22 @@ namespace PipelineService.Services.Impl
 			return execution.Id;
 		}
 
+		public async Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, int pollingDelay = 1000)
+		{
+			var executionId = await ExecutePipeline(pipelineId);
+
+			while (true)
+			{
+				var execution = await _pipelinesExecutionDao.Get(executionId);
+				if (execution.IsCompleted)
+				{
+					return execution;
+				}
+
+				await Task.Delay(pollingDelay);
+			}
+		}
+
 		public async Task HandleExecutionResponse(OperationExecutedMessage response)
 		{
 			_logger.LogInformation(

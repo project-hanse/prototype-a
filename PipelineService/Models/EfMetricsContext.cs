@@ -9,10 +9,10 @@ public class EfMetricsContext : DbContext
 	{
 	}
 
-	public DbSet<CandidateImportMetric> CandidateImportMetrics { get; set; }
+	public DbSet<CandidateProcessingMetric> CandidateProcessingMetrics { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
-		modelBuilder.Entity<CandidateImportMetric>().ToTable(nameof(CandidateImportMetrics));
+		modelBuilder.Entity<CandidateProcessingMetric>().ToTable(nameof(CandidateProcessingMetrics));
 	}
 }

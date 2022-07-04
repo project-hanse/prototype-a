@@ -20,5 +20,11 @@ namespace PipelineService.Services
 		public Task<Guid> ImportPipeline(PipelineExport exportObject);
 
 		public Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate, string username = null);
+
+		/// <summary>
+		/// Loads a number of pipeline candidates, tries to import them, and checks if they are executable.
+		/// </summary>
+		/// <para name="numberOfCandidates">The number of candidates that will be processed.</para>
+		Task ProcessPipelineCandidates(int numberOfCandidates);
 	}
 }

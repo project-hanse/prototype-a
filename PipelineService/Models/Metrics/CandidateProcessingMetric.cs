@@ -7,7 +7,7 @@ namespace PipelineService.Models.Metrics;
 /// <summary>
 /// Collects metrics when importing a pipeline candidate.
 /// </summary>
-public record CandidateImportMetric : BasePersistentModel
+public record CandidateProcessingMetric : BasePersistentModel
 {
 	/// <summary>
 	/// Whether the candidate was imported successfully.
@@ -20,14 +20,24 @@ public record CandidateImportMetric : BasePersistentModel
 	public string Error { get; set; }
 
 	/// <summary>
-	/// The time the import started.
+	/// The time the processing of the candidate started.
 	/// </summary>
-	public DateTime StartTime { get; set; }
+	public DateTime ProcessingStartTime { get; set; }
 
 	/// <summary>
-	/// The time the import finished.
+	/// The time the import of the candidate started.
 	/// </summary>
-	public DateTime EndTime { get; set; }
+	public DateTime ImportStartTime { get; set; }
+
+	/// <summary>
+	/// The time the import of the candidate finished.
+	/// </summary>
+	public DateTime ImportEndTime { get; set; }
+
+	/// <summary>
+	/// The time the processing of the candidate ended.
+	/// </summary>
+	public DateTime ProcessingEndTime { get; set; }
 
 	/// <summary>
 	/// The number of actions in a pipeline candidate that are processed.
@@ -38,7 +48,7 @@ public record CandidateImportMetric : BasePersistentModel
 	/// The OpenML task ID of the pipeline candidate.
 	/// </summary>
 	[MaxLength(256)]
-	public string TaskId { get; set; }
+	public long TaskId { get; set; }
 
 	/// <summary>
 	/// The pipeline candidate's batch number.
@@ -54,5 +64,16 @@ public record CandidateImportMetric : BasePersistentModel
 	/// The time it took to import the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public TimeSpan ImportDuration => EndTime - StartTime;
+	public TimeSpan ProcessingDuration => ProcessingEndTime - ProcessingStartTime;
+
+	/// <summary>
+	/// The time it took to process the pipeline candidate.
+	/// </summary>
+	[NotMapped]
+	public TimeSpan ImportDuration => ImportEndTime - ImportStartTime;
+
+	/// <summary>
+	/// Indicated whether the pipeline candidate was imported successfully.
+	/// </summary>
+	public bool ImportSuccess { get; set; }
 }
