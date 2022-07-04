@@ -167,7 +167,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_DATABASE: mlflowdb
       MYSQL_USER: mlflowuser
-      MYSQL_PASSWORD: mlflowpassword
+      MYSQL_PASSWORD: hdfcLhDASas3vKhy
 
   # Localstack
   localstack:
@@ -205,14 +205,20 @@ services:
 
   # MySQL Database
   mysql:
-    image: mysql:5.7
+    build:
+      context: ./MySqlDatabase
+      dockerfile: ./Dockerfile
     restart: unless-stopped
     networks:
       - default
     environment:
-      - MYSQL_DATABASE=mlflowdb
-      - MYSQL_USER=mlflowuser
-      - MYSQL_PASSWORD=mlflowpassword
       - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
     volumes:
       - ./volumes/mysql:/var/lib/mysql
+
+  # Adminer
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
