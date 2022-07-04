@@ -5,6 +5,7 @@ export const environment = {
 	datasetApi: 'http://localhost:5002',
 	learningApi: 'http://localhost:5006',
 	mlflow: 'http://localhost:5005',
+	adminer: 'http://localhost:8081',
 	messageBrokerHost: 'localhost',
 	messageBrokerPath: '',
 	messageBrokerPort: 9002,

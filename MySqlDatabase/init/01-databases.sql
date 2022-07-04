@@ -3,6 +3,7 @@ SET CHARSET UTF8;
 -- create databases
 CREATE DATABASE IF NOT EXISTS mlflowdb;
 CREATE DATABASE IF NOT EXISTS pipelineservicedb;
+CREATE DATABASE IF NOT EXISTS hangfiredb;
 
 -- create user for each database and grant privileges
 
@@ -13,5 +14,6 @@ CREATE DATABASE IF NOT EXISTS pipelineservicedb;
 	-- pipelineservicedb
 	CREATE USER IF NOT EXISTS 'pipelineserviceuser'@'%' IDENTIFIED BY 'I8TnaeQ0ebeXXZ9n';
 	GRANT ALL PRIVILEGES ON pipelineservicedb.* TO 'pipelineserviceuser'@'%';
+	GRANT ALL PRIVILEGES ON hangfiredb.* TO 'pipelineserviceuser'@'%';
 
 FLUSH PRIVILEGES;

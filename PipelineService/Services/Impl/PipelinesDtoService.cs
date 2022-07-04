@@ -370,6 +370,8 @@ namespace PipelineService.Services.Impl
 				metric.Error = e.Message;
 				_logger.LogInformation("Failed to process pipeline candidate with id {PipelineCandidateId} - {Error}",
 					candidate.PipelineId, e.Message);
+
+				await _pipelinesDao.DeletePipeline(candidate.PipelineId);
 			}
 			finally
 			{

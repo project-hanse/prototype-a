@@ -24,4 +24,12 @@ export class AppComponent {
 	getMlflowUrl(): string {
 		return `${environment.mlflow}`;
 	}
+
+	getHangfireUrl(): string {
+		return `${environment.pipelineApi}/hangfire`;
+	}
+
+	getAdminerUrl(): string {
+		return `${environment.adminer}`;
+	}
 }

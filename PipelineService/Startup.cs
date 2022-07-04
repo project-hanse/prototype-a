@@ -1,5 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using System.Transactions;
+using Hangfire;
+using Hangfire.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +57,29 @@ namespace PipelineService
 			// external services
 			services.AddMemoryCache();
 			services.AddHttpClient();
+
+			// Add Hangfire services.
+			services.AddHangfire(configuration =>
+			{
+				configuration
+					.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+					.UseSimpleAssemblyNameTypeSerializer()
+					.UseRecommendedSerializerSettings();
+				var storageOptions = new MySqlStorageOptions
+				{
+					TransactionIsolationLevel = IsolationLevel.ReadCommitted,
+					QueuePollInterval = TimeSpan.FromSeconds(15),
+					JobExpirationCheckInterval = TimeSpan.FromHours(1),
+					CountersAggregateInterval = TimeSpan.FromMinutes(5),
+					PrepareSchemaIfNecessary = true,
+					DashboardJobListLimit = 50000
+				};
+				configuration.UseStorage(
+					new MySqlStorage(Configuration.GetConnectionString("HangfireConnection"), storageOptions));
+			});
+
+			// Add the processing server as IHostedService
+			services.AddHangfireServer();
 
 			// databases
 			services.AddNeo4jAnnotations<PipelineGraphContext>();
@@ -125,10 +151,16 @@ namespace PipelineService
 			{
 				endpoints.MapControllers();
 				endpoints.MapHealthChecks("/health");
+				endpoints.MapHangfireDashboard();
 			});
 
 			Task.WhenAll(pipelinesDao.Setup());
 			HandySelfMigrator.Migrate<EfMetricsContext>(app);
+
+			// schedule recurring jobs
+			BackgroundJob.Schedule<IPipelinesDtoService>(s => s.ProcessPipelineCandidates(
+					Configuration.GetValue("CandidateProcessing:CandidatesPerBatch", 30)),
+				TimeSpan.FromMinutes(Configuration.GetValue("CandidateProcessing:Interval", 15)));
 		}
 	}
 }
