@@ -69,13 +69,13 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// The time it took to import the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public TimeSpan ProcessingDuration => ProcessingEndTime - ProcessingStartTime;
+	public double ProcessingDuration => (ProcessingEndTime - ProcessingStartTime).TotalMilliseconds;
 
 	/// <summary>
 	/// The time it took to process the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public TimeSpan ImportDuration => ImportEndTime - ImportStartTime;
+	public double ImportDuration => (ImportEndTime - ImportStartTime).TotalMilliseconds;
 
 	/// <summary>
 	/// Indicated whether the pipeline candidate was imported successfully.

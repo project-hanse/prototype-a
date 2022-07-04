@@ -107,6 +107,7 @@ namespace PipelineService
 			services.AddTransient<IPipelinesDtoService, PipelinesDtoService>();
 			services.AddTransient<IOperationTemplatesService, OperationTemplatesService>();
 			services.AddTransient<IPipelineCandidateService, PipelineCandidateService>();
+			services.AddTransient<IMetricsService, MetricsService>();
 
 			services.AddHostedService<HostedSubscriptionService>();
 
