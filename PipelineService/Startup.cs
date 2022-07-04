@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using HealthChecks.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +11,7 @@ using Neo4jClient;
 using PipelineService.Dao;
 using PipelineService.Dao.Impl;
 using PipelineService.Extensions;
+using PipelineService.Helper;
 using PipelineService.Models;
 using PipelineService.Services;
 using PipelineService.Services.HealthChecks;
@@ -59,7 +59,9 @@ namespace PipelineService
 			services.AddNeo4jAnnotations<PipelineGraphContext>();
 			services.AddDbContext<EfMetricsContext>(options =>
 			{
-				options.UseMySQL(connectionString: defaultMySqlConnectionString);
+				options.UseMySql(
+					defaultMySqlConnectionString,
+					new MySqlServerVersion(new Version(Configuration.GetValue("MySqlServerVersion", "5.7.38"))));
 			});
 
 			// Registering singleton services
@@ -126,6 +128,7 @@ namespace PipelineService
 			});
 
 			Task.WhenAll(pipelinesDao.Setup());
+			HandySelfMigrator.Migrate<EfMetricsContext>(app);
 		}
 	}
 }

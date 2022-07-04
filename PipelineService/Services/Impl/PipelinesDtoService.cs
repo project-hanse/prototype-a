@@ -330,6 +330,7 @@ namespace PipelineService.Services.Impl
 			_logger.LogDebug("Processing pipeline candidate with id {PipelineCandidateId}", candidate.PipelineId);
 			var metric = new CandidateProcessingMetric
 			{
+				CandidateCreatedOn = candidate.CompletedAt,
 				ProcessingStartTime = DateTime.UtcNow,
 				TaskId = candidate.TaskId,
 				PipelineId = candidate.PipelineId,

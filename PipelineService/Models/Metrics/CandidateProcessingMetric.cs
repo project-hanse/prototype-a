@@ -20,6 +20,11 @@ public record CandidateProcessingMetric : BasePersistentModel
 	public string Error { get; set; }
 
 	/// <summary>
+	/// The time the candidate was created on.
+	/// </summary>
+	public DateTime CandidateCreatedOn { get; set; }
+
+	/// <summary>
 	/// The time the processing of the candidate started.
 	/// </summary>
 	public DateTime ProcessingStartTime { get; set; }
