@@ -33,7 +33,7 @@ namespace PipelineService.Services.HealthChecks
 
 			try
 			{
-				var query = _graphClient.WithAnnotations<PipelineContext>().Cypher
+				var query = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 					.Match(path => path.Pattern<Pipeline>("pipeline"))
 					.Return(pipeline => pipeline.As<Pipeline>())
 					.Limit(1);

@@ -21,5 +21,6 @@ namespace PipelineService.Models.Pipeline.Execution
 		public IList<OperationExecutionRecord> Executed { get; } = new List<OperationExecutionRecord>();
 
 		public IList<OperationExecutionRecord> Failed { get; } = new List<OperationExecutionRecord>();
+		public bool IsCompleted => ToBeExecuted.Count == 0 && InExecution.Count == 0;
 	}
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ public class PipelineCandidateService : IPipelineCandidateService
 		_pipelineCandidateDao = pipelineCandidateDao;
 	}
 
-	public async Task<PaginatedList<PipelineCandidate>> GetPipelineCandidateDtos(Pagination pagination)
+	public async Task<IList<PipelineCandidate>> GetPipelineCandidates(Pagination pagination)
 	{
 		_logger.LogDebug("Loading available pipeline candidates...");
 
@@ -46,10 +47,17 @@ public class PipelineCandidateService : IPipelineCandidateService
 			? candidates.OrderBy(x => sortProperty.GetValue(x)).ToList()
 			: candidates.OrderByDescending(x => sortProperty.GetValue(x)).ToList();
 
+		return candidates.Skip(pagination.PageSize * (pagination.Page - 1)).Take(pagination.PageSize).ToList();
+	}
+
+	public async Task<PaginatedList<PipelineCandidate>> GetPipelineCandidateDtos(Pagination pagination)
+	{
+		var candidates = await GetPipelineCandidates(pagination);
+
 		var response = new PaginatedList<PipelineCandidate>
 		{
 			TotalItems = candidates.Count,
-			Items = candidates.Skip(pagination.PageSize * (pagination.Page - 1)).Take(pagination.PageSize).ToList()
+			Items = candidates.ToList()
 		};
 
 		foreach (var pipelineCandidate in response.Items)
@@ -57,7 +65,7 @@ public class PipelineCandidateService : IPipelineCandidateService
 			pipelineCandidate.Actions = null;
 		}
 
-		_logger.LogInformation("Loaded {PipelineCandidateCount} pipeline candidates", candidates.Count);
+		_logger.LogInformation("Loaded {PipelineCandidateCount} pipeline candidate dtos", candidates.Count);
 
 		return response;
 	}

@@ -117,7 +117,7 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 
 	private importCandidatesForUser(selected: PipelineCandidate[], username: string): void {
 		for (const pipelineCandidate of selected) {
-			this.bufferValue += (1 / selected.length) * 75;
+			this.bufferValue += (1 / selected.length) * 100;
 			this.subscriptions.add(
 				this.pipelineService.importPipelineCandidate(pipelineCandidate.pipelineId, false, username).subscribe(
 					(pipelineId) => {
