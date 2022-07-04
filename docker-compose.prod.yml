@@ -198,7 +198,7 @@ services:
 
   # MySQL Database
   mysql:
-    image: ghcr.io/project-hanse/prototype-a/hanse-mysql-database
+    image: ghcr.io/project-hanse/prototype-a/hanse-mysql-database:main
     restart: unless-stopped
     networks:
       - default
