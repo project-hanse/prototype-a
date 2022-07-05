@@ -163,6 +163,13 @@ namespace PipelineService
 						context.Request.PathBase = new PathString(pathBase.Value);
 					return next();
 				});
+				var options = new ForwardedHeadersOptions
+				{
+					ForwardedHeaders = ForwardedHeaders.All
+				};
+				options.KnownNetworks.Clear();
+				options.KnownProxies.Clear();
+				app.UseForwardedHeaders(options);
 			}
 
 			app.UseEndpoints(endpoints =>
