@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Transactions;
 using Hangfire;
-using Hangfire.Dashboard;
 using Hangfire.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,6 +14,7 @@ using Neo4jClient;
 using PipelineService.Dao;
 using PipelineService.Dao.Impl;
 using PipelineService.Extensions;
+using PipelineService.Filters;
 using PipelineService.Helper;
 using PipelineService.Models;
 using PipelineService.Services;
@@ -157,7 +156,7 @@ namespace PipelineService
 				endpoints.MapHealthChecks("/health");
 				endpoints.MapHangfireDashboard(new DashboardOptions()
 				{
-					Authorization = new List<IDashboardAuthorizationFilter>()
+					Authorization = new[] { new HangfireAuthorizationFilter() }
 				});
 			});
 
