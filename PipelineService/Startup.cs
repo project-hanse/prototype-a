@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Transactions;
 using Hangfire;
+using Hangfire.Dashboard;
 using Hangfire.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -152,7 +154,10 @@ namespace PipelineService
 			{
 				endpoints.MapControllers();
 				endpoints.MapHealthChecks("/health");
-				endpoints.MapHangfireDashboard();
+				endpoints.MapHangfireDashboard(new DashboardOptions()
+				{
+					Authorization = new List<IDashboardAuthorizationFilter>()
+				});
 			});
 
 			Task.WhenAll(pipelinesDao.Setup());

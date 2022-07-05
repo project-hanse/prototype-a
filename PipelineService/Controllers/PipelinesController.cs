@@ -178,11 +178,10 @@ namespace PipelineService.Controllers
 			return Ok(pipelineId);
 		}
 
-		[HttpGet("candidate/process")]
+		[HttpPost("candidate/process")]
 		public async Task<IActionResult> ProcessPipelineCandidate([FromQuery] int numberOfCandidates = 1)
 		{
-			await _pipelinesDtoService.ProcessPipelineCandidates(numberOfCandidates);
-			return Ok(numberOfCandidates);
+			return Ok(await _pipelinesDtoService.ProcessPipelineCandidates(numberOfCandidates));
 		}
 
 

@@ -305,7 +305,7 @@ namespace PipelineService.Services.Impl
 			return pipeline.Id;
 		}
 
-		public async Task ProcessPipelineCandidates(int numberOfCandidates)
+		public async Task<int> ProcessPipelineCandidates(int numberOfCandidates)
 		{
 			_logger.LogInformation("Processing {NumberOfCandidates} pipeline candidates", numberOfCandidates);
 
@@ -323,6 +323,8 @@ namespace PipelineService.Services.Impl
 			}
 
 			_logger.LogDebug("Processed {Processed} pipeline candidates", processed);
+
+			return processed;
 		}
 
 		private async Task ProcessPipelineCandidate(PipelineCandidate candidate)
