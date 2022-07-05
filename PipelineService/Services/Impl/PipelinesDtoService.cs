@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -338,7 +339,7 @@ namespace PipelineService.Services.Impl
 			}
 
 			_logger.LogInformation("Processed {Processed} pipeline candidates", processed);
-
+			BackgroundJob.Enqueue<ILearningServiceClient>(s => s.TriggerModelTraining());
 			return processed;
 		}
 

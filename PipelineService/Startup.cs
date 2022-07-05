@@ -110,6 +110,7 @@ namespace PipelineService
 			services.AddTransient<IOperationTemplatesService, OperationTemplatesService>();
 			services.AddTransient<IPipelineCandidateService, PipelineCandidateService>();
 			services.AddTransient<IMetricsService, MetricsService>();
+			services.AddTransient<ILearningServiceClient, LearningServiceClient>();
 
 			services.AddHostedService<HostedSubscriptionService>();
 
