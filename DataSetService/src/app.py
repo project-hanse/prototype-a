@@ -99,7 +99,7 @@ def metadata_by_key(key: str):
 	if 'version' in request.args:
 		metadata_version = request.args['version']
 	if request.method == 'GET':
-		dataset_store.generate_metadata_by_key(key)
+		dataset_store.generate_metadata_by_key(key, versions=[metadata_version])
 		metadata = dataset_store.get_metadata_by_key(key, metadata_version)
 
 		if metadata is None:

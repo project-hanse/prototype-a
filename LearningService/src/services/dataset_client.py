@@ -13,13 +13,19 @@ class DatasetClient:
 	def get_base_url(self) -> str:
 		return f"http://{self.host}:{self.port}"
 
-	def get_metadata(self, key: str, cache: bool = True) -> dict:
+	def get_metadata(self, key: str, dataset_type: str = '', cache: bool = True) -> dict:
 		if cache:
 			if key in self.cache:
 				return self.cache[key]
 		self.logger.debug("Loading metadata for key %s", key)
 		response = requests.get(self.get_base_url() + "/api/metadata/key/%s?version=compact" % key)
-		response.raise_for_status()
+		if response.status_code != 200:
+			if response.status_code == 404:
+				self.logger.debug("Metadata not found for key %s of datatype %s" % (key, dataset_type))
+			else:
+				self.logger.warning(
+					"Failed to load metadata for key %s of type %s (status: %i)" % (key, dataset_type, response.status_code))
+			return {}
 		metadata = response.json()
 		self.cache[key] = metadata
 		return metadata

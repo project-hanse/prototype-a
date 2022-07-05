@@ -61,7 +61,9 @@ class ModelService:
 	def train_model(self, model_name: str, cache_data: bool = True):
 		self.logger.info("Training model %s" % model_name)
 		trainer = self.model_registry.get_trainer_by_model_name(model_name)
+		load_data_start = time.time()
 		feat, lab = trainer.get_data(cache=cache_data)
+		load_data_end = time.time()
 		X_train, X_test, y_train, y_test = train_test_split(feat, lab, test_size=self.train_split)
 		search_cv = trainer.get_model_pipeline()
 		expr_name = model_name + "-experiment"
@@ -71,6 +73,7 @@ class ModelService:
 		with mlflow.start_run():
 			try:
 				self.logger.info("Training model %s" % model_name)
+				mlflow.log_metric("load_data_time", load_data_end - load_data_start)
 				start_time = time.time()
 				search_cv.fit(X_train, y_train)
 				end_time = time.time()
@@ -96,6 +99,8 @@ class ModelService:
 				ret["cvAccuracy"] = cvs.mean()
 				ret["trainSize"] = len(X_train)
 				ret["testSize"] = len(X_test)
+				ret["timeDataLoading"] = load_data_end - load_data_start
+				ret["timeFittingModel"] = end_time - start_time
 				if len(X_test) > 10:
 					model_input = random.sample(X_test, 10)
 					mode_output = model.predict(model_input)
@@ -130,5 +135,5 @@ class ModelService:
 		self.logger.info("Training all models")
 		rets = []
 		for name in self.model_registry.get_all_trainer_names():
-			rets.append(self.train_model(name))
+			rets.append(self.train_model(name, cache_data=True))
 		return rets

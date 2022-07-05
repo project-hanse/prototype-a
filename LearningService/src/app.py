@@ -79,7 +79,7 @@ def train_models():
 @app.route('/api/train/<model_name>', methods=['GET'])
 def train_model(model_name: str):
 	if request.method == 'GET':
-		cache_data = request.args.get('cache_data', default=False, type=bool)
+		cache_data = request.args.get('cache_data', default=True, type=bool)
 		try:
 			ret = model_service.train_model(model_name=model_name, cache_data=cache_data)
 			return jsonify(ret)
