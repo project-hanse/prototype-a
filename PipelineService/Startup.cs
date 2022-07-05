@@ -178,9 +178,10 @@ namespace PipelineService
 			HandySelfMigrator.Migrate<EfMetricsContext>(app);
 
 			// schedule recurring jobs
-			BackgroundJob.Schedule<IPipelinesDtoService>(s => s.ProcessPipelineCandidates(
-					Configuration.GetValue("CandidateProcessing:CandidatesPerBatch", 30)),
-				TimeSpan.FromMinutes(Configuration.GetValue("CandidateProcessing:Interval", 15)));
+			RecurringJob.AddOrUpdate<IPipelinesDtoService>(
+				"candidate_processing",
+				s => s.ProcessPipelineCandidates(
+					Configuration.GetValue("CandidateProcessing:CandidatesPerBatch", 30)), Cron.Hourly);
 		}
 	}
 }
