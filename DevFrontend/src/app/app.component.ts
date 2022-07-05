@@ -30,6 +30,6 @@ export class AppComponent {
 	}
 
 	getAdminerUrl(): string {
-		return `${environment.adminer}`;
+		return `${environment.adminer}?server=mysql`;
 	}
 }
