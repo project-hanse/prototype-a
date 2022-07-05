@@ -156,18 +156,36 @@ namespace PipelineService.Services.Impl
 			return execution.Id;
 		}
 
-		public async Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, int pollingDelay = 1000)
+		public async Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, bool skipIfExecuted = false,
+			int pollingDelay = 1000)
 		{
+			if (skipIfExecuted)
+			{
+				var executionRecord = await _pipelinesExecutionDao.GetLastExecutionForPipeline(pipelineId);
+				if (executionRecord != null && executionRecord.IsCompleted)
+				{
+					_logger.LogInformation("Pipeline with id {PipelineId} has already been executed, skipping", pipelineId);
+					return executionRecord;
+				}
+			}
+
 			var executionId = await ExecutePipeline(pipelineId);
 
+			var i = 0;
 			while (true)
 			{
-				var execution = await _pipelinesExecutionDao.Get(executionId);
-				if (execution.IsCompleted)
+				var executionRecord = await _pipelinesExecutionDao.Get(executionId);
+				if (executionRecord.IsCompleted)
 				{
-					return execution;
+					return executionRecord;
 				}
 
+				i++;
+				if (i > 2000)
+				{
+					_logger.LogWarning("Aborting waiting for pipeline execution to complete, because it took too long");
+					return executionRecord;
+				}
 				await Task.Delay(pollingDelay);
 			}
 		}

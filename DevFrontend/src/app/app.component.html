@@ -20,6 +20,24 @@
 				<button mat-menu-item disabled>
 					<ph-username></ph-username>
 				</button>
+
+				<button mat-menu-item [matMenuTriggerFor]="services">
+					<mat-icon>settings_applications</mat-icon>
+					<span>Services</span>
+				</button>
+
+				<a routerLink="admin" mat-menu-item>
+					<mat-icon>admin_panel_settings</mat-icon>
+					<span>Admin</span>
+				</a>
+				<a routerLink="settings" mat-menu-item>
+					<mat-icon>settings</mat-icon>
+					<span>Settings</span>
+				</a>
+			</mat-menu>
+
+			<!-- Services Submenu -->
+			<mat-menu #services="matMenu">
 				<a [href]="getMlflowUrl()" target="_blank" mat-menu-item>
 					<mat-icon>web</mat-icon>
 					<span>MLflow</span>
@@ -35,14 +53,6 @@
 				<a [href]="getAdminerUrl()" target="_blank" mat-menu-item>
 					<mat-icon>save</mat-icon>
 					<span>Adminer</span>
-				</a>
-				<a routerLink="admin" mat-menu-item>
-					<mat-icon>admin_panel_settings</mat-icon>
-					<span>Admin</span>
-				</a>
-				<a routerLink="settings" mat-menu-item>
-					<mat-icon>settings</mat-icon>
-					<span>Settings</span>
 				</a>
 			</mat-menu>
 		</mat-toolbar-row>

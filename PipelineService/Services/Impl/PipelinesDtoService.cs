@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -305,16 +306,31 @@ namespace PipelineService.Services.Impl
 			return pipeline.Id;
 		}
 
-		public async Task ProcessPipelineCandidates(int numberOfCandidates)
+		public async Task<int> ProcessPipelineCandidates(int numberOfCandidates)
 		{
-			_logger.LogInformation("Processing {NumberOfCandidates} pipeline candidates", numberOfCandidates);
-
 			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination()
 			{
 				Page = 1,
 				PageSize = numberOfCandidates
 			});
 
+			return await ProcessPipelineCandidates(candidates);
+		}
+
+		public async Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates)
+		{
+			var candidates = new List<PipelineCandidate>();
+			foreach (var candidateId in numberOfCandidates)
+			{
+				candidates.Add(await _pipelineCandidateService.GetCandidateById(candidateId));
+			}
+
+			return await ProcessPipelineCandidates(candidates);
+		}
+
+		private async Task<int> ProcessPipelineCandidates(ICollection<PipelineCandidate> candidates)
+		{
+			_logger.LogDebug("Processing {NumberOfCandidates} pipeline candidates", candidates.Count);
 			var processed = 0;
 			foreach (var candidate in candidates)
 			{
@@ -322,7 +338,9 @@ namespace PipelineService.Services.Impl
 				processed++;
 			}
 
-			_logger.LogDebug("Processed {Processed} pipeline candidates", processed);
+			_logger.LogInformation("Processed {Processed} pipeline candidates", processed);
+			BackgroundJob.Enqueue<ILearningServiceClient>(s => s.TriggerModelTraining());
+			return processed;
 		}
 
 		private async Task ProcessPipelineCandidate(PipelineCandidate candidate)

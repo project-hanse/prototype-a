@@ -12,16 +12,19 @@ class TrainerRegistry:
 		self.dataset_client = dataset_client
 		self.pipeline_client = pipeline_client
 		self.logger = LogHelper.get_logger(__name__)
+		self.trainers = {
+			"model-1-complementnb": TrainerModel1ComplementNB(self.pipeline_client, self.dataset_client),
+			"model-2-complementnb": TrainerModel2ComplementNB(self.pipeline_client, self.dataset_client),
+			"model-3-complementnb": TrainerModel3ComplementNB(self.pipeline_client, self.dataset_client),
+			"model-3-randomforest": TrainerModel3RandomForest(self.pipeline_client, self.dataset_client)
+		}
 
 	def get_trainer_by_model_name(self, name):
 		self.logger.info("Getting trainer for model %s" % name)
-		if name == "model-1-complementnb":
-			return TrainerModel1ComplementNB(self.pipeline_client, self.dataset_client)
-		elif name == "model-2-complementnb":
-			return TrainerModel2ComplementNB(self.pipeline_client, self.dataset_client)
-		elif name == "model-3-complementnb":
-			return TrainerModel3ComplementNB(self.pipeline_client, self.dataset_client)
-		elif name == "model-3-randomforest":
-			return TrainerModel3RandomForest(self.pipeline_client, self.dataset_client)
+		if name in self.trainers:
+			return self.trainers[name]
 		else:
 			raise ModuleNotFoundError("Model %s not found" % name)
+
+	def get_all_trainer_names(self):
+		return list(self.trainers.keys())
