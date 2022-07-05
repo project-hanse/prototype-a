@@ -6,7 +6,6 @@ using Hangfire.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -163,13 +162,6 @@ namespace PipelineService
 						context.Request.PathBase = new PathString(pathBase.Value);
 					return next();
 				});
-				var options = new ForwardedHeadersOptions
-				{
-					ForwardedHeaders = ForwardedHeaders.All
-				};
-				options.KnownNetworks.Clear();
-				options.KnownProxies.Clear();
-				app.UseForwardedHeaders(options);
 			}
 
 			app.UseEndpoints(endpoints =>
