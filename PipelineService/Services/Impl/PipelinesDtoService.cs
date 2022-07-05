@@ -334,8 +334,20 @@ namespace PipelineService.Services.Impl
 			var processed = 0;
 			foreach (var candidate in candidates)
 			{
-				await ProcessPipelineCandidate(candidate);
-				processed++;
+				try
+				{
+					await ProcessPipelineCandidate(candidate);
+					processed++;
+				}
+				catch (Exception e)
+				{
+					_logger.LogWarning(e,"Failed to process pipeline candidate {CandidateId} - {Error}",
+						candidate?.PipelineId ?? default, e.Message);
+					if (candidate != null)
+					{
+						await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
+					}
+				}
 			}
 
 			_logger.LogInformation("Processed {Processed} pipeline candidates", processed);
