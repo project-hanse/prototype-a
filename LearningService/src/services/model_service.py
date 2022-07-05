@@ -125,3 +125,10 @@ class ModelService:
 			return list(model.predict(data))
 		except Exception as e:
 			self.logger.error("Model prediction failed: %s" % e)
+
+	def train_all_model(self):
+		self.logger.info("Training all models")
+		rets = []
+		for name in self.model_registry.get_all_trainer_names():
+			rets.append(self.train_model(name))
+		return rets

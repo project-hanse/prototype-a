@@ -69,6 +69,13 @@ def get_models():
 		return jsonify(models)
 
 
+@app.route('/api/train', methods=['GET'])
+def train_models():
+	if request.method == 'GET':
+		ret = model_service.train_all_model()
+		return ret
+
+
 @app.route('/api/train/<model_name>', methods=['GET'])
 def train_model(model_name: str):
 	if request.method == 'GET':
