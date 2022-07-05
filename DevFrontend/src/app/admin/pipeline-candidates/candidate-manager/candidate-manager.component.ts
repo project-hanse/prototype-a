@@ -4,8 +4,9 @@ import {MatPaginator} from '@angular/material/paginator';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
-import {catchError, merge, of, startWith, Subscription} from 'rxjs';
+import {catchError, combineLatest, of, ReplaySubject, startWith, Subject, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
+import {environment} from '../../../../environments/environment';
 import {UsersService} from '../../../dev-tools/_services/users.service';
 import {PipelineService} from '../../../pipeline/_service/pipeline.service';
 import {PipelineCandidate} from '../_model/pipeline-candidate';
@@ -17,8 +18,9 @@ import {PipelineCandidate} from '../_model/pipeline-candidate';
 })
 export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestroy {
 	displayedColumns: Array<string> = ['select', 'completedAt', 'taskId', 'batchNumber', 'taskTypeId'];
-	dataSource: MatTableDataSource<PipelineCandidate> = new MatTableDataSource([]);
+	readonly dataSource: MatTableDataSource<PipelineCandidate> = new MatTableDataSource([]);
 	selection = new SelectionModel<PipelineCandidate>(true, []);
+	private readonly reload: Subject<any> = new ReplaySubject<any>();
 
 	resultsLength = 0;
 	isLoadingResults = true;
@@ -27,10 +29,11 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 
 	progressValue: number = 0;
 	bufferValue: number = 0;
+	processing: boolean = false;
 
 	@ViewChild(MatPaginator) paginator: MatPaginator;
-	@ViewChild(MatSort) sort: MatSort;
 
+	@ViewChild(MatSort) sort: MatSort;
 	private readonly subscriptions = new Subscription();
 
 	constructor(private pipelineService: PipelineService, private usersService: UsersService, private matSnackBar: MatSnackBar) {
@@ -45,38 +48,44 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 
 	ngAfterViewInit(): void {
 		// If the user changes the sort order, reset back to the first page.
-		this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
+		this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+		// select first sort column
+		this.sort.active = 'completedAt';
+		this.subscriptions.add(
+			combineLatest([
+				this.sort.sortChange.asObservable().pipe(startWith(null)),
+				this.paginator.page.asObservable().pipe(startWith(null)),
+				this.reload.pipe(startWith(null))])
+				.pipe(
+					switchMap(() => {
+						this.isLoadingResults = true;
+						console.log('switchMap', this.sort, this.paginator.page);
+						return this.pipelineService.getPipelineCandidates({
+								sort: this.sort.active,
+								order: this.sort.direction,
+								page: this.paginator.pageIndex,
+								pageSize: this.paginator.pageSize
+							}
+						).pipe(catchError(() => of(null)));
+					}),
+					map(data => {
+						// Flip flag to show that loading has finished.
+						this.isLoadingResults = false;
+						this.errorWhileLoading = data === null;
 
-		merge([this.sort.sortChange, this.paginator.page])
-			.pipe(
-				startWith({}),
-				switchMap(() => {
-					this.isLoadingResults = true;
-					return this.pipelineService.getPipelineCandidates({
-							sort: this.sort.active,
-							order: this.sort.direction,
-							page: this.paginator.pageIndex,
-							pageSize: this.paginator.pageSize
+						if (data === null) {
+							return [];
 						}
-					).pipe(catchError(() => of(null)));
-				}),
-				map(data => {
-					// Flip flag to show that loading has finished.
-					this.isLoadingResults = false;
-					this.errorWhileLoading = data === null;
 
-					if (data === null) {
-						return [];
-					}
-
-					// Only refresh the result length if there is new data. In case of rate
-					// limit errors, we do not want to reset the paginator to zero, as that
-					// would prevent users from re-triggering requests.
-					this.resultsLength = data.totalItems;
-					return data.items;
-				}),
-			)
-			.subscribe(data => (this.dataSource.data = data));
+						// Only refresh the result length if there is new data. In case of rate
+						// limit errors, we do not want to reset the paginator to zero, as that
+						// would prevent users from re-triggering requests.
+						this.resultsLength = data.totalItems;
+						return data.items;
+					}),
+				)
+				.subscribe(data => (this.dataSource.data = data))
+		);
 	}
 
 	/** Whether the number of selected elements matches the total number of rows. */
@@ -134,5 +143,27 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 					})
 			);
 		}
+	}
+
+	getMetricsUrl(): string {
+		return `${environment.pipelineApi}/api/v1/metrics/processing/candidates?page=0&pageSize=100`;
+	}
+
+	processCandidates(numberOfCandidates: PipelineCandidate[]): void {
+		this.processing = true;
+		this.subscriptions.add(
+			this.pipelineService.processCandidates(numberOfCandidates.map(c => c.pipelineId)).subscribe(
+				processed => {
+					this.matSnackBar.open(`${processed} candidates processed`, 'Close', {duration: 5000});
+					this.processing = false;
+					this.reload.next({});
+				},
+				error => {
+					console.error(error);
+					this.matSnackBar.open(`Error while processing candidates`, 'Close', {duration: 5000});
+					this.processing = false;
+				}
+			)
+		);
 	}
 }

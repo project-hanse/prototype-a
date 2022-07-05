@@ -52,7 +52,7 @@ reverse_proxy --> mlflow_server
 
 learning_service --> mlflow_server
 learning_service --> dataset_store
-learning_service --> pipeline_service
+learning_service <--> pipeline_service
 learning_service --> blob_store
 
 pipeline_service --> graph_db

@@ -27,6 +27,13 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 		_configuration = configuration;
 	}
 
+	public Task<int> GetPipelineCandidatesTotal()
+	{
+		_logger.LogDebug("Counting pipeline candidates");
+		var candidates = Directory.GetFiles(PipelineCandidatesPath);
+		return Task.FromResult(candidates.Length);
+	}
+
 	public async Task<IList<PipelineCandidate>> GetPipelineCandidates()
 	{
 		_logger.LogDebug("Loading pipeline candidates from file system...");

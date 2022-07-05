@@ -56,7 +56,7 @@ public class PipelineCandidateService : IPipelineCandidateService
 
 		var response = new PaginatedList<PipelineCandidate>
 		{
-			TotalItems = candidates.Count,
+			TotalItems = await _pipelineCandidateDao.GetPipelineCandidatesTotal(),
 			Items = candidates.ToList()
 		};
 

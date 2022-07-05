@@ -7,6 +7,7 @@ using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using PipelineService.Dao;
+using PipelineService.Models;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Pipeline;
 using PipelineService.Services;
@@ -42,7 +43,6 @@ namespace PipelineService.UnitTests.Services
 
 			var mockHttpClientFactory = new Mock<IHttpClientFactory>();
 			mockHttpClientFactory.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
-
 			var pipelinesDtoService = new PipelinesDtoService(
 				GeneralHelper.CreateLogger<PipelinesDtoService>(),
 				GeneralHelper.Configuration(new Dictionary<string, string>()
@@ -51,9 +51,13 @@ namespace PipelineService.UnitTests.Services
 					{ "PipelineCandidatesFolder", Path.Combine("Resources", "PipelineCandidates") }
 				}),
 				mockPipelineDao.Object,
+				null,
+				null,
 				mockOperationsService.Object,
+				null,
 				mockHttpClientFactory.Object
 			);
+
 
 			_defaultPipelinesPath = pipelinesDtoService.DefaultPipelinesPath;
 			_pipelinesDtoService = pipelinesDtoService;

@@ -48,7 +48,7 @@ public class MetricsService : IMetricsService
 
 		return new PaginatedList<CandidateProcessingMetric>
 		{
-			TotalItems = candidateProcessingMetrics.Count,
+			TotalItems = await _metricsContext.CandidateProcessingMetrics.CountAsync(),
 			Page = pagination.Page,
 			PageSize = pagination.PageSize,
 			Items = candidateProcessingMetrics

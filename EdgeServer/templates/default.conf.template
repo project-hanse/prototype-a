@@ -85,7 +85,7 @@ server {
     }
 
     location /adminer {
-        proxy_pass 					http://adminer:8081;
+        proxy_pass 					http://adminer:8080;
         rewrite             /adminer/(.*) /$1 break;
 
         # Redefine the header fields that NGINX sends to the upstream server

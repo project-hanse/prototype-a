@@ -74,9 +74,10 @@ namespace PipelineService.Services
 		/// This is a rather expensive operation and should be used with care.
 		/// </remarks>
 		/// <param name="pipelineId">The pipeline that will be executed.</param>
+		/// <param name="skipIfExecuted">If this service (instance) knows about an previous execution of this pipeline the execution will be skipped and the previous record will be returned.</param>
 		/// <param name="pollingDelay">The delay between checking of a pipeline is executed.</param>
 		/// <returns></returns>
-		public Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, int pollingDelay = 1000);
+		public Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, bool skipIfExecuted = false, int pollingDelay = 1000);
 
 		/// <summary>
 		/// Handles the response of a worker after a node has been executed.
