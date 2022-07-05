@@ -6,6 +6,7 @@ import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
 import {catchError, merge, of, startWith, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
+import {environment} from '../../../../environments/environment';
 import {UsersService} from '../../../dev-tools/_services/users.service';
 import {PipelineService} from '../../../pipeline/_service/pipeline.service';
 import {PipelineCandidate} from '../_model/pipeline-candidate';
@@ -27,10 +28,11 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 
 	progressValue: number = 0;
 	bufferValue: number = 0;
+	processing: boolean = false;
 
 	@ViewChild(MatPaginator) paginator: MatPaginator;
-	@ViewChild(MatSort) sort: MatSort;
 
+	@ViewChild(MatSort) sort: MatSort;
 	private readonly subscriptions = new Subscription();
 
 	constructor(private pipelineService: PipelineService, private usersService: UsersService, private matSnackBar: MatSnackBar) {
@@ -134,5 +136,26 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 					})
 			);
 		}
+	}
+
+	getMetricsUrl(): string {
+		return `${environment.pipelineApi}/api/v1/metrics/processing/candidates?page=0&pageSize=100`;
+	}
+
+	processCandidates(numberOfCandidates: number): void {
+		this.processing = true;
+		this.subscriptions.add(
+			this.pipelineService.processCandidates(numberOfCandidates).subscribe(
+				processed => {
+					this.matSnackBar.open(`${processed} candidates processed`, 'Close', {duration: 5000});
+					this.processing = false;
+				},
+				error => {
+					console.error(error);
+					this.matSnackBar.open(`Error while processing candidates`, 'Close', {duration: 5000});
+					this.processing = false;
+				}
+			)
+		);
 	}
 }

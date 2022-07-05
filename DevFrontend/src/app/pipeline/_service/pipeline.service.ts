@@ -1,6 +1,5 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-import {SortDirection} from '@angular/material/sort';
 import {Observable} from 'rxjs';
 import {PipelineCandidate} from '../../admin/pipeline-candidates/_model/pipeline-candidate';
 import {PaginatedList} from '../../core/_model/paginated-list';
@@ -76,5 +75,9 @@ export class PipelineService extends BaseHttpService {
 				username
 			}
 		});
+	}
+
+	public processCandidates(numberOfCandidates: number): Observable<number> {
+		return this.httpClient.post<number>(this.getPipelinesUrl('candidate', 'process'), {params: {numberOfCandidates}});
 	}
 }
