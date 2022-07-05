@@ -73,7 +73,7 @@ def get_models():
 def train_models():
 	if request.method == 'GET':
 		ret = model_service.train_all_model()
-		return ret
+		return jsonify(ret)
 
 
 @app.route('/api/train/<model_name>', methods=['GET'])

@@ -4,7 +4,7 @@ import {MatPaginator} from '@angular/material/paginator';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
-import {catchError, combineLatest, of, startWith, Subscription} from 'rxjs';
+import {catchError, combineLatest, of, ReplaySubject, startWith, Subject, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {environment} from '../../../../environments/environment';
 import {UsersService} from '../../../dev-tools/_services/users.service';
@@ -20,6 +20,7 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 	displayedColumns: Array<string> = ['select', 'completedAt', 'taskId', 'batchNumber', 'taskTypeId'];
 	readonly dataSource: MatTableDataSource<PipelineCandidate> = new MatTableDataSource([]);
 	selection = new SelectionModel<PipelineCandidate>(true, []);
+	private readonly reload: Subject<any> = new ReplaySubject<any>();
 
 	resultsLength = 0;
 	isLoadingResults = true;
@@ -51,7 +52,10 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 		// select first sort column
 		this.sort.active = 'completedAt';
 		this.subscriptions.add(
-			combineLatest([this.sort.sortChange.asObservable().pipe(startWith(null)), this.paginator.page.asObservable().pipe(startWith(null))])
+			combineLatest([
+				this.sort.sortChange.asObservable().pipe(startWith(null)),
+				this.paginator.page.asObservable().pipe(startWith(null)),
+				this.reload.pipe(startWith(null))])
 				.pipe(
 					switchMap(() => {
 						this.isLoadingResults = true;
@@ -152,6 +156,7 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 				processed => {
 					this.matSnackBar.open(`${processed} candidates processed`, 'Close', {duration: 5000});
 					this.processing = false;
+					this.reload.next({});
 				},
 				error => {
 					console.error(error);
