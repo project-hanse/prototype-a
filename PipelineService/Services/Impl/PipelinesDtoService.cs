@@ -307,14 +307,29 @@ namespace PipelineService.Services.Impl
 
 		public async Task<int> ProcessPipelineCandidates(int numberOfCandidates)
 		{
-			_logger.LogInformation("Processing {NumberOfCandidates} pipeline candidates", numberOfCandidates);
-
 			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination()
 			{
 				Page = 1,
 				PageSize = numberOfCandidates
 			});
 
+			return await ProcessPipelineCandidates(candidates);
+		}
+
+		public async Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates)
+		{
+			var candidates = new List<PipelineCandidate>();
+			foreach (var candidateId in numberOfCandidates)
+			{
+				candidates.Add(await _pipelineCandidateService.GetCandidateById(candidateId));
+			}
+
+			return await ProcessPipelineCandidates(candidates);
+		}
+
+		private async Task<int> ProcessPipelineCandidates(ICollection<PipelineCandidate> candidates)
+		{
+			_logger.LogDebug("Processing {NumberOfCandidates} pipeline candidates", candidates.Count);
 			var processed = 0;
 			foreach (var candidate in candidates)
 			{
@@ -322,7 +337,7 @@ namespace PipelineService.Services.Impl
 				processed++;
 			}
 
-			_logger.LogDebug("Processed {Processed} pipeline candidates", processed);
+			_logger.LogInformation("Processed {Processed} pipeline candidates", processed);
 
 			return processed;
 		}

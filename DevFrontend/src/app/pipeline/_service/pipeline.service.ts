@@ -77,7 +77,7 @@ export class PipelineService extends BaseHttpService {
 		});
 	}
 
-	public processCandidates(numberOfCandidates: number): Observable<number> {
-		return this.httpClient.post<number>(this.getPipelinesUrl('candidate', 'process'), {params: {numberOfCandidates}});
+	public processCandidates(candidateIds: string[]): Observable<number> {
+		return this.httpClient.post<number>(this.getPipelinesUrl('candidate', 'process'), candidateIds);
 	}
 }

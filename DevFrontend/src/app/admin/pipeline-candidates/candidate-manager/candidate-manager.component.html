@@ -2,14 +2,15 @@
 	<mat-toolbar-row style="justify-content: space-between">
 		<button mat-raised-button color="accent"
 						(click)="importCandidates(selection.selected)"
+						[matTooltip]="'Import ' + selection.selected.length + (selection.selected.length == 1 ? ' candidate' : ' candidates')"
 						[disabled]="selection.selected.length === 0">
 			<mat-icon>import_export</mat-icon>
 			<span>Import Candidates</span>
 		</button>
 		<button mat-raised-button color="primary"
-						[disabled]="dataSource?.data?.length === 0"
-						matTooltip="Process 5 new candidates"
-						(click)="processCandidates(5)">
+						[disabled]="selection.selected.length === 0"
+						[matTooltip]="'Import, execute and potentially delete ' + selection.selected.length + (selection.selected.length == 1 ? ' candidate' : ' candidates')"
+						(click)="processCandidates(selection.selected)">
 			<mat-icon>import_export</mat-icon>
 			<span>Process Candidates</span>
 		</button>
@@ -31,8 +32,8 @@
 	</div>
 
 	<div class="table-container">
-
-		<table mat-table [dataSource]="dataSource" *ngIf="dataSource?.data" matSort matSortDisableClear>
+		<mat-progress-bar mode="indeterminate" *ngIf="isLoadingResults"></mat-progress-bar>
+		<table mat-table [dataSource]="dataSource" matSort matSortDisableClear>
 
 			<!-- Checkbox Column -->
 			<ng-container matColumnDef="select">
@@ -83,6 +84,7 @@
 		</table>
 	</div>
 
-	<mat-paginator [length]="resultsLength" [pageSizeOptions]="[5, 10, 25, 100]" [pageSize]="25" showFirstLastButtons
+	<mat-paginator [length]="resultsLength" [pageSizeOptions]="[5, 10, 15, 30, 100]" [pageSize]="10"
+								 showFirstLastButtons
 								 aria-label="Select page of pipeline candidates"></mat-paginator>
 </div>

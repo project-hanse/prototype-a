@@ -179,9 +179,9 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpPost("candidate/process")]
-		public async Task<IActionResult> ProcessPipelineCandidate([FromQuery] int numberOfCandidates = 1)
+		public async Task<IActionResult> ProcessPipelineCandidate(IList<Guid> pipelineCandidateIds)
 		{
-			return Ok(await _pipelinesDtoService.ProcessPipelineCandidates(numberOfCandidates));
+			return Ok(await _pipelinesDtoService.ProcessPipelineCandidates(pipelineCandidateIds));
 		}
 
 
