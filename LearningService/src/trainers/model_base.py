@@ -27,14 +27,19 @@ class TrainerModelBase:
 		tuples_with_metadata = []
 		loaded_input_metadata_cnt = 0
 		total_input_cnt = 0
+		i = 0
 		for op_tuple in tuples:
+			i += 1
+			if i % 150 == 0:
+				self.logger.info("Loaded metadata for %i/%i tuples..." % (i, len(tuples)))
+
 			op_tuple['targetInputMetadata'] = []
 			for op_input in op_tuple['targetInputs']:
 				metadata = {}
 				total_input_cnt += 1
 				try:
 					metadata['dataset_type'] = op_input['type']
-					metadata_rmt = self.dataset_client.get_metadata(op_input['key'], cache=cache)
+					metadata_rmt = self.dataset_client.get_metadata(op_input['key'], dataset_type=op_input['type'], cache=cache)
 					metadata.update(metadata_rmt)
 					if 'type' in metadata:
 						metadata['storage_type'] = metadata['type']
@@ -46,8 +51,7 @@ class TrainerModelBase:
 					op_tuple['targetInputMetadata'].append(metadata)
 					continue
 			tuples_with_metadata.append(op_tuple)
-		self.logger.info("Got %d tuples with metadata for %d/%d input datasets" % (
-			len(tuples), loaded_input_metadata_cnt, total_input_cnt))
+		self.logger.info("Got %d tuples with metadata for %d input datasets" % (len(tuples), loaded_input_metadata_cnt))
 		feat, lab = self._tuples_preprocessing(tuples_with_metadata)
 		return feat, lab
 
