@@ -5,6 +5,8 @@ using Hangfire;
 using Hangfire.MySql;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -149,6 +151,19 @@ namespace PipelineService
 			app.UseCors("AllowAnyCorsPolicy");
 
 			app.UseAuthorization();
+
+			if (env.IsProduction())
+			{
+				// fix hangfire problem when deployed behind proxy (nginx forwarding)
+				// https://github.com/HangfireIO/Hangfire/issues/1368
+				app.Use((context, next) =>
+				{
+					var pathBase = new PathString(context.Request.Headers["X-Forwarded-Prefix"]);
+					if (pathBase != null)
+						context.Request.PathBase = new PathString(pathBase.Value);
+					return next();
+				});
+			}
 
 			app.UseEndpoints(endpoints =>
 			{
