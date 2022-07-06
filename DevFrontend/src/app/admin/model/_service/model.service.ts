@@ -25,9 +25,12 @@ export class ModelService extends BaseHttpService {
 
 	public loadPrediction(model: ModelPredict, modelName?: string): Observable<string[]> {
 		if (!modelName) {
-			modelName = this.getSelectedModelLocally()?.name ?? 'model-3-complementnb';
+			modelName = this.getSelectedModelLocally()?.name;
 		}
-		return this.httpClient.post<string[]>(this.getLearningUrl(`predict/${modelName}`), model);
+		if (modelName) {
+			return this.httpClient.post<string[]>(this.getLearningUrl(`predict/${modelName}`), model);
+		}
+		return this.httpClient.post<string[]>(this.getLearningUrl('predict'), model);
 	}
 
 	public storeSelectedModelLocally(value: ModelDto): void {
