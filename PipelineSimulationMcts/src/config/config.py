@@ -23,6 +23,7 @@ sleep_time_after_new_actions = 0.0
 pipeline_iterations = 25
 expert_policy_probability = 0.5
 cache_requests = True
+target_action_count = 5
 
 
 def init_config():
