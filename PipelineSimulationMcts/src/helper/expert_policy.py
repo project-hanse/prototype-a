@@ -1,6 +1,5 @@
 import logging
 import random
-from typing import Optional
 
 import requests
 
@@ -16,11 +15,13 @@ def model3_policy(state: PipelineBuildingState):
 			if state.producing_operation is None or random.random() < get_config('expert_policy_probability'):
 				action = random.choice(state.get_possible_actions())
 			else:
-				suggested_op_identifier = load_predicted_operation_identifier(state.producing_operation)
+				suggested_op_identifiers = load_predicted_operation_identifier(state.producing_operation)
 				for possible_action in state.get_possible_actions():
-					if get_operation_identifier(possible_action.operation) == suggested_op_identifier:
-						action = possible_action
-						break
+					random.shuffle(suggested_op_identifiers)
+					for suggested_op_identifier in suggested_op_identifiers:
+						if get_operation_identifier(possible_action.operation) == suggested_op_identifier:
+							action = possible_action
+							break
 				if action is None:
 					action = random.choice(state.get_possible_actions())
 
@@ -30,7 +31,7 @@ def model3_policy(state: PipelineBuildingState):
 	return state.get_reward()
 
 
-def load_predicted_operation_identifier(operation: dict) -> Optional[str]:
+def load_predicted_operation_identifier(operation: dict) -> [str]:
 	payload = {
 		'feat_pred_count': 1,
 		'feat_pred_id': get_operation_identifier(operation)
@@ -38,14 +39,14 @@ def load_predicted_operation_identifier(operation: dict) -> Optional[str]:
 	for i, input_datatype in zip(range(len(operation['outputTypes'])), operation['outputTypes']):
 		payload["input_%d_dataset_type" % i] = input_datatype
 	request = requests.post(
-		url=get_api_base_url_learning_service() + "/api/predict/" + get_config('expert_policy_model_name'),
+		url=get_api_base_url_learning_service() + "/api/predict",
 		auth=(get_api_user(), get_api_secret()),
 		json=payload)
 	if request.status_code != 200:
 		logging.warning("Failed to load predicted operation identifier: (%d) %s" % (request.status_code, request.text))
-		return None
+		return []
 	response = request.json()
-	return response[0]
+	return response
 
 
 def get_operation_identifier(operation: dict):

@@ -139,7 +139,7 @@ class PipelineBuildingState(BaseState):
 
 	def reward_function(self, depth):
 		# punish greater depth
-		negative_reward_from = target_action_count
+		negative_reward_from = get_config('target_action_count')
 		r = (negative_reward_from / (negative_reward_from * math.log(depth + 1, negative_reward_from))) - 1
 		v = self.get_variance_of_available_datasets() * variance_reward_factor
 		return r + v
