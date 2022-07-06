@@ -50,6 +50,7 @@ public class LearningServiceClient : ILearningServiceClient
 
 		await AssertAllPipelinesExecuted();
 		var request = new HttpRequestMessage(HttpMethod.Get, "api/train");
+		Client.Timeout = TimeSpan.FromMinutes(15);
 		var response = await Client.SendAsync(request);
 		if (response.StatusCode != System.Net.HttpStatusCode.OK)
 		{
@@ -74,6 +75,7 @@ public class LearningServiceClient : ILearningServiceClient
 			await _pipelineExecutionService.ExecutePipelineSync(pipelineInfoDto.Id, skipIfExecuted: true);
 			_logger.LogDebug("Executed pipeline {Progress}/{Total}", progress, pipelines.Count);
 		}
+
 		_logger.LogInformation("All pipelines executed at least once");
 	}
 }
