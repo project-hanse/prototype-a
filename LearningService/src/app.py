@@ -87,8 +87,19 @@ def train_model(model_name: str):
 			return jsonify({"error": str(e)}), 404
 
 
+@app.route('/api/predict', methods=['POST'])
+def predict_all_models():
+	if request.method == 'POST':
+		data = request.get_json()
+		try:
+			ret = model_service.predict(data=data)
+			return jsonify(ret)
+		except Exception as e:
+			return jsonify({"error": str(e)}), 404
+
+
 @app.route('/api/predict/<model_name>', methods=['POST'])
-def predict(model_name: str):
+def predict_specific_model(model_name: str):
 	if request.method == 'POST':
 		data = request.get_json()
 		try:

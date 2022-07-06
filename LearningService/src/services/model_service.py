@@ -13,6 +13,7 @@ from src.services.trainer_registry import TrainerRegistry
 
 class ModelService:
 	def __init__(self, mlflow_client: MlflowClient, model_registry: TrainerRegistry):
+		self._registered_models_cache = None
 		self.model_registry = model_registry
 		self.mlflow_client = mlflow_client
 		self.train_split = 0.2
@@ -57,6 +58,14 @@ class ModelService:
 		self.logger.info("Found model %s with version %s" % (model_name, models[0].version))
 		self._model_cache[model_name] = mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{models[0].version}")
 		return self._model_cache[model_name]
+
+	def get_all_models(self) -> [tuple]:
+		if self._registered_models_cache is None:
+			self._registered_models_cache = self.mlflow_client.list_registered_models()
+		models = []
+		for registered_model in self._registered_models_cache:
+			models.append((registered_model.name, self.get_model(registered_model.name)))
+		return models
 
 	def train_model(self, model_name: str, cache_data: bool = True):
 		self.logger.info("Training model %s" % model_name)
@@ -121,15 +130,26 @@ class ModelService:
 				mlflow.end_run()
 				mlflow.sklearn.autolog(disable=True)
 				self._model_cache.clear()
+				self._registered_models_cache = None
 		return ret
 
-	def predict(self, model_name: str, data):
-		self.logger.info("Predicting model %s" % model_name)
-		model = self.get_model(model_name)
-		try:
-			return list(model.predict(data))
-		except Exception as e:
-			self.logger.error("Model prediction failed: %s" % e)
+	def predict(self, data, model_name: str = None):
+		if model_name is not None:
+			self.logger.info("Predicting model %s" % model_name)
+			model = self.get_model(model_name)
+			try:
+				return list(model.predict(data))
+			except Exception as e:
+				self.logger.error("Model prediction failed: %s" % e)
+		self.logger.info("Predicting on all available models")
+		models = self.get_all_models()
+		predictions = []
+		for model_name, model in models:
+			try:
+				predictions.extend(model.predict(data))
+			except Exception as e:
+				self.logger.error("Model prediction failed for model %s: %s" % (str(model), e))
+		return predictions
 
 	def train_all_model(self):
 		self.logger.info("Training all models")
