@@ -162,7 +162,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_DATABASE: mlflowdb
       MYSQL_USER: mlflowuser
-      MYSQL_PASSWORD: O0vP2RrMraDz
+      MYSQL_PASSWORD: hdfcLhDASas3vKhy
 
   # Neo4j Pipeline Database
   pipeline-database:
