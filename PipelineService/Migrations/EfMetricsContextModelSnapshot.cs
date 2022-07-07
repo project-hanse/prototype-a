@@ -25,6 +25,9 @@ namespace PipelineService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<bool>("Aborted")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<int>("ActionCount")
                         .HasColumnType("int");
 
@@ -51,6 +54,9 @@ namespace PipelineService.Migrations
 
                     b.Property<bool>("ImportSuccess")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("OperationCount")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("PipelineId")
                         .HasColumnType("char(36)");

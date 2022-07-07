@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
+using Neo4jClient.DataAnnotations.Cypher.Functions;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Helper;
@@ -509,6 +510,19 @@ namespace PipelineService.Dao.Impl
 
 			_logger.LogInformation("Loaded all operation ids from all pipelines");
 			return ids;
+		}
+
+		public async Task<int> GetOperationCount(Guid pipelineId)
+		{
+			_logger.LogDebug("Loading operation count for pipeline {PipelineId}", pipelineId);
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var query = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
+				.Match(path => path.Pattern<Operation>("o"))
+				.Where((Operation o) => o.PipelineId == pipelineId)
+				.Return(() => Return.As<int>("count(o)"));
+
+			return (await query.ResultsAsync).FirstOrDefault();
 		}
 	}
 }

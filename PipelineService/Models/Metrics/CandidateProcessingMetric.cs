@@ -49,6 +49,8 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// </summary>
 	public int ActionCount { get; set; }
 
+	public int OperationCount { get; set; }
+
 	/// <summary>
 	/// The OpenML task ID of the pipeline candidate.
 	/// </summary>
@@ -81,4 +83,7 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// Indicated whether the pipeline candidate was imported successfully.
 	/// </summary>
 	public bool ImportSuccess { get; set; }
+
+	public bool Aborted { get; set; }
+
 }

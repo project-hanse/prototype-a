@@ -367,12 +367,24 @@ namespace PipelineService.Services.Impl
 				ActionCount = candidate.Actions.Count,
 				BatchNumber = candidate.BatchNumber
 			};
+			if (candidate.Aborted.HasValue && candidate.Aborted.Value)
+			{
+				metric.Aborted = candidate.Aborted.Value;
+				metric.Success = false;
+				_logger.LogInformation("Pipeline candidate {PipelineCandidateId} was aborted", candidate.PipelineId);
+				await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
+				_metricsContext.CandidateProcessingMetrics.Add(metric);
+				await _metricsContext.SaveChangesAsync();
+				return;
+			}
 			try
 			{
 				metric.ImportStartTime = DateTime.UtcNow;
 				var pipelineId = await ImportPipelineCandidate(candidate);
 				metric.ImportSuccess = true;
 				metric.ImportEndTime = DateTime.UtcNow;
+
+				metric.OperationCount = await _pipelinesDao.GetOperationCount(pipelineId);
 				_logger.LogInformation("Imported pipeline candidate with id {PipelineCandidateId} in {CandidateImportDuration}",
 					candidate.PipelineId, metric.ImportDuration);
 

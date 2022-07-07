@@ -89,7 +89,7 @@ namespace PipelineService
 			{
 				options.UseMySql(
 					defaultMySqlConnectionString,
-					new MySqlServerVersion(new Version(Configuration.GetValue("MySqlServerVersion", "5.7.38"))));
+					new MySqlServerVersion(new Version(Configuration.GetValue("MySqlServerVersion", "8.0.29"))));
 			});
 
 			// Registering singleton services

@@ -85,5 +85,6 @@ namespace PipelineService.Dao
 		Task<PipelineExport> ExportPipeline(Guid pipelineId);
 
 		Task<IEnumerable<string>> GetUsedOperationIdentifiers(bool unique = false);
+		Task<int> GetOperationCount(Guid pipelineId);
 	}
 }
