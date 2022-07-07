@@ -1,3 +1,5 @@
+[![Docker Build Pipeline](https://github.com/project-hanse/prototype-a/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/project-hanse/prototype-a/actions/workflows/build.yml)
+
 # Project Hanse
 
 The goal of this project is to build a platform that allows non-technical experts to gain insights from data. The
