@@ -51,6 +51,7 @@ class ModelService:
 			raise Exception("No model found with name %s" % model_name)
 
 		# find model with the latest version
+		# TODO: this seems to run into a pagination issue and only searches the first 100 versions of a model
 		for model in models:
 			if model.version > models[0].version:
 				models[0] = model
