@@ -13,7 +13,7 @@ from src.transformers.feature_selector import FeatureSelector
 
 
 class TrainerModel2ComplementNB(TrainerModelBase):
-	feature_names = []
+	feature_names = ['feat_pred_id', 'feat_pred_input_count']
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)

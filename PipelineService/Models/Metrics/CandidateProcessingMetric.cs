@@ -71,13 +71,13 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// The time it took to import the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public double ProcessingDuration => (ProcessingEndTime - ProcessingStartTime).TotalMilliseconds;
+	public double ProcessingDuration => Math.Max((ProcessingEndTime - ProcessingStartTime).TotalMilliseconds, 0);
 
 	/// <summary>
 	/// The time it took to process the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public double ImportDuration => (ImportEndTime - ImportStartTime).TotalMilliseconds;
+	public double ImportDuration => Math.Max((ImportEndTime - ImportStartTime).TotalMilliseconds, 0);
 
 	/// <summary>
 	/// Indicated whether the pipeline candidate was imported successfully.
@@ -85,5 +85,4 @@ public record CandidateProcessingMetric : BasePersistentModel
 	public bool ImportSuccess { get; set; }
 
 	public bool Aborted { get; set; }
-
 }
