@@ -373,6 +373,7 @@ namespace PipelineService.Services.Impl
 				metric.Success = false;
 				_logger.LogInformation("Pipeline candidate {PipelineCandidateId} was aborted", candidate.PipelineId);
 				await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
+				metric.ProcessingEndTime = DateTime.UtcNow;
 				_metricsContext.CandidateProcessingMetrics.Add(metric);
 				await _metricsContext.SaveChangesAsync();
 				return;
