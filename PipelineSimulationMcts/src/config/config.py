@@ -2,7 +2,7 @@ import os
 
 from src.helper.log_helper import LogHelper
 
-open_ml_task_ids = ['31']
+open_ml_task_offset_max = 5000
 # Static configuration values for the application with defaults
 max_dataset_inputs_per_operation = 4
 # default to score operation
