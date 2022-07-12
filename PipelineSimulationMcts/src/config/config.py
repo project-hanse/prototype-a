@@ -2,7 +2,7 @@ import os
 
 from src.helper.log_helper import LogHelper
 
-open_ml_task_ids = ['31']
+open_ml_task_offset_max = 5000
 # Static configuration values for the application with defaults
 max_dataset_inputs_per_operation = 4
 # default to score operation
@@ -23,7 +23,7 @@ sleep_time_after_new_actions = 0.0
 pipeline_iterations = 25
 expert_policy_probability = 0.5
 cache_requests = True
-target_action_count = 7
+target_action_count = 5
 
 
 def init_config():

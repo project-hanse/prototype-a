@@ -177,11 +177,14 @@ namespace PipelineService
 			Task.WhenAll(pipelinesDao.Setup());
 			HandySelfMigrator.Migrate<EfMetricsContext>(app);
 
-			// schedule recurring jobs
-			RecurringJob.AddOrUpdate<IPipelinesDtoService>(
-				"candidate_processing",
-				s => s.ProcessPipelineCandidates(
-					Configuration.GetValue("CandidateProcessing:CandidatesPerBatch", 30)), Cron.Hourly);
+			if (!env.IsDevelopment())
+			{
+				// schedule recurring jobs
+				RecurringJob.AddOrUpdate<IPipelinesDtoService>(
+					"candidate_processing",
+					s => s.ProcessPipelineCandidates(
+						Configuration.GetValue("CandidateProcessing:CandidatesPerBatch", 30)), Cron.Hourly);
+			}
 		}
 	}
 }

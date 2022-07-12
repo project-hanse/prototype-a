@@ -7,6 +7,7 @@ import uuid
 from datetime import timedelta
 
 import openml as openml
+import pandas as pd
 import requests_cache
 from mcts.searcher.mcts import MCTS
 from openml import OpenMLTask
@@ -21,8 +22,8 @@ from src.model.pipeline_state import PipelineBuildingState
 logger = LogHelper.get_logger('main')
 
 
-def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
-	task = openml.tasks.get_task(random.choice(get_config('open_ml_task_ids')))
+def get_initial_state(task_id: int) -> (OpenMLTask, PipelineBuildingState):
+	task = openml.tasks.get_task(task_id)
 	if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
 		state = PipelineBuildingState(helper_factory=HelperFactory(),
 																	available_datasets=[{'type': 2, 'key': uuid.uuid4()},
@@ -36,7 +37,7 @@ def get_initial_state() -> (OpenMLTask, PipelineBuildingState):
 	raise Exception('Task type not supported')
 
 
-def save_pipeline(pipeline: dict):
+def save_pipeline(pipeline: pd.DataFrame):
 	os.makedirs(get_config('pipelines_dir'), exist_ok=True)
 	with open(os.path.join(get_config('pipelines_dir'), 'pipeline-%s.json' % math.floor(time.time())), 'w') as f:
 		logger.info('Saving pipeline %d (batch %d) to %s' % (pipeline['pipeline_number'], pipeline['batch_number'], f.name))
@@ -50,11 +51,16 @@ if __name__ == '__main__':
 															 cache_control=False,
 															 allowable_methods=['GET', 'POST'])
 
+	offset = random.randint(0, get_config('open_ml_task_offset_max'))
+	task_options: pd.DataFrame = openml.tasks.list_tasks(
+		task_type=openml.tasks.TaskType.SUPERVISED_CLASSIFICATION,
+		offset=offset, size=offset + 1000, output_format='dataframe')
 	searcher = MCTS(iterationLimit=get_config('mcts_iteration_limit'), rolloutPolicy=model3_policy)
 	batch_number = random.randint(0, 10000)
 	for i in range(get_config('pipeline_iterations')):
-		logger.info('Simulating pipeline %s' % i)
-		task, currentState = get_initial_state()
+		task_id = task_options.sample(1).iloc[0]['tid']
+		logger.info('Simulating pipeline %s for task %i' % (i, task_id))
+		task, currentState = get_initial_state(task_id)
 		pipeline = {
 			'actions': [{
 				'operation': currentState.producing_operation,
