@@ -137,8 +137,7 @@ services:
       BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
-      SLEEP_TIME_AFTER_NEW_ACTIONS: '15.0'
-      EXPERT_POLICY_MODEL_NAME: 'model-3-randomforest'
+      SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
