@@ -5,7 +5,7 @@ using PipelineService.Models.MqttMessages;
 namespace PipelineService.Services
 {
 	/// <summary>
-	/// A wrapper service around a managed MQTT client that handles setting up the client.
+	/// A service that sends and receives messages (e.g. MQTT, AMQP) from and to the appropriate message broker.
 	/// </summary>
 	public interface IEventBusService
 	{

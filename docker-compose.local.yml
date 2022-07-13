@@ -26,8 +26,6 @@ services:
     restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Debug
-      EVENT_BUS__MQTT_HOST: message-broker
-      EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
@@ -81,7 +79,7 @@ services:
       dockerfile: ./Dockerfile
     restart: unless-stopped
     environment:
-      - MQTT_HOST=message-broker
+      - MESSAGE_BROKER_HOST=rabbitmq
       - DATASET_HOST=dataset-service
       - DATASET_PORT=5002
     depends_on:
@@ -91,7 +89,7 @@ services:
       - dataset-service
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
 
   # Pipeline Simulation
   pipeline-simulation:
@@ -126,18 +124,6 @@ services:
       - S3_PORT=4566
     depends_on:
       - localstack
-
-  # Message Broker
-  message-broker:
-    image: eclipse-mosquitto
-    restart: unless-stopped
-    networks:
-      - default
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./volumes/event-bus/mosquitto/config:/mosquitto/config
 
   # Edge Message Broker
   edge-message-broker:
@@ -249,13 +235,16 @@ services:
 
   # RabbitMQ
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3-management-alpine
     command: rabbitmq-server
-    expose:
-      - 5672
-      - 15672
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "5672" ]
       interval: 5s
       timeout: 15s
       retries: 1
+    volumes:
+      - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./volumes/rabbitmq/log/:/var/log/rabbitmq

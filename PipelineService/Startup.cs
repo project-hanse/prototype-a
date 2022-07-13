@@ -177,7 +177,7 @@ namespace PipelineService
 			Task.WhenAll(pipelinesDao.Setup());
 			HandySelfMigrator.Migrate<EfMetricsContext>(app);
 
-			if (!env.IsDevelopment())
+			if (Configuration.GetValue("ScheduledCandidateProcessing", false))
 			{
 				// schedule recurring jobs
 				RecurringJob.AddOrUpdate<IPipelinesDtoService>(

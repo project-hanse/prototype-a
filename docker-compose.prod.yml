@@ -56,13 +56,11 @@ services:
     restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Information
-      EVENT_BUS__MQTT_HOST: message-broker
-      EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+      ScheduledCandidateProcessing: true
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     depends_on:
-      - message-broker
       - pipeline-database
       - mysql
       - rabbitmq
@@ -118,16 +116,16 @@ services:
     networks:
       - default
     environment:
-      - MQTT_HOST=message-broker
+      - MESSAGE_BROKER_HOST=rabbitmq
       - DATASET_HOST=dataset-service
       - DATASET_PORT=5002
     depends_on:
-      - message-broker
       - localstack
       - rabbitmq
+      - dataset-service
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
 
   # Pipeline Simulation
   pipeline-simulation:
@@ -141,6 +139,9 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
+    deploy:
+      mode: replicated
+      replicas: 3
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -186,15 +187,6 @@ services:
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
-
-  # Message Broker
-  message-broker:
-    image: eclipse-mosquitto
-    restart: unless-stopped
-    networks:
-      - default
-    volumes:
-      - ./volumes/event-bus/mosquitto/config:/mosquitto/config
 
   # S3 Bucket
   localstack:
