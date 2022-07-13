@@ -32,4 +32,8 @@ export class AppComponent {
 	getAdminerUrl(): string {
 		return `${environment.adminer}?server=mysql`;
 	}
+
+	getRabbitMqUrl(): string {
+		return `${environment.rabbitMq}`;
+	}
 }

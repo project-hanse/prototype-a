@@ -3,30 +3,29 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MQTTnet;
-using MQTTnet.Extensions.ManagedClient;
-using MQTTnet.Protocol;
 using Newtonsoft.Json;
-using PipelineService.Models.MqttMessages;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace PipelineService.Services.Impl
 {
 	/// <summary>
 	/// A service that implements communication with the internal event bus (message broker).
 	/// </summary>
-	public class EventBusService : BaseEventBusService, IEventBusService
+	public class EventBusService : BaseRabbitMqEventBusService
 	{
 		private readonly ILogger<EventBusService> _logger;
 		private readonly IConfiguration _configuration;
 
-		protected override string Hostname => _configuration.GetValue("EVENT_BUS:MQTT_HOST", "message-broker");
-		protected override int Port => _configuration.GetValue("EVENT_BUS:MQTT_PORT", 1883);
+		protected override string Hostname => _configuration.GetValue("EVENT_BUS:HOST", "rabbitmq");
+		protected override int Port => _configuration.GetValue("EVENT_BUS:PORT", 5672);
 
+		private static readonly Guid ClientGuid = Guid.NewGuid();
 		protected override string ClientId =>
-			_configuration.GetValue("EVENT_BUS:MQTT_CLIENT_ID", $"PipelineService-{Guid.NewGuid()}");
+			_configuration.GetValue("EVENT_BUS:CLIENT_ID", $"pipeline-service-{ClientGuid}");
 
-		protected override string Username => _configuration.GetValue<string>("EVENT_BUS:MQTT_USER", null);
-		protected override string Password => _configuration.GetValue<string>("EVENT_BUS:MQTT_PASSWORD", null);
+		protected override string Username => _configuration.GetValue<string>("EVENT_BUS:USER", "guest");
+		protected override string Password => _configuration.GetValue<string>("EVENT_BUS:PASSWORD", "guest");
 
 		public EventBusService(
 			ILogger<EventBusService> logger,
@@ -36,41 +35,37 @@ namespace PipelineService.Services.Impl
 			_configuration = configuration;
 		}
 
-		public async Task PublishMessage<T>(string topic, T payload) where T : BaseMqttMessage
+		public override async Task PublishMessage<T>(string topic, T payload)
 		{
-			await ConnectAsync();
+			_logger.LogDebug("Publishing message to topic {Topic}", topic);
 
-			_logger.LogInformation("Publishing message to topic {Topic}", topic);
+			var channel = await GetChannel(topic);
+			var properties = channel.CreateBasicProperties();
+			properties.Persistent = true;
 
-			// TODO implement quality of service 2 (Exactly once) - requires acknowledgement from receiver
-			var mqttMessage = new MqttApplicationMessageBuilder()
-				.WithTopic(topic)
-				.WithPayload(JsonConvert.SerializeObject(payload))
-				.WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
-				.Build();
-
-			await Client.PublishAsync(mqttMessage);
+			channel.BasicPublish(exchange: string.Empty,
+				routingKey: topic,
+				mandatory: true,
+				basicProperties: properties,
+				body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(payload)));
 		}
 
-		public async Task Subscribe<T>(string topic, Func<T, Task> handler) where T : BaseMqttMessage
+		public override async Task Subscribe<T>(string topic, Func<T, Task> handler)
 		{
-			await ConnectAsync();
+			_logger.LogDebug("Subscribing to topic {Topic}", topic);
+			var channel = await GetChannel(topic);
+			var consumer = new AsyncEventingBasicConsumer(channel);
 
-			_logger.LogInformation("Subscribing to MQTT topic {Topic}", topic);
+			var tag = channel.BasicConsume(topic, true, consumer);
 
-			var topicFilter = new MqttTopicFilterBuilder()
-				.WithTopic(topic)
-				.WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
-				.Build();
-
-			await Client.SubscribeAsync(topicFilter);
-
-			Client.UseApplicationMessageReceivedHandler(async a =>
+			consumer.Received += async (model, ea) =>
 			{
+				_logger.LogDebug("Received message on topic {Topic}", topic);
 				try
 				{
+					var body = ea.Body.ToArray();
 					var message =
-						JsonConvert.DeserializeObject<T>(Encoding.Default.GetString(a.ApplicationMessage.Payload),
+						JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(body),
 							new JsonSerializerSettings
 							{
 								TypeNameHandling = TypeNameHandling.Auto,
@@ -88,13 +83,14 @@ namespace PipelineService.Services.Impl
 				{
 					_logger.LogError("General error while handling message - {@ErrorMessage}", e);
 				}
-			});
+			};
+
+			_logger.LogInformation("Subscribing to MQTT topic {Topic}", topic);
 		}
 
 		public async Task StopAsync()
 		{
-			_logger.LogInformation("Stopping MQTT client");
-			await Client.StopAsync();
+			await DisconnectAsync();
 		}
 	}
 }

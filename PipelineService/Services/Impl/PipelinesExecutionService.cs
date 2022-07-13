@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Exceptions;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
-using PipelineService.Models.Enums;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
@@ -16,7 +16,13 @@ namespace PipelineService.Services.Impl
 {
 	public class PipelinesExecutionService : IPipelineExecutionService
 	{
+		private string _operationExecuteTopic;
+
+		private string OperationExecuteTopic => _operationExecuteTopic ??=
+			_configuration.GetValue("QueueNames:OperationExecute", "operation/execute");
+
 		private readonly ILogger<PipelinesExecutionService> _logger;
+		private readonly IConfiguration _configuration;
 		private readonly IPipelinesDao _pipelinesDao;
 		private readonly IPipelinesExecutionDao _pipelinesExecutionDao;
 		private readonly EventBusService _eventBusService;
@@ -24,12 +30,14 @@ namespace PipelineService.Services.Impl
 
 		public PipelinesExecutionService(
 			ILogger<PipelinesExecutionService> logger,
+			IConfiguration configuration,
 			IPipelinesDao pipelinesDao,
 			IPipelinesExecutionDao pipelinesExecutionDao,
 			EventBusService eventBusService,
 			EdgeEventBusService edgeEventBusService)
 		{
 			_logger = logger;
+			_configuration = configuration;
 			_pipelinesDao = pipelinesDao;
 			_pipelinesExecutionDao = pipelinesExecutionDao;
 			_eventBusService = eventBusService;
@@ -186,6 +194,7 @@ namespace PipelineService.Services.Impl
 					_logger.LogWarning("Aborting waiting for pipeline execution to complete, because it took too long");
 					return executionRecord;
 				}
+
 				await Task.Delay(pollingDelay);
 			}
 		}
@@ -374,21 +383,8 @@ namespace PipelineService.Services.Impl
 				operation.Id, operation.OperationIdentifier);
 
 			var message = ExecutionRequestFromOperation(executionId, operation);
-			var topic = operation.Inputs.Count switch
-			{
-				1 when operation.Inputs[0].Type == DatasetType.File => $"execute/{operation.PipelineId}/file",
-				1 => $"execute/{operation.PipelineId}/single",
-				2 => $"execute/{operation.PipelineId}/double",
-				_ => $"execute/{operation.PipelineId}/{operation.Inputs.Count}",
-			};
 
-			if (topic == null)
-			{
-				_logger.LogWarning("Could not match this operation ({OperationId}) to a topic", operationId);
-				throw new InvalidOperationException("Could not match this operation to a topic");
-			}
-
-			await _eventBusService.PublishMessage(topic, message);
+			await _eventBusService.PublishMessage(OperationExecuteTopic, message);
 		}
 
 		/// <summary>

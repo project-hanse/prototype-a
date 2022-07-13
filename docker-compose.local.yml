@@ -19,11 +19,13 @@ services:
     build:
       context: ./PipelineService
       dockerfile: ./Dockerfile
+    depends_on:
+      - mysql
+      - rabbitmq
+      - pipeline-database
     restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Debug
-      EVENT_BUS__MQTT_HOST: message-broker
-      EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
@@ -77,15 +79,17 @@ services:
       dockerfile: ./Dockerfile
     restart: unless-stopped
     environment:
-      - MQTT_HOST=message-broker
+      - MESSAGE_BROKER_HOST=rabbitmq
       - DATASET_HOST=dataset-service
       - DATASET_PORT=5002
     depends_on:
       - message-broker
       - localstack
+      - rabbitmq
+      - dataset-service
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
 
   # Pipeline Simulation
   pipeline-simulation:
@@ -96,6 +100,7 @@ services:
     depends_on:
       - pipeline-service
       - learning-service
+      - rabbitmq
     environment:
       BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
@@ -119,18 +124,6 @@ services:
       - S3_PORT=4566
     depends_on:
       - localstack
-
-  # Message Broker
-  message-broker:
-    image: eclipse-mosquitto
-    restart: unless-stopped
-    networks:
-      - default
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./volumes/event-bus/mosquitto/config:/mosquitto/config
 
   # Edge Message Broker
   edge-message-broker:
@@ -182,6 +175,11 @@ services:
     ports:
       - "4566:4566"
       - "4571:4571"
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:4566/health", "||", "exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
     volumes:
       - ./volumes/localstack/data:/tmp/localstack
 
@@ -197,9 +195,23 @@ services:
       - "7474:7474" # HTTP
       - "7473:7473" # HTTPS
       - "7687:7687" # Bolt
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:7474/", "||", "exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
+
+  # Adminer
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8081:8080"
 
   # MySQL Database
   mysql:
@@ -213,12 +225,26 @@ services:
       - default
     environment:
       - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 25s
+      retries: 10
     volumes:
       - ./volumes/mysql:/var/lib/mysql
 
-  # Adminer
-  adminer:
-    image: adminer
-    restart: unless-stopped
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    command: rabbitmq-server
     ports:
-      - "8081:8080"
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 5s
+      timeout: 15s
+      retries: 1
+    volumes:
+      - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
+      - ./volumes/rabbitmq/log/:/var/log/rabbitmq

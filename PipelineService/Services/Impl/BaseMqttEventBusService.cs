@@ -4,12 +4,13 @@ using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Client.Options;
 using MQTTnet.Extensions.ManagedClient;
+using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
 {
-	public abstract class BaseEventBusService
+	public abstract class BaseMqttEventBusService : IEventBusService
 	{
-		private readonly ILogger<BaseEventBusService> _logger;
+		private readonly ILogger<BaseMqttEventBusService> _logger;
 		protected IManagedMqttClient Client;
 		protected abstract string Hostname { get; }
 		protected abstract int Port { get; }
@@ -17,7 +18,7 @@ namespace PipelineService.Services.Impl
 		protected abstract string Username { get; }
 		protected abstract string Password { get; }
 
-		protected BaseEventBusService(ILogger<BaseEventBusService> logger)
+		protected BaseMqttEventBusService(ILogger<BaseMqttEventBusService> logger)
 		{
 			_logger = logger;
 		}
@@ -72,5 +73,9 @@ namespace PipelineService.Services.Impl
 
 			await Client.StartAsync(managedMqttClientOptions);
 		}
+
+		public abstract Task PublishMessage<T>(string topic, T payload) where T : BaseMqttMessage;
+
+		public abstract Task Subscribe<T>(string topic, Func<T, Task> handler) where T : BaseMqttMessage;
 	}
 }

@@ -15,7 +15,7 @@ rectangle "Edge Services" {
 }
 
 rectangle "Event Bus" {
-    component "Internal Message Broker" << MQTT Broker >> as message_broker_internal
+    component "Internal Message Broker" << RabbitMQ >> as message_broker_internal
 }
 
 rectangle "Service Layer" {
@@ -23,6 +23,7 @@ rectangle "Service Layer" {
     collections  "Operation Worker" <<Python Worker>> as worker
     component "Learning Service" << Python REST API >> as learning_service
     component "File Service" << .NET REST API >> as file_service
+    component "Database Admin" << Adminer >> as adminer
 }
 
 rectangle "Persistence Layer" {
@@ -49,6 +50,8 @@ reverse_proxy <--> message_broker_edge
 'TODO: This connection should no longer exist'
 reverse_proxy --> dataset_store
 reverse_proxy --> mlflow_server
+reverse_proxy --> adminer
+reverse_proxy --> message_broker_internal
 
 learning_service --> mlflow_server
 learning_service --> dataset_store
@@ -60,9 +63,11 @@ pipeline_service <--> message_broker_internal
 pipeline_service <--> message_broker_edge
 pipeline_service --> mysql_db
 
+adminer --> mysql_db
+
 'dataset_store --> dataset_db
 'TODO: Default files should be seeded from file service PH-213'
-dataset_store --> blob_store
+' dataset_store --> blob_store
 
 file_service --> blob_store
 
