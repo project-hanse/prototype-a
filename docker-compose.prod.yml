@@ -64,6 +64,8 @@ services:
     depends_on:
       - message-broker
       - pipeline-database
+      - mysql
+      - rabbitmq
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
 
@@ -122,6 +124,7 @@ services:
     depends_on:
       - message-broker
       - localstack
+      - rabbitmq
     deploy:
       mode: replicated
       replicas: 1
@@ -162,12 +165,24 @@ services:
       MYSQL_USER: mlflowuser
       MYSQL_PASSWORD: hdfcLhDASas3vKhy
 
+  # Adminer
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    depends_on:
+      - mysql
+
   # Neo4j Pipeline Database
   pipeline-database:
     image: ghcr.io/project-hanse/prototype-a/hanse-neo4j:main
     restart: unless-stopped
     environment:
       - NEO4J_AUTH=neo4j/test
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:7474/", "||", "exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
@@ -191,6 +206,11 @@ services:
       - DEFAULT_REGION=eu-west-2
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:4566/health", "||", "exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
     volumes:
       - ./volumes/localstack/data:/tmp/localstack/data
 
@@ -202,10 +222,23 @@ services:
       - default
     environment:
       - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 25s
+      retries: 10
     volumes:
       - ./volumes/mysql:/var/lib/mysql
 
-  # Adminer
-  adminer:
-    image: adminer
-    restart: unless-stopped
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq
+    command: rabbitmq-server
+    expose:
+      - 5672
+      - 15672
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 5s
+      timeout: 15s
+      retries: 1

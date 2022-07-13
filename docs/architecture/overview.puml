@@ -15,7 +15,7 @@ rectangle "Edge Services" {
 }
 
 rectangle "Event Bus" {
-    component "Internal Message Broker" << MQTT Broker >> as message_broker_internal
+    component "Internal Message Broker" << RabbitMQ >> as message_broker_internal
 }
 
 rectangle "Service Layer" {
