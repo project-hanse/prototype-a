@@ -157,9 +157,9 @@ namespace PipelineService.Dao.Impl
 			return await GetInfoDto(pipelineDto.Id);
 		}
 
-		public async Task<IList<PipelineInfoDto>> GetDtos(string userIdentifier = default)
+		public async Task<IList<PipelineInfoDto>> GetDtos(Pagination pagination = null, string userIdentifier = default)
 		{
-			_logger.LogDebug("Getting all pipeline dtos");
+			_logger.LogDebug("Getting pipeline dtos...");
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
@@ -172,7 +172,24 @@ namespace PipelineService.Dao.Impl
 				query = query.Where("pipeline.UserIdentifier=$user_identifier").WithParam("user_identifier", userIdentifier);
 			}
 
-			var results = await query.Return(pipeline => pipeline.As<PipelineInfoDto>()).ResultsAsync;
+			var typedQuery = query.Return(pipeline => pipeline.As<PipelineInfoDto>());
+			if (pagination != null)
+			{
+				if (string.IsNullOrEmpty(pagination.Sort))
+				{
+					pagination.Sort = nameof(Pipeline.CreatedOn);
+				}
+
+				// TODO: parameterize this, this is a potential injection point
+				typedQuery = pagination.Order == "asc"
+					? typedQuery.OrderBy($"pipeline.{pagination.Sort}")
+					: typedQuery.OrderByDescending($"pipeline.{pagination.Sort}");
+				typedQuery = typedQuery
+					.Skip(pagination.Page * pagination.PageSize)
+					.Limit(pagination.PageSize);
+			}
+
+			var results = await typedQuery.ResultsAsync;
 
 			var pipelineInfoDtos = results?.ToList() ?? new List<PipelineInfoDto>();
 

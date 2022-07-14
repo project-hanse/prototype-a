@@ -149,9 +149,9 @@ namespace PipelineService.Services.Impl
 			return dto;
 		}
 
-		public async Task<IList<PipelineInfoDto>> GetPipelineDtos(string userIdentifier)
+		public async Task<IList<PipelineInfoDto>> GetPipelineDtos(Pagination pagination, string userIdentifier)
 		{
-			return (await _pipelinesDao.GetDtos(userIdentifier)).OrderByDescending(p => p.CreatedOn).ToList();
+			return (await _pipelinesDao.GetDtos(pagination, userIdentifier)).ToList();
 		}
 
 		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false)

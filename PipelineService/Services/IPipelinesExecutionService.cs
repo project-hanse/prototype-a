@@ -56,7 +56,7 @@ namespace PipelineService.Services
 		/// Loads all pipelines stored for the current user.
 		/// </summary>
 		/// <returns>A list of pipelines</returns>
-		Task<IList<PipelineInfoDto>> GetPipelineDtos(string userIdentifier);
+		Task<IList<PipelineInfoDto>> GetPipelineDtos(Pagination pagination, string userIdentifier);
 
 		/// <summary>
 		/// Starts the execution of a given pipeline.

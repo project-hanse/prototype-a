@@ -52,9 +52,11 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> GetPipelineDtos()
+		public async Task<IActionResult> GetPipelineDtos(
+			[FromQuery] Pagination pagination,
+			[FromQuery] string userIdentifier = null)
 		{
-			return Ok(await _pipelineExecutionService.GetPipelineDtos(HttpContext.GetUsernameFromBasicAuthHeader()));
+			return Ok(await _pipelineExecutionService.GetPipelineDtos(pagination, userIdentifier));
 		}
 
 		[HttpGet("{pipelineId:Guid}")]

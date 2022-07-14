@@ -37,7 +37,7 @@ namespace PipelineService.Dao
 
 		Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto);
 
-		Task<IList<PipelineInfoDto>> GetDtos(string userIdentifier = default);
+		Task<IList<PipelineInfoDto>> GetDtos(Pagination pagination = null, string userIdentifier = default);
 
 		/// <summary>
 		/// Creates a new pipeline in the store if it not already exists.
