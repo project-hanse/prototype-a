@@ -63,21 +63,22 @@ namespace PipelineService.Services
 		/// Provides an id that can be used to check the execution status.
 		/// </summary>
 		/// <param name="pipelineId">The pipeline's id</param>
+		/// <param name="skipIfExecuted">If this service (instance) knows about an previous execution of this pipeline the execution will be skipped and the previous record will be returned.</param>
 		/// <exception cref="NotFoundException">If not pipeline with a given id can be found.</exception>
 		/// <returns>The pipeline execution's id.</returns>
-		public Task<Guid> ExecutePipeline(Guid pipelineId);
+		public Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false);
 
 		/// <summary>
 		/// Starts the execution of a pipeline and returns the execution record once the pipeline is fully executed.
 		/// </summary>
 		/// <remarks>
 		/// This is a rather expensive operation and should be used with care.
+		/// Check if <c>ExecutePipeline(...)</c> with the callback function is sufficient.
 		/// </remarks>
 		/// <param name="pipelineId">The pipeline that will be executed.</param>
 		/// <param name="skipIfExecuted">If this service (instance) knows about an previous execution of this pipeline the execution will be skipped and the previous record will be returned.</param>
-		/// <param name="pollingDelay">The delay between checking of a pipeline is executed.</param>
 		/// <returns></returns>
-		public Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, bool skipIfExecuted = false, int pollingDelay = 1000);
+		public Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, bool skipIfExecuted = false);
 
 		/// <summary>
 		/// Handles the response of a worker after a node has been executed.

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
@@ -153,19 +154,28 @@ namespace PipelineService.Services.Impl
 			return (await _pipelinesDao.GetDtos(userIdentifier)).OrderByDescending(p => p.CreatedOn).ToList();
 		}
 
-		public async Task<Guid> ExecutePipeline(Guid pipelineId)
+		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false)
 		{
 			_logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
+			PipelineExecutionRecord execution;
+			if (skipIfExecuted)
+			{
+				execution = await _pipelinesExecutionDao.GetLastExecutionForPipeline(pipelineId);
+				if (execution != null && execution.IsCompleted)
+				{
+					_logger.LogInformation("Pipeline with id {PipelineId} has already been executed, skipping", pipelineId);
+					return execution.Id;
+				}
+			}
 
-			var execution = await _pipelinesExecutionDao.Create(pipelineId);
+			execution = await _pipelinesExecutionDao.Create(pipelineId);
 
 			await EnqueueNextOperations(execution, pipelineId);
 
 			return execution.Id;
 		}
 
-		public async Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, bool skipIfExecuted = false,
-			int pollingDelay = 1000)
+		public async Task<PipelineExecutionRecord> ExecutePipelineSync(Guid pipelineId, bool skipIfExecuted = false)
 		{
 			if (skipIfExecuted)
 			{
@@ -195,7 +205,9 @@ namespace PipelineService.Services.Impl
 					return executionRecord;
 				}
 
-				await Task.Delay(pollingDelay);
+				var pollingTimeout = _configuration.GetValue("PipelineExecutionService:SyncPollingTimeout", 2);
+
+				await Task.Delay(pollingTimeout * 1000);
 			}
 		}
 
