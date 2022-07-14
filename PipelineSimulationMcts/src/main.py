@@ -23,6 +23,7 @@ logger = LogHelper.get_logger('main')
 
 
 def get_initial_state(task_id: int) -> (OpenMLTask, PipelineBuildingState):
+	logger.info("Loading task %d details from OpenML..." % task_id)
 	task = openml.tasks.get_task(task_id)
 	if task.task_type_id == openml.tasks.TaskType.SUPERVISED_CLASSIFICATION:
 		state = PipelineBuildingState(helper_factory=HelperFactory(),
@@ -30,6 +31,7 @@ def get_initial_state(task_id: int) -> (OpenMLTask, PipelineBuildingState):
 																											{'type': 1, 'key': uuid.uuid4()}],
 																	producing_operation=get_config('load_open_ml_operation'),
 																	max_look_ahead=get_config('max_look_ahead_steps'),
+																	max_actions_per_state=get_config('max_actions_per_state'),
 																	verbose=get_config('verbose_level'))
 		state.producing_operation['defaultConfig']['data_id'] = task.dataset_id
 		return task, state
@@ -47,17 +49,19 @@ def save_pipeline(pipeline: pd.DataFrame):
 if __name__ == '__main__':
 	init_config()
 	requests_cache.install_cache('mcts_cache',
-															 expire_after=timedelta(minutes=1),
+															 expire_after=timedelta(minutes=5),
 															 cache_control=False,
 															 allowable_methods=['GET', 'POST'])
 
 	offset = random.randint(0, get_config('open_ml_task_offset_max'))
+	logger.info("Loading possible tasks from OpenML...")
 	task_options: pd.DataFrame = openml.tasks.list_tasks(
 		task_type=openml.tasks.TaskType.SUPERVISED_CLASSIFICATION,
 		offset=offset, size=offset + 1000, output_format='dataframe')
+	logger.info("Loaded %d tasks from OpenML" % len(task_options))
 	searcher = MCTS(iterationLimit=get_config('mcts_iteration_limit'), rolloutPolicy=model3_policy)
 	batch_number = random.randint(0, 10000)
-	for i in range(get_config('pipeline_iterations')):
+	for i in range(get_config('pipelines_per_batch')):
 		task_id = task_options.sample(1).iloc[0]['tid']
 		logger.info('Simulating pipeline %s for task %i' % (i, task_id))
 		task, currentState = get_initial_state(task_id)
@@ -81,7 +85,7 @@ if __name__ == '__main__':
 			currentState = currentState.take_action(action)
 			currentState.look_ahead_cnt = 0
 			logger.info("(%d.%d) *** %s " % (i, currentState.depth, action))
-			if len(pipeline['actions']) > get_config('max_actions_per_pipeline'):
+			if len(pipeline['actions']) >= get_config('max_actions_per_pipeline'):
 				pipeline['abort'] = True
 				logger.info("Aborting pipeline")
 				break
