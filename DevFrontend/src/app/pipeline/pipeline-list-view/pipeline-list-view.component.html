@@ -10,7 +10,10 @@
 </div>
 
 <mat-card>
-
+	<button mat-button *ngIf="filterByUsernameLastValue" (click)="userNameFilter(undefined)">
+		<mat-icon>close</mat-icon>
+		<span>{{filterByUsernameLastValue}}</span>
+	</button>
 	<mat-progress-bar *ngIf="isLoadingResults"></mat-progress-bar>
 	<div class="table-container">
 		<table mat-table [dataSource]="data" class="example-table"
@@ -26,7 +29,11 @@
 			<!-- User Identifier Column -->
 			<ng-container matColumnDef="userIdentifier">
 				<th mat-header-cell *matHeaderCellDef mat-sort-header="UserIdentifier">User</th>
-				<td mat-cell *matCellDef="let row">{{row.userIdentifier}}</td>
+				<td mat-cell *matCellDef="let row">
+					<button mat-button (click)="userNameFilter(row.userIdentifier)">
+						{{row.userIdentifier}}
+					</button>
+				</td>
 			</ng-container>
 
 			<!-- CreatedOn Column -->
