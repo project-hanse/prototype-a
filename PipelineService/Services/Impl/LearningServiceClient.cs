@@ -74,7 +74,7 @@ public class LearningServiceClient : ILearningServiceClient
 	private async Task EnqueueAllPipelinesForExecution()
 	{
 		_logger.LogDebug("Asserting all pipelines executed (meaning datasets are ready)");
-		var pipelines = await _pipelinesDao.GetDtos();
+		var pipelines = (await _pipelinesDao.GetDtos()).Items;
 		var progress = 0;
 		foreach (var pipelineInfoDto in pipelines)
 		{

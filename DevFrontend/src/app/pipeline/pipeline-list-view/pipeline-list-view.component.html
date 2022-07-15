@@ -10,7 +10,53 @@
 </div>
 
 <mat-card>
-	<mat-list *ngIf="getPipelines() | async as pipelines">
+
+	<mat-progress-bar *ngIf="isLoadingResults"></mat-progress-bar>
+	<div class="table-container">
+		<table mat-table [dataSource]="data" class="example-table"
+					 matSort matSortActive="CreatedOn" matSortDisableClear matSortDirection="desc">
+			<!-- Name Column -->
+			<ng-container matColumnDef="name">
+				<th mat-header-cell *matHeaderCellDef mat-sort-header="Name" style="width: 50%">Pipeline</th>
+				<td mat-cell *matCellDef="let row" style="width: 50%">
+					<a [routerLink]="[row.id]">{{row.name}}</a>
+				</td>
+			</ng-container>
+
+			<!-- User Identifier Column -->
+			<ng-container matColumnDef="userIdentifier">
+				<th mat-header-cell *matHeaderCellDef mat-sort-header="UserIdentifier">User</th>
+				<td mat-cell *matCellDef="let row">{{row.userIdentifier}}</td>
+			</ng-container>
+
+			<!-- CreatedOn Column -->
+			<ng-container matColumnDef="createdOn">
+				<th mat-header-cell *matHeaderCellDef mat-sort-header="CreatedOn" disableClear>
+					Created
+				</th>
+				<td mat-cell *matCellDef="let row" [matTooltip]="row.createdOn | date: 'long'">
+					{{row.createdOn | date}}
+				</td>
+			</ng-container>
+
+			<!-- ChangedOn Column -->
+			<ng-container matColumnDef="changedOn">
+				<th mat-header-cell *matHeaderCellDef mat-sort-header="ChangedOn" disableClear>
+					Modified
+				</th>
+				<td mat-cell *matCellDef="let row" [matTooltip]="row.changedOn | date: 'long'">
+					{{row.changedOn | date}}
+				</td>
+			</ng-container>
+
+			<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+			<tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+		</table>
+	</div>
+
+	<mat-paginator [length]="resultsLength" [pageSize]="15" [pageSizeOptions]="[5, 15, 30, 50, 100]"></mat-paginator>
+	<!-- Legacy List View -->
+	<!--<mat-list *ngIf="getPipelines() | async as pipelines">
 		<div mat-subheader>My Pipelines</div>
 		<mat-list-item *ngFor="let pipeline of pipelines">
 			<mat-icon mat-list-icon>account_tree</mat-icon>
@@ -24,5 +70,5 @@
 		<mat-list-item *ngIf="pipelines.length === 0">
 			<p>You do not have any pipeline - select a template to get started.</p>
 		</mat-list-item>
-	</mat-list>
+	</mat-list>-->
 </mat-card>

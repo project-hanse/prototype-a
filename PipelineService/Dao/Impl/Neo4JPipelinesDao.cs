@@ -157,7 +157,8 @@ namespace PipelineService.Dao.Impl
 			return await GetInfoDto(pipelineDto.Id);
 		}
 
-		public async Task<IList<PipelineInfoDto>> GetDtos(Pagination pagination = null, string userIdentifier = default)
+		public async Task<PaginatedList<PipelineInfoDto>> GetDtos(Pagination pagination = null,
+			string userIdentifier = default)
 		{
 			_logger.LogDebug("Getting pipeline dtos...");
 
@@ -192,9 +193,18 @@ namespace PipelineService.Dao.Impl
 			var results = await typedQuery.ResultsAsync;
 
 			var pipelineInfoDtos = results?.ToList() ?? new List<PipelineInfoDto>();
+			var pipelineCount = (await query
+				.Return(() => Return.As<int>("count(pipeline)"))
+				.ResultsAsync).FirstOrDefault();
 
 			_logger.LogInformation("Loaded {PipelineCount} pipeline dtos", pipelineInfoDtos.Count);
-			return pipelineInfoDtos;
+			return new PaginatedList<PipelineInfoDto>()
+			{
+				Items = pipelineInfoDtos,
+				Page = pagination?.Page ?? 0,
+				PageSize = pagination?.PageSize ?? pipelineCount,
+				TotalItems = pipelineCount
+			};
 		}
 
 		public async Task CreatePipeline(Pipeline pipeline)
