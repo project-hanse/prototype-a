@@ -23,14 +23,8 @@
 <mat-progress-bar mode="buffer" *ngIf="loading" [value]="progressValue" [bufferValue]="bufferValue"></mat-progress-bar>
 <mat-progress-bar mode="indeterminate" *ngIf="processing"></mat-progress-bar>
 
-<div class="container mat-elevation-z8">
-	<div class="loading-shade" *ngIf="isLoadingResults || errorWhileLoading">
-		<mat-progress-bar *ngIf="isLoadingResults"></mat-progress-bar>
-		<div class="rate-limit-reached" *ngIf="errorWhileLoading">
-			Failed to load data due to some error.
-		</div>
-	</div>
-
+<mat-card>
+	<mat-progress-bar *ngIf="isLoadingResults"></mat-progress-bar>
 	<div class="table-container">
 		<mat-progress-bar mode="indeterminate" *ngIf="isLoadingResults"></mat-progress-bar>
 		<table mat-table [dataSource]="dataSource" matSort matSortDisableClear>
@@ -87,4 +81,4 @@
 	<mat-paginator [length]="resultsLength" [pageSizeOptions]="[5, 10, 15, 30, 100]" [pageSize]="10"
 								 showFirstLastButtons
 								 aria-label="Select page of pipeline candidates"></mat-paginator>
-</div>
+</mat-card>

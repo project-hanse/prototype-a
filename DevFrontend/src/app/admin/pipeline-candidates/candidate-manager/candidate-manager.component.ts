@@ -157,6 +157,7 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 					this.matSnackBar.open(`${processed} candidates processed`, 'Close', {duration: 5000});
 					this.processing = false;
 					this.reload.next({});
+					this.selection.clear();
 				},
 				error => {
 					console.error(error);
