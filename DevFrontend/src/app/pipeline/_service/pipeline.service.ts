@@ -8,7 +8,7 @@ import {BaseHttpService} from '../../core/_service/base-http.service';
 import {CreatePipelineFromTemplateRequest} from '../_model/create-pipeline-from-template-request';
 import {CreatePipelineFromTemplateResponse} from '../_model/create-pipeline-from-template-response';
 import {ImportPipelineResponse} from '../_model/import-pipeline-response';
-import {Pipeline, PipelineInfoDto} from '../_model/pipeline';
+import {PipelineInfoDto} from '../_model/pipeline';
 import {VisualizationPipelineDto} from '../_model/visualization-pipeline.dto';
 
 @Injectable({
@@ -20,8 +20,12 @@ export class PipelineService extends BaseHttpService {
 		super('api/v1/pipelines', httpClient);
 	}
 
-	public getPipelines(): Observable<Pipeline[]> {
-		return super.get();
+	public getPipelineDtos(pagination: Pagination, userIdentifier?: string): Observable<PaginatedList<PipelineInfoDto>> {
+		const params: any = {...pagination};
+		if (userIdentifier) {
+			params.userIdentifier = userIdentifier;
+		}
+		return this.httpClient.get<PaginatedList<PipelineInfoDto>>(this.getPipelinesUrl(''), {params});
 	}
 
 	public getPipelineDto(id: string): Observable<PipelineInfoDto> {

@@ -18,9 +18,10 @@ max_actions_per_pipeline = 30
 partial_rewards_for_max_lookahead = 0.5
 variance_reward_factor = 0.3
 max_look_ahead_steps = 10
+max_actions_per_state = 50
 mcts_iteration_limit = 20
 sleep_time_after_new_actions = 0.0
-pipeline_iterations = 25
+pipelines_per_batch = 25
 expert_policy_probability = 0.5
 cache_requests = True
 target_action_count = 5
@@ -34,7 +35,7 @@ def init_config():
 			continue
 		if type(value) is list or type(value) is tuple:
 			globals()[key] = os.getenv(key.upper(), ','.join(value)).strip().replace(' ', '').split(',')
-		elif type(key) is int:
+		elif type(value) is int:
 			globals()[key] = int(os.getenv(key.upper(), value))
 		elif type(value) is float:
 			globals()[key] = float(os.getenv(key.upper(), value))

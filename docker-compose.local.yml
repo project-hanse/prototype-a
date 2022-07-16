@@ -106,6 +106,8 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '5.0'
+      MAX_ACTIONS_PER_PIPELINE: '20'
+      MCTS_ITERATION_LIMIT: '7'
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 

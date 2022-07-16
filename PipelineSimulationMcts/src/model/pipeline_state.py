@@ -16,7 +16,7 @@ def are_vectors_equal(vec_a: list, vec_b: list) -> bool:
 
 class PipelineBuildingState(BaseState):
 	def __init__(self, helper_factory: HelperFactory, available_datasets: [{}], producing_operation: {},
-							 max_look_ahead: int = None, look_ahead_cnt: int = 0, max_actions: int = None,
+							 max_look_ahead: int = None, look_ahead_cnt: int = 0, max_actions_per_state: int = None,
 							 max_available_datasets: int = None, depth: int = 0, parent: 'PipelineBuildingState' = None,
 							 verbose: float = 0):
 		self.logger = LogHelper.get_logger(self.__class__.__name__)
@@ -33,7 +33,7 @@ class PipelineBuildingState(BaseState):
 		self.depth = depth
 		self.look_ahead_cnt = look_ahead_cnt
 		self.max_look_ahead = max_look_ahead
-		self.max_actions = max_actions
+		self.max_actions_per_state = max_actions_per_state
 		self.max_available_datasets = max_available_datasets
 		self.parent = parent
 		self.terminal_operation_ids = terminal_operation_ids
@@ -64,8 +64,8 @@ class PipelineBuildingState(BaseState):
 		if self.print():
 			self.logger.info("%s actions available" % len(actions))
 		# maximum n possible (random) actions to reduce search tree size
-		if self.max_actions is not None:
-			actions = random.sample(actions, min(len(actions), self.max_actions))
+		if self.max_actions_per_state is not None:
+			actions = random.sample(actions, min(len(actions), self.max_actions_per_state))
 		random.shuffle(actions)
 		return actions
 
@@ -99,7 +99,7 @@ class PipelineBuildingState(BaseState):
 																			producing_operation=action.operation,
 																			max_look_ahead=self.max_look_ahead,
 																			max_available_datasets=self.max_available_datasets,
-																			max_actions=self.max_actions,
+																			max_actions_per_state=self.max_actions_per_state,
 																			look_ahead_cnt=self.look_ahead_cnt + 1,
 																			# TODO: make depth dependent on amount of preceding operations not depth of search tree
 																			depth=self.depth + 1,
@@ -115,6 +115,7 @@ class PipelineBuildingState(BaseState):
 		if self.look_ahead_cnt == self.max_look_ahead:
 			# abort search if maximum look ahead is reached
 			return True
+
 		if self.producing_operation is not None:
 			if self.producing_operation['operationId'] in self.terminal_operation_ids:
 				# self.logger.info( "Terminal operation (%s) reached" % self.producing_action.operation['operationName'])
