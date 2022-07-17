@@ -227,6 +227,7 @@ services:
   # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management-alpine
+    restart: unless-stopped
     command: rabbitmq-server
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "5672" ]
@@ -235,4 +236,4 @@ services:
       retries: 1
     volumes:
       - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
-      - ./volumes/rabbitmq/log/:/var/log/rabbitmq
+#      - ./volumes/rabbitmq/log/:/var/log/rabbitmq
