@@ -46,18 +46,21 @@ class ModelService:
 			self.logger.debug("Model %s found in cache" % model_name)
 			return self._model_cache[model_name]
 		self.logger.info("Loading model %s" % model_name)
-		models = self.mlflow_client.search_model_versions("name='%s'" % model_name)
-		if len(models) == 0:
+		registered_models = self.mlflow_client.search_registered_models("name='%s'" % model_name)
+		if len(registered_models) == 0:
 			raise Exception("No model found with name %s" % model_name)
-
+		max_version = None
 		# find model with the latest version
-		# TODO: this seems to run into a pagination issue and only searches the first 100 versions of a model
-		for model in models:
-			if model.version > models[0].version:
-				models[0] = model
+		for registered_model in registered_models:
+			for version in registered_model.latest_versions:
+				try:
+					if max_version is None or int(version.version) > max_version:
+						max_version = int(version.version)
+				except Exception as e:
+					self.logger.warning("Could not parse version %s - %s" % (version.version, e))
 
-		self.logger.info("Found model %s with version %s" % (model_name, models[0].version))
-		self._model_cache[model_name] = mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{models[0].version}")
+		self.logger.info("Found model %s with version %s" % (model_name, max_version))
+		self._model_cache[model_name] = mlflow.sklearn.load_model(model_uri=f"models:/{model_name}/{max_version}")
 		return self._model_cache[model_name]
 
 	def get_all_models(self) -> [tuple]:
