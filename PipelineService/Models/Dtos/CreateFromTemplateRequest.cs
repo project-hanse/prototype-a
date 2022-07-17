@@ -4,6 +4,6 @@ namespace PipelineService.Models.Dtos
 {
 	public class CreateFromTemplateRequest : BaseRequest
 	{
-		public Guid TemplateId { get; set; }
+		public Guid? TemplateId { get; set; }
 	}
 }

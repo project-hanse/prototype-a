@@ -39,12 +39,17 @@ namespace PipelineService.Models.Pipeline
 				ZamgWeatherPreprocessingGraz(Guid.Parse("6490fdbc-0240-4a4e-8c36-fca40b89f80e")),
 				ZamgWeatherPreprocessingGraz(Guid.Parse("40a61687-794c-4fab-9c17-5608833b0f33"), 1991),
 				BeerProductionAustralia(Guid.Parse("ce01a52c-daa2-4495-af5b-5aaa4c30c6b3")),
-				new()
-				{
-					Id = Guid.Parse("4bfd7879-c86a-4597-89f1-941a9fed9e4f"),
-					Name = "Empty Pipeline",
-					Root = new List<Operation>()
-				}
+				EmptyTemplate()
+			};
+		}
+
+		public static Pipeline EmptyTemplate()
+		{
+			return new()
+			{
+				Id = Guid.Parse("4bfd7879-c86a-4597-89f1-941a9fed9e4f"),
+				Name = "Empty Pipeline",
+				Root = new List<Operation>()
 			};
 		}
 

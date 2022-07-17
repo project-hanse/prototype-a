@@ -1,7 +1,9 @@
 import {SelectionModel} from '@angular/cdk/collections';
 import {AfterViewInit, Component, EventEmitter, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {MatPaginator} from '@angular/material/paginator';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatSort} from '@angular/material/sort';
+import {Router} from '@angular/router';
 import {catchError, merge, Observable, startWith, Subscription} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {PipelineCandidate} from '../../admin/pipeline-candidates/_model/pipeline-candidate';
@@ -23,7 +25,8 @@ export class PipelineListViewComponent implements OnInit, AfterViewInit, OnDestr
 	selection = new SelectionModel<PipelineInfoDto>(true, []);
 	resultsLength = 0;
 	filterByUsernameLastValue?: string;
-	private filterByUsername: EventEmitter<string | undefined> = new EventEmitter();
+	private readonly filterByUsername: EventEmitter<string | undefined> = new EventEmitter();
+	private readonly reload: EventEmitter<void> = new EventEmitter();
 
 	isLoadingResults = true;
 	@ViewChild(MatPaginator) paginator: MatPaginator;
@@ -35,7 +38,7 @@ export class PipelineListViewComponent implements OnInit, AfterViewInit, OnDestr
 		return this.pipelineService.importPipeline(formData);
 	}
 
-	constructor(private pipelineService: PipelineService) {
+	constructor(private pipelineService: PipelineService, private router: Router, private snackBar: MatSnackBar) {
 		this.subscriptions = new Subscription();
 	}
 
@@ -53,7 +56,7 @@ export class PipelineListViewComponent implements OnInit, AfterViewInit, OnDestr
 			this.filterByUsernameLastValue = username;
 		});
 
-		merge(this.sort.sortChange, this.paginator.page, this.filterByUsername)
+		merge(this.sort.sortChange, this.paginator.page, this.filterByUsername, this.reload)
 			.pipe(
 				startWith({}),
 				switchMap(() => {
@@ -124,5 +127,30 @@ export class PipelineListViewComponent implements OnInit, AfterViewInit, OnDestr
 	userNameFilter(username?: string): void {
 		console.log('userNameFilter: ' + username);
 		this.filterByUsername.next(username);
+	}
+
+	createNewPipeline(): void {
+		this.subscriptions.add(
+			this.pipelineService.createFromTemplate({}).subscribe(response => {
+					this.snackBar.open('New pipeline created', '', {duration: 2000});
+					this.router.navigate(['/pipeline', response.pipelineId]);
+				}
+			)
+		);
+	}
+
+	deletePipelines(pipelines: PipelineInfoDto[]): void {
+		if (confirm('Are you sure you want to delete the selected pipeline(s)?')) {
+			this.isLoadingResults = true;
+			this.subscriptions.add(
+				this.pipelineService.deletePipelines(pipelines.map(p => p.id)).subscribe(response => {
+						this.snackBar.open(response + ' pipeline(s) deleted', '', {duration: 2000});
+						this.reload.next();
+						this.selection.clear();
+						this.isLoadingResults = false;
+					}
+				)
+			);
+		}
 	}
 }
