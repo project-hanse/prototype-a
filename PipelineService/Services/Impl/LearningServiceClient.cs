@@ -1,10 +1,13 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Extensions;
+using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Services.Impl;
 
@@ -29,7 +32,6 @@ public class LearningServiceClient : ILearningServiceClient
 		}
 	}
 
-
 	public LearningServiceClient(
 		ILogger<LearningServiceClient> logger,
 		IConfiguration configuration,
@@ -48,11 +50,16 @@ public class LearningServiceClient : ILearningServiceClient
 	{
 		_logger.LogDebug("Triggering model training in learning service");
 
-		await AssertAllPipelinesExecuted();
+		await EnqueueAllPipelinesForExecution();
+		BackgroundJob.Schedule<ILearningServiceClient>(s => s.TrainModels(), TimeSpan.FromMinutes(15));
+	}
+
+	public async Task TrainModels()
+	{
 		var request = new HttpRequestMessage(HttpMethod.Get, "api/train");
 		Client.Timeout = TimeSpan.FromMinutes(15);
 		var response = await Client.SendAsync(request);
-		if (response.StatusCode != System.Net.HttpStatusCode.OK)
+		if (response.StatusCode != HttpStatusCode.OK)
 		{
 			_logger.LogWarning(
 				"Error triggering model training in learning service (status: {HttpStatusCode}, reason: {ReasonPhrase})",
@@ -64,18 +71,16 @@ public class LearningServiceClient : ILearningServiceClient
 		}
 	}
 
-	private async Task AssertAllPipelinesExecuted()
+	private async Task EnqueueAllPipelinesForExecution()
 	{
 		_logger.LogDebug("Asserting all pipelines executed (meaning datasets are ready)");
-		var pipelines = await _pipelinesDao.GetDtos();
+		var pipelines = (await _pipelinesDao.GetDtos()).Items;
 		var progress = 0;
 		foreach (var pipelineInfoDto in pipelines)
 		{
 			progress++;
-			await _pipelineExecutionService.ExecutePipelineSync(pipelineInfoDto.Id, skipIfExecuted: true);
-			_logger.LogDebug("Executed pipeline {Progress}/{Total}", progress, pipelines.Count);
+			await _pipelineExecutionService.ExecutePipeline(pipelineInfoDto.Id, true);
+			_logger.LogDebug("Enqueued pipeline {Progress}/{Total}", progress, pipelines.Count);
 		}
-
-		_logger.LogInformation("All pipelines executed at least once");
 	}
 }

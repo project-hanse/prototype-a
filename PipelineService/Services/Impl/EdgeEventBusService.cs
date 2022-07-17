@@ -6,11 +6,10 @@ using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Extensions.ManagedClient;
 using Newtonsoft.Json;
-using PipelineService.Models.MqttMessages;
 
 namespace PipelineService.Services.Impl
 {
-	public class EdgeEventBusService : BaseEventBusService, IEventBusService
+	public class EdgeEventBusService : BaseMqttEventBusService
 	{
 		private readonly ILogger<EdgeEventBusService> _logger;
 		private readonly IConfiguration _configuration;
@@ -32,7 +31,7 @@ namespace PipelineService.Services.Impl
 			_configuration = configuration;
 		}
 
-		public async Task PublishMessage<T>(string topic, T payload) where T : BaseMqttMessage
+		public override async Task PublishMessage<T>(string topic, T payload)
 		{
 			await ConnectAsync();
 
@@ -49,7 +48,7 @@ namespace PipelineService.Services.Impl
 			await Client.PublishAsync(mqttMessage);
 		}
 
-		public async Task Subscribe<T>(string topic, Func<T, Task> handler) where T : BaseMqttMessage
+		public override async Task Subscribe<T>(string topic, Func<T, Task> handler)
 		{
 			await ConnectAsync();
 

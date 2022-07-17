@@ -2,6 +2,13 @@ mat-card {
 	margin: 1em;
 }
 
+.table-container {
+	width: 100%;
+
+	table {
+		width: 100%;
+	}
+}
 
 .import-cards {
 	// flex box with 2 children filling the available space and breaking on small screens

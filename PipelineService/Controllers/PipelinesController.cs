@@ -52,9 +52,11 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> GetPipelineDtos()
+		public async Task<IActionResult> GetPipelineDtos(
+			[FromQuery] Pagination pagination,
+			[FromQuery] string userIdentifier = null)
 		{
-			return Ok(await _pipelineExecutionService.GetPipelineDtos(HttpContext.GetUsernameFromBasicAuthHeader()));
+			return Ok(await _pipelineExecutionService.GetPipelineDtos(pagination, userIdentifier));
 		}
 
 		[HttpGet("{pipelineId:Guid}")]
@@ -82,6 +84,25 @@ namespace PipelineService.Controllers
 
 			return Ok(pipelineDto);
 		}
+
+		[HttpDelete]
+		public async Task<IActionResult> DeletePipelines([FromQuery] IList<Guid> pipelineIds)
+		{
+			if (pipelineIds == null || pipelineIds.Count == 0)
+			{
+				return BadRequest("No pipeline ids provided");
+			}
+
+			var counter = 0;
+			foreach (var pipelineId in pipelineIds)
+			{
+				await _pipelineExecutionService.DeletePipeline(pipelineId);
+				counter++;
+			}
+
+			return Ok(counter);
+		}
+
 
 		[HttpPost("{pipelineId:Guid}")]
 		public async Task<IActionResult> UpdatePipeline(Guid pipelineId, [FromBody] PipelineInfoDto pipelineDto)

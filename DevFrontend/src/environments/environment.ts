@@ -10,6 +10,7 @@ export const environment = {
 	learningApi: 'http://localhost:5006',
 	mlflow: 'http://localhost:5005',
 	adminer: 'http://localhost:8081',
+	rabbitMq: 'http://localhost:15672',
 	messageBrokerHost: 'localhost',
 	messageBrokerPath: '',
 	messageBrokerPort: 9002

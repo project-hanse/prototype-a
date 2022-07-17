@@ -9,10 +9,11 @@ class LogHelper:
 		if name in LogHelper.loggers:
 			return LogHelper.loggers[name]
 		logger = logging.getLogger(name)
-		logger.handlers = []
-		handler = logging.StreamHandler()
-		handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-		logger.addHandler(handler)
+		if not logger.hasHandlers():
+			handler = logging.StreamHandler()
+			handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+			logger.addHandler(handler)
 		logger.setLevel(logging.INFO)
+		logger.propagate = False
 		LogHelper.loggers[name] = logger
 		return logger
