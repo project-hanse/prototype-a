@@ -85,6 +85,25 @@ namespace PipelineService.Controllers
 			return Ok(pipelineDto);
 		}
 
+		[HttpDelete]
+		public async Task<IActionResult> DeletePipelines([FromQuery] IList<Guid> pipelineIds)
+		{
+			if (pipelineIds == null || pipelineIds.Count == 0)
+			{
+				return BadRequest("No pipeline ids provided");
+			}
+
+			var counter = 0;
+			foreach (var pipelineId in pipelineIds)
+			{
+				await _pipelineExecutionService.DeletePipeline(pipelineId);
+				counter++;
+			}
+
+			return Ok(counter);
+		}
+
+
 		[HttpPost("{pipelineId:Guid}")]
 		public async Task<IActionResult> UpdatePipeline(Guid pipelineId, [FromBody] PipelineInfoDto pipelineDto)
 		{

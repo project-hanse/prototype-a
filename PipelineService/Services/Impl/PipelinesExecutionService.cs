@@ -249,7 +249,10 @@ namespace PipelineService.Services.Impl
 
 			var response = new CreateFromTemplateResponse();
 
-			var template = HardcodedDefaultPipelines.PipelineTemplates().SingleOrDefault(t => t.Id == request.TemplateId);
+			var template = !request.TemplateId.HasValue
+				? HardcodedDefaultPipelines.EmptyTemplate()
+				: HardcodedDefaultPipelines.PipelineTemplates().SingleOrDefault(t => t.Id == request.TemplateId);
+
 			if (template == null)
 			{
 				response.Success = false;
