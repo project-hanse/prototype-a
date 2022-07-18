@@ -145,3 +145,11 @@ updates:
     target-branch: "dev"
     schedule:
       interval: "weekly"
+
+  # RabbitMQ
+  - package-ecosystem: "docker"
+    directory: "/RabbitMQ"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+

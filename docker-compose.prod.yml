@@ -226,9 +226,8 @@ services:
 
   # RabbitMQ
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: ghcr.io/project-hanse/prototype-a/hanse-rabbitmq-server:main
     restart: unless-stopped
-    command: rabbitmq-server
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "5672" ]
       interval: 5s
