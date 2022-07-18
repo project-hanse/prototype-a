@@ -31,4 +31,11 @@ public interface IPipelineCandidateService
 	/// <param name="pipelineCandidateId">The candidate's id.</param>
 	/// <returns>True if the candidate has been deleted, else false.</returns>
 	Task<bool> DeletePipelineCandidate(Guid pipelineCandidateId);
+
+	/// <summary>
+	/// Archive a pipeline candidate by id.
+	/// </summary>
+	/// <param name="pipelineCandidateId">The candidate's id.</param>
+	/// <returns>True if the candidate has been archived, else false.</returns>
+	Task<bool> ArchivePipelineCandidate(Guid pipelineCandidateId);
 }

@@ -72,6 +72,10 @@ export class PipelineService extends BaseHttpService {
 		return this.httpClient.delete<number>(this.getPipelinesUrl(), {params: {pipelineIds}});
 	}
 
+	public enqueuePipelines(pipelineIds: string[]): Observable<Array<string>> {
+		return this.httpClient.post<Array<string>>(this.getPipelinesUrl('execute'), pipelineIds);
+	}
+
 	public getPipelineCandidates(pagination: Pagination): Observable<PaginatedList<PipelineCandidate>> {
 		return this.httpClient.get<PaginatedList<PipelineCandidate>>(this.getPipelinesUrl('candidate'), {params: {...pagination}});
 	}

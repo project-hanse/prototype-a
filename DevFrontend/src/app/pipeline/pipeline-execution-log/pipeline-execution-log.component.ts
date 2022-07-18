@@ -6,6 +6,8 @@ import {environment} from '../../../environments/environment';
 import {FilesService} from '../../utils/_services/files.service';
 import {Dataset, DatasetType} from '../_model/dataset';
 import {FrontendExecutionNotification} from '../_model/frontend-execution-notification';
+import {PipelineInfoDto} from '../_model/pipeline';
+import {PipelineService} from '../_service/pipeline.service';
 
 @Component({
 	selector: 'ph-pipeline-execution-log',
@@ -17,8 +19,9 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	@Input() pipelineId: string;
 	private readonly mqttService: MqttService;
 	private $executionEvents: Observable<any>;
+	private $pipelineInfoDto?: Observable<PipelineInfoDto>;
 
-	constructor(private filesService: FilesService) {
+	constructor(private filesService: FilesService, private pipelineService: PipelineService) {
 		this.mqttService = new MqttService({
 			connectOnCreate: false,
 			hostname: environment.messageBrokerHost,
@@ -64,6 +67,13 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 				);
 		}
 		return this.$executionEvents;
+	}
+
+	public getPipelineInfoDto(pipelineId: string): Observable<PipelineInfoDto> {
+		if (!this.$pipelineInfoDto) {
+			this.$pipelineInfoDto = this.pipelineService.getPipelineDto(pipelineId);
+		}
+		return this.$pipelineInfoDto;
 	}
 
 	ngOnDestroy(): void {

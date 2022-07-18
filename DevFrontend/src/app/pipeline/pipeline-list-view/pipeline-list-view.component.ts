@@ -9,6 +9,7 @@ import {map, switchMap} from 'rxjs/operators';
 import {PipelineCandidate} from '../../admin/pipeline-candidates/_model/pipeline-candidate';
 import {BaseResponse} from '../../core/_model/base-response';
 import {PaginatedList} from '../../core/_model/paginated-list';
+import {UsersService} from '../../dev-tools/_services/users.service';
 import {PipelineInfoDto} from '../_model/pipeline';
 import {PipelineService} from '../_service/pipeline.service';
 
@@ -36,17 +37,31 @@ export class PipelineListViewComponent implements OnInit, AfterViewInit, OnDestr
 	private readonly subscriptions: Subscription;
 	uploadFunction = (formData: FormData) => {
 		return this.pipelineService.importPipeline(formData);
-	}
+	};
 
-	constructor(private pipelineService: PipelineService, private router: Router, private snackBar: MatSnackBar) {
+	constructor(
+		private pipelineService: PipelineService,
+		private router: Router,
+		private snackBar: MatSnackBar,
+		private userService: UsersService) {
 		this.subscriptions = new Subscription();
 	}
 
 	ngOnInit(): void {
-		if (window.innerWidth > 768) {
+		if (window.innerWidth > 666) {
+			if (window.innerWidth > 768) {
+				this.displayedColumns.push('changedOn');
+			}
 			// add 'changedOn' to end of displayedColumns
-			this.displayedColumns.push('changedOn');
+			this.displayedColumns.push('lastRun');
 		}
+		this.subscriptions.add(
+			this.userService.getCurrentUserInfo().subscribe(user => {
+				if (user) {
+					this.userNameFilter(user.username);
+				}
+			})
+		);
 	}
 
 	ngAfterViewInit(): void {
@@ -125,7 +140,6 @@ export class PipelineListViewComponent implements OnInit, AfterViewInit, OnDestr
 	}
 
 	userNameFilter(username?: string): void {
-		console.log('userNameFilter: ' + username);
 		this.filterByUsername.next(username);
 	}
 
@@ -134,6 +148,28 @@ export class PipelineListViewComponent implements OnInit, AfterViewInit, OnDestr
 			this.pipelineService.createFromTemplate({}).subscribe(response => {
 					this.snackBar.open('New pipeline created', '', {duration: 2000});
 					this.router.navigate(['/pipeline', response.pipelineId]);
+				}
+			)
+		);
+	}
+
+	enqueuePipelines(selected: PipelineInfoDto[]): void {
+		this.isLoadingResults = true;
+		this.subscriptions.add(
+			this.pipelineService.enqueuePipelines(selected.map(p => p.id)).subscribe(response => {
+					this.snackBar.open(response.length + ' pipeline(s) enqueued', '', {duration: 2000});
+					this.isLoadingResults = false;
+					this.reload.emit();
+					// dirty polling to check if execution is complete
+					// call this.reload.emit() every 1.5 seconds for 10 times
+					let counter = 0;
+					const interval = setInterval(() => {
+						this.reload.emit();
+						counter++;
+						if (counter === 10) {
+							clearInterval(interval);
+						}
+					}, 1500);
 				}
 			)
 		);

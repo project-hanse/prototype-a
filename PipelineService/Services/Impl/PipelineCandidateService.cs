@@ -91,4 +91,10 @@ public class PipelineCandidateService : IPipelineCandidateService
 		_logger.LogDebug("Deleting pipeline candidate with id {PipelineCandidateId}", pipelineCandidateId);
 		return await _pipelineCandidateDao.DeletePipelineCandidate(pipelineCandidateId);
 	}
+
+	public Task<bool> ArchivePipelineCandidate(Guid pipelineCandidateId)
+	{
+		_logger.LogDebug("Archiving pipeline candidate with id {PipelineCandidateId}", pipelineCandidateId);
+		return _pipelineCandidateDao.ArchivePipelineCandidate(pipelineCandidateId);
+	}
 }

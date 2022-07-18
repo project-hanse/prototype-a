@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
+using Neo4jClient.DataAnnotations.Cypher;
 using Neo4jClient.DataAnnotations.Cypher.Functions;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
@@ -341,7 +342,12 @@ namespace PipelineService.Dao.Impl
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			var query = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
-				.Match(path => path.Pattern<Operation, Operation>("predecessor", "target"))
+				.Match(path => path.Pattern<Pipeline>("pipeline"))
+				.Where($"pipeline.{nameof(Pipeline.LastRunSuccess)} IS NOT NULL")
+				.Call("{WITH pipeline " +
+				      "MATCH (predecessor:Operation)-[:HAS_SUCCESSOR]->(target:Operation) " +
+				      "WHERE predecessor.PipelineId = pipeline.Id " +
+				      "RETURN predecessor AS predecessor, target AS target } ")
 				.Return(() => new
 				{
 					predecessor = Return.As<Operation>("predecessor"),

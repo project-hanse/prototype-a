@@ -54,7 +54,6 @@ namespace PipelineService.Services.Impl
 
 		public async Task<IList<OperationTuples>> GetOperationTuples()
 		{
-			// TODO: check if pipeline has been successfully executed
 			return await _pipelinesDao.GetOperationTuples();
 		}
 
@@ -341,7 +340,7 @@ namespace PipelineService.Services.Impl
 				}
 				catch (Exception e)
 				{
-					_logger.LogWarning(e,"Failed to process pipeline candidate {CandidateId} - {Error}",
+					_logger.LogWarning(e, "Failed to process pipeline candidate {CandidateId} - {Error}",
 						candidate?.PipelineId ?? default, e.Message);
 					if (candidate != null)
 					{
@@ -371,13 +370,15 @@ namespace PipelineService.Services.Impl
 			{
 				metric.Aborted = candidate.Aborted.Value;
 				metric.Success = false;
-				_logger.LogInformation("Pipeline candidate {PipelineCandidateId} was aborted", candidate.PipelineId);
+				_logger.LogInformation("Pipeline candidate {PipelineCandidateId} was aborted - deleting candidate",
+					candidate.PipelineId);
 				await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
 				metric.ProcessingEndTime = DateTime.UtcNow;
 				_metricsContext.CandidateProcessingMetrics.Add(metric);
 				await _metricsContext.SaveChangesAsync();
 				return;
 			}
+
 			try
 			{
 				metric.ImportStartTime = DateTime.UtcNow;
@@ -390,7 +391,7 @@ namespace PipelineService.Services.Impl
 					candidate.PipelineId, metric.ImportDuration);
 
 				var executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
-				metric.Success = executionRecord.Failed.Count == 0;
+				metric.Success = executionRecord.IsSuccessful;
 				if (metric.Success)
 				{
 					var lastOperation = executionRecord.Executed.LastOrDefault();
@@ -405,7 +406,7 @@ namespace PipelineService.Services.Impl
 						: $"{executionRecord.Failed.Count} operations failed";
 				}
 
-				await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
+				await _pipelineCandidateService.ArchivePipelineCandidate(candidate.PipelineId);
 			}
 			catch (Exception e)
 			{
@@ -413,8 +414,6 @@ namespace PipelineService.Services.Impl
 				metric.Error = e.Message;
 				_logger.LogInformation("Failed to process pipeline candidate with id {PipelineCandidateId} - {Error}",
 					candidate.PipelineId, e.Message);
-
-				await _pipelinesDao.DeletePipeline(candidate.PipelineId);
 			}
 			finally
 			{
@@ -422,6 +421,14 @@ namespace PipelineService.Services.Impl
 
 				_logger.LogInformation("Finished processing pipeline candidate with id {PipelineCandidateId} in {Duration}",
 					candidate.PipelineId, metric.ProcessingDuration);
+
+				if (!metric.Success)
+				{
+					_logger.LogInformation(
+						"Pipeline {PipelineCandidateId} could not be processed (Error: {Error}) - deleting pipeline",
+						candidate.PipelineId, metric.Error);
+					await _pipelinesDao.DeletePipeline(candidate.PipelineId);
+				}
 
 				_metricsContext.CandidateProcessingMetrics.Add(metric);
 				await _metricsContext.SaveChangesAsync();
