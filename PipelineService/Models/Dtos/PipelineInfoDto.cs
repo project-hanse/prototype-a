@@ -9,5 +9,8 @@ namespace PipelineService.Models.Dtos
 		public DateTime CreatedOn { get; set; }
 		public DateTime? ChangedOn { get; set; }
 		public string UserIdentifier { get; set; }
+		public DateTime? LastRunStart { get; set; }
+		public DateTime? LastRunSuccess { get; set; }
+		public DateTime? LastRunFailure { get; set; }
 	}
 }

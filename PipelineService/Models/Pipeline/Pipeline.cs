@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,5 +19,11 @@ namespace PipelineService.Models.Pipeline
 		public string Name { get; set; }
 
 		public string UserIdentifier { get; set; }
+
+		public DateTime? LastRunStart { get; set; }
+
+		public DateTime? LastRunSuccess { get; set; }
+
+		public DateTime? LastRunFailure { get; set; }
 	}
 }
