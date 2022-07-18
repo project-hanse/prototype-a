@@ -54,7 +54,6 @@ namespace PipelineService.Services.Impl
 
 		public async Task<IList<OperationTuples>> GetOperationTuples()
 		{
-			// TODO: check if pipeline has been successfully executed
 			return await _pipelinesDao.GetOperationTuples();
 		}
 
