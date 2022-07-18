@@ -10,7 +10,7 @@
         <PackageReference Include="AspNetCore.HealthChecks.Aws.S3" Version="6.0.2" />
         <PackageReference Include="AWSSDK.S3" Version="3.7.9.21" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="6.0.6" NoWarn="NU1605" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.2" />
     </ItemGroup>
 
 </Project>
