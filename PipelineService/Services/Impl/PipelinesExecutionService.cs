@@ -248,7 +248,7 @@ namespace PipelineService.Services.Impl
 			if (execution.IsCompleted)
 			{
 				var pipeline = await _pipelinesDao.GetInfoDto(response.PipelineId);
-				if (execution.Successful)
+				if (execution.IsSuccessful)
 				{
 					pipeline.LastRunSuccess = DateTime.UtcNow;
 					_logger.LogInformation("Pipeline {PipelineId} has been successfully executed", response.PipelineId);

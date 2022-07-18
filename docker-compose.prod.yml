@@ -66,6 +66,7 @@ services:
       - rabbitmq
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
+      - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
 
   # Learning Store
   learning-service:

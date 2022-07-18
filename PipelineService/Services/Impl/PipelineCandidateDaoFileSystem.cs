@@ -21,6 +21,10 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 		_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
 		_configuration.GetValue("PipelineCandidatesFolder", ""));
 
+	private string PipelineCandidatesArchivePath => Path.Combine(
+		_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
+		_configuration.GetValue("PipelineCandidatesArchiveFolder", ""));
+
 	public PipelineCandidateDaoFileSystem(ILogger<PipelineCandidateDaoFileSystem> logger, IConfiguration configuration)
 	{
 		_logger = logger;
@@ -87,6 +91,35 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 
 		File.Delete(path);
 		_logger.LogInformation("Deleted pipeline candidate from file system");
+		return true;
+	}
+
+	public async Task<bool> ArchivePipelineCandidate(Guid pipelineCandidateId)
+	{
+		_logger.LogDebug("Archiving pipeline candidate in file system...");
+		var candidates = await GetPipelineCandidates();
+		var candidate = candidates.FirstOrDefault(c => c.PipelineId == pipelineCandidateId);
+		if (candidate == null)
+		{
+			_logger.LogInformation("Failed to archive pipeline candidate from file system - candidate not found");
+			return false;
+		}
+
+		var path = Path.Combine(PipelineCandidatesPath, candidate.SourceFileName);
+		if (!File.Exists(path))
+		{
+			_logger.LogInformation("Failed to archive pipeline candidate from file system - file not found");
+			return false;
+		}
+
+		if (!Directory.Exists(PipelineCandidatesArchivePath))
+		{
+			_logger.LogInformation("Creating archive folder {ArchiveFolder}...", PipelineCandidatesArchivePath);
+			Directory.CreateDirectory(PipelineCandidatesArchivePath);
+		}
+
+		File.Move(path, Path.Combine(PipelineCandidatesArchivePath, Path.GetFileName(path)));
+		_logger.LogInformation("Archived pipeline candidate in file system");
 		return true;
 	}
 }
