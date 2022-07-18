@@ -11,4 +11,8 @@ export interface PipelineInfoDto {
 	id?: string;
 	name: string;
 	createdOn?: Date | string;
+	successfullyExecutable: boolean;
+	lastRunStart?: Date;
+	lastRunSuccess?: Date;
+	lastRunFailure?: Date;
 }

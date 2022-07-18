@@ -170,6 +170,8 @@ namespace PipelineService.Services.Impl
 
 			var pipeline = await _pipelinesDao.GetInfoDto(pipelineId);
 			pipeline.LastRunStart = DateTime.UtcNow;
+			pipeline.LastRunSuccess = null;
+			pipeline.LastRunFailure = null;
 			await _pipelinesDao.UpdatePipeline(pipeline);
 
 			execution = await _pipelinesExecutionDao.Create(pipelineId);
