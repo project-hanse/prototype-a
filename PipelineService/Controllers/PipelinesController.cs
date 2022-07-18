@@ -53,8 +53,10 @@ namespace PipelineService.Controllers
 
 		[HttpGet]
 		public async Task<IActionResult> GetPipelineDtos(
-			[FromQuery] Pagination pagination,
-			[FromQuery] string userIdentifier = null)
+			[FromQuery]
+			Pagination pagination,
+			[FromQuery]
+			string userIdentifier = null)
 		{
 			return Ok(await _pipelineExecutionService.GetPipelineDtos(pagination, userIdentifier));
 		}
@@ -145,6 +147,19 @@ namespace PipelineService.Controllers
 				pipelineId, execution);
 
 			return Ok(execution);
+		}
+
+		[HttpPost("execute")]
+		public async Task<IActionResult> ExecutePipelines(IList<Guid> pipelineIds)
+		{
+			var executionIds = new List<Guid>();
+			foreach (var pipelineId in pipelineIds)
+			{
+				var executionId = await _pipelineExecutionService.ExecutePipeline(pipelineId);
+				executionIds.Add(executionId);
+			}
+
+			return Ok(executionIds);
 		}
 
 		[HttpGet("tuples")]

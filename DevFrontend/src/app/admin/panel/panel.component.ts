@@ -8,7 +8,7 @@ import {Component, OnInit} from '@angular/core';
 export class PanelComponent implements OnInit {
 	links: Array<{ title: string, path: string, icon: string }> = [
 		{
-			title: 'Models',
+			title: 'ML Models',
 			path: '../model',
 			icon: 'smart_toy'
 		},

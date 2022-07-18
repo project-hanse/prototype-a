@@ -26,17 +26,30 @@
 					<span>Services</span>
 				</button>
 
-				<a routerLink="admin" mat-menu-item>
+				<a routerLink="admin" mat-menu-item [matMenuTriggerFor]="admin">
 					<mat-icon>admin_panel_settings</mat-icon>
 					<span>Admin</span>
 				</a>
+
 				<a routerLink="settings" mat-menu-item>
 					<mat-icon>settings</mat-icon>
 					<span>Settings</span>
 				</a>
 			</mat-menu>
 
-			<!-- Services Submenu -->
+			<!-- Submenu Admin -->
+			<mat-menu #admin="matMenu">
+				<a routerLink="/admin/model" mat-menu-item>
+					<mat-icon>smart_toy</mat-icon>
+					<span>ML Models</span>
+				</a>
+				<a routerLink="/admin/pipeline-candidates" mat-menu-item>
+					<mat-icon>list</mat-icon>
+					<span>Pipeline Candidates</span>
+				</a>
+			</mat-menu>
+
+			<!-- Submenu Services  -->
 			<mat-menu #services="matMenu">
 				<a [href]="getMlflowUrl()" target="_blank" mat-menu-item>
 					<mat-icon>web</mat-icon>

@@ -168,6 +168,12 @@ namespace PipelineService.Services.Impl
 				}
 			}
 
+			var pipeline = await _pipelinesDao.GetInfoDto(pipelineId);
+			pipeline.LastRunStart = DateTime.UtcNow;
+			pipeline.LastRunSuccess = null;
+			pipeline.LastRunFailure = null;
+			await _pipelinesDao.UpdatePipeline(pipeline);
+
 			execution = await _pipelinesExecutionDao.Create(pipelineId);
 
 			await EnqueueNextOperations(execution, pipelineId);
@@ -218,28 +224,43 @@ namespace PipelineService.Services.Impl
 				response.OperationId, response.ExecutionId, response.PipelineId, response.Successful,
 				(int)(response.StopTime - response.StartTime).TotalMilliseconds);
 
+			var execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
 			if (!response.Successful)
 			{
 				_logger.LogInformation("Execution of operation {OperationId} failed with error {ExecutionErrorDescription}",
 					response.OperationId, response.ErrorDescription);
 
 				await MarkOperationAsFailed(response.ExecutionId, response.OperationId);
-				await NotifyFrontend(response);
-				return;
-			}
-
-			if (await MarkOperationAsExecuted(response.ExecutionId, response.OperationId))
-			{
-				_logger.LogDebug("Nothing to enqueue at the moment");
 			}
 			else
 			{
-				var execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
-
-				await EnqueueNextOperations(execution, response.PipelineId);
+				if (await MarkOperationAsExecuted(response.ExecutionId, response.OperationId))
+				{
+					_logger.LogDebug("Nothing to enqueue at the moment");
+				}
+				else
+				{
+					await EnqueueNextOperations(execution, response.PipelineId);
+				}
 			}
 
 			await NotifyFrontend(response);
+			if (execution.IsCompleted)
+			{
+				var pipeline = await _pipelinesDao.GetInfoDto(response.PipelineId);
+				if (execution.IsSuccessful)
+				{
+					pipeline.LastRunSuccess = DateTime.UtcNow;
+					_logger.LogInformation("Pipeline {PipelineId} has been successfully executed", response.PipelineId);
+				}
+				else
+				{
+					pipeline.LastRunFailure = DateTime.UtcNow;
+					_logger.LogInformation("Pipeline {PipelineId} has failed", response.PipelineId);
+				}
+
+				await _pipelinesDao.UpdatePipeline(pipeline);
+			}
 		}
 
 		public async Task<CreateFromTemplateResponse> CreatePipelineFromTemplate(CreateFromTemplateRequest request)

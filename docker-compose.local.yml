@@ -33,6 +33,7 @@ services:
       - "5000:80"
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
+      - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
 
   # Learning Store
   learning-service:
@@ -237,8 +238,9 @@ services:
 
   # RabbitMQ
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    command: rabbitmq-server
+    build:
+      context: ./RabbitMQ
+      dockerfile: ./Dockerfile
     ports:
       - "5672:5672"
       - "15672:15672"

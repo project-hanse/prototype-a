@@ -6,4 +6,5 @@ neo4j/**/**/*
 localstack/**/*
 mysql/**/*
 pipeline-simulation/**/*
+pipeline-simulation-archive/**/*
 rabbitmq/**/*

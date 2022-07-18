@@ -66,6 +66,7 @@ services:
       - rabbitmq
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
+      - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
 
   # Learning Store
   learning-service:
@@ -143,7 +144,7 @@ services:
       MCTS_ITERATION_LIMIT: '7'
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 2
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -226,9 +227,8 @@ services:
 
   # RabbitMQ
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: ghcr.io/project-hanse/prototype-a/hanse-rabbitmq-server:main
     restart: unless-stopped
-    command: rabbitmq-server
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "5672" ]
       interval: 5s

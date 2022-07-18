@@ -1,6 +1,17 @@
 <mat-card *ngIf="executionEvents(pipelineId) | async as events">
+	<mat-card-header *ngIf="getPipelineInfoDto(pipelineId) | async as pipelineInfoDto">
+		<mat-card-subtitle>
+			<span>Last Start: {{pipelineInfoDto.lastRunStart ?? '-' | date: 'medium'}}&nbsp;</span>
+			<span *ngIf="pipelineInfoDto.lastRunFailure" style="color: red">
+				Failed: {{pipelineInfoDto.lastRunFailure | date: 'medium'}}
+				&nbsp;
+			</span>
+			<span *ngIf="pipelineInfoDto.lastRunSuccess" style="color: green">
+				Success: {{pipelineInfoDto.lastRunSuccess | date: 'medium'}}
+			</span>
+		</mat-card-subtitle>
+	</mat-card-header>
 	<mat-card-content>
-
 		<mat-progress-bar
 			*ngIf="getLast(events) as last"
 			[mode]="'buffer'"
