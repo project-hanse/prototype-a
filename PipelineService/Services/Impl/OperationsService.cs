@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PipelineService.Dao;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
@@ -17,15 +18,18 @@ namespace PipelineService.Services.Impl
 		private readonly ILogger<OperationsService> _logger;
 		private readonly IPipelinesDao _pipelinesDao;
 		private readonly IOperationTemplatesService _operationTemplatesService;
+		private readonly IDatasetServiceClient _datasetServiceClient;
 
 		public OperationsService(
 			ILogger<OperationsService> logger,
 			IPipelinesDao pipelinesDao,
-			IOperationTemplatesService operationTemplatesService)
+			IOperationTemplatesService operationTemplatesService,
+			IDatasetServiceClient datasetServiceClient)
 		{
 			_logger = logger;
 			_pipelinesDao = pipelinesDao;
 			_operationTemplatesService = operationTemplatesService;
+			_datasetServiceClient = datasetServiceClient;
 		}
 
 		public async Task<IList<string>> GetInputDatasetKeysForOperation(Guid pipelineId, Guid operationId)
@@ -309,6 +313,58 @@ namespace PipelineService.Services.Impl
 				operation.Id, pipelineId);
 
 			return true;
+		}
+
+		public async Task<IDictionary<string, string>> GenerateRandomizedConfig(Guid operationId)
+		{
+			_logger.LogDebug("Generating randomized configuration for operation {OperationId}", operationId);
+			var operation = await _pipelinesDao.GetOperation(operationId);
+			if (operation == null)
+			{
+				_logger.LogInformation("Operation with id {NotFoundId} not found", operationId);
+				return null;
+			}
+
+			var random = new Random();
+
+			var template = await _operationTemplatesService.GetTemplate(operation.OperationId, operation.OperationIdentifier);
+			var newConfig = new Dictionary<string, string>();
+			foreach (var (key, value) in template.DefaultConfig)
+			{
+				if (key.Contains("col"))
+				{
+					foreach (var operationInput in operation.Inputs)
+					{
+						var metadata = await _datasetServiceClient.GetCompactMetadata(operationInput);
+						if (metadata?.Columns.Length > 0)
+						{
+							if (value.Contains('['))
+							{
+								// random subset of columns
+								var randomColumnsCount = random.Next(1, metadata.Columns.Length);
+								var columns = metadata.Columns.OrderBy(c => Guid.NewGuid()).Take(randomColumnsCount).ToArray();
+								newConfig.Add(key, JsonConvert.SerializeObject(columns));
+							}
+							else
+							{
+								// random column
+								var randomColumnIndex = random.Next(0, metadata.Columns.Length);
+								newConfig.Add(key, metadata.Columns[randomColumnIndex]);
+							}
+						}
+					}
+				}
+				// TODO try parsing value as float and int and use random value in range
+
+
+				if (!newConfig.ContainsKey(key))
+				{
+					_logger.LogDebug("No new config value generated, falling back to default value");
+					newConfig.Add(key, value);
+				}
+			}
+
+			return newConfig;
 		}
 
 		public async Task<Operation> FindOperationOrDefault(Guid pipelineId, Guid nodeId)

@@ -14,6 +14,7 @@ namespace PipelineService.Services
 		public Task<IList<Dataset>> GetOutputDatasets(Guid pipelineId, Guid operationId);
 		public Task<IDictionary<string, string>> GetConfig(Guid pipelineId, Guid nodeId);
 		public Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, Dictionary<string, string> config);
+		public Task<IDictionary<string, string>> GenerateRandomizedConfig(Guid operationId);
 		public Task<Operation> FindOperationOrDefault(Guid pipelineId, Guid nodeId);
 	}
 }

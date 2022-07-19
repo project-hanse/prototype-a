@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Extensions;
-using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Services.Impl;
 

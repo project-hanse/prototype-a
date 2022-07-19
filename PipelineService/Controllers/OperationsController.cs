@@ -88,6 +88,18 @@ namespace PipelineService.Controllers
 			return Ok(config);
 		}
 
+		[HttpGet("{operationId:Guid}/config/randomize")]
+		public async Task<IActionResult> GetRandomizedConfiguration(Guid operationId)
+		{
+			var config = await _operationsService.GenerateRandomizedConfig(operationId);
+			if (config == null)
+			{
+				return NotFound();
+			}
+
+			return Ok(config);
+		}
+
 		[HttpPost("{pipelineId:Guid}/{operationId:Guid}/config")]
 		public async Task<IActionResult> UpdateConfiguration(
 			Guid pipelineId, Guid operationId, Dictionary<string, string> config)
