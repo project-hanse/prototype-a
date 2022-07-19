@@ -364,7 +364,10 @@ namespace PipelineService.Services.Impl
 				TaskId = candidate.TaskId,
 				PipelineId = candidate.PipelineId,
 				ActionCount = candidate.Actions.Count,
-				BatchNumber = candidate.BatchNumber
+				BatchNumber = candidate.BatchNumber,
+				SimulationStartTime = candidate.StartedAt,
+				SimulationEndTime = candidate.CompletedAt,
+				RewardFunctionType = candidate.RewardFunctionType
 			};
 			if (candidate.Aborted.HasValue && candidate.Aborted.Value)
 			{

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using PipelineService.Models.Pipeline;
@@ -52,7 +53,19 @@ public class PipelineCandidate
 	[JsonProperty("abort")]
 	public bool? Aborted { get; set; }
 
+	[JsonProperty("reward_function_type")]
+	public string RewardFunctionType { get; set; }
+
 	public string SourceFileName { get; set; }
+
+	public double SimulationDuration => Math.Max((CompletedAt - StartedAt).TotalMilliseconds, 0);
+
+	private int? _actionsCount;
+	public int ActionsCount
+	{
+		get => _actionsCount ?? (_actionsCount = Actions?.Count ?? 0).Value;
+		set => _actionsCount = value;
+	}
 }
 
 /// <summary>

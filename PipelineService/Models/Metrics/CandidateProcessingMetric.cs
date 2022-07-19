@@ -25,6 +25,16 @@ public record CandidateProcessingMetric : BasePersistentModel
 	public DateTime CandidateCreatedOn { get; set; }
 
 	/// <summary>
+	/// The time the candidate simulation was started.
+	/// </summary>
+	public DateTime SimulationStartTime { get; set; }
+
+	/// <summary>
+	/// The time the candidate simulation was ended.
+	/// </summary>
+	public DateTime SimulationEndTime { get; set; }
+
+	/// <summary>
 	/// The time the processing of the candidate started.
 	/// </summary>
 	public DateTime ProcessingStartTime { get; set; }
@@ -80,9 +90,24 @@ public record CandidateProcessingMetric : BasePersistentModel
 	public double ImportDuration => Math.Max((ImportEndTime - ImportStartTime).TotalMilliseconds, 0);
 
 	/// <summary>
+	/// The time it took to simulate the pipeline candidate.
+	/// </summary>
+	[NotMapped]
+	public double SimulationDuration => Math.Max((SimulationEndTime - SimulationStartTime).TotalMilliseconds, 0);
+
+	/// <summary>
 	/// Indicated whether the pipeline candidate was imported successfully.
 	/// </summary>
 	public bool ImportSuccess { get; set; }
 
+	/// <summary>
+	/// True if the simulation was aborted after a specified maximum number of actions.
+	/// </summary>
 	public bool Aborted { get; set; }
+
+	/// <summary>
+	/// The reward function used to simulate this pipeline candidate.
+	/// </summary>
+	[MaxLength(256)]
+	public string RewardFunctionType { get; set; }
 }
