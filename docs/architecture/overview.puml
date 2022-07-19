@@ -62,6 +62,7 @@ pipeline_service --> graph_db
 pipeline_service <--> message_broker_internal
 pipeline_service <--> message_broker_edge
 pipeline_service --> mysql_db
+pipeline_service --> dataset_store
 
 adminer --> mysql_db
 
