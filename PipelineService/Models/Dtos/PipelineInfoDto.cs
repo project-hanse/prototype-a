@@ -13,7 +13,8 @@ namespace PipelineService.Models.Dtos
 		public DateTime? LastRunSuccess { get; set; }
 		public DateTime? LastRunFailure { get; set; }
 
-		public bool SuccessfullyExecutable {
+		public bool SuccessfullyExecutable
+		{
 			get
 			{
 				if (!LastRunStart.HasValue) return false;

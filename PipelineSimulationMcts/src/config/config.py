@@ -25,6 +25,7 @@ pipelines_per_batch = 25
 expert_policy_probability = 0.5
 cache_requests = True
 target_action_count = 5
+reward_function_type = 'poly_peak'
 
 
 def init_config():

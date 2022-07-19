@@ -9,4 +9,7 @@ export interface PipelineCandidate {
 	createdBy: string;
 	aborted?: boolean;
 	sourceFileName: string;
+	rewardFunctionType: string;
+	simulationDuration: number;
+	actionsCount: number;
 }

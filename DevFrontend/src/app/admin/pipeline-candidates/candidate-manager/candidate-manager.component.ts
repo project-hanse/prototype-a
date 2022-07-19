@@ -17,7 +17,7 @@ import {PipelineCandidate} from '../_model/pipeline-candidate';
 	styleUrls: ['./candidate-manager.component.scss']
 })
 export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestroy {
-	displayedColumns: Array<string> = ['select', 'completedAt', 'taskId', 'batchNumber', 'taskTypeId'];
+	displayedColumns: Array<string> = ['select', 'completedAt', 'taskId', 'batchNumber', 'rewardFunctionType', 'taskTypeId', 'actionsCount', 'simulationDuration'];
 	readonly dataSource: MatTableDataSource<PipelineCandidate> = new MatTableDataSource([]);
 	selection = new SelectionModel<PipelineCandidate>(true, []);
 	private readonly reload: Subject<any> = new ReplaySubject<any>();

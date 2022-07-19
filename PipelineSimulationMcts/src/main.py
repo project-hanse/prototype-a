@@ -77,7 +77,8 @@ if __name__ == '__main__':
 			'dataset_id': task.dataset_id,
 			'task_type_id': task.task_type_id,
 			'batch_number': batch_number,
-			'pipeline_number': i
+			'pipeline_number': i,
+			'reward_function_type': get_config('reward_function_type'),
 		}
 		while not currentState.is_terminal():
 			action = searcher.search(initialState=currentState)

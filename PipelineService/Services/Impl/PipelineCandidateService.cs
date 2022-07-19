@@ -62,6 +62,7 @@ public class PipelineCandidateService : IPipelineCandidateService
 
 		foreach (var pipelineCandidate in response.Items)
 		{
+			pipelineCandidate.ActionsCount = pipelineCandidate.Actions.Count;
 			pipelineCandidate.Actions = null;
 		}
 

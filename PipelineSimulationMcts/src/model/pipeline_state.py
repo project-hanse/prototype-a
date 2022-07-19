@@ -37,6 +37,8 @@ class PipelineBuildingState(BaseState):
 		self.max_available_datasets = max_available_datasets
 		self.parent = parent
 		self.terminal_operation_ids = terminal_operation_ids
+		self.negative_reward_from = get_config('target_action_count')
+		self.reward_function_type = get_config('reward_function_type')
 
 	def get_current_player(self) -> int:
 		# Always maximizing player
@@ -139,9 +141,28 @@ class PipelineBuildingState(BaseState):
 		return np.var(datatypes)
 
 	def reward_function(self, depth):
-		# punish greater depth
-		negative_reward_from = get_config('target_action_count')
+		if self.reward_function_type == 'dec_log':
+			# punish greater depth
+			return self.reward_function_dec_log(depth, self.negative_reward_from)
+		elif self.reward_function_type == 'poly_peak':
+			return self.reward_function_polynomial_peak(depth, self.negative_reward_from)
+		else:
+			self.logger.warning("No reward function type specified - falling back to dec_log")
+			return self.reward_function_dec_log(depth, self.negative_reward_from)
+
+	def reward_function_dec_log(self, depth, negative_reward_from):
+		"""
+		A logarithmically decreasing reward function that peeks at 1.
+		"""
 		r = (negative_reward_from / (negative_reward_from * math.log(depth + 1, negative_reward_from))) - 1
+		v = self.get_variance_of_available_datasets() * variance_reward_factor
+		return r + v
+
+	def reward_function_polynomial_peak(self, depth, negative_reward_from):
+		"""
+		A polynomial reward function that peaks at negative_reward_from / 2.
+		"""
+		r = (depth * depth - negative_reward_from * depth) / -20
 		v = self.get_variance_of_available_datasets() * variance_reward_factor
 		return r + v
 
