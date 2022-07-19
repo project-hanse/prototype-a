@@ -128,7 +128,7 @@ services:
       mode: replicated
       replicas: 3
 
-  # Pipeline Simulation
+  # Pipeline Simulation (dec_log)
   pipeline-simulation:
     image: ghcr.io/project-hanse/prototype-a/pipeline-simulation-mcts:main
     restart: unless-stopped
@@ -140,11 +140,35 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
-      MAX_ACTIONS_PER_PIPELINE: '20'
+      MAX_ACTIONS_PER_PIPELINE: '23'
       MCTS_ITERATION_LIMIT: '7'
+      REWARD_FUNCTION_TYPE: 'dec_log'
+      TARGET_ACTION_COUNT: '13'
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
+    volumes:
+      - ./volumes/pipeline-simulation:/simulation/pipelines
+
+  # Pipeline Simulation (poly_peak)
+  pipeline-simulation-poly-peak:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-simulation-mcts:main
+    restart: unless-stopped
+    depends_on:
+      - pipeline-service
+      - learning-service
+    environment:
+      BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
+      BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
+      PIPELINES_DIR: '/simulation/pipelines'
+      SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
+      MAX_ACTIONS_PER_PIPELINE: '23'
+      MCTS_ITERATION_LIMIT: '7'
+      REWARD_FUNCTION_TYPE: 'poly_peak'
+      TARGET_ACTION_COUNT: '13'
+    deploy:
+      mode: replicated
+      replicas: 1
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
