@@ -109,7 +109,7 @@ services:
       SLEEP_TIME_AFTER_NEW_ACTIONS: '5.0'
       MAX_ACTIONS_PER_PIPELINE: '20'
       MCTS_ITERATION_LIMIT: '7'
-      REWARD_FUNCTION_TYPE: 'dec_log'
+      REWARD_FUNCTION_TYPE: 'desc_log'
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
