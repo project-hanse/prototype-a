@@ -217,7 +217,7 @@ services:
 
   # S3 Bucket
   localstack:
-    image: localstack/localstack:0.14.4
+    image: localstack/localstack:0.14.5
     restart: unless-stopped
     environment:
       - SERVICES=s3
