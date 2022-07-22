@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -328,9 +329,17 @@ namespace PipelineService.Services.Impl
 			var random = new Random();
 
 			var template = await _operationTemplatesService.GetTemplate(operation.OperationId, operation.OperationIdentifier);
+			var operationConfig = operation.OperationConfiguration;
 			var newConfig = new Dictionary<string, string>();
 			foreach (var (key, value) in template.DefaultConfig)
 			{
+				if (value == null)
+				{
+					// cannot guess a random value for this parameter
+					continue;
+				}
+
+				// match for configuration keys that deal with columns
 				if (key.Contains("col"))
 				{
 					foreach (var operationInput in operation.Inputs)
@@ -354,8 +363,51 @@ namespace PipelineService.Services.Impl
 						}
 					}
 				}
-				// TODO try parsing value as float and int and use random value in range
 
+				// match configuration keys that have a numeric integer value
+				if (int.TryParse(value, out var intValue))
+				{
+					if (operationConfig.ContainsKey(key) &&
+					    int.TryParse(operationConfig[key], out var currentOperationConfigValue))
+					{
+						intValue = (intValue + currentOperationConfigValue) / 2;
+					}
+
+					var sign = intValue < 0 ? -1 : 1;
+					// get a new randomized value from a normal distribution with mean intValue and standard deviation of intValue / 2
+					var randomizedIntValue = Math.Abs((int)Math.Round(random.NextGaussian(intValue, intValue))) * sign;
+					newConfig.Add(key, randomizedIntValue.ToString(CultureInfo.InvariantCulture));
+				}
+				// match configuration keys that have a numeric double value
+				else if (float.TryParse(value.Replace(".", ","), out var floatValue))
+				{
+					if (operationConfig.ContainsKey(key) && float.TryParse(operationConfig[key].Replace(".", ","),
+						    out var currentOperationConfigValue))
+					{
+						floatValue = (floatValue + currentOperationConfigValue) / 2;
+					}
+
+					if (floatValue >= 0 && floatValue <= 1)
+					{
+						// detected probability
+						// generate random float between 0 and 1
+						var randomFloat = random.NextDouble();
+						newConfig.Add(key, Math.Round(randomFloat, 4).ToString(CultureInfo.InvariantCulture));
+					}
+					else
+					{
+						var sign = floatValue < 0 ? -1 : 1;
+						// get a new randomized value from a normal distribution with mean floatValue and standard deviation of floatValue / 2
+						var randomizedFloatValue = Math.Abs(Math.Round(random.NextGaussian(floatValue), 4)) * sign;
+						newConfig.Add(key, randomizedFloatValue.ToString(CultureInfo.InvariantCulture));
+					}
+				}
+				// match configuration keys that have a boolean value
+				else if ((value.Equals("true", StringComparison.InvariantCultureIgnoreCase) ||
+				          value.Equals("false", StringComparison.InvariantCultureIgnoreCase)))
+				{
+					newConfig.Add(key, random.Next(0, 2) == 0 ? "true" : "false");
+				}
 
 				if (!newConfig.ContainsKey(key))
 				{
