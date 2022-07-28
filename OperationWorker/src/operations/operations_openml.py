@@ -30,7 +30,9 @@ class OperationsOpenML:
 			logger.info("Creating OpenML local copy directory at %s" % open_ml_datasets_local_copy)
 			os.makedirs(open_ml_datasets_local_copy)
 
+		logger.debug("Fetching dataset %s (version: %s) from OpenML..." % (name, version))
 		data, target = fetch_openml(name=name, version=version, data_id=data_id, data_home=open_ml_datasets_local_copy,
 																target_column=target_column, cache=cache, return_X_y=True, as_frame=True)
+		logger.info("Fetched dataset %s (version: %s) from OpenML" % (name, version))
 
 		return [data, target]
