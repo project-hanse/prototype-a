@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -110,4 +112,15 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// </summary>
 	[MaxLength(256)]
 	public string RewardFunctionType { get; set; }
+
+	/// <summary>
+	/// The number of attempts this pipeline candidate was tried to be executed. Includes the first attempt and all
+	/// attempts with randomized configurations.
+	/// </summary>
+	public int ExecutionAttempts { get; set; } = 1;
+
+	/// <summary>
+	/// The number of operations that were randomized per attempt.
+	/// </summary>
+	public IDictionary<int, int> OperationsRandomizedCount { get; set; } = new Dictionary<int, int>();
 }

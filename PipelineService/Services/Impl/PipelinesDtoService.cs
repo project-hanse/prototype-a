@@ -367,7 +367,8 @@ namespace PipelineService.Services.Impl
 				BatchNumber = candidate.BatchNumber,
 				SimulationStartTime = candidate.StartedAt,
 				SimulationEndTime = candidate.CompletedAt,
-				RewardFunctionType = candidate.RewardFunctionType
+				RewardFunctionType = candidate.RewardFunctionType,
+				ExecutionAttempts = 1
 			};
 			if (candidate.Aborted.HasValue && candidate.Aborted.Value)
 			{
@@ -394,6 +395,28 @@ namespace PipelineService.Services.Impl
 					candidate.PipelineId, metric.ImportDuration);
 
 				var executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
+				var maxVariationAttempts = _configuration.GetValue("PipelineCandidates:MaxVariantAttempts", 10);
+				metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, 0);
+				while (!executionRecord.IsSuccessful && metric.ExecutionAttempts < maxVariationAttempts)
+				{
+					metric.ExecutionAttempts++;
+					_logger.LogInformation(
+						"Initial execution failed, trying variants of the pipeline candidate {PipelineCandidateId} ({VariantAttempts}/{MaxVariantAttempts})...",
+						candidate.PipelineId, metric.ExecutionAttempts, maxVariationAttempts);
+					// simple strategy: randomize configuration of all failed operations
+					foreach (var operationExecutionRecord in executionRecord.Failed)
+					{
+						_logger.LogDebug("Randomizing configuration of operation {OperationId}",
+							operationExecutionRecord.OperationId);
+						var config = await _operationsService.GenerateRandomizedConfig(operationExecutionRecord.OperationId);
+						await _operationsService.UpdateConfig(pipelineId, operationExecutionRecord.OperationId, config);
+					}
+
+					metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, executionRecord.Failed.Count);
+
+					executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
+				}
+
 				metric.Success = executionRecord.IsSuccessful;
 				if (metric.Success)
 				{

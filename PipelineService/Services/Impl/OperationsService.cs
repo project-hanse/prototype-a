@@ -297,7 +297,7 @@ namespace PipelineService.Services.Impl
 			return config;
 		}
 
-		public async Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, Dictionary<string, string> config)
+		public async Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, IDictionary<string, string> config)
 		{
 			var operation = await _pipelinesDao.GetOperation(operationId);
 			if (operation == null)
@@ -338,6 +338,8 @@ namespace PipelineService.Services.Impl
 					// cannot guess a random value for this parameter
 					continue;
 				}
+
+				// TODO: look up possible values in dictionary
 
 				// match for configuration keys that deal with columns
 				if (key.Contains("col"))
