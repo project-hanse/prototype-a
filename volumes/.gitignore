@@ -8,3 +8,4 @@ mysql/**/*
 pipeline-simulation/**/*
 pipeline-simulation-archive/**/*
 rabbitmq/**/*
+operation-worker/**/*
