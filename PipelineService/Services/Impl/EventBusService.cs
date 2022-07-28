@@ -42,6 +42,12 @@ namespace PipelineService.Services.Impl
 			var channel = await GetChannel(topic);
 			var properties = channel.CreateBasicProperties();
 			properties.Persistent = true;
+			var ttl = _configuration.GetValue<int?>("EVENT_BUS:MESSAGE_TTL", 60 * 60 * 2); // default to 2 hours
+			if (ttl.HasValue)
+			{
+				properties.Expiration = (ttl.Value * 1000).ToString();
+			}
+
 
 			channel.BasicPublish(exchange: string.Empty,
 				routingKey: topic,

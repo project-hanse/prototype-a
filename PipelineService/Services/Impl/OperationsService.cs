@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Dao;
@@ -17,17 +20,26 @@ namespace PipelineService.Services.Impl
 	public class OperationsService : IOperationsService
 	{
 		private readonly ILogger<OperationsService> _logger;
+		private readonly IConfiguration _configuration;
 		private readonly IPipelinesDao _pipelinesDao;
 		private readonly IOperationTemplatesService _operationTemplatesService;
 		private readonly IDatasetServiceClient _datasetServiceClient;
 
+		public string OperationConfigOptions => Path.Combine(
+			_configuration.GetValue(WebHostDefaults.ContentRootKey, ""),
+			_configuration.GetValue("OperationConfigOptions", Path.Combine("Resources", "OperationConfigOptions")));
+
+		public string OperationConfigOptionsSharedFile => Path.Combine(OperationConfigOptions, "shared.json");
+
 		public OperationsService(
 			ILogger<OperationsService> logger,
+			IConfiguration configuration,
 			IPipelinesDao pipelinesDao,
 			IOperationTemplatesService operationTemplatesService,
 			IDatasetServiceClient datasetServiceClient)
 		{
 			_logger = logger;
+			_configuration = configuration;
 			_pipelinesDao = pipelinesDao;
 			_operationTemplatesService = operationTemplatesService;
 			_datasetServiceClient = datasetServiceClient;
@@ -328,6 +340,9 @@ namespace PipelineService.Services.Impl
 
 			var random = new Random();
 
+			// load dictionary from OperationConfigOptionsSharedFile json file
+			var sharedConfigurationOptions = JsonConvert.DeserializeObject<IDictionary<string, string[]>>(
+				await File.ReadAllTextAsync(OperationConfigOptionsSharedFile)) ?? new Dictionary<string, string[]>();
 			var template = await _operationTemplatesService.GetTemplate(operation.OperationId, operation.OperationIdentifier);
 			var operationConfig = operation.OperationConfiguration;
 			var newConfig = new Dictionary<string, string>();
@@ -340,10 +355,15 @@ namespace PipelineService.Services.Impl
 				}
 
 				// TODO: look up possible values in dictionary
-
-				// match for configuration keys that deal with columns
-				if (key.Contains("col"))
+				if (sharedConfigurationOptions.ContainsKey(key))
 				{
+					var possibleValues = sharedConfigurationOptions[key];
+					var randomValue = possibleValues[random.Next(0, possibleValues.Length)];
+					newConfig.Add(key, randomValue);
+				}
+				else if (key.Contains("col"))
+				{
+					// match for configuration keys that deal with columns
 					foreach (var operationInput in operation.Inputs)
 					{
 						var metadata = await _datasetServiceClient.GetCompactMetadata(operationInput);
@@ -365,10 +385,9 @@ namespace PipelineService.Services.Impl
 						}
 					}
 				}
-
-				// match configuration keys that have a numeric integer value
-				if (int.TryParse(value, out var intValue))
+				else if (int.TryParse(value, out var intValue))
 				{
+					// match configuration keys that have a numeric integer value
 					if (operationConfig.ContainsKey(key) &&
 					    int.TryParse(operationConfig[key], out var currentOperationConfigValue))
 					{

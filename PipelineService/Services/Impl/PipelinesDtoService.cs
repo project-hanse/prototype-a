@@ -403,16 +403,35 @@ namespace PipelineService.Services.Impl
 					_logger.LogInformation(
 						"Initial execution failed, trying variants of the pipeline candidate {PipelineCandidateId} ({VariantAttempts}/{MaxVariantAttempts})...",
 						candidate.PipelineId, metric.ExecutionAttempts, maxVariationAttempts);
-					// simple strategy: randomize configuration of all failed operations
-					foreach (var operationExecutionRecord in executionRecord.Failed)
-					{
-						_logger.LogDebug("Randomizing configuration of operation {OperationId}",
-							operationExecutionRecord.OperationId);
-						var config = await _operationsService.GenerateRandomizedConfig(operationExecutionRecord.OperationId);
-						await _operationsService.UpdateConfig(pipelineId, operationExecutionRecord.OperationId, config);
-					}
 
-					metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, executionRecord.Failed.Count);
+					if (metric.ExecutionAttempts % 2 == 0)
+					{
+						// simple strategy 1: randomize configuration of all failed operations
+						foreach (var operationExecutionRecord in executionRecord.Failed)
+						{
+							_logger.LogDebug("Randomizing configuration of operation {OperationId}",
+								operationExecutionRecord.OperationId);
+							var config = await _operationsService.GenerateRandomizedConfig(operationExecutionRecord.OperationId);
+							await _operationsService.UpdateConfig(pipelineId, operationExecutionRecord.OperationId, config);
+						}
+
+						metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, executionRecord.Failed.Count);
+					}
+					else
+					{
+						// simple strategy 2: randomize successfully executed operations except root operations
+						foreach (var operationExecutionRecord in executionRecord.Executed)
+						{
+							if (operationExecutionRecord.Level == 0) continue;
+
+							_logger.LogDebug("Randomizing configuration of operation {OperationId}",
+								operationExecutionRecord.OperationId);
+							var config = await _operationsService.GenerateRandomizedConfig(operationExecutionRecord.OperationId);
+							await _operationsService.UpdateConfig(pipelineId, operationExecutionRecord.OperationId, config);
+						}
+
+						metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, executionRecord.Executed.Count);
+					}
 
 					executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
 				}
