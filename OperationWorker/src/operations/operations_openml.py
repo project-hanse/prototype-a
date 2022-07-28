@@ -31,8 +31,44 @@ class OperationsOpenML:
 			os.makedirs(open_ml_datasets_local_copy)
 
 		logger.debug("Fetching dataset %s (name: %s version: %s) from OpenML..." % (data_id, name, version))
-		data, target = fetch_openml(name=name, version=version, data_id=data_id, data_home=open_ml_datasets_local_copy,
-																target_column=target_column, cache=cache, return_X_y=True, as_frame=True)
+		data, target = OperationsOpenML.timeout(fetch_openml, (), {
+			'name': name,
+			'version': version,
+			'data_id': data_id,
+			'data_home': open_ml_datasets_local_copy,
+			'target_column': target_column,
+			'cache': cache,
+			'return_X_y': True,
+			'as_frame': True}, timeout_duration=15, default=(None, None))
+
+		if data is None or target is None:
+			logger.info("Fetching dataset %s (name: %s version: %s) from OpenML ran into timout" % (data_id, name, version))
+			raise Exception("Fetching timeout")
+
 		logger.info("Fetched dataset %s (name: %s version: %s) from OpenML" % (data_id, name, version))
 
 		return [data, target]
+
+	@staticmethod
+	def timeout(func, args=(), kwargs=None, timeout_duration=1, default=None):
+		if kwargs is None:
+			kwargs = {}
+		import signal
+
+		class TimeoutError(Exception):
+			pass
+
+		def handler(signum, frame):
+			raise TimeoutError()
+
+		# set the timeout handler
+		signal.signal(signal.SIGALRM, handler)
+		signal.alarm(timeout_duration)
+		try:
+			result = func(*args, **kwargs)
+		except TimeoutError as exc:
+			result = default
+		finally:
+			signal.alarm(0)
+
+		return result
