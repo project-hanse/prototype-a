@@ -217,7 +217,7 @@ services:
 
   # S3 Bucket
   localstack:
-    image: localstack/localstack:0.14.5
+    image: localstack/localstack:1.0.1
     restart: unless-stopped
     environment:
       - SERVICES=s3
@@ -231,7 +231,7 @@ services:
       timeout: 2s
       retries: 10
     volumes:
-      - ./volumes/localstack/data:/tmp/localstack/data
+      - ./volumes/localstack:/var/lib/localstack
 
   # MySQL Database
   mysql:
