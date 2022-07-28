@@ -141,7 +141,7 @@ class PipelineBuildingState(BaseState):
 		return np.var(datatypes)
 
 	def reward_function(self, depth):
-		if self.reward_function_type == 'dec_log':
+		if self.reward_function_type == 'desc_log':
 			# punish greater depth
 			return self.reward_function_dec_log(depth, self.negative_reward_from)
 		elif self.reward_function_type == 'poly_peak':

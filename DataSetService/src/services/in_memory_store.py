@@ -113,7 +113,7 @@ class InMemoryStore:
 		data_object = self.store[key]
 		self.assert_metadata_exists(key)
 		for version in versions:
-			if version is METADATA_VERSION_FULL:
+			if version == METADATA_VERSION_FULL:
 				self.log.info("Generating full metadata for key %s" % str(key))
 				if data_object['type'] is pd.DataFrame:
 					metadata = data_object['data'].describe()
@@ -123,7 +123,7 @@ class InMemoryStore:
 					self.log.warn("Data type %s is not supported" % str(data_object['type']))
 					return None
 				self.store[key]['metadata'][version] = metadata
-			elif version is METADATA_VERSION_COMPACT:
+			elif version == METADATA_VERSION_COMPACT:
 				self.log.info("Generating compact metadata for key %s" % str(key))
 				metadata = {}
 				if data_object['type'] is pd.DataFrame:
@@ -135,6 +135,9 @@ class InMemoryStore:
 					metadata['shape'] = str(data_object['data'].shape)
 					metadata['datatype'] = str(data_object['data'].dtype)
 					self.store[key]['metadata'][version] = metadata
+			else:
+				self.log.warn("Version %s is not supported" % str(version))
+				return None
 
 	def assert_metadata_exists(self, key):
 		if key not in self.store:

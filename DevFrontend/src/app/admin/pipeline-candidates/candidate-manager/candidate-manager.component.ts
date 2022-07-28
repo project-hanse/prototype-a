@@ -146,7 +146,7 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 	}
 
 	getMetricsUrl(): string {
-		return `${environment.pipelineApi}/api/v1/metrics/processing/candidates?page=0&pageSize=100`;
+		return `${environment.pipelineApi}/api/v1/metrics/processing/candidates?sort=CreatedOn&order=desc&page=0&pageSize=100`;
 	}
 
 	processCandidates(numberOfCandidates: PipelineCandidate[]): void {

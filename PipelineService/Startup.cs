@@ -111,6 +111,7 @@ namespace PipelineService
 			services.AddTransient<IPipelineCandidateService, PipelineCandidateService>();
 			services.AddTransient<IMetricsService, MetricsService>();
 			services.AddTransient<ILearningServiceClient, LearningServiceClient>();
+			services.AddTransient<IDatasetServiceClient, DatasetServiceClient>();
 
 			services.AddHostedService<HostedSubscriptionService>();
 
