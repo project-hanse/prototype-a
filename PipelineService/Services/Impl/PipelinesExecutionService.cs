@@ -154,6 +154,13 @@ namespace PipelineService.Services.Impl
 			return await _pipelinesDao.GetDtos(pagination, userIdentifier);
 		}
 
+		public async Task<bool> HasBeenExecuted(Guid pipelineId)
+		{
+			_logger.LogDebug("Checking if pipeline {PipelineId} has been executed", pipelineId);
+			var execution = await _pipelinesExecutionDao.GetLastExecutionForPipeline(pipelineId);
+			return execution != null && execution.IsCompleted;
+		}
+
 		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false)
 		{
 			_logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
@@ -201,6 +208,7 @@ namespace PipelineService.Services.Impl
 				var executionRecord = await _pipelinesExecutionDao.Get(executionId);
 				if (executionRecord.IsCompleted)
 				{
+					_logger.LogInformation("Pipeline with id {PipelineId} has been executed (sync)", pipelineId);
 					return executionRecord;
 				}
 

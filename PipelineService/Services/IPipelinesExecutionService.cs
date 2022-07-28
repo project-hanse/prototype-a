@@ -59,6 +59,11 @@ namespace PipelineService.Services
 		Task<PaginatedList<PipelineInfoDto>> GetPipelineDtos(Pagination pagination, string userIdentifier);
 
 		/// <summary>
+		/// Checks is a pipeline with a given id has already been executed.
+		/// </summary>
+		Task<bool> HasBeenExecuted(Guid pipelineId);
+
+		/// <summary>
 		/// Starts the execution of a given pipeline.
 		/// Provides an id that can be used to check the execution status.
 		/// </summary>
