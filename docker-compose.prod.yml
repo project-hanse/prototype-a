@@ -127,6 +127,8 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+    volumes:
+      - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
   # Pipeline Simulation (dec_log)
   pipeline-simulation:
