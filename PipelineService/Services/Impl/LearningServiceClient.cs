@@ -48,9 +48,11 @@ public class LearningServiceClient : ILearningServiceClient
 	public async Task TriggerModelTraining()
 	{
 		_logger.LogDebug("Triggering model training in learning service");
-
-		await EnqueueAllPipelinesForExecution();
-		BackgroundJob.Schedule<ILearningServiceClient>(s => s.TrainModels(), TimeSpan.FromMinutes(15));
+		var parallel = _configuration.GetValue("LearningService:PipelinesInParallel", 4);
+		var totalDelay = await EnqueueAllPipelinesForExecution(parallel);
+		_logger.LogInformation("Schedule model training in {TotalDelay} minutes at {TrainingTime}",
+			totalDelay, DateTime.Now.AddMinutes(totalDelay));
+		BackgroundJob.Schedule<ILearningServiceClient>(s => s.TrainModels(), TimeSpan.FromMinutes(totalDelay + 1));
 	}
 
 	public async Task TrainModels()
@@ -70,16 +72,30 @@ public class LearningServiceClient : ILearningServiceClient
 		}
 	}
 
-	private async Task EnqueueAllPipelinesForExecution()
+	private async Task<int> EnqueueAllPipelinesForExecution(int parallel)
 	{
 		_logger.LogDebug("Asserting all pipelines executed (meaning datasets are ready)");
 		var pipelines = (await _pipelinesDao.GetDtos()).Items;
 		var progress = 0;
+		var delay = 0;
 		foreach (var pipelineInfoDto in pipelines)
 		{
 			progress++;
-			await _pipelineExecutionService.ExecutePipeline(pipelineInfoDto.Id, true);
-			_logger.LogDebug("Enqueued pipeline {Progress}/{Total}", progress, pipelines.Count);
+			if (await _pipelineExecutionService.HasBeenExecuted(pipelineInfoDto.Id))
+			{
+				_logger.LogDebug("Pipeline {PipelineId} has been executed", pipelineInfoDto.Id);
+				continue;
+			}
+
+			BackgroundJob.Schedule<IPipelineExecutionService>(
+				s => s.ExecutePipeline(pipelineInfoDto.Id, true),
+				TimeSpan.FromMinutes(delay));
+			_logger.LogInformation("Enqueued pipeline {PipelineId} in {Delay} minutes ({Progress}/{Total})",
+				pipelineInfoDto.Id, delay, progress, pipelines.Count);
+
+			if (progress % parallel == 0) delay++;
 		}
+
+		return delay;
 	}
 }
