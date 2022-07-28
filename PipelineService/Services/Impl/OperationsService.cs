@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PipelineService.Dao;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
@@ -17,15 +19,18 @@ namespace PipelineService.Services.Impl
 		private readonly ILogger<OperationsService> _logger;
 		private readonly IPipelinesDao _pipelinesDao;
 		private readonly IOperationTemplatesService _operationTemplatesService;
+		private readonly IDatasetServiceClient _datasetServiceClient;
 
 		public OperationsService(
 			ILogger<OperationsService> logger,
 			IPipelinesDao pipelinesDao,
-			IOperationTemplatesService operationTemplatesService)
+			IOperationTemplatesService operationTemplatesService,
+			IDatasetServiceClient datasetServiceClient)
 		{
 			_logger = logger;
 			_pipelinesDao = pipelinesDao;
 			_operationTemplatesService = operationTemplatesService;
+			_datasetServiceClient = datasetServiceClient;
 		}
 
 		public async Task<IList<string>> GetInputDatasetKeysForOperation(Guid pipelineId, Guid operationId)
@@ -292,7 +297,7 @@ namespace PipelineService.Services.Impl
 			return config;
 		}
 
-		public async Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, Dictionary<string, string> config)
+		public async Task<bool> UpdateConfig(Guid pipelineId, Guid operationId, IDictionary<string, string> config)
 		{
 			var operation = await _pipelinesDao.GetOperation(operationId);
 			if (operation == null)
@@ -309,6 +314,111 @@ namespace PipelineService.Services.Impl
 				operation.Id, pipelineId);
 
 			return true;
+		}
+
+		public async Task<IDictionary<string, string>> GenerateRandomizedConfig(Guid operationId)
+		{
+			_logger.LogDebug("Generating randomized configuration for operation {OperationId}", operationId);
+			var operation = await _pipelinesDao.GetOperation(operationId);
+			if (operation == null)
+			{
+				_logger.LogInformation("Operation with id {NotFoundId} not found", operationId);
+				return null;
+			}
+
+			var random = new Random();
+
+			var template = await _operationTemplatesService.GetTemplate(operation.OperationId, operation.OperationIdentifier);
+			var operationConfig = operation.OperationConfiguration;
+			var newConfig = new Dictionary<string, string>();
+			foreach (var (key, value) in template.DefaultConfig)
+			{
+				if (value == null)
+				{
+					// cannot guess a random value for this parameter
+					continue;
+				}
+
+				// TODO: look up possible values in dictionary
+
+				// match for configuration keys that deal with columns
+				if (key.Contains("col"))
+				{
+					foreach (var operationInput in operation.Inputs)
+					{
+						var metadata = await _datasetServiceClient.GetCompactMetadata(operationInput);
+						if (metadata?.Columns.Length > 0)
+						{
+							if (value.Contains('['))
+							{
+								// random subset of columns
+								var randomColumnsCount = random.Next(1, metadata.Columns.Length);
+								var columns = metadata.Columns.OrderBy(c => Guid.NewGuid()).Take(randomColumnsCount).ToArray();
+								newConfig.Add(key, JsonConvert.SerializeObject(columns));
+							}
+							else
+							{
+								// random column
+								var randomColumnIndex = random.Next(0, metadata.Columns.Length);
+								newConfig.Add(key, metadata.Columns[randomColumnIndex]);
+							}
+						}
+					}
+				}
+
+				// match configuration keys that have a numeric integer value
+				if (int.TryParse(value, out var intValue))
+				{
+					if (operationConfig.ContainsKey(key) &&
+					    int.TryParse(operationConfig[key], out var currentOperationConfigValue))
+					{
+						intValue = (intValue + currentOperationConfigValue) / 2;
+					}
+
+					var sign = intValue < 0 ? -1 : 1;
+					// get a new randomized value from a normal distribution with mean intValue and standard deviation of intValue / 2
+					var randomizedIntValue = Math.Abs((int)Math.Round(random.NextGaussian(intValue, intValue))) * sign;
+					newConfig.Add(key, randomizedIntValue.ToString(CultureInfo.InvariantCulture));
+				}
+				// match configuration keys that have a numeric double value
+				else if (float.TryParse(value.Replace(".", ","), out var floatValue))
+				{
+					if (operationConfig.ContainsKey(key) && float.TryParse(operationConfig[key].Replace(".", ","),
+						    out var currentOperationConfigValue))
+					{
+						floatValue = (floatValue + currentOperationConfigValue) / 2;
+					}
+
+					if (floatValue >= 0 && floatValue <= 1)
+					{
+						// detected probability
+						// generate random float between 0 and 1
+						var randomFloat = random.NextDouble();
+						newConfig.Add(key, Math.Round(randomFloat, 4).ToString(CultureInfo.InvariantCulture));
+					}
+					else
+					{
+						var sign = floatValue < 0 ? -1 : 1;
+						// get a new randomized value from a normal distribution with mean floatValue and standard deviation of floatValue / 2
+						var randomizedFloatValue = Math.Abs(Math.Round(random.NextGaussian(floatValue), 4)) * sign;
+						newConfig.Add(key, randomizedFloatValue.ToString(CultureInfo.InvariantCulture));
+					}
+				}
+				// match configuration keys that have a boolean value
+				else if ((value.Equals("true", StringComparison.InvariantCultureIgnoreCase) ||
+				          value.Equals("false", StringComparison.InvariantCultureIgnoreCase)))
+				{
+					newConfig.Add(key, random.Next(0, 2) == 0 ? "true" : "false");
+				}
+
+				if (!newConfig.ContainsKey(key))
+				{
+					_logger.LogDebug("No new config value generated, falling back to default value");
+					newConfig.Add(key, value);
+				}
+			}
+
+			return newConfig;
 		}
 
 		public async Task<Operation> FindOperationOrDefault(Guid pipelineId, Guid nodeId)

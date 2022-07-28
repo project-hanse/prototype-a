@@ -18,9 +18,8 @@
 			"name": null,
 			"version": "active",
 			"data_id": 31,
-			"data_home": null,
 			"target_column": "default-target",
-			"cache": true,
+			"cache": true
 		},
 		"returns": "Dataframes"
 	}

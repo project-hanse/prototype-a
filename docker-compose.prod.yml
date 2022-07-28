@@ -127,6 +127,8 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+    volumes:
+      - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
   # Pipeline Simulation (dec_log)
   pipeline-simulation:
@@ -142,7 +144,7 @@ services:
       SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
       MAX_ACTIONS_PER_PIPELINE: '23'
       MCTS_ITERATION_LIMIT: '7'
-      REWARD_FUNCTION_TYPE: 'dec_log'
+      REWARD_FUNCTION_TYPE: 'desc_log'
       TARGET_ACTION_COUNT: '13'
     deploy:
       mode: replicated
@@ -217,7 +219,7 @@ services:
 
   # S3 Bucket
   localstack:
-    image: localstack/localstack:0.14.4
+    image: localstack/localstack:1.0.1
     restart: unless-stopped
     environment:
       - SERVICES=s3
@@ -231,7 +233,7 @@ services:
       timeout: 2s
       retries: 10
     volumes:
-      - ./volumes/localstack/data:/tmp/localstack/data
+      - ./volumes/localstack:/var/lib/localstack
 
   # MySQL Database
   mysql:

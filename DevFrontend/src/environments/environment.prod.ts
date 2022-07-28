@@ -6,7 +6,7 @@ export const environment = {
 	learningApi: 'https://hanse.allteams.at/api/learning',
 	mlflow: 'https://hanse.allteams.at/mlflow/#',
 	adminer: 'https://hanse.allteams.at/adminer/#',
-	rabbitMq: 'https://hanse.allteams.at/rabbitmq/#',
+	rabbitMq: 'https://hanse.allteams.at/rabbitmq/#/',
 	messageBrokerHost: 'hanse.allteams.at',
 	messageBrokerPath: '/mqtt',
 	messageBrokerPort: 443
