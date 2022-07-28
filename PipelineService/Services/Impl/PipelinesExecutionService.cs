@@ -201,6 +201,7 @@ namespace PipelineService.Services.Impl
 				var executionRecord = await _pipelinesExecutionDao.Get(executionId);
 				if (executionRecord.IsCompleted)
 				{
+					_logger.LogInformation("Pipeline with id {PipelineId} has been executed (sync)", pipelineId);
 					return executionRecord;
 				}
 
