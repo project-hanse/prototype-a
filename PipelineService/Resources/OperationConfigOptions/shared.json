@@ -2,5 +2,9 @@
 	"axis": [
 		"0",
 		"1"
+	],
+	"skipna": [
+		"True",
+		"False"
 	]
 }
