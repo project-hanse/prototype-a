@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {Observable, Subscription} from 'rxjs';
+import {Observable, of, Subscription} from 'rxjs';
 import {OperationsService} from '../_service/operations.service';
 
 @Component({
@@ -29,12 +29,20 @@ export class OperationConfigEditorComponent implements OnInit, OnDestroy {
 		return this.$configs[operationId];
 	}
 
-	onSubmit(operationId: string, config: Map<string, string>): void {
+	save(operationId: string, config: Map<string, string>): void {
 		this.subscriptions.add(
 			this.operationsService.updateConfig(this.pipelineId, operationId, config).subscribe(
 				res => console.log(res),
 				err => console.error(err)
 			)
+		);
+	}
+
+	randomize(operationId: string): void {
+		this.subscriptions.add(
+			this.operationsService.getRandomizedConfig(operationId).subscribe(res => {
+				this.$configs[operationId] = of(res);
+			})
 		);
 	}
 
