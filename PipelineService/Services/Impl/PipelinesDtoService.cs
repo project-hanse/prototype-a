@@ -402,8 +402,10 @@ namespace PipelineService.Services.Impl
 					candidate.PipelineId, metric.ImportDuration);
 
 				var executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
-				var maxVariationAttempts = _configuration.GetValue("PipelineCandidates:MaxVariantAttempts", 10);
+				var maxVariationAttempts = _configuration.GetValue("PipelineCandidates:MaxVariantAttempts", 20);
 				metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, 0);
+				var previousOperationConfig = new Dictionary<Guid, IDictionary<string, string>>();
+				var previousSuccessfullyOperations = executionRecord.Executed.Count;
 				while (!executionRecord.IsSuccessful && metric.ExecutionAttempts < maxVariationAttempts)
 				{
 					metric.ExecutionAttempts++;
@@ -411,36 +413,51 @@ namespace PipelineService.Services.Impl
 						"Initial execution failed, trying variants of the pipeline candidate {PipelineCandidateId} ({VariantAttempts}/{MaxVariantAttempts})...",
 						candidate.PipelineId, metric.ExecutionAttempts, maxVariationAttempts);
 
+					IList<Guid> operationsToRandomize;
 					if (metric.ExecutionAttempts % 2 == 0)
 					{
 						// simple strategy 1: randomize configuration of all failed operations
-						foreach (var operationExecutionRecord in executionRecord.Failed)
-						{
-							_logger.LogDebug("Randomizing configuration of operation {OperationId}",
-								operationExecutionRecord.OperationId);
-							var config = await _operationsService.GenerateRandomizedConfig(operationExecutionRecord.OperationId);
-							await _operationsService.UpdateConfig(pipelineId, operationExecutionRecord.OperationId, config);
-						}
-
-						metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, executionRecord.Failed.Count);
+						_logger.LogDebug("Randomizing configuration of all failed operations");
+						operationsToRandomize = executionRecord.Failed.Select(o => o.OperationId).ToList();
 					}
 					else
 					{
 						// simple strategy 2: randomize successfully executed operations except root operations
-						foreach (var operationExecutionRecord in executionRecord.Executed)
-						{
-							if (operationExecutionRecord.Level == 0) continue;
-
-							_logger.LogDebug("Randomizing configuration of operation {OperationId}",
-								operationExecutionRecord.OperationId);
-							var config = await _operationsService.GenerateRandomizedConfig(operationExecutionRecord.OperationId);
-							await _operationsService.UpdateConfig(pipelineId, operationExecutionRecord.OperationId, config);
-						}
-
-						metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, executionRecord.Executed.Count);
+						_logger.LogDebug(
+							"Randomizing configuration of all successfully executed operations except root operations");
+						operationsToRandomize = executionRecord.Executed.Select(o => o.OperationId).ToList();
 					}
 
+					foreach (var operationId in operationsToRandomize)
+					{
+						_logger.LogDebug("Randomizing configuration of operation {OperationId}", operationId);
+						previousOperationConfig[operationId] = await _operationsService.GetConfig(pipelineId, operationId);
+						var config = await _operationsService.GenerateRandomizedConfig(operationId);
+						await _operationsService.UpdateConfig(pipelineId, operationId, config);
+					}
+
+					metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, operationsToRandomize.Count);
+
 					executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
+					if (executionRecord.Executed.Count < previousSuccessfullyOperations)
+					{
+						_logger.LogInformation(
+							"Previous operation configuration variant produced more successful operations {PreviousSuccessfulOperations} > {SuccessfulOperations}, reverting changes on {OperationsToBeRevertedCount} operations...",
+							previousSuccessfullyOperations, executionRecord.Executed.Count, previousOperationConfig.Count);
+						foreach (var (operationId, configuration) in previousOperationConfig)
+						{
+							await _operationsService.UpdateConfig(pipelineId, operationId, configuration);
+						}
+					}
+					else
+					{
+						_logger.LogInformation(
+							"New operation configuration variant produced at least as many successful operations as previous variation {PreviousSuccessfulOperations} <= {SuccessfulOperations}, keeping them...",
+							previousSuccessfullyOperations, executionRecord.Executed.Count);
+						previousSuccessfullyOperations = executionRecord.Executed.Count;
+					}
+
+					previousOperationConfig.Clear();
 				}
 
 				metric.Success = executionRecord.IsSuccessful;
