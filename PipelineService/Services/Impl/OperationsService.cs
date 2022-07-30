@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -21,6 +22,7 @@ namespace PipelineService.Services.Impl
 	{
 		private readonly ILogger<OperationsService> _logger;
 		private readonly IConfiguration _configuration;
+		private readonly IMemoryCache _cache;
 		private readonly IPipelinesDao _pipelinesDao;
 		private readonly IOperationTemplatesService _operationTemplatesService;
 		private readonly IDatasetServiceClient _datasetServiceClient;
@@ -30,16 +32,19 @@ namespace PipelineService.Services.Impl
 			_configuration.GetValue("OperationConfigOptions", Path.Combine("Resources", "OperationConfigOptions")));
 
 		public string OperationConfigOptionsSharedFile => Path.Combine(OperationConfigOptions, "shared.json");
+		public string OperationConfigOptionsFolder => Path.Combine(OperationConfigOptions, "OperationSpecific");
 
 		public OperationsService(
 			ILogger<OperationsService> logger,
 			IConfiguration configuration,
+			IMemoryCache cache,
 			IPipelinesDao pipelinesDao,
 			IOperationTemplatesService operationTemplatesService,
 			IDatasetServiceClient datasetServiceClient)
 		{
 			_logger = logger;
 			_configuration = configuration;
+			_cache = cache;
 			_pipelinesDao = pipelinesDao;
 			_operationTemplatesService = operationTemplatesService;
 			_datasetServiceClient = datasetServiceClient;
@@ -341,8 +346,8 @@ namespace PipelineService.Services.Impl
 			var random = new Random();
 
 			// load dictionary from OperationConfigOptionsSharedFile json file
-			var sharedConfigurationOptions = JsonConvert.DeserializeObject<IDictionary<string, string[]>>(
-				await File.ReadAllTextAsync(OperationConfigOptionsSharedFile)) ?? new Dictionary<string, string[]>();
+			var sharedConfigurationOptions = await GetSharedOperationConfigOptions();
+			var configurationOptions = await GetOperationConfigOptions(operationId);
 			var template = await _operationTemplatesService.GetTemplate(operation.OperationId, operation.OperationIdentifier);
 			var operationConfig = operation.OperationConfiguration;
 			var newConfig = new Dictionary<string, string>();
@@ -354,9 +359,16 @@ namespace PipelineService.Services.Impl
 					continue;
 				}
 
-				// TODO: look up possible values in dictionary
-				if (sharedConfigurationOptions.ContainsKey(key))
+				if (configurationOptions.ContainsKey(key))
 				{
+					// operation specific configuration options
+					var possibleValues = configurationOptions[key];
+					var randomValue = possibleValues[random.Next(0, possibleValues.Length)];
+					newConfig.Add(key, randomValue);
+				}
+				else if (sharedConfigurationOptions.ContainsKey(key))
+				{
+					// shared configuration options
 					var possibleValues = sharedConfigurationOptions[key];
 					var randomValue = possibleValues[random.Next(0, possibleValues.Length)];
 					newConfig.Add(key, randomValue);
@@ -402,7 +414,7 @@ namespace PipelineService.Services.Impl
 				// match configuration keys that have a numeric double value
 				else if (float.TryParse(value.Replace(".", ","), out var floatValue))
 				{
-					if (operationConfig.ContainsKey(key) && float.TryParse(operationConfig[key].Replace(".", ","),
+					if (operationConfig.ContainsKey(key) && float.TryParse(operationConfig[key]?.Replace(".", ","),
 						    out var currentOperationConfigValue))
 					{
 						floatValue = (floatValue + currentOperationConfigValue) / 2;
@@ -424,8 +436,8 @@ namespace PipelineService.Services.Impl
 					}
 				}
 				// match configuration keys that have a boolean value
-				else if ((value.Equals("true", StringComparison.InvariantCultureIgnoreCase) ||
-				          value.Equals("false", StringComparison.InvariantCultureIgnoreCase)))
+				else if (value.Equals("true", StringComparison.InvariantCultureIgnoreCase) ||
+				         value.Equals("false", StringComparison.InvariantCultureIgnoreCase))
 				{
 					newConfig.Add(key, random.Next(0, 2) == 0 ? "true" : "false");
 				}
@@ -438,6 +450,50 @@ namespace PipelineService.Services.Impl
 			}
 
 			return newConfig;
+		}
+
+		private async Task<IDictionary<string, string[]>> GetSharedOperationConfigOptions()
+		{
+			if (_cache.TryGetValue<IDictionary<string, string[]>>("sharedOperationConfigOptions",
+				    out var sharedOperationConfigOptions))
+			{
+				return sharedOperationConfigOptions;
+			}
+
+			sharedOperationConfigOptions =
+				JsonConvert.DeserializeObject<IDictionary<string, string[]>>(
+					await File.ReadAllTextAsync(OperationConfigOptionsSharedFile)) ?? new Dictionary<string, string[]>();
+
+			_logger.LogInformation("Loaded shared operation config options from file");
+			_cache.Set("sharedOperationConfigOptions", sharedOperationConfigOptions, TimeSpan.FromHours(1));
+
+			return sharedOperationConfigOptions;
+		}
+
+		private async Task<IDictionary<string, string[]>> GetOperationConfigOptions(Guid operationId)
+		{
+			if (_cache.TryGetValue<IDictionary<string, string[]>>($"operationConfigOptions_{operationId}",
+				    out var operationConfigOptions))
+			{
+				return operationConfigOptions;
+			}
+
+			var path = Path.Combine(OperationConfigOptionsFolder, $"{operationId}.json");
+
+			if (!File.Exists(path))
+			{
+				operationConfigOptions = new Dictionary<string, string[]>();
+				_logger.LogInformation("No operation config options file found for operation {OperationId}", operationId);
+			}
+			else
+			{
+				operationConfigOptions =
+					JsonConvert.DeserializeObject<IDictionary<string, string[]>>(await File.ReadAllTextAsync(path));
+				_logger.LogInformation("Loaded operation config options ({OperationId}) from file", operationId);
+			}
+
+			_cache.Set($"operationConfigOptions_{operationId}", operationConfigOptions, TimeSpan.FromHours(1));
+			return operationConfigOptions;
 		}
 
 		public async Task<Operation> FindOperationOrDefault(Guid pipelineId, Guid nodeId)

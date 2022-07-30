@@ -282,7 +282,7 @@
 			"warm_start": false,
 			"class_weight": null,
 			"ccp_alpha": 0.0,
-			"max_samples": null
+			"max_samples": 0.75
 		},
 		"returns": "RandomForest"
 	},

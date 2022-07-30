@@ -7,16 +7,19 @@
 				</mat-card-title>
 			</mat-card-header>
 			<mat-card-content>
-				<form (ngSubmit)="onSubmit(operationId, config)">
+				<form>
 					<ng-container *ngFor="let tuple of config | keyvalue">
 						<mat-form-field appearance="fill">
 							<mat-label>{{tuple.key}}</mat-label>
 							<input matInput autocomplete="off" [value]="tuple.value" (change)="config[tuple.key] = i.value" #i>
 						</mat-form-field>
 					</ng-container>
-					<button mat-raised-button type="submit" color="primary">Save</button>
 				</form>
 			</mat-card-content>
+			<mat-card-actions style="display: flex; justify-content: space-between;">
+				<button mat-stroked-button color="accent" (click)="randomize(operationId)">Randomize</button>
+				<button mat-raised-button color="primary" (click)="save(operationId, config)">Save</button>
+			</mat-card-actions>
 		</mat-card>
 	</ng-container>
 </ng-container>
