@@ -192,6 +192,13 @@ namespace PipelineService.Services.Impl
 				return Guid.Empty;
 			}
 
+			var pipelineInfoDto = await _pipelinesDao.GetInfoDto(pipelineCandidate.PipelineId);
+			if (pipelineInfoDto != null)
+			{
+				_logger.LogInformation("Pipeline candidate {PipelineCandidateId} already exists", pipelineCandidate.PipelineId);
+				return pipelineInfoDto.Id;
+			}
+
 			var client = _httpClientFactory.CreateClient();
 			client.BaseAddress = new Uri("https://old.openml.org");
 			var openMlResponse = await client.GetAsync($"api/v1/json/task/{pipelineCandidate.TaskId}");
