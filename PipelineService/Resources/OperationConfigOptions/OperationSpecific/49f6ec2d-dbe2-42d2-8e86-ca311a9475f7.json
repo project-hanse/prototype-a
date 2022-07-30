@@ -1,0 +1,7 @@
+{
+	"method": [
+		"pearson",
+		"kendall",
+		"spearman"
+	]
+}

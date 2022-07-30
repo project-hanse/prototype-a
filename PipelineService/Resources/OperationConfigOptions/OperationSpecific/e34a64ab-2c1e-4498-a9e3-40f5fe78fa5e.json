@@ -1,0 +1,21 @@
+{
+	"weights": [
+		"uniform",
+		"distance"
+	],
+	"algorithm": [
+		"auto",
+		"ball_tree",
+		"kd_tree",
+		"brute"
+	],
+	"metric": [
+		"minkowski",
+		"euclidean",
+		"manhattan",
+		"chebyshev",
+		"mahalanobis",
+		"seuclidean",
+		"wminkowski"
+	]
+}

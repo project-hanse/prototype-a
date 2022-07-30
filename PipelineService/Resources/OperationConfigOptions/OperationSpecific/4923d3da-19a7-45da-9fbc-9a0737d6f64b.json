@@ -1,0 +1,18 @@
+{
+	"penalty": [
+		"l1",
+		"l2"
+	],
+	"loss": [
+		"hinge",
+		"squared_hinge"
+	],
+	"multi_class": [
+		"ovr",
+		"multinomial"
+	],
+	"class_weight": [
+		"None",
+		"balanced"
+	]
+}

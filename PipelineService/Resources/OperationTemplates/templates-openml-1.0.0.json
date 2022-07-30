@@ -4,7 +4,10 @@
 		"operationName": "load_data_from_openml",
 		"operationFullName": "openml.datasets.load",
 		"inputTypes": [],
-		"outputTypes": [2, 1],
+		"outputTypes": [
+			2,
+			1
+		],
 		"framework": "openml",
 		"frameworkVersion": "1.0.0",
 		"sectionTitle": "OpenML",
@@ -19,7 +22,8 @@
 			"version": "active",
 			"data_id": 31,
 			"target_column": "default-target",
-			"cache": true
+			"cache": true,
+			"timeout": 25
 		},
 		"returns": "Dataframes"
 	}

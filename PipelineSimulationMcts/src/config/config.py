@@ -93,7 +93,8 @@ load_open_ml_operation = {
 		"data_id": None,
 		"data_home": None,
 		"target_column": "default-target",
-		"cache": "true"
+		"cache": "true",
+		"timeout": "30",
 	},
 	"returns": "Dataframes"
 }

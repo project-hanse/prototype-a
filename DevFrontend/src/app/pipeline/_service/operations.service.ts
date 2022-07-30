@@ -45,4 +45,8 @@ export class OperationsService extends BaseHttpService {
 	public updateConfig(pipelineId: string, operationId: string, config: Map<string, string>): Observable<any> {
 		return this.httpClient.post(this.getPipelinesUrl(pipelineId, operationId, 'config'), config);
 	}
+
+	public getRandomizedConfig(operationId: string): Observable<Map<string, string>> {
+		return this.httpClient.get<Map<string, string>>(this.getPipelinesUrl(operationId, 'config', 'randomize'));
+	}
 }
