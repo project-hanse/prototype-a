@@ -126,7 +126,7 @@ services:
       - dataset-service
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 4
     volumes:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
