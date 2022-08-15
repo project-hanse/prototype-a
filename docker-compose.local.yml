@@ -84,7 +84,6 @@ services:
       - DATASET_HOST=dataset-service
       - DATASET_PORT=5002
     depends_on:
-      - message-broker
       - localstack
       - rabbitmq
       - dataset-service
