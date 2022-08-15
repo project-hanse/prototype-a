@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Hangfire;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Exceptions;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
@@ -161,7 +161,7 @@ namespace PipelineService.Services.Impl
 			return execution != null && execution.IsCompleted;
 		}
 
-		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false)
+		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false, ExecutionStrategy strategy = ExecutionStrategy.Lazy)
 		{
 			_logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
 			PipelineExecutionRecord execution;
@@ -181,7 +181,7 @@ namespace PipelineService.Services.Impl
 			pipeline.LastRunFailure = null;
 			await _pipelinesDao.UpdatePipeline(pipeline);
 
-			execution = await _pipelinesExecutionDao.Create(pipelineId);
+			execution = await _pipelinesExecutionDao.Create(pipelineId, strategy);
 
 			await EnqueueNextOperations(execution, pipelineId);
 

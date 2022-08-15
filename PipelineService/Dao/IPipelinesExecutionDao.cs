@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using PipelineService.Exceptions;
+using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Dao
@@ -11,8 +12,9 @@ namespace PipelineService.Dao
 		/// Creates a new <code>PipelineExecutionRecord</code> for a given pipeline.
 		/// </summary>
 		/// <param name="pipeline">The pipeline a new execution will be started for.</param>
+		/// <param name="strategy">The strategy the execution plan will follow.</param>
 		/// <returns>The execution record.</returns>
-		Task<PipelineExecutionRecord> Create(Guid pipeline);
+		Task<PipelineExecutionRecord> Create(Guid pipeline, ExecutionStrategy strategy = ExecutionStrategy.Lazy);
 
 		/// <summary>
 		/// Loads an execution by it's id or throws an exception if no execution for this id.
