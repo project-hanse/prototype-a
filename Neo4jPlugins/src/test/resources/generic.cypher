@@ -4,8 +4,8 @@ CREATE (SC:SimpleNode {title: 'Node C', id: 'bc526bbb-d43b-4ced-a87d-4f16bcb415e
 
 
 CREATE
-  (SA)-[:HAS_SUCCESSOR]->(SB),
-  (SB)-[:HAS_SUCCESSOR]->(SC)
+	(SA)-[:HAS_SUCCESSOR]->(SB),
+	(SB)-[:HAS_SUCCESSOR]->(SC)
 
 
 CREATE (A:Node {title: 'Node A', id: 'c568a9c6-bf59-410b-ad9f-0dffbe05d770'})
@@ -17,11 +17,11 @@ CREATE (F:Node {title: 'Node F', id: 'a8e3f624-cdce-40b3-be2d-3acf138453f8'})
 CREATE (G:Node {title: 'Node G', id: '3008d7cc-8e6c-4564-903f-d8f95ad0fdea'})
 
 CREATE
-  (A)-[:HAS_SUCCESSOR]->(B),
-  (B)-[:HAS_SUCCESSOR]->(C),
-  (C)-[:HAS_SUCCESSOR]->(G),
-  (D)-[:HAS_SUCCESSOR]->(E),
-  (E)-[:HAS_SUCCESSOR]->(B),
-  (B)-[:HAS_SUCCESSOR]->(F),
-  (E)-[:HAS_SUCCESSOR]->(F),
-  (F)-[:HAS_SUCCESSOR]->(G)
+	(A)-[:HAS_SUCCESSOR]->(B),
+	(B)-[:HAS_SUCCESSOR]->(C),
+	(C)-[:HAS_SUCCESSOR]->(G),
+	(D)-[:HAS_SUCCESSOR]->(E),
+	(E)-[:HAS_SUCCESSOR]->(B),
+	(B)-[:HAS_SUCCESSOR]->(F),
+	(E)-[:HAS_SUCCESSOR]->(F),
+	(F)-[:HAS_SUCCESSOR]->(G)

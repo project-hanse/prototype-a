@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Extensions;
+using PipelineService.Models.Enums;
 
 namespace PipelineService.Services.Impl;
 
@@ -88,7 +89,7 @@ public class LearningServiceClient : ILearningServiceClient
 			}
 
 			BackgroundJob.Schedule<IPipelineExecutionService>(
-				s => s.ExecutePipeline(pipelineInfoDto.Id, true),
+				s => s.ExecutePipeline(pipelineInfoDto.Id, true, ExecutionStrategy.Lazy),
 				TimeSpan.FromMinutes(delay));
 			_logger.LogInformation("Enqueued pipeline {PipelineId} in {Delay} minutes ({Progress}/{Total})",
 				pipelineInfoDto.Id, delay, progress, pipelines.Count);

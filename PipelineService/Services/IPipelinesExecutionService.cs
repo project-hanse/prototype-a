@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Exceptions;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Models.MqttMessages;
 using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
@@ -69,9 +70,11 @@ namespace PipelineService.Services
 		/// </summary>
 		/// <param name="pipelineId">The pipeline's id</param>
 		/// <param name="skipIfExecuted">If this service (instance) knows about an previous execution of this pipeline the execution will be skipped and the previous record will be returned.</param>
+		/// <param name="strategy">The pipeline execution strategy (<c>ExecutionStrategy.Lazy</c> or <c>ExecutionStrategy.Eager</c>)</param>
 		/// <exception cref="NotFoundException">If not pipeline with a given id can be found.</exception>
 		/// <returns>The pipeline execution's id.</returns>
-		public Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false);
+		public Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false,
+			ExecutionStrategy strategy = ExecutionStrategy.Lazy);
 
 		/// <summary>
 		/// Starts the execution of a pipeline and returns the execution record once the pipeline is fully executed.

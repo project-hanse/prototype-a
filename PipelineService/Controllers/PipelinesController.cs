@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Services;
 
 namespace PipelineService.Controllers
@@ -141,7 +142,7 @@ namespace PipelineService.Controllers
 		{
 			_logger.LogInformation("Executing pipeline {PipelineId}", pipelineId);
 
-			var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId);
+			var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId, false, ExecutionStrategy.Eager);
 
 			_logger.LogDebug("Execution of pipeline ({PipelineId}) with execution id {ExecutionId} started",
 				pipelineId, execution);
@@ -155,7 +156,7 @@ namespace PipelineService.Controllers
 			var executionIds = new List<Guid>();
 			foreach (var pipelineId in pipelineIds)
 			{
-				var executionId = await _pipelineExecutionService.ExecutePipeline(pipelineId);
+				var executionId = await _pipelineExecutionService.ExecutePipeline(pipelineId, true, ExecutionStrategy.Eager);
 				executionIds.Add(executionId);
 			}
 
