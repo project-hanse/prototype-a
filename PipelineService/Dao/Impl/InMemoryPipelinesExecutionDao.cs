@@ -53,7 +53,7 @@ namespace PipelineService.Dao.Impl
 				.Where("n.PipelineId=$pipeline_id").WithParam("pipeline_id", pipelineId)
 				.AndWhere("NOT (n)-[:HAS_SUCCESSOR]->()")
 				.With("collect(n) AS nodesList")
-				.Call("hanse.markPartitions(nodesList, 'HAS_SUCCESSOR', $max_depth)").WithParam("max_depth",
+				.Call("hanse.partition.lazy(nodesList, 'HAS_SUCCESSOR', $max_depth)").WithParam("max_depth",
 					_configuration.GetValue("MaxSearchDepthPartitioning", 100))
 				.Yield("maxLevel, visitedStamp")
 				.Return(() => new
@@ -68,7 +68,7 @@ namespace PipelineService.Dao.Impl
 			if (partitionResult == null)
 			{
 				throw new NullReferenceException(
-					"Pipeline database returned unexpected result for graph partitioning \nHint: procedure hanse.markPartitions(...) should be present in db");
+					"Pipeline database returned unexpected result for graph partitioning \nHint: procedure hanse.partition.lazy(...) should be present in db");
 			}
 
 			_logger.LogDebug("Partitioned graph of pipeline {PipelineId} into {PartitionCount} partitions",
@@ -86,7 +86,7 @@ namespace PipelineService.Dao.Impl
 					Name = Return.As<string>($"n.{nameof(Operation.OperationIdentifier)}"),
 					HashAtEnqueuing = Return.As<string>($"n.{nameof(Operation.ComputedHash)}")
 				})
-				.OrderByDescending("n._level");
+				.OrderBy("n._level");
 
 			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync)
 				.Select(r => new OperationExecutionRecord
