@@ -19,8 +19,9 @@ from src.services.init_service import InitService
 PORT: int = os.getenv("PORT", 5002)
 S3_HOST: str = os.getenv("S3_HOST", "localstack")
 S3_PORT: str = os.getenv("S3_PORT", "4566")
-S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
 S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
+S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
+S3_REGION: str = os.getenv("S3_REGION", "eu-west-3")
 
 # Creating service instances
 app = Flask(__name__, template_folder='templates')
@@ -169,7 +170,9 @@ def describe_dataframe_by_key_html(key: str):
 # Initializing services
 file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
 								 s3_access_key_id=S3_ACCESS_KEY_ID,
-								 s3_secret_access_key=S3_ACCESS_KEY_SECRET)
+								 s3_access_key_secret=S3_ACCESS_KEY_SECRET,
+								 s3_region=S3_REGION)
+
 init_service.init_default_files_s3()
 import_service.import_defaults_in_background()
 

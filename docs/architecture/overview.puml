@@ -34,6 +34,7 @@ rectangle "Persistence Layer" {
 rectangle "Database Layer" {
     database "Graph Database" << Neo4j >> as graph_db
     node "S3 BLOB Store" << Localstack >> as blob_store
+    node "S3 BLOB Store" << MinIO >> as blob_store_minio
     'database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
     database "SQL Database" << MySQL >> as mysql_db
 }
@@ -66,7 +67,7 @@ pipeline_service --> dataset_store
 
 adminer --> mysql_db
 
-'dataset_store --> dataset_db
+dataset_store --> blob_store_minio
 'TODO: Default files should be seeded from file service PH-213'
 ' dataset_store --> blob_store
 
