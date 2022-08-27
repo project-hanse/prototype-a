@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 AS builder-image
+FROM ubuntu:22.04 AS builder-image
 # Based on https://luis-sena.medium.com/creating-the-perfect-python-dockerfile-51bdec41f1c8
 
 # avoid stuck build due to user prompt
@@ -18,7 +18,7 @@ RUN pip3 install wheel
 RUN pip3 install -r requirements.txt
 
 # Runner
-FROM ubuntu:20.04 AS runner-image
+FROM ubuntu:22.04 AS runner-image
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
 RUN apt-get update && apt-get install --no-install-recommends -y python3.9 python3-venv && \
