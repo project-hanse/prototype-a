@@ -1,17 +1,13 @@
-import os
 import time
-from pathlib import Path
-from typing import Optional
 
-import chardet
 import pandas as pd
 
 from src.constants.metadata_constants import *
 from src.helper.log_helper import LogHelper
-from src.helper.type_helper import get_type_str
+from src.helper.type_helper import get_str_from_type
 
 
-class InMemoryStore:
+class DatasetStoreInMemory:
 	store: dict = None
 
 	def __init__(self) -> None:
@@ -19,36 +15,11 @@ class InMemoryStore:
 		self.store = dict()
 		self.log = LogHelper.get_logger('InMemoryStore')
 
-	def import_with_id(self, file: str, dataframe_id: str):
-		filename = str(Path(file).resolve())
-
-		if not os.path.isfile(filename):
-			self.log.error("File %s does not exist", filename)
-			return
-
-		self.log.info('Importing %s and storing with id %s' % (filename, str(dataframe_id)))
-		if file.endswith(".csv"):
-			df = pd.read_csv(filename,
-											 sep=self.get_sep(filename),
-											 encoding=self.get_file_encoding(filename),
-											 skiprows=self.get_skiprows(filename))
-		elif file.endswith(".xlsx"):
-			df = pd.read_excel(filename)
-		else:
-			self.log.error("This file (%s) is not supported" % filename)
-			return
-		self.store[dataframe_id] = df
+	def setup(self):
+		self.log.info("Setting up in-memory dataset store")
 
 	def get_dataset_count(self):
 		return len(self.store)
-
-	def get_df_by_key(self, key) -> Optional[pd.DataFrame]:
-		self.log.info("Loading dataset by key %s" % str(key))
-
-		if self.store.keys().__contains__(key):
-			return self.store.get(key)
-		else:
-			return None
 
 	def store_by_key(self, key: str, data):
 		data_type = type(data)
@@ -91,10 +62,10 @@ class InMemoryStore:
 			if metadata is None:
 				self.log.info("Dataset %s (%s) does not have metadata" % (str(key), str(data_object['type'])))
 				return None
-		metadata['type'] = get_type_str(data_object['type'])
+		metadata['type'] = get_str_from_type(data_object['type'])
 		return metadata
 
-	def store_metadata_by_key(self, key: str, metadata, version: str = METADATA_VERSION_COMPACT) -> bool:
+	def extend_metadata_by_key(self, key: str, metadata, version: str = METADATA_VERSION_COMPACT) -> bool:
 		self.log.info("Storing metadata for key %s" % str(key))
 		if key not in self.store:
 			self.log.info("Dataset %s does not exist" % str(key))
@@ -154,39 +125,3 @@ class InMemoryStore:
 		dt_list = []
 		df.dtypes.apply(lambda x: dt_list.append(str(x)))
 		return dt_list
-
-	@staticmethod
-	def get_sep(file_path: str):
-		"""
-		Checks if a given file (assuming it's a csv file) is separated by , or ;
-		"""
-		# TODO: this should be made much more efficient but works for now
-		df_comma = pd.read_csv(file_path, nrows=1, sep=",")
-		df_semi = pd.read_csv(file_path, nrows=1, sep=";")
-		if df_comma.shape[1] > df_semi.shape[1]:
-			return ','
-		else:
-			return ';'
-
-	@staticmethod
-	def get_file_encoding(file_path: str):
-		"""
-		Get the encoding of a file using chardet package
-		:param file_path:
-		"""
-		with open(file_path, 'rb') as f:
-			result = chardet.detect(f.read())
-			return result['encoding']
-
-	@staticmethod
-	def get_skiprows(file_path: str):
-		"""
-		Get an array of line numbers that should be skipped when importing a csv file.
-		:param file_path:
-		:return:
-		"""
-		# TODO: Implement in a general way e.g.: pass 1 get maximum separator count (, or ;) per row, pass 2 build
-		#  array with row index that does not have this count
-		if "ZAMG_Jahrbuch" in file_path:
-			return 4
-		return 0

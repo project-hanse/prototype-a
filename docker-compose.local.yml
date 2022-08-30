@@ -125,10 +125,13 @@ services:
     expose:
       - 5002
     environment:
-      - S3_HOST=localstack
-      - S3_PORT=4566
+      S3_HOST: minio
+      S3_PORT: 9000
+      S3_ACCESS_KEY_ID: minio
+      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
     depends_on:
       - localstack
+      - minio
 
   # Edge Message Broker
   edge-message-broker:
@@ -187,6 +190,27 @@ services:
       retries: 10
     volumes:
       - ./volumes/localstack:/var/lib/localstack
+
+  # MinIO
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: OsKwEnsJz0AtiX05
+      MINIO_SITE_REGION: eu-west-3
+      MINIO_SITE_NAME: minio-local-1
+    command: server --console-address ":9001" /data1
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./volumes/minio:/data1
 
   # Neo4j Pipeline Database
   pipeline-database:
