@@ -10,10 +10,9 @@ from flask_socketio import SocketIO
 
 from src.constants.metadata_constants import *
 from src.helper.response_helper import format_response
-from src.services.file_store import FileStore
-from src.services.import_service import ImportService
 from src.services.in_memory_store import InMemoryStore
 from src.services.init_service import InitService
+from src.services.s3_wrapper import S3Wrapper
 
 # Configuration
 PORT: int = os.getenv("PORT", 5002)
@@ -29,8 +28,7 @@ CORS(app)
 socketio = SocketIO(app)
 bootstrap = Bootstrap(app)
 dataset_store = InMemoryStore()
-file_store = FileStore()
-import_service = ImportService(dataset_store)
+file_store = S3Wrapper()
 init_service = InitService(file_store)
 
 
@@ -173,8 +171,7 @@ file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
 								 s3_access_key_secret=S3_ACCESS_KEY_SECRET,
 								 s3_region=S3_REGION)
 
-init_service.init_default_files_s3()
-import_service.import_defaults_in_background()
+init_service.init_default_files_s3_in_background()
 
 if __name__ == '__main__':
 	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)
