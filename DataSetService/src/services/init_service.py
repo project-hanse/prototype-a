@@ -2,12 +2,12 @@ import threading
 
 from src.constants.bucket_names import DEFAULT_FILE_BUCKET_NAME
 from src.helper.log_helper import LogHelper
-from src.services.s3_wrapper import S3Wrapper
+from src.services.file_store_s3 import FileStoreS3
 
 
 class InitService:
 
-	def __init__(self, file_store: S3Wrapper) -> None:
+	def __init__(self, file_store: FileStoreS3) -> None:
 		super().__init__()
 		self.log = LogHelper.get_logger('InitService')
 		self.file_store = file_store
@@ -17,7 +17,6 @@ class InitService:
 		Makes sure that a number of default files (.csv, .xlsx) are available in the S3 file store.
 		"""
 		self.log.info("Initializing files in S3 bucket")
-		self.file_store.assert_bucket_exists(DEFAULT_FILE_BUCKET_NAME)
 
 		self.file_store.store_file_to_bucket("./datasets/21311-001Z_format.csv", DEFAULT_FILE_BUCKET_NAME)
 		self.file_store.store_file_to_bucket("./datasets/Melbourne_housing_FULL.csv", DEFAULT_FILE_BUCKET_NAME)

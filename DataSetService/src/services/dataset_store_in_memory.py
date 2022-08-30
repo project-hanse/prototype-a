@@ -1,31 +1,25 @@
 import time
-from typing import Optional
 
 import pandas as pd
 
 from src.constants.metadata_constants import *
 from src.helper.log_helper import LogHelper
-from src.helper.type_helper import get_type_str
+from src.helper.type_helper import get_str_from_type
 
 
-class S3Store:
+class DatasetStoreInMemory:
 	store: dict = None
 
 	def __init__(self) -> None:
 		super().__init__()
 		self.store = dict()
-		self.log = LogHelper.get_logger('S3Store')
+		self.log = LogHelper.get_logger('InMemoryStore')
+
+	def setup(self):
+		self.log.info("Setting up in-memory dataset store")
 
 	def get_dataset_count(self):
 		return len(self.store)
-
-	def get_df_by_key(self, key) -> Optional[pd.DataFrame]:
-		self.log.info("Loading dataset by key %s" % str(key))
-
-		if self.store.keys().__contains__(key):
-			return self.store.get(key)
-		else:
-			return None
 
 	def store_by_key(self, key: str, data):
 		data_type = type(data)
@@ -68,10 +62,10 @@ class S3Store:
 			if metadata is None:
 				self.log.info("Dataset %s (%s) does not have metadata" % (str(key), str(data_object['type'])))
 				return None
-		metadata['type'] = get_type_str(data_object['type'])
+		metadata['type'] = get_str_from_type(data_object['type'])
 		return metadata
 
-	def store_metadata_by_key(self, key: str, metadata, version: str = METADATA_VERSION_COMPACT) -> bool:
+	def extend_metadata_by_key(self, key: str, metadata, version: str = METADATA_VERSION_COMPACT) -> bool:
 		self.log.info("Storing metadata for key %s" % str(key))
 		if key not in self.store:
 			self.log.info("Dataset %s does not exist" % str(key))

@@ -10,9 +10,9 @@ from flask_socketio import SocketIO
 
 from src.constants.metadata_constants import *
 from src.helper.response_helper import format_response
-from src.services.in_memory_store import InMemoryStore
+from src.services.dataset_store_s3 import DatasetStoreS3
+from src.services.file_store_s3 import FileStoreS3
 from src.services.init_service import InitService
-from src.services.s3_wrapper import S3Wrapper
 
 # Configuration
 PORT: int = os.getenv("PORT", 5002)
@@ -27,9 +27,9 @@ app = Flask(__name__, template_folder='templates')
 CORS(app)
 socketio = SocketIO(app)
 bootstrap = Bootstrap(app)
-dataset_store = InMemoryStore()
-file_store = S3Wrapper()
+file_store = FileStoreS3()
 init_service = InitService(file_store)
+dataset_store = DatasetStoreS3()
 
 
 # Setting up endpoints
@@ -55,7 +55,7 @@ def dataframe_by_key(key: str):
 
 	if request.method == 'POST':
 		df = pd.read_json(io.BytesIO(request.data))
-		dataset_store.store_by_key(key, df)
+		dataset_store.store_data_by_key(key, df)
 		return 'OK'
 
 
@@ -71,7 +71,7 @@ def series_by_key(key: str):
 	if request.method == 'POST':
 		data = io.BytesIO(request.data)
 		series = pd.read_json(data, typ='series')
-		dataset_store.store_by_key(key, series)
+		dataset_store.store_data_by_key(key, series)
 		return 'OK'
 
 
@@ -88,7 +88,7 @@ def string_by_key(key: str):
 	if request.method == 'POST':
 		data = request.data
 		data_str: str = data.decode('utf-8')
-		dataset_store.store_by_key(key, data_str)
+		dataset_store.store_data_by_key(key, data_str)
 		return 'OK'
 
 
@@ -98,7 +98,6 @@ def metadata_by_key(key: str):
 	if 'version' in request.args:
 		metadata_version = request.args['version']
 	if request.method == 'GET':
-		dataset_store.generate_metadata_by_key(key, versions=[metadata_version])
 		metadata = dataset_store.get_metadata_by_key(key, metadata_version)
 
 		if metadata is None:
@@ -113,7 +112,7 @@ def metadata_by_key(key: str):
 		else:
 			return 'Unsupported format', 400
 		if metadata is not None:
-			stored = dataset_store.store_metadata_by_key(key, metadata, metadata_version)
+			stored = dataset_store.extend_metadata_by_key(key, metadata, metadata_version)
 			if stored:
 				return 'OK'
 			return 'Dataset does not exist', 404
@@ -166,6 +165,10 @@ def describe_dataframe_by_key_html(key: str):
 
 
 # Initializing services
+dataset_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
+										s3_access_key_id=S3_ACCESS_KEY_ID,
+										s3_access_key_secret=S3_ACCESS_KEY_SECRET,
+										s3_region=S3_REGION)
 file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
 								 s3_access_key_id=S3_ACCESS_KEY_ID,
 								 s3_access_key_secret=S3_ACCESS_KEY_SECRET,
