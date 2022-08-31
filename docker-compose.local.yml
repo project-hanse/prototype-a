@@ -66,12 +66,14 @@ services:
     restart: unless-stopped
     environment:
       Logging__LogLevel__Default: Information
-      S3_HOST: localstack
-      S3_PORT: 4566
+      S3Configuration__Host: minio
+      S3Configuration__Port: 9000
+      S3Configuration__AccessKey: minio
+      S3Configuration__SecretKey: OsKwEnsJz0AtiX05
     ports:
       - "5004:80"
     depends_on:
-      - localstack
+      - minio
 
   # Operation Worker
   operation-worker:
@@ -84,7 +86,7 @@ services:
       - DATASET_HOST=dataset-service
       - DATASET_PORT=5002
     depends_on:
-      - localstack
+      - minio
       - rabbitmq
       - dataset-service
     deploy:

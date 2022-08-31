@@ -17,8 +17,9 @@ TOPIC_NAME_PUB: str = os.getenv("MQTT_TOPIC_PUB", "operation/executed")
 DATASET_HOST: str = os.getenv("DATASET_HOST", "dataset-service")
 DATASET_PORT: int = os.getenv("DATASET_PORT", 5002)
 S3_PROTOCOL: str = os.getenv("S3_PROTOCOL", "http")
-S3_HOST: str = os.getenv("S3_HOST", "localstack")
-S3_PORT: int = os.getenv("S3_PORT", 4566)
+S3_HOST: str = os.getenv("S3_HOST", "minio")
+S3_PORT: str = os.getenv("S3_PORT", "9000")
+S3_REGION: str = os.getenv("S3_REGION", "eu-west-3")
 S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
 S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
 
@@ -57,9 +58,10 @@ if __name__ == '__main__':
 											 port=MESSAGE_BROKER_PORT,
 											 topic_name_sub=TOPIC_NAME_SUB,
 											 topic_name_pub=TOPIC_NAME_PUB)
-	file_store_ok = file_store_client.setup(s3_endpoint=("%s://%s:%i" % (S3_PROTOCOL, S3_HOST, S3_PORT)),
+	file_store_ok = file_store_client.setup(s3_endpoint=("%s://%s:%s" % (S3_PROTOCOL, S3_HOST, S3_PORT)),
+																					s3_region=S3_REGION,
 																					s3_access_key_id=S3_ACCESS_KEY_ID,
-																					s3_secret_access_key=S3_ACCESS_KEY_SECRET)
+																					s3_access_key_secret=S3_ACCESS_KEY_SECRET)
 	if not file_store_ok:
 		raise Exception("Failed to setup file store")
 
