@@ -471,7 +471,7 @@ namespace PipelineService.Services.Impl
 					var failedOperationRecord = executionRecord.Failed.FirstOrDefault();
 					metric.ProcessingEndTime = failedOperationRecord?.ExecutionCompletedAt ?? DateTime.UtcNow;
 					metric.Error = failedOperationRecord != default
-						? $"Operation {failedOperationRecord.OperationId} (name: {failedOperationRecord.Name}) failed"
+						? $"Operation {failedOperationRecord.OperationId} (name: {failedOperationRecord.OperationIdentifier}) failed"
 						: $"{executionRecord.Failed.Count} operations failed";
 				}
 

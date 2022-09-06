@@ -67,6 +67,8 @@ namespace PipelineService.Dao
 		/// <returns>The node or null if no node with a given id is found.</returns>
 		Task<Operation> GetOperation(Guid operationId);
 
+		Task<IList<Operation>> GetOperations(Guid pipelineId);
+
 		Task UpdateOperation<TOperation>(TOperation operation) where TOperation : Operation;
 
 		Task DeleteOperation(Guid operationId);
@@ -86,5 +88,12 @@ namespace PipelineService.Dao
 
 		Task<IEnumerable<string>> GetUsedOperationIdentifiers(bool unique = false);
 		Task<int> GetOperationCount(Guid pipelineId);
+
+		/// <summary>
+		/// Loads the hashes of all predecessors of a given operation.
+		/// </summary>
+		/// <param name="operationId"></param>
+		/// <returns></returns>
+		Task<IList<string>> GetPredecessorHashes(Guid operationId);
 	}
 }

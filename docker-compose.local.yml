@@ -82,9 +82,13 @@ services:
       dockerfile: ./Dockerfile
     restart: unless-stopped
     environment:
-      - MESSAGE_BROKER_HOST=rabbitmq
-      - DATASET_HOST=dataset-service
-      - DATASET_PORT=5002
+      MESSAGE_BROKER_HOST: rabbitmq
+      DATASET_HOST: dataset-service
+      DATASET_PORT: 5002
+      S3_HOST: minio
+      S3_PORT: 9000
+      S3_ACCESS_KEY_ID: minio
+      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
     depends_on:
       - minio
       - rabbitmq

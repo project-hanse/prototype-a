@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Exceptions;
 using PipelineService.Extensions;
+using PipelineService.Helper;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
 using PipelineService.Models.MqttMessages;
@@ -161,7 +162,8 @@ namespace PipelineService.Services.Impl
 			return execution != null && execution.IsCompleted;
 		}
 
-		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false, ExecutionStrategy strategy = ExecutionStrategy.Lazy)
+		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false,
+			ExecutionStrategy strategy = ExecutionStrategy.Lazy)
 		{
 			_logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
 			PipelineExecutionRecord execution;
@@ -326,7 +328,7 @@ namespace PipelineService.Services.Impl
 					PipelineId = response.PipelineId,
 					ExecutionId = response.ExecutionId,
 					OperationId = response.OperationId,
-					OperationName = operationExecutionRecord?.Name,
+					OperationName = operationExecutionRecord?.OperationIdentifier,
 					Successful = response.Successful,
 					CompletedAt = response.StopTime,
 					ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
@@ -349,7 +351,7 @@ namespace PipelineService.Services.Impl
 
 			foreach (var operationToBeEnqueued in operationsToBeEnqueued)
 			{
-				await EnqueueOperations(execution.Id, operationToBeEnqueued.OperationId);
+				await EnqueueOperation(execution.Id, operationToBeEnqueued.OperationId);
 			}
 		}
 
@@ -420,15 +422,54 @@ namespace PipelineService.Services.Impl
 		/// </summary>
 		/// <param name="executionId">The execution's id this operation belongs to.</param>
 		/// <param name="operationId">The operation's id to be executed.</param>
-		private async Task EnqueueOperations(Guid executionId, Guid operationId)
+		private async Task EnqueueOperation(Guid executionId, Guid operationId)
 		{
+			var startTime = DateTime.UtcNow;
 			var operation = await _pipelinesDao.GetOperation(operationId);
-			_logger.LogInformation("Enqueuing operation ({OperationId}) with operation {Operation}",
-				operation.Id, operation.OperationIdentifier);
+			var predecessorHashes = await _pipelinesDao.GetPredecessorHashes(operationId);
+			var predHashCombined = HashHelper.ComputeHash(predecessorHashes);
+			if (predHashCombined != operation.PredecessorsHash)
+			{
+				operation.PredecessorsHash = predHashCombined;
+				await _pipelinesDao.UpdateOperation(operation);
+				_logger.LogInformation("Updating predecessor hashes for operation {OperationId} {PredecessorsHash}",
+					operation.Id, predHashCombined);
+			}
 
-			var message = ExecutionRequestFromOperation(executionId, operation);
+			await _pipelinesExecutionDao.StoreExecutionHash(executionId, operationId,
+				operation.OperationHash, operation.PredecessorsHash);
+			var lastExecutionRecord =
+				await _pipelinesExecutionDao.GetLastCompletedExecutionForOperation(operation.PipelineId, operationId);
 
-			await _eventBusService.PublishMessage(OperationExecuteTopic, message);
+			if (lastExecutionRecord != null &&
+			    lastExecutionRecord.IsSuccessful &&
+			    lastExecutionRecord.OperationHash == operation.OperationHash &&
+			    lastExecutionRecord.PredecessorsHash == operation.PredecessorsHash)
+			{
+				_logger.LogInformation(
+					"Skipping already executed operation {OperationId} with operation identifier {Operation}",
+					operation.Id, operation.OperationIdentifier);
+
+				await HandleExecutionResponse(new OperationExecutedMessage
+				{
+					PipelineId = operation.PipelineId,
+					ExecutionId = executionId,
+					OperationId = operationId,
+					Successful = true,
+					StartTime = startTime,
+					StopTime = DateTime.UtcNow,
+					Cached = true
+				});
+			}
+			else
+			{
+				_logger.LogInformation("Enqueuing operation {OperationId} with operation identifier {Operation}",
+					operation.Id, operation.OperationIdentifier);
+
+				var message = ExecutionRequestFromOperation(executionId, operation);
+
+				await _eventBusService.PublishMessage(OperationExecuteTopic, message);
+			}
 		}
 
 		/// <summary>
@@ -462,6 +503,7 @@ namespace PipelineService.Services.Impl
 				operationId, executionId);
 
 			operation.ExecutionCompletedAt = DateTime.UtcNow;
+			operation.IsSuccessful = true;
 
 			execution.InExecution.Remove(operation);
 			execution.Executed.Add(operation);
@@ -497,6 +539,7 @@ namespace PipelineService.Services.Impl
 				responseOperationId, responseExecutionId);
 
 			operation.ExecutionCompletedAt = DateTime.UtcNow;
+			operation.IsSuccessful = false;
 
 			execution.InExecution.Remove(operation);
 			execution.Failed.Add(operation);

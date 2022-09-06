@@ -37,5 +37,22 @@ namespace PipelineService.Dao
 		/// <param name="pipelineId"></param>
 		/// <returns>The execution record if available; otherwise null</returns>
 		Task<PipelineExecutionRecord> GetLastExecutionForPipeline(Guid pipelineId);
+
+		/// <summary>
+		/// Loads the execution record for an operation from the last completed operation of a pipeline.
+		/// </summary>
+		/// <param name="pipelineId"></param>
+		/// <param name="operationId"></param>
+		/// <returns></returns>
+		Task<OperationExecutionRecord> GetLastCompletedExecutionForOperation(Guid pipelineId, Guid operationId);
+
+		/// <summary>
+		/// Stores a "hash at enqueuing" value for a given operation for a given execution.
+		/// </summary>
+		/// <param name="executionId"></param>
+		/// <param name="operationId"></param>
+		/// <param name="operationHash"></param>
+		/// <param name="predecessorsHash"></param>
+		Task StoreExecutionHash(Guid executionId, Guid operationId, string operationHash, string predecessorsHash);
 	}
 }

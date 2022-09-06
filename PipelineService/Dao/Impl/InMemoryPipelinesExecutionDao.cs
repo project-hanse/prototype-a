@@ -90,8 +90,8 @@ namespace PipelineService.Dao.Impl
 					OperationId = Return.As<Guid>($"n.{nameof(Operation.Id)}"),
 					PipelineId = Return.As<Guid>($"n.{nameof(Operation.PipelineId)}"),
 					Level = Return.As<int>("n._level"),
-					Name = Return.As<string>($"n.{nameof(Operation.OperationIdentifier)}"),
-					HashAtEnqueuing = Return.As<string>($"n.{nameof(Operation.ComputedHash)}")
+					OperationIdentifier = Return.As<string>($"n.{nameof(Operation.OperationIdentifier)}"),
+					HashAtEnqueuing = Return.As<string>($"n.{nameof(Operation.OperationHash)}")
 				})
 				.OrderBy("n._level");
 
@@ -104,8 +104,8 @@ namespace PipelineService.Dao.Impl
 					OperationId = r.OperationId,
 					PipelineId = r.PipelineId,
 					Level = r.Level,
-					Name = r.Name,
-					HashAtEnqueuing = r.HashAtEnqueuing
+					OperationIdentifier = r.OperationIdentifier,
+					OperationHash = r.HashAtEnqueuing
 				}).ToList();
 
 			foreach (var nodeExecutionRecord in nodeExecutionRecords)
@@ -159,6 +159,32 @@ namespace PipelineService.Dao.Impl
 				record.Id, pipelineId);
 
 			return Task.FromResult(record);
+		}
+
+		public Task<OperationExecutionRecord> GetLastCompletedExecutionForOperation(Guid pipelineId, Guid operationId)
+		{
+			return Task.FromResult(Store.Values
+				.OrderByDescending(exRex => exRex.CompletedOn)
+				.FirstOrDefault(exRec => exRec.PipelineId == pipelineId)?
+				.Executed.SingleOrDefault(op => op.OperationId == operationId));
+		}
+
+		public Task StoreExecutionHash(Guid executionId, Guid operationId, string operationHash,
+			string predecessorsHash)
+		{
+			var executionRecord = Store[executionId];
+			var operationExecutionRecord = executionRecord.InExecution.SingleOrDefault(op => op.OperationId == operationId);
+			if (operationExecutionRecord == default)
+			{
+				_logger.LogWarning("No operation execution record found for operation {OperationId} in execution {ExecutionId}",
+					operationId, executionId);
+				return Task.CompletedTask;
+			}
+
+			operationExecutionRecord.OperationHash = operationHash;
+			operationExecutionRecord.PredecessorsHash = predecessorsHash;
+
+			return Task.CompletedTask;
 		}
 	}
 }

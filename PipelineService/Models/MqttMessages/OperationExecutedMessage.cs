@@ -49,5 +49,10 @@ namespace PipelineService.Models.MqttMessages
 		/// The time (UTC) the execution of this node was stopped (either due to an error or completion).
 		/// </summary>
 		public DateTime StopTime { get; set; }
+
+		/// <summary>
+		/// Indicates if the operation has actually been executed or a cached result already exists.
+		/// </summary>
+		public bool Cached { get; set; } = false;
 	}
 }

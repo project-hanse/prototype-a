@@ -140,11 +140,11 @@ class DatasetStoreS3:
 			d = data.describe().to_dict()
 			for col_key, value in d.items():
 				for k, v in value.items():
-					metadata['desc_' + col_key + '_' + k] = v
+					metadata['desc_' + str(col_key) + '_' + str(k)] = v
 		elif type(data) is pd.Series:
 			d = data.describe().to_dict()
 			for key, value in d.items():
-				metadata['desc_' + key] = value
+				metadata['desc_' + str(key)] = value
 		return metadata
 
 	def compute_metadata_compact(self, key: str, data) -> dict:

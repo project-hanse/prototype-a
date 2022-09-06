@@ -202,7 +202,7 @@ class OperationsSingleInputPandasWrappers:
 		return df
 
 	@staticmethod
-	def pd_single_input_replace(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):
+	def pd_single_input_replace(logger: logging, operation_name: str, operation_config: dict, data: []) -> []:
 		"""
 		Replace values given in to_replace with value.
 		Values of the DataFrame are replaced with other values dynamically.
@@ -211,13 +211,12 @@ class OperationsSingleInputPandasWrappers:
 		"""
 		logger.info("Executing pandas operation pd_single_input_replace (%s)" % operation_name)
 
+		OperationsHelper.validate_input_or_throw(data, 1)
+
 		to_replace = OperationsHelper.get_or_default(operation_config, 'to_replace', None)
 		value = OperationsHelper.get_or_default(operation_config, 'value', None)
-		limit = OperationsHelper.get_or_default(operation_config, 'limit', None)
-		regex = OperationsHelper.get_or_default(operation_config, 'regex', False)
-		method = OperationsHelper.get_or_default(operation_config, 'method', None)
 
-		return df.replace(to_replace=to_replace, value=value, limit=limit, regex=regex, method=method)
+		return [data[0].replace(to_replace=to_replace, value=value)]
 
 	@staticmethod
 	def pd_single_input_interpolate(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):

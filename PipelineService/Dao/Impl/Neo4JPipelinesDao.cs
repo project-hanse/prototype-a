@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Neo4j.Driver;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
@@ -307,6 +308,24 @@ namespace PipelineService.Dao.Impl
 			return operation.FirstOrDefault();
 		}
 
+		public async Task<IList<Operation>> GetOperations(Guid pipelineId)
+		{
+			_logger.LogDebug("loading all operations for pipeline {PipelineId}", pipelineId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var operations = (await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
+				.Match(path => path.Pattern<Operation>("operation")
+					.Constrain(operation => operation.PipelineId == pipelineId))
+				.Return<Operation>("operation")
+				.ResultsAsync).ToList();
+
+			_logger.LogInformation("Loaded {OperationCount} operations for pipeline {PipelineId}", operations.Count,
+				pipelineId);
+
+			return operations;
+		}
+
 		public async Task UpdateOperation<T>(T operation) where T : Operation
 		{
 			_logger.LogDebug("Updating operation {OperationId}", operation.Id);
@@ -556,6 +575,25 @@ namespace PipelineService.Dao.Impl
 				.Return(() => Return.As<int>("count(o)"));
 
 			return (await query.ResultsAsync).FirstOrDefault();
+		}
+
+		public async Task<IList<string>> GetPredecessorHashes(Guid operationId)
+		{
+			_logger.LogDebug("Loading predecessor hashes for operation {OperationId}", operationId);
+
+			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
+
+			var query = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
+				.Match($"(p:{nameof(Operation)})-[:HAS_SUCCESSOR] -> (o:{nameof(Operation)})")
+				.Where((Operation o) => o.Id == operationId)
+				.Return(() => Return.As<string>($"p.{nameof(Operation.OperationHash)}"));
+
+			var result = (await query.ResultsAsync).ToList();
+
+			_logger.LogInformation("Loaded {PredecessorHashCount} predecessor hashes for operation {OperationId}",
+				result.Count, operationId);
+
+			return result;
 		}
 	}
 }
