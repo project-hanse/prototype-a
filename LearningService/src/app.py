@@ -110,5 +110,5 @@ def predict_specific_model(model_name: str):
 
 
 if __name__ == '__main__':
-	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)
+	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True, allow_unsafe_werkzeug=True)
 # TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec
