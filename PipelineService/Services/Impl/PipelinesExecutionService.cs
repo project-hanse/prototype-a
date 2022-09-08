@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PipelineService.Dao;
 using PipelineService.Exceptions;
-using PipelineService.Extensions;
 using PipelineService.Helper;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
@@ -316,11 +315,10 @@ namespace PipelineService.Services.Impl
 		{
 			var executionRecord = await _pipelinesExecutionDao.Get(response.ExecutionId);
 			var operationExecutionRecord =
-				executionRecord.Executed.FirstOrDefault(b => b.OperationId == response.OperationId);
-			if (operationExecutionRecord == null)
-			{
-				operationExecutionRecord = executionRecord.Failed.FirstOrDefault(b => b.OperationId == response.OperationId);
-			}
+				executionRecord.OperationExecutionRecords.FirstOrDefault(b =>
+					b.OperationId == response.OperationId && b.Status == ExecutionStatus.Succeeded) ??
+				executionRecord.OperationExecutionRecords.FirstOrDefault(b =>
+					b.OperationId == response.OperationId && b.Status == ExecutionStatus.Failed);
 
 			await _edgeEventBusService.PublishMessage($"pipeline/event/{response.PipelineId}",
 				new FrontendExecutionNotification
@@ -333,10 +331,14 @@ namespace PipelineService.Services.Impl
 					CompletedAt = response.StopTime,
 					ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
 					ErrorDescription = response.ErrorDescription,
-					OperationsExecuted = executionRecord.Executed.Count,
-					OperationsInExecution = executionRecord.InExecution.Count,
-					OperationsToBeExecuted = executionRecord.ToBeExecuted.Count,
-					OperationsFailedToExecute = executionRecord.Failed.Count,
+					OperationsExecuted =
+						executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.Succeeded),
+					OperationsInExecution =
+						executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.InExecution),
+					OperationsToBeExecuted =
+						executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.ToBeExecuted),
+					OperationsFailedToExecute =
+						executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.Failed),
 					ResultDatasets = operationExecutionRecord?.ResultDatasets,
 					ResultDatasetKeys = operationExecutionRecord?.ResultDatasets.Select(d => d?.Key)
 				});
@@ -382,37 +384,42 @@ namespace PipelineService.Services.Impl
 				throw new ArgumentException("PipelineId in loaded execution does not match pipelineId", nameof(executionId));
 			}
 
-			if (executionRecord.InExecution.Count != 0)
+			if (executionRecord.WaitingForOperations)
 			{
 				_logger.LogInformation("There are operations currently in execution -> no operations can be selected");
 				return new List<OperationExecutionRecord>();
 			}
 
-			if (executionRecord.ToBeExecuted.Count == 0)
+			if (executionRecord.IsCompleted)
 			{
 				_logger.LogInformation("All operations have already been executed");
 				return new List<OperationExecutionRecord>();
 			}
 
-			var currentLevel = executionRecord.ToBeExecuted[0].Level;
+			var currentLevel = executionRecord.OperationExecutionRecords
+				.Where(o => o.Status == ExecutionStatus.ToBeExecuted)
+				.Min(o => o.Level);
 
-			var nextOperations = executionRecord.ToBeExecuted
+			var nextOperations = executionRecord.OperationExecutionRecords
 				.Where(b => b.Level == currentLevel)
 				.ToList();
 
 			_logger.LogDebug("Executing {ExecutionLevelCount} operations from level {ExecutionLevel}",
 				nextOperations.Count, currentLevel);
 
-			// moving operations from to be executed list to in execution list
+			_logger.LogInformation(
+				"Changing operation execution record status to {OperationExecutionStatus} for operations with level {OperationExecutionLevel} execution {ExecutionId} of pipeline {PipelineId}",
+				ExecutionStatus.InExecution, currentLevel, executionId, pipelineId);
 			foreach (var nextOperation in nextOperations)
 			{
 				_logger.LogDebug(
-					"Moving operation {OperationId} in execution {ExecutionId} from status to_be_executed to in_execution",
-					nextOperation.OperationId, executionId);
-				executionRecord.ToBeExecuted.Remove(nextOperation);
+					"Moving operation {OperationId} in execution {ExecutionId} from status {OperationExecutionStatusFrom} to {OperationExecutionStatusTo}",
+					nextOperation.OperationId, executionId, nextOperation.Status, ExecutionStatus.InExecution);
+				nextOperation.Status = ExecutionStatus.InExecution;
 				nextOperation.MovedToStatusInExecutionAt = DateTime.UtcNow;
-				executionRecord.InExecution.Add(nextOperation);
 			}
+
+			await _pipelinesExecutionDao.Update(executionRecord);
 
 			return nextOperations;
 		}
@@ -491,7 +498,8 @@ namespace PipelineService.Services.Impl
 				throw new InvalidOperationException("Can not move node for non existent execution", e);
 			}
 
-			var operation = execution.InExecution.FirstOrDefault(b => b.OperationId == operationId);
+			var operation = execution.OperationExecutionRecords
+				.FirstOrDefault(b => b.OperationId == operationId && b.Status == ExecutionStatus.InExecution);
 
 			if (operation == null)
 			{
@@ -499,20 +507,17 @@ namespace PipelineService.Services.Impl
 			}
 
 			_logger.LogDebug(
-				"Moving operation {OperationId} in execution {ExecutionId} from status in_execution to executed",
-				operationId, executionId);
+				"Moving operation {OperationId} in execution {ExecutionId} from status {OperationExecutionStatusFrom} to {OperationExecutionStatusTo}",
+				operationId, executionId, operation.Status, ExecutionStatus.Succeeded);
 
 			operation.ExecutionCompletedAt = DateTime.UtcNow;
-			operation.IsSuccessful = true;
-
-			execution.InExecution.Remove(operation);
-			execution.Executed.Add(operation);
+			operation.Status = ExecutionStatus.Succeeded;
 
 			CheckIfCompleted(execution);
 
 			await _pipelinesExecutionDao.Update(execution);
 
-			return execution.InExecution.Count > 0;
+			return execution.OperationExecutionRecords.Any(o => o.Status == ExecutionStatus.InExecution);
 		}
 
 		private async Task MarkOperationAsFailed(Guid responseExecutionId, Guid responseOperationId)
@@ -527,7 +532,8 @@ namespace PipelineService.Services.Impl
 				throw new InvalidOperationException("Can not move node for non existent execution", e);
 			}
 
-			var operation = execution.InExecution.FirstOrDefault(b => b.OperationId == responseOperationId);
+			var operation = execution.OperationExecutionRecords
+				.FirstOrDefault(b => b.OperationId == responseOperationId && b.Status == ExecutionStatus.InExecution);
 
 			if (operation == null)
 			{
@@ -535,29 +541,33 @@ namespace PipelineService.Services.Impl
 			}
 
 			_logger.LogDebug(
-				"Moving operation {OperationId} in execution {ExecutionId} from status in_execution to failed",
-				responseOperationId, responseExecutionId);
+				"Moving operation {OperationId} in execution {ExecutionId} from status {OperationExecutionStatusFrom} to {OperationExecutionStatusTo}",
+				responseOperationId, responseExecutionId, operation.Status, ExecutionStatus.Failed);
 
 			operation.ExecutionCompletedAt = DateTime.UtcNow;
-			operation.IsSuccessful = false;
-
-			execution.InExecution.Remove(operation);
-			execution.Failed.Add(operation);
+			operation.Status = ExecutionStatus.Failed;
 
 			_logger.LogDebug("Moving all enqueued operations to failed state");
 			// Optimization: Only move enqueued execution operations records to failed state if they depend on the failed execution (see implementations before 2021/11/09).
-			execution.Failed.AddAll(execution.ToBeExecuted);
-			execution.ToBeExecuted.Clear();
+			foreach (var executionRecord in execution.OperationExecutionRecords.Where(o =>
+				         o.Status == ExecutionStatus.ToBeExecuted))
+			{
+				_logger.LogDebug(
+					"Moving operation {OperationId} in execution {ExecutionId} from status {OperationExecutionStatusFrom} to {OperationExecutionStatusTo}",
+					executionRecord.OperationId, responseExecutionId, operation.Status, ExecutionStatus.Failed);
+
+				executionRecord.ExecutionCompletedAt = DateTime.UtcNow;
+				executionRecord.Status = ExecutionStatus.Failed;
+			}
 
 			CheckIfCompleted(execution);
 
 			await _pipelinesExecutionDao.Update(execution);
 		}
 
-		// TODO: could be done in an extension methode
 		private static void CheckIfCompleted(PipelineExecutionRecord execution)
 		{
-			if (execution.InExecution.Count == 0 && execution.ToBeExecuted.Count == 0)
+			if (execution.IsCompleted)
 			{
 				execution.CompletedOn = DateTime.UtcNow;
 			}

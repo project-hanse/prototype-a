@@ -13,6 +13,7 @@ using PipelineService.Dao;
 using PipelineService.Extensions;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Models.Metrics;
 using PipelineService.Models.Pipeline;
 
@@ -405,7 +406,7 @@ namespace PipelineService.Services.Impl
 				var maxVariationAttempts = _configuration.GetValue("PipelineCandidates:MaxVariantAttempts", 20);
 				metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, 0);
 				var previousOperationConfig = new Dictionary<Guid, IDictionary<string, string>>();
-				var previousSuccessfullyOperations = executionRecord.Executed.Count;
+				var previousSuccessfullyOperations = executionRecord.OperationExecutionRecords.Count(o => o.IsSuccessful);
 				while (!executionRecord.IsSuccessful && metric.ExecutionAttempts < maxVariationAttempts)
 				{
 					metric.ExecutionAttempts++;
@@ -418,14 +419,18 @@ namespace PipelineService.Services.Impl
 					{
 						// simple strategy 1: randomize configuration of all failed operations
 						_logger.LogDebug("Randomizing configuration of all failed operations");
-						operationsToRandomize = executionRecord.Failed.Select(o => o.OperationId).ToList();
+						operationsToRandomize = executionRecord.OperationExecutionRecords
+							.Where(o => o.Status == ExecutionStatus.Failed)
+							.Select(o => o.OperationId).ToList();
 					}
 					else
 					{
 						// simple strategy 2: randomize successfully executed operations except root operations
 						_logger.LogDebug(
 							"Randomizing configuration of all successfully executed operations except root operations");
-						operationsToRandomize = executionRecord.Executed.Select(o => o.OperationId).ToList();
+						operationsToRandomize = executionRecord.OperationExecutionRecords
+							.Where(o => o.Status == ExecutionStatus.Failed)
+							.Select(o => o.OperationId).ToList();
 					}
 
 					foreach (var operationId in operationsToRandomize)
@@ -439,11 +444,12 @@ namespace PipelineService.Services.Impl
 					metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, operationsToRandomize.Count);
 
 					executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
-					if (executionRecord.Executed.Count < previousSuccessfullyOperations)
+					if (executionRecord.OperationExecutionRecords.Count(o => o.IsSuccessful) < previousSuccessfullyOperations)
 					{
 						_logger.LogInformation(
 							"Previous operation configuration variant produced more successful operations {PreviousSuccessfulOperations} > {SuccessfulOperations}, reverting changes on {OperationsToBeRevertedCount} operations...",
-							previousSuccessfullyOperations, executionRecord.Executed.Count, previousOperationConfig.Count);
+							previousSuccessfullyOperations, executionRecord.OperationExecutionRecords.Count(o => o.IsSuccessful),
+							previousOperationConfig.Count);
 						foreach (var (operationId, configuration) in previousOperationConfig)
 						{
 							await _operationsService.UpdateConfig(pipelineId, operationId, configuration);
@@ -453,8 +459,8 @@ namespace PipelineService.Services.Impl
 					{
 						_logger.LogInformation(
 							"New operation configuration variant produced at least as many successful operations as previous variation {PreviousSuccessfulOperations} <= {SuccessfulOperations}, keeping them...",
-							previousSuccessfullyOperations, executionRecord.Executed.Count);
-						previousSuccessfullyOperations = executionRecord.Executed.Count;
+							previousSuccessfullyOperations, executionRecord.OperationExecutionRecords.Count(o => o.IsSuccessful));
+						previousSuccessfullyOperations = executionRecord.OperationExecutionRecords.Count(o => o.IsSuccessful);
 					}
 
 					previousOperationConfig.Clear();
@@ -463,16 +469,21 @@ namespace PipelineService.Services.Impl
 				metric.Success = executionRecord.IsSuccessful;
 				if (metric.Success)
 				{
-					var lastOperation = executionRecord.Executed.LastOrDefault();
-					metric.ProcessingEndTime = lastOperation?.ExecutionCompletedAt ?? DateTime.UtcNow;
+					metric.ProcessingEndTime = executionRecord.OperationExecutionRecords
+						.Where(o => o.Status == ExecutionStatus.Succeeded)
+						.Max(o => o.ExecutionCompletedAt);
 				}
 				else
 				{
-					var failedOperationRecord = executionRecord.Failed.FirstOrDefault();
-					metric.ProcessingEndTime = failedOperationRecord?.ExecutionCompletedAt ?? DateTime.UtcNow;
+					var failedOperationRecord = executionRecord.OperationExecutionRecords
+						.OrderBy(o => o.ExecutionCompletedAt)
+						.FirstOrDefault(o => o.Status == ExecutionStatus.Failed);
+					metric.ProcessingEndTime = executionRecord.OperationExecutionRecords
+						.Where(o => o.Status == ExecutionStatus.Failed)
+						.Max(o => o.ExecutionCompletedAt);
 					metric.Error = failedOperationRecord != default
 						? $"Operation {failedOperationRecord.OperationId} (name: {failedOperationRecord.OperationIdentifier}) failed"
-						: $"{executionRecord.Failed.Count} operations failed";
+						: $"{executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.Failed)} operations failed";
 				}
 
 				await _pipelineCandidateService.ArchivePipelineCandidate(candidate.PipelineId);

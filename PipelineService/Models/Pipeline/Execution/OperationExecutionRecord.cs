@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using PipelineService.Models.Enums;
 
 namespace PipelineService.Models.Pipeline.Execution
 {
@@ -8,6 +9,8 @@ namespace PipelineService.Models.Pipeline.Execution
 		public Guid PipelineId { get; set; }
 
 		public Guid OperationId { get; set; }
+
+		public ExecutionStatus Status { get; set; } = ExecutionStatus.ToBeExecuted;
 
 		/// <summary>
 		/// The datasets resulting from this execution of the operation.
@@ -29,10 +32,12 @@ namespace PipelineService.Models.Pipeline.Execution
 
 		public DateTime MovedToStatusInExecutionAt { get; set; }
 
-
 		/// <summary>
 		/// Indicates is operations has been executed successfully.
 		/// </summary>
-		public bool IsSuccessful { get; set; }
+		public bool IsSuccessful => Status == ExecutionStatus.Succeeded;
+
+		public Guid PipelineExecutionRecordId { get; set; }
+		public PipelineExecutionRecord PipelineExecutionRecord { get; set; }
 	}
 }

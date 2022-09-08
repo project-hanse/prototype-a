@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using PipelineService.Models.Enums;
 
 namespace PipelineService.Models.Pipeline.Execution
 {
@@ -14,14 +16,13 @@ namespace PipelineService.Models.Pipeline.Execution
 
 		public DateTime CompletedOn { get; set; }
 
-		public IList<OperationExecutionRecord> ToBeExecuted { get; } = new List<OperationExecutionRecord>();
+		public IList<OperationExecutionRecord> OperationExecutionRecords { get; set; }
 
-		public IList<OperationExecutionRecord> InExecution { get; } = new List<OperationExecutionRecord>();
+		public bool IsCompleted =>
+			OperationExecutionRecords.All(o => o.Status is ExecutionStatus.Succeeded or ExecutionStatus.Failed);
 
-		public IList<OperationExecutionRecord> Executed { get; } = new List<OperationExecutionRecord>();
+		public bool IsSuccessful => OperationExecutionRecords.All(o => o.Status == ExecutionStatus.Succeeded);
 
-		public IList<OperationExecutionRecord> Failed { get; } = new List<OperationExecutionRecord>();
-		public bool IsCompleted => ToBeExecuted.Count == 0 && InExecution.Count == 0;
-		public bool IsSuccessful => IsCompleted && Failed.Count == 0;
+		public bool WaitingForOperations => OperationExecutionRecords.Any(o => o.Status == ExecutionStatus.InExecution);
 	}
 }

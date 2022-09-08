@@ -1,11 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 using PipelineService.Models.Metrics;
+using PipelineService.Models.Pipeline;
+using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Models;
 
@@ -16,6 +17,9 @@ public class EfMetricsContext : DbContext
 	}
 
 	public DbSet<CandidateProcessingMetric> CandidateProcessingMetrics { get; set; }
+	// public DbSet<PipelineExecutionRecord> PipelineExecutionRecords { get; set; }
+	// public DbSet<OperationExecutionRecord> OperationExecutionRecords { get; set; }
+	// public DbSet<Dataset> Datasets { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{

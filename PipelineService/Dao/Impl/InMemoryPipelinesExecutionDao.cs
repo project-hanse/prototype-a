@@ -105,15 +105,11 @@ namespace PipelineService.Dao.Impl
 					PipelineId = r.PipelineId,
 					Level = r.Level,
 					OperationIdentifier = r.OperationIdentifier,
-					OperationHash = r.HashAtEnqueuing
+					OperationHash = r.HashAtEnqueuing,
+					Status = ExecutionStatus.ToBeExecuted
 				}).ToList();
 
-			foreach (var nodeExecutionRecord in nodeExecutionRecords)
-			{
-				nodeExecutionRecord.Level = partitionResult.MaxLevel - nodeExecutionRecord.Level;
-			}
-
-			executionRecord.ToBeExecuted.AddAll(nodeExecutionRecords);
+			executionRecord.OperationExecutionRecords = nodeExecutionRecords;
 
 			Store.Add(executionRecord.Id, executionRecord);
 
@@ -166,14 +162,14 @@ namespace PipelineService.Dao.Impl
 			return Task.FromResult(Store.Values
 				.OrderByDescending(exRex => exRex.CompletedOn)
 				.FirstOrDefault(exRec => exRec.PipelineId == pipelineId)?
-				.Executed.SingleOrDefault(op => op.OperationId == operationId));
+				.OperationExecutionRecords.SingleOrDefault(op => op.OperationId == operationId && op.IsSuccessful));
 		}
 
 		public Task StoreExecutionHash(Guid executionId, Guid operationId, string operationHash,
 			string predecessorsHash)
 		{
 			var executionRecord = Store[executionId];
-			var operationExecutionRecord = executionRecord.InExecution.SingleOrDefault(op => op.OperationId == operationId);
+			var operationExecutionRecord = executionRecord.OperationExecutionRecords.SingleOrDefault(op => op.OperationId == operationId);
 			if (operationExecutionRecord == default)
 			{
 				_logger.LogWarning("No operation execution record found for operation {OperationId} in execution {ExecutionId}",
