@@ -1,6 +1,3 @@
-import json
-
-import jsonpickle as jsonpickle
 import pandas as pd
 from flask import Flask, abort, jsonify
 
@@ -26,7 +23,7 @@ def format_json(data):
 	elif type(data) is pd.Series:
 		return serialize_series(data)
 	else:
-		abort(500)
+		abort(400)
 
 
 def format_csv(data):
@@ -44,7 +41,7 @@ def format_csv(data):
 
 def format_html(data):
 	if type(data) is dict:
-		return abort(500)
+		return abort(400)
 	elif type(data) is str:
 		return data
 	elif type(data) is pd.DataFrame:
@@ -52,7 +49,7 @@ def format_html(data):
 	elif type(data) is pd.Series:
 		return data.to_frame().to_html()
 	else:
-		abort(500)
+		abort(400)
 
 
 def serialize_dataframe(df: pd.DataFrame):
