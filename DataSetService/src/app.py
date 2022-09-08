@@ -177,5 +177,5 @@ file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
 init_service.init_default_files_s3_in_background()
 
 if __name__ == '__main__':
-	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True)
+	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True, allow_unsafe_werkzeug=True)
 # TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec

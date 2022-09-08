@@ -85,7 +85,7 @@ namespace PipelineService
 
 			// databases
 			services.AddNeo4jAnnotations<PipelineGraphContext>();
-			services.AddDbContext<EfMetricsContext>(options =>
+			services.AddDbContext<EfDatabaseContext>(options =>
 			{
 				options.UseMySql(
 					defaultMySqlConnectionString,
@@ -97,7 +97,7 @@ namespace PipelineService
 			services.AddSingleton<EdgeEventBusService>();
 
 			// Registering DAOs
-			services.AddSingleton<IPipelinesExecutionDao, InMemoryPipelinesExecutionDao>();
+			services.AddTransient<IPipelinesExecutionDao, PipelinesExecutionDao>();
 			services.AddSingleton<IPipelinesDaoInMemory, InMemoryPipelinesDaoInMemory>();
 			services.AddSingleton<IPipelinesDao, Neo4JPipelinesDao>();
 			services.AddSingleton<IPipelineCandidateDao, PipelineCandidateDaoFileSystem>();
@@ -176,7 +176,7 @@ namespace PipelineService
 			});
 
 			Task.WhenAll(pipelinesDao.Setup());
-			HandySelfMigrator.Migrate<EfMetricsContext>(app);
+			HandySelfMigrator.Migrate<EfDatabaseContext>(app);
 
 			if (Configuration.GetValue("ScheduledCandidateProcessing", false))
 			{

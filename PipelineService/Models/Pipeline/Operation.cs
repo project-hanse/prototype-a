@@ -92,7 +92,7 @@ namespace PipelineService.Models.Pipeline
 		/// <summary>
 		/// A hash of all values required to check if the operation has changed.
 		/// </summary>
-		public string ComputedHash
+		public string OperationHash
 		{
 			get
 			{
@@ -102,10 +102,16 @@ namespace PipelineService.Models.Pipeline
 					OperationId.ToString(),
 					InputsSerialized,
 					OperationIdentifier,
-					OperationConfigurationSerialized
+					OperationConfigurationSerialized,
+					PredecessorsHash
 				};
 				return HashHelper.ComputeHash(include);
 			}
 		}
+
+		/// <summary>
+		/// A hash of all predecessor's hashes.
+		/// </summary>
+		public string PredecessorsHash { get; set; }
 	}
 }

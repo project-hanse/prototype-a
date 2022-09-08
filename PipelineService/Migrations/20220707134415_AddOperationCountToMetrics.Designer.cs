@@ -11,8 +11,8 @@ using PipelineService.Models;
 namespace PipelineService.Migrations
 {
     [DbContext(typeof(EfDatabaseContext))]
-    [Migration("20220704181254_AddCandidateProcessingMetrics")]
-    partial class AddCandidateProcessingMetrics
+    [Migration("20220707134415_AddOperationCountToMetrics")]
+    partial class AddOperationCountToMetrics
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -26,6 +26,9 @@ namespace PipelineService.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<bool>("Aborted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("ActionCount")
                         .HasColumnType("int");
@@ -53,6 +56,9 @@ namespace PipelineService.Migrations
 
                     b.Property<bool>("ImportSuccess")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("OperationCount")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("PipelineId")
                         .HasColumnType("char(36)");

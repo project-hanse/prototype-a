@@ -5,6 +5,7 @@ from typing import Optional
 import boto3
 import botocore
 import chardet
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from src.helper.operations_helper import OperationsHelper
@@ -18,16 +19,18 @@ class FileStoreClient:
 		self.log = logger
 		self.session = None
 		self.s3_client = None
+		self.s3_region = None
 
-	def setup(self, s3_endpoint: str, s3_access_key_id: str, s3_secret_access_key: str):
+	def setup(self, s3_endpoint: str, s3_region: str, s3_access_key_id: str, s3_access_key_secret: str):
 		self.log.info("Setting up client for S3 service at %s" % s3_endpoint)
 		try:
-			self.session = boto3.session.Session()
-			self.s3_client = self.session.client(
-				service_name='s3',
-				aws_access_key_id=s3_access_key_id,
-				aws_secret_access_key=s3_secret_access_key,
-				endpoint_url=s3_endpoint)
+			self.s3_region = s3_region
+			self.s3_client = boto3.client(service_name='s3',
+																		endpoint_url=s3_endpoint,
+																		aws_access_key_id=s3_access_key_id,
+																		aws_secret_access_key=s3_access_key_secret,
+																		config=Config(signature_version='s3v4'),
+																		region_name=s3_region)
 			if self.s3_client is None:
 				self.log.warning("Could not create client for S3 file store")
 				return False

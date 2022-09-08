@@ -44,6 +44,7 @@ class RabbitMqClientWrapper:
 
 		self.channel = self.connection.channel()
 		self.channel.queue_declare(queue=topic_name_pub, durable=True)
+		self.channel.queue_declare(queue=topic_name_sub, durable=True)
 		self.channel.basic_qos(prefetch_count=1)
 		self.channel.basic_consume(queue=topic_name_sub, on_message_callback=self.on_message_callback, auto_ack=False)
 

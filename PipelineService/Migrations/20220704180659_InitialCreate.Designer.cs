@@ -9,7 +9,7 @@ using PipelineService.Models;
 
 namespace PipelineService.Migrations
 {
-    [DbContext(typeof(EfMetricsContext))]
+    [DbContext(typeof(EfDatabaseContext))]
     [Migration("20220704180659_InitialCreate")]
     partial class InitialCreate
     {

@@ -6,7 +6,7 @@ namespace PipelineService.Services.Impl
 	{
 		public string ComputeHash(Operation operation)
 		{
-			return operation.ComputedHash;
+			return operation.OperationHash;
 		}
 	}
 }

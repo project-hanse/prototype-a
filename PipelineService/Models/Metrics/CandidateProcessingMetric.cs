@@ -66,7 +66,7 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// <summary>
 	/// The OpenML task ID of the pipeline candidate.
 	/// </summary>
-	[MaxLength(256)]
+	[MaxLength(255)]
 	public long TaskId { get; set; }
 
 	/// <summary>
@@ -110,7 +110,7 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// <summary>
 	/// The reward function used to simulate this pipeline candidate.
 	/// </summary>
-	[MaxLength(256)]
+	[MaxLength(255)]
 	public string RewardFunctionType { get; set; }
 
 	/// <summary>

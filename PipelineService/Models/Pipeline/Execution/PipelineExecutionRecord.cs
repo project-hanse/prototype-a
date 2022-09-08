@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using PipelineService.Models.Enums;
 
 namespace PipelineService.Models.Pipeline.Execution
 {
@@ -12,16 +14,24 @@ namespace PipelineService.Models.Pipeline.Execution
 
 		public DateTime StartedOn { get; set; }
 
-		public DateTime CompletedOn { get; set; }
+		/// <summary>
+		/// The time the pipeline execution was completed.
+		/// </summary>
+		public DateTime? CompletedOn { get; set; }
 
-		public IList<OperationExecutionRecord> ToBeExecuted { get; } = new List<OperationExecutionRecord>();
+		/// <summary>
+		/// The status the pipeline execution was it at the time of completion (fail or success).
+		/// </summary>
+		public ExecutionStatus? CompletionStatus { get; set; }
 
-		public IList<OperationExecutionRecord> InExecution { get; } = new List<OperationExecutionRecord>();
+		public IList<OperationExecutionRecord> OperationExecutionRecords { get; set; }
 
-		public IList<OperationExecutionRecord> Executed { get; } = new List<OperationExecutionRecord>();
 
-		public IList<OperationExecutionRecord> Failed { get; } = new List<OperationExecutionRecord>();
-		public bool IsCompleted => ToBeExecuted.Count == 0 && InExecution.Count == 0;
-		public bool IsSuccessful => IsCompleted && Failed.Count == 0;
+		public bool IsCompleted =>
+			OperationExecutionRecords.All(o => o.Status is ExecutionStatus.Succeeded or ExecutionStatus.Failed);
+
+		public bool IsSuccessful => OperationExecutionRecords.All(o => o.Status == ExecutionStatus.Succeeded);
+
+		public bool WaitingForOperations => OperationExecutionRecords.Any(o => o.Status == ExecutionStatus.InExecution);
 	}
 }
