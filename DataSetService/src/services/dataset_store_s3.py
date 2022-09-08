@@ -87,7 +87,11 @@ class DatasetStoreS3:
 
 		if key not in self.dataset_cache:
 			self.log.debug("Dataset with key %s not found in cache - loading from S3..." % str(key))
-			response = self.s3_client.get_object(Bucket=DATASET_BUCKET_NAME, Key=key)
+			try:
+				response = self.s3_client.get_object(Bucket=DATASET_BUCKET_NAME, Key=key)
+			except Exception as e:
+				self.log.error("Failed to load dataset with key %s from S3: %s" % (str(key), str(e)))
+				return None
 			if response is None:
 				self.log.info("Dataset with key %s does not exist" % str(key))
 				return None
@@ -105,7 +109,11 @@ class DatasetStoreS3:
 		metadata_key = get_metadata_key(key, version)
 		if metadata_key not in self.metadata_cache:
 			self.log.debug("Metadata with key %s not found in cache - loading from S3..." % str(metadata_key))
-			response = self.s3_client.get_object(Bucket=METADATA_BUCKET_NAME, Key=metadata_key)
+			try:
+				response = self.s3_client.get_object(Bucket=METADATA_BUCKET_NAME, Key=metadata_key)
+			except Exception as e:
+				self.log.info("Failed to load metadata with key %s: %s" % (str(metadata_key), str(e)))
+				return None
 			if response is None:
 				self.log.info("Metadata with key %s does not exist" % str(metadata_key))
 				return None
