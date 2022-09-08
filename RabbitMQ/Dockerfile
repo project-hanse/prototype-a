@@ -1,3 +1,3 @@
-FROM rabbitmq:3.10.6-management-alpine
+FROM rabbitmq:3.10.7-management-alpine
 
 COPY ./config /etc/rabbitmq

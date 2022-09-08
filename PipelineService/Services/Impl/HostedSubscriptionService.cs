@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PipelineService.Models.MqttMessages;
 
@@ -14,18 +15,19 @@ namespace PipelineService.Services.Impl
 		private readonly ILogger<HostedSubscriptionService> _logger;
 		private readonly IConfiguration _configuration;
 		private readonly EventBusService _eventBusService;
-		private readonly IPipelineExecutionService _pipelineExecutionService;
+
+		private readonly IServiceScopeFactory _scopeFactory;
 
 		public HostedSubscriptionService(
 			ILogger<HostedSubscriptionService> logger,
 			IConfiguration configuration,
 			EventBusService eventBusService,
-			IPipelineExecutionService pipelineExecutionService)
+			IServiceScopeFactory scopeFactory)
 		{
 			_logger = logger;
 			_configuration = configuration;
 			_eventBusService = eventBusService;
-			_pipelineExecutionService = pipelineExecutionService;
+			_scopeFactory = scopeFactory;
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken)
@@ -33,10 +35,14 @@ namespace PipelineService.Services.Impl
 			_logger.LogInformation("Setting up subscriptions on MQTT topics...");
 
 			cancellationToken.ThrowIfCancellationRequested();
-
 			await _eventBusService.Subscribe<OperationExecutedMessage>(
 				OperationExecutedTopic,
-				async m => { await _pipelineExecutionService.HandleExecutionResponse(m); });
+				async m =>
+				{
+					using var innerScope = _scopeFactory.CreateScope();
+					var pipelineExecutionService = innerScope.ServiceProvider.GetRequiredService<IPipelineExecutionService>();
+					await pipelineExecutionService.HandleExecutionResponse(m);
+				});
 		}
 
 		public async Task StopAsync(CancellationToken cancellationToken)

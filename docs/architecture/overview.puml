@@ -9,38 +9,36 @@ rectangle "Frontend" {
     component "Development Frontend" << Angular Frontend >> as development_frontend
 }
 
-rectangle "Edge Services" {
+rectangle "Edge Gateway" {
     component "Reverse Proxy" << NGINX >> as reverse_proxy
-    component "Edge Message Broker" << MQTT Broker >> as message_broker_edge
 }
 
 rectangle "Event Bus" {
     component "Internal Message Broker" << RabbitMQ >> as message_broker_internal
+    component "Edge Message Broker" << MQTT Broker >> as message_broker_edge
 }
 
-rectangle "Service Layer" {
+rectangle "Services" {
     component "Pipeline Service" << .NET REST API >> as pipeline_service
     collections  "Operation Worker" <<Python Worker>> as worker
     component "Learning Service" << Python REST API >> as learning_service
     component "File Service" << .NET REST API >> as file_service
-    component "Database Admin" << Adminer >> as adminer
-}
-
-rectangle "Persistence Layer" {
+    ' component "Database Admin" << Adminer >> as adminer
     component "Dataset Store" << Python REST API >> as dataset_store
     component "MLflow Server" << MLflow >> as mlflow_server
 }
 
-rectangle "Database Layer" {
+rectangle "Persistent Storage" {
     database "Graph Database" << Neo4j >> as graph_db
     node "S3 BLOB Store" << Localstack >> as blob_store
+    node "S3 BLOB Store" << MinIO >> as blob_store_minio
     'database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
     database "SQL Database" << MySQL >> as mysql_db
 }
 
 'Interaction'
 
-development_frontend <--> reverse_proxy
+development_frontend <---> reverse_proxy
 development_frontend --> reverse_proxy
 
 reverse_proxy --> pipeline_service
@@ -49,34 +47,33 @@ reverse_proxy --> file_service
 reverse_proxy <--> message_broker_edge
 'TODO: This connection should no longer exist'
 reverse_proxy --> dataset_store
-reverse_proxy --> mlflow_server
-reverse_proxy --> adminer
-reverse_proxy --> message_broker_internal
+' reverse_proxy --> mlflow_server
+'reverse_proxy --> adminer
+' reverse_proxy --> message_broker_internal
 
 learning_service --> mlflow_server
 learning_service --> dataset_store
 learning_service <--> pipeline_service
-learning_service --> blob_store
 
 pipeline_service --> graph_db
-pipeline_service <--> message_broker_internal
-pipeline_service <--> message_broker_edge
+pipeline_service <---> message_broker_internal
+pipeline_service <---> message_broker_edge
 pipeline_service --> mysql_db
 pipeline_service --> dataset_store
 
-adminer --> mysql_db
+'adminer --> mysql_db
 
-'dataset_store --> dataset_db
+dataset_store --> blob_store_minio
 'TODO: Default files should be seeded from file service PH-213'
 ' dataset_store --> blob_store
 
-file_service --> blob_store
+file_service --> blob_store_minio
 
 mlflow_server --> mysql_db
 mlflow_server --> blob_store
 
 worker --> dataset_store
-worker --> blob_store
+worker --> blob_store_minio
 worker <--> message_broker_internal
 
 @enduml

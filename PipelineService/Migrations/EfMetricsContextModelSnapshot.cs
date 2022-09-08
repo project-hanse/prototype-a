@@ -9,14 +9,14 @@ using PipelineService.Models;
 
 namespace PipelineService.Migrations
 {
-    [DbContext(typeof(EfMetricsContext))]
+    [DbContext(typeof(EfDatabaseContext))]
     partial class EfMetricsContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.7")
+                .HasAnnotation("ProductVersion", "6.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("PipelineService.Models.Metrics.CandidateProcessingMetric", b =>
@@ -74,8 +74,8 @@ namespace PipelineService.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("RewardFunctionType")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256)");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("SimulationEndTime")
                         .HasColumnType("datetime(6)");
@@ -87,12 +87,112 @@ namespace PipelineService.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<long>("TaskId")
-                        .HasMaxLength(256)
+                        .HasMaxLength(255)
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.ToTable("CandidateProcessingMetrics");
+                });
+
+            modelBuilder.Entity("PipelineService.Models.Pipeline.Execution.OperationExecutionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("Cached")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("ChangedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExecutionCompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("MovedToStatusInExecutionAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("OperationHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("OperationIdentifier")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<Guid>("PipelineExecutionRecordId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PipelineId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("PredecessorsHash")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PipelineExecutionRecordId");
+
+                    b.ToTable("OperationExecutionRecords");
+                });
+
+            modelBuilder.Entity("PipelineService.Models.Pipeline.Execution.PipelineExecutionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ChangedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("CompletedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CompletionStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("PipelineId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("StartedOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PipelineExecutionRecords");
+                });
+
+            modelBuilder.Entity("PipelineService.Models.Pipeline.Execution.OperationExecutionRecord", b =>
+                {
+                    b.HasOne("PipelineService.Models.Pipeline.Execution.PipelineExecutionRecord", "PipelineExecutionRecord")
+                        .WithMany("OperationExecutionRecords")
+                        .HasForeignKey("PipelineExecutionRecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PipelineExecutionRecord");
+                });
+
+            modelBuilder.Entity("PipelineService.Models.Pipeline.Execution.PipelineExecutionRecord", b =>
+                {
+                    b.Navigation("OperationExecutionRecords");
                 });
 #pragma warning restore 612, 618
         }

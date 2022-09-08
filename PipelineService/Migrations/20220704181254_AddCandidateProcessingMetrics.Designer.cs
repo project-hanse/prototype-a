@@ -10,7 +10,7 @@ using PipelineService.Models;
 
 namespace PipelineService.Migrations
 {
-    [DbContext(typeof(EfMetricsContext))]
+    [DbContext(typeof(EfDatabaseContext))]
     [Migration("20220704181254_AddCandidateProcessingMetrics")]
     partial class AddCandidateProcessingMetrics
     {

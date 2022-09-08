@@ -1,3 +1,4 @@
+using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using FileService.Services;
@@ -40,8 +41,10 @@ namespace FileService
 			var s3Config = new AmazonS3Config
 			{
 				ForcePathStyle = Configuration.GetValue("S3Configuration:ForcePathStyle", true),
+				RegionEndpoint = RegionEndpoint.GetBySystemName(Configuration.GetValue("S3Configuration:Region", "eu-west-3")),
+				AuthenticationRegion = Configuration.GetValue("S3Configuration:Region", "eu-west-3"),
 				ServiceURL =
-					$"{Configuration.GetValue("S3Configuration:Protocol", "http")}://{Configuration.GetValue("S3Configuration:Host", "localstack")}:{Configuration.GetValue("S3Configuration:Port", 4566)}"
+					$"{Configuration.GetValue("S3Configuration:Protocol", "http")}://{Configuration.GetValue("S3Configuration:Host", "localstack")}:{Configuration.GetValue("S3Configuration:Port", 9000)}",
 			};
 			var awsCredentials = new BasicAWSCredentials(
 				Configuration.GetValue<string>("S3Configuration:AccessKey", null),
