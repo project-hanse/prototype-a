@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Neo4jClient;
@@ -10,7 +10,6 @@ using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
 using Newtonsoft.Json;
 using PipelineService.Exceptions;
-using PipelineService.Extensions;
 using PipelineService.Models;
 using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline;
@@ -18,22 +17,23 @@ using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Dao.Impl
 {
-	public class InMemoryPipelinesExecutionDao : IPipelinesExecutionDao
+	public class PipelinesExecutionDao : IPipelinesExecutionDao
 	{
-		private readonly ILogger<InMemoryPipelinesExecutionDao> _logger;
+		private readonly ILogger<PipelinesExecutionDao> _logger;
 		private readonly IGraphClient _graphClient;
 		private readonly IConfiguration _configuration;
+		private readonly EfDatabaseContext _context;
 
-		private static readonly IDictionary<Guid, PipelineExecutionRecord> Store =
-			new ConcurrentDictionary<Guid, PipelineExecutionRecord>();
-
-		public InMemoryPipelinesExecutionDao(ILogger<InMemoryPipelinesExecutionDao> logger,
+		public PipelinesExecutionDao(
+			ILogger<PipelinesExecutionDao> logger,
+			IConfiguration configuration,
 			IGraphClient graphClient,
-			IConfiguration configuration)
+			EfDatabaseContext context)
 		{
 			_logger = logger;
-			_graphClient = graphClient;
 			_configuration = configuration;
+			_graphClient = graphClient;
+			_context = context;
 		}
 
 		public async Task<PipelineExecutionRecord> Create(Guid pipelineId,
@@ -45,7 +45,7 @@ namespace PipelineService.Dao.Impl
 				StartedOn = DateTime.UtcNow
 			};
 
-			_logger.LogInformation("Creating execution ({ExecutionId}) for pipeline {PipelineId}",
+			_logger.LogDebug("Creating execution ({ExecutionId}) for pipeline {PipelineId}",
 				executionRecord.Id, pipelineId);
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
@@ -53,6 +53,7 @@ namespace PipelineService.Dao.Impl
 			_logger.LogInformation(
 				"Creating execution plan for pipeline {PipelineId} according to {ExecutionStrategy} strategy...",
 				pipelineId, strategy);
+
 			var partitionRequest = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
 				.Match($"(n:{nameof(Operation)})")
 				.Where("n.PipelineId=$pipeline_id").WithParam("pipeline_id", pipelineId)
@@ -95,12 +96,9 @@ namespace PipelineService.Dao.Impl
 				})
 				.OrderBy("n._level");
 
-			var nodeExecutionRecords = (await executionRecordsRequest.ResultsAsync)
+			var operationExecutionRecords = (await executionRecordsRequest.ResultsAsync)
 				.Select(r => new OperationExecutionRecord
 				{
-					ResultDatasets = r.ResultDatasets.StartsWith("{")
-						? new List<Dataset> { JsonConvert.DeserializeObject<Dataset>(r.ResultDatasets) }
-						: JsonConvert.DeserializeObject<IList<Dataset>>(r.ResultDatasets),
 					OperationId = r.OperationId,
 					PipelineId = r.PipelineId,
 					Level = r.Level,
@@ -109,78 +107,97 @@ namespace PipelineService.Dao.Impl
 					Status = ExecutionStatus.ToBeExecuted
 				}).ToList();
 
-			executionRecord.OperationExecutionRecords = nodeExecutionRecords;
+			executionRecord.OperationExecutionRecords = operationExecutionRecords;
 
-			Store.Add(executionRecord.Id, executionRecord);
+			_context.OperationExecutionRecords.AddRange(operationExecutionRecords);
+			_context.PipelineExecutionRecords.Add(executionRecord);
+			await _context.SaveChangesAsync();
+
+			_logger.LogInformation(
+				"Created execution plan {ExecutionId} for pipeline {PipelineId} with {PartitionCount} partitions according to {ExecutionStrategy} strategy",
+				executionRecord.Id, pipelineId, partitionResult.MaxLevel, strategy);
 
 			return executionRecord;
 		}
 
-		public Task<PipelineExecutionRecord> Get(Guid executionId)
+		public async Task<PipelineExecutionRecord> Get(Guid executionId, bool includeOperationRecords = true)
 		{
-			if (!Store.TryGetValue(executionId, out var pipelineExecutionRecord))
+			var query = _context.PipelineExecutionRecords.AsTracking();
+
+			if (includeOperationRecords)
 			{
-				throw new NotFoundException("No PipelineExecutionRecord with id found");
+				_logger.LogDebug("Including operation records in query");
+				query = query.Include(p => p.OperationExecutionRecords);
 			}
 
-			_logger.LogInformation("Loaded execution by id {ExecutionId}", executionId);
-			return Task.FromResult(pipelineExecutionRecord);
-		}
+			var record = await query
+				.SingleOrDefaultAsync(p => p.Id == executionId);
 
-		public Task<PipelineExecutionRecord> Update(PipelineExecutionRecord execution)
-		{
-			if (Store.ContainsKey(execution.Id))
+			if (record == null)
 			{
-				Store.Remove(execution.Id);
+				throw new NotFoundException($"Execution {executionId} not found");
 			}
 
-			Store.Add(execution.Id, execution);
+			_logger.LogDebug("Loaded execution by id {ExecutionId}", executionId);
 
-			_logger.LogInformation("Updated pipeline execution record {ExecutionId}", execution.Id);
-
-			return Task.FromResult(execution);
+			return record;
 		}
 
-		public Task<PipelineExecutionRecord> GetLastExecutionForPipeline(Guid pipelineId)
+		public async Task<PipelineExecutionRecord> Update(PipelineExecutionRecord execution)
 		{
-			var record = Store.Values.FirstOrDefault(exRec => exRec.PipelineId == pipelineId);
+			execution.ChangedOn = DateTime.UtcNow;
+
+			_context.PipelineExecutionRecords.Update(execution);
+
+			await _context.SaveChangesAsync();
+			_logger.LogDebug("Updated pipeline execution record {ExecutionId}", execution.Id);
+
+			return execution;
+		}
+
+		public async Task<PipelineExecutionRecord> GetLastExecutionForPipeline(Guid pipelineId)
+		{
+			var record = await _context.PipelineExecutionRecords
+				.OrderByDescending(r => r.CompletedOn ?? r.CreatedOn)
+				.Include(r => r.OperationExecutionRecords)
+				.FirstOrDefaultAsync(exRec => exRec.PipelineId == pipelineId);
 
 			if (record == default)
 			{
 				_logger.LogInformation("No execution record found for pipeline {PipelineId}", pipelineId);
-				return Task.FromResult<PipelineExecutionRecord>(null);
+				return null;
 			}
 
 			_logger.LogInformation("Loaded last execution record {ExecutionId} for pipeline {PipelineId}",
 				record.Id, pipelineId);
 
-			return Task.FromResult(record);
+			return record;
 		}
 
-		public Task<OperationExecutionRecord> GetLastCompletedExecutionForOperation(Guid pipelineId, Guid operationId)
+		public async Task<OperationExecutionRecord> GetLastCompletedExecutionForOperation(Guid pipelineId, Guid operationId)
 		{
-			return Task.FromResult(Store.Values
-				.OrderByDescending(exRex => exRex.CompletedOn)
-				.FirstOrDefault(exRec => exRec.PipelineId == pipelineId)?
-				.OperationExecutionRecords.SingleOrDefault(op => op.OperationId == operationId && op.IsSuccessful));
+			return await _context.OperationExecutionRecords
+				.Where(op => op.PipelineExecutionRecord.PipelineId == pipelineId && op.OperationId == operationId)
+				.OrderByDescending(op => op.ExecutionCompletedAt)
+				.FirstOrDefaultAsync();
 		}
 
-		public Task StoreExecutionHash(Guid executionId, Guid operationId, string operationHash,
-			string predecessorsHash)
+		public async Task StoreExecutionHash(Guid executionId, Guid operationId,
+			string operationHash, string predecessorsHash)
 		{
-			var executionRecord = Store[executionId];
-			var operationExecutionRecord = executionRecord.OperationExecutionRecords.SingleOrDefault(op => op.OperationId == operationId);
+			var operationExecutionRecord = await _context.OperationExecutionRecords
+				.SingleOrDefaultAsync(op => op.OperationId == operationId && op.PipelineExecutionRecordId == executionId);
 			if (operationExecutionRecord == default)
 			{
 				_logger.LogWarning("No operation execution record found for operation {OperationId} in execution {ExecutionId}",
 					operationId, executionId);
-				return Task.CompletedTask;
+				return;
 			}
 
 			operationExecutionRecord.OperationHash = operationHash;
 			operationExecutionRecord.PredecessorsHash = predecessorsHash;
 
-			return Task.CompletedTask;
+			await _context.SaveChangesAsync();
 		}
 	}
 }

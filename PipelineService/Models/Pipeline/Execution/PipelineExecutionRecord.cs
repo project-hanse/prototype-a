@@ -14,9 +14,18 @@ namespace PipelineService.Models.Pipeline.Execution
 
 		public DateTime StartedOn { get; set; }
 
-		public DateTime CompletedOn { get; set; }
+		/// <summary>
+		/// The time the pipeline execution was completed.
+		/// </summary>
+		public DateTime? CompletedOn { get; set; }
+
+		/// <summary>
+		/// The status the pipeline execution was it at the time of completion (fail or success).
+		/// </summary>
+		public ExecutionStatus? CompletionStatus { get; set; }
 
 		public IList<OperationExecutionRecord> OperationExecutionRecords { get; set; }
+
 
 		public bool IsCompleted =>
 			OperationExecutionRecords.All(o => o.Status is ExecutionStatus.Succeeded or ExecutionStatus.Failed);

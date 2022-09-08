@@ -27,7 +27,7 @@ namespace PipelineService.Services.Impl
 		private readonly IPipelineExecutionService _pipelineExecutionService;
 		private readonly IPipelineCandidateService _pipelineCandidateService;
 		private readonly IOperationsService _operationsService;
-		private readonly EfMetricsContext _metricsContext;
+		private readonly EfDatabaseContext _databaseContext;
 		private readonly IHttpClientFactory _httpClientFactory;
 
 		public string DefaultPipelinesPath => Path.Combine(
@@ -40,7 +40,7 @@ namespace PipelineService.Services.Impl
 			IPipelineExecutionService pipelineExecutionService,
 			IPipelineCandidateService pipelineCandidateService,
 			IOperationsService operationsService,
-			EfMetricsContext metricsContext,
+			EfDatabaseContext databaseContext,
 			IHttpClientFactory httpClientFactory)
 		{
 			_logger = logger;
@@ -49,7 +49,7 @@ namespace PipelineService.Services.Impl
 			_pipelineExecutionService = pipelineExecutionService;
 			_pipelineCandidateService = pipelineCandidateService;
 			_operationsService = operationsService;
-			_metricsContext = metricsContext;
+			_databaseContext = databaseContext;
 			_httpClientFactory = httpClientFactory;
 		}
 
@@ -386,8 +386,8 @@ namespace PipelineService.Services.Impl
 					candidate.PipelineId);
 				await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
 				metric.ProcessingEndTime = DateTime.UtcNow;
-				_metricsContext.CandidateProcessingMetrics.Add(metric);
-				await _metricsContext.SaveChangesAsync();
+				_databaseContext.CandidateProcessingMetrics.Add(metric);
+				await _databaseContext.SaveChangesAsync();
 				return;
 			}
 
@@ -510,8 +510,8 @@ namespace PipelineService.Services.Impl
 					await _pipelinesDao.DeletePipeline(candidate.PipelineId);
 				}
 
-				_metricsContext.CandidateProcessingMetrics.Add(metric);
-				await _metricsContext.SaveChangesAsync();
+				_databaseContext.CandidateProcessingMetrics.Add(metric);
+				await _databaseContext.SaveChangesAsync();
 			}
 		}
 	}

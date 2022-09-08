@@ -10,6 +10,7 @@ namespace PipelineService.Models.MqttMessages
 		public Guid ExecutionId { get; set; }
 		public Guid OperationId { get; set; }
 		public bool Successful { get; set; }
+		public bool Cached { get; set; }
 		public int ExecutionTime { get; set; }
 		public string ErrorDescription { get; set; }
 		public int OperationsExecuted { get; set; }
@@ -19,6 +20,5 @@ namespace PipelineService.Models.MqttMessages
 		public string OperationName { get; set; }
 		public DateTime CompletedAt { get; set; }
 		public IList<Dataset> ResultDatasets { get; set; }
-		public IEnumerable<string> ResultDatasetKeys { get; set; }
 	}
 }

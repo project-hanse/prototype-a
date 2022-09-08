@@ -12,12 +12,12 @@ namespace PipelineService.Services.Impl;
 public class MetricsService : IMetricsService
 {
 	private readonly ILogger<MetricsService> _logger;
-	private readonly EfMetricsContext _metricsContext;
+	private readonly EfDatabaseContext _databaseContext;
 
-	public MetricsService(ILogger<MetricsService> logger, EfMetricsContext metricsContext)
+	public MetricsService(ILogger<MetricsService> logger, EfDatabaseContext databaseContext)
 	{
 		_logger = logger;
-		_metricsContext = metricsContext;
+		_databaseContext = databaseContext;
 	}
 
 	public async Task<PaginatedList<CandidateProcessingMetric>> GetCandidateProcessingMetrics(Pagination pagination)
@@ -37,8 +37,8 @@ public class MetricsService : IMetricsService
 		}
 
 		var candidateProcessingMetrics = await (pagination.Order == "asc"
-				? _metricsContext.CandidateProcessingMetrics.OrderBy(x => x.CreatedOn)
-				: _metricsContext.CandidateProcessingMetrics.OrderByDescending(x => x.CreatedOn))
+				? _databaseContext.CandidateProcessingMetrics.OrderBy(x => x.CreatedOn)
+				: _databaseContext.CandidateProcessingMetrics.OrderByDescending(x => x.CreatedOn))
 			.Skip(pagination.Page * pagination.PageSize)
 			.Take(pagination.PageSize)
 			.ToListAsync();
@@ -48,7 +48,7 @@ public class MetricsService : IMetricsService
 
 		return new PaginatedList<CandidateProcessingMetric>
 		{
-			TotalItems = await _metricsContext.CandidateProcessingMetrics.CountAsync(),
+			TotalItems = await _databaseContext.CandidateProcessingMetrics.CountAsync(),
 			Page = pagination.Page,
 			PageSize = pagination.PageSize,
 			Items = candidateProcessingMetrics

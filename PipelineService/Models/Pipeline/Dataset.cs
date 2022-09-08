@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 using PipelineService.Models.Enums;
 
 namespace PipelineService.Models.Pipeline
@@ -15,7 +14,6 @@ namespace PipelineService.Models.Pipeline
 		/// The dataset's key used to load and store the dataset.
 		/// This should be an arbitrary string that uniquely identifies the dataset within its store.
 		/// </summary>
-		[Key]
 		public string Key { get; set; } = Guid.NewGuid().ToString();
 
 		/// <summary>

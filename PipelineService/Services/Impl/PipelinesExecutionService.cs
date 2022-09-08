@@ -233,7 +233,8 @@ namespace PipelineService.Services.Impl
 				response.OperationId, response.ExecutionId, response.PipelineId, response.Successful,
 				(int)(response.StopTime - response.StartTime).TotalMilliseconds);
 
-			var execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
+			PipelineExecutionRecord execution = null;
+
 			if (!response.Successful)
 			{
 				_logger.LogInformation("Execution of operation {OperationId} failed with error {ExecutionErrorDescription}",
@@ -243,17 +244,24 @@ namespace PipelineService.Services.Impl
 			}
 			else
 			{
-				if (await MarkOperationAsExecuted(response.ExecutionId, response.OperationId))
+				var waitingForOperationsToComplete = await MarkOperationAsExecuted(response);
+				if (waitingForOperationsToComplete)
 				{
-					_logger.LogDebug("Nothing to enqueue at the moment");
+					_logger.LogDebug("Nothing to enqueue at the moment...");
 				}
 				else
 				{
+					execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
 					await EnqueueNextOperations(execution, response.PipelineId);
 				}
 			}
 
-			await NotifyFrontend(response);
+			if (execution == null)
+			{
+				_logger.LogDebug("Loading execution record from database since it was not needed before...");
+				execution = await _pipelinesExecutionDao.Get(response.ExecutionId);
+			}
+
 			if (execution.IsCompleted)
 			{
 				var pipeline = await _pipelinesDao.GetInfoDto(response.PipelineId);
@@ -270,6 +278,8 @@ namespace PipelineService.Services.Impl
 
 				await _pipelinesDao.UpdatePipeline(pipeline);
 			}
+
+			await NotifyFrontend(response);
 		}
 
 		public async Task<CreateFromTemplateResponse> CreatePipelineFromTemplate(CreateFromTemplateRequest request)
@@ -328,6 +338,7 @@ namespace PipelineService.Services.Impl
 					OperationId = response.OperationId,
 					OperationName = operationExecutionRecord?.OperationIdentifier,
 					Successful = response.Successful,
+					Cached = 	response.Cached,
 					CompletedAt = response.StopTime,
 					ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
 					ErrorDescription = response.ErrorDescription,
@@ -339,14 +350,15 @@ namespace PipelineService.Services.Impl
 						executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.ToBeExecuted),
 					OperationsFailedToExecute =
 						executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.Failed),
-					ResultDatasets = operationExecutionRecord?.ResultDatasets,
-					ResultDatasetKeys = operationExecutionRecord?.ResultDatasets.Select(d => d?.Key)
+					ResultDatasets = operationExecutionRecord != null
+						? await _pipelinesDao.GetOutputDatasets(operationExecutionRecord.OperationId)
+						: new List<Dataset>(),
 				});
 		}
 
 		private async Task EnqueueNextOperations(PipelineExecutionRecord execution, Guid pipelineId)
 		{
-			var operationsToBeEnqueued = await SelectNextOperations(execution.Id, pipelineId);
+			var operationsToBeEnqueued = await SelectNextOperations(execution, pipelineId);
 
 			_logger.LogDebug("Enqueueing {ToBeEnqueued} operations for execution {ExecutionId} of pipeline {PipelineId}",
 				operationsToBeEnqueued.Count, execution.Id, pipelineId);
@@ -364,24 +376,16 @@ namespace PipelineService.Services.Impl
 		///
 		/// <exception cref="InvalidOperationException">If no execution for a given execution id exists.</exception>
 		/// <exception cref="ArgumentException">If the execution does not match the pipeline.</exception>
-		/// <param name="executionId">The execution's id.</param>
+		/// <param name="executionRecord">The pipeline's execution record.</param>
 		/// <param name="pipelineId">The pipeline that is being executed.</param>
 		/// <returns>A list of operations that need to be executed next inorder to complete the execution of the pipeline</returns>
-		private async Task<List<OperationExecutionRecord>> SelectNextOperations(Guid executionId, Guid pipelineId)
+		private async Task<List<OperationExecutionRecord>> SelectNextOperations(PipelineExecutionRecord executionRecord,
+			Guid pipelineId)
 		{
-			PipelineExecutionRecord executionRecord;
-			try
-			{
-				executionRecord = await _pipelinesExecutionDao.Get(executionId);
-			}
-			catch (NotFoundException e)
-			{
-				throw new InvalidOperationException("Can not select operations for non existent execution", e);
-			}
-
 			if (executionRecord.PipelineId != pipelineId)
 			{
-				throw new ArgumentException("PipelineId in loaded execution does not match pipelineId", nameof(executionId));
+				throw new ArgumentException("PipelineId in loaded execution does not match pipelineId",
+					nameof(executionRecord.Id));
 			}
 
 			if (executionRecord.WaitingForOperations)
@@ -409,12 +413,13 @@ namespace PipelineService.Services.Impl
 
 			_logger.LogInformation(
 				"Changing operation execution record status to {OperationExecutionStatus} for operations with level {OperationExecutionLevel} execution {ExecutionId} of pipeline {PipelineId}",
-				ExecutionStatus.InExecution, currentLevel, executionId, pipelineId);
+				ExecutionStatus.InExecution, currentLevel, executionRecord.Id, pipelineId);
 			foreach (var nextOperation in nextOperations)
 			{
 				_logger.LogDebug(
-					"Moving operation {OperationId} in execution {ExecutionId} from status {OperationExecutionStatusFrom} to {OperationExecutionStatusTo}",
-					nextOperation.OperationId, executionId, nextOperation.Status, ExecutionStatus.InExecution);
+					"Moving operation {OperationIdentifier} ({OperationId}) in execution {ExecutionId} from status {OperationExecutionStatusFrom} to {OperationExecutionStatusTo}",
+					nextOperation.OperationIdentifier, nextOperation.OperationId, executionRecord.Id, nextOperation.Status,
+					ExecutionStatus.InExecution);
 				nextOperation.Status = ExecutionStatus.InExecution;
 				nextOperation.MovedToStatusInExecutionAt = DateTime.UtcNow;
 			}
@@ -483,35 +488,34 @@ namespace PipelineService.Services.Impl
 		/// Marks a node as executed in an execution.
 		/// TODO: This method must become thread safe (case: multiple node finish execution at the same time -> when updating data might get lost).
 		/// </summary>
-		/// <param name="executionId">The execution's id a node has been executed in.</param>
-		/// <param name="operationId">The node that will be moved from status in execution to executed.</param>
 		/// <returns>True if there are still blocks in status in_execution.</returns>
-		private async Task<bool> MarkOperationAsExecuted(Guid executionId, Guid operationId)
+		private async Task<bool> MarkOperationAsExecuted(OperationExecutedMessage executedMessage)
 		{
 			PipelineExecutionRecord execution;
 			try
 			{
-				execution = await _pipelinesExecutionDao.Get(executionId);
+				execution = await _pipelinesExecutionDao.Get(executedMessage.ExecutionId);
 			}
 			catch (NotFoundException e)
 			{
 				throw new InvalidOperationException("Can not move node for non existent execution", e);
 			}
 
-			var operation = execution.OperationExecutionRecords
-				.FirstOrDefault(b => b.OperationId == operationId && b.Status == ExecutionStatus.InExecution);
+			var operationExecRec = execution.OperationExecutionRecords
+				.FirstOrDefault(b => b.OperationId == executedMessage.OperationId && b.Status == ExecutionStatus.InExecution);
 
-			if (operation == null)
+			if (operationExecRec == null)
 			{
 				throw new InvalidOperationException("Operation is not in status expected status for this execution");
 			}
 
 			_logger.LogDebug(
 				"Moving operation {OperationId} in execution {ExecutionId} from status {OperationExecutionStatusFrom} to {OperationExecutionStatusTo}",
-				operationId, executionId, operation.Status, ExecutionStatus.Succeeded);
+				executedMessage.OperationId, executedMessage.ExecutionId, operationExecRec.Status, ExecutionStatus.Succeeded);
 
-			operation.ExecutionCompletedAt = DateTime.UtcNow;
-			operation.Status = ExecutionStatus.Succeeded;
+			operationExecRec.ExecutionCompletedAt = DateTime.UtcNow;
+			operationExecRec.Status = ExecutionStatus.Succeeded;
+			operationExecRec.Cached = executedMessage.Cached;
 
 			CheckIfCompleted(execution);
 
@@ -570,6 +574,7 @@ namespace PipelineService.Services.Impl
 			if (execution.IsCompleted)
 			{
 				execution.CompletedOn = DateTime.UtcNow;
+				execution.CompletionStatus = execution.IsSuccessful ? ExecutionStatus.Succeeded : ExecutionStatus.Failed;
 			}
 		}
 

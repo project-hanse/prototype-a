@@ -10,7 +10,7 @@ using PipelineService.Models;
 
 namespace PipelineService.Migrations
 {
-    [DbContext(typeof(EfMetricsContext))]
+    [DbContext(typeof(EfDatabaseContext))]
     [Migration("20220728105338_RecordExecutionAttempts")]
     partial class RecordExecutionAttempts
     {

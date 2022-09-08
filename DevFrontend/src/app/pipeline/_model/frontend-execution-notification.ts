@@ -6,6 +6,7 @@ export interface FrontendExecutionNotification {
 	OperationId: string;
 	OperationName: string;
 	Successful: boolean;
+	Cached: boolean;
 	ExecutionTime: any;
 	CompletedAt: Date;
 	ErrorDescription: string;
@@ -13,6 +14,5 @@ export interface FrontendExecutionNotification {
 	OperationsInExecution: number;
 	OperationsToBeExecuted: number;
 	OperationsFailedToExecute: number;
-	ResultDatasetKeys: Array<string>;
 	ResultDatasets: Array<Dataset>;
 }

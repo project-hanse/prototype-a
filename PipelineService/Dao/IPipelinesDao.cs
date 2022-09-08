@@ -83,7 +83,7 @@ namespace PipelineService.Dao
 		/// <returns>A dto holding visualization information for the pipeline.</returns>
 		Task<PipelineVisualizationDto> GetVisDto(Guid pipelineId);
 
-		Task<IList<Dataset>> GetOutputDatasets(IList<Guid> operationIds);
+		Task<IList<Dataset>> GetOutputDatasets(Guid operationId);
 		Task<PipelineExport> ExportPipeline(Guid pipelineId);
 
 		Task<IEnumerable<string>> GetUsedOperationIdentifiers(bool unique = false);

@@ -5,21 +5,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 using PipelineService.Models.Metrics;
-using PipelineService.Models.Pipeline;
 using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Models;
 
-public class EfMetricsContext : DbContext
+public class EfDatabaseContext : DbContext
 {
-	public EfMetricsContext(DbContextOptions<EfMetricsContext> options) : base(options)
+	public EfDatabaseContext(DbContextOptions<EfDatabaseContext> options) : base(options)
 	{
 	}
 
 	public DbSet<CandidateProcessingMetric> CandidateProcessingMetrics { get; set; }
-	// public DbSet<PipelineExecutionRecord> PipelineExecutionRecords { get; set; }
-	// public DbSet<OperationExecutionRecord> OperationExecutionRecords { get; set; }
-	// public DbSet<Dataset> Datasets { get; set; }
+	public DbSet<PipelineExecutionRecord> PipelineExecutionRecords { get; set; }
+	public DbSet<OperationExecutionRecord> OperationExecutionRecords { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{

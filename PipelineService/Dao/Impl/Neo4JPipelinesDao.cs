@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Neo4j.Driver;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
-using Neo4jClient.DataAnnotations.Cypher;
-using Neo4jClient.DataAnnotations.Cypher.Functions;
 using Newtonsoft.Json;
 using PipelineService.Extensions;
 using PipelineService.Helper;
@@ -466,32 +463,29 @@ namespace PipelineService.Dao.Impl
 			return dto;
 		}
 
-		public async Task<IList<Dataset>> GetOutputDatasets(IList<Guid> operationIds)
+		public async Task<IList<Dataset>> GetOutputDatasets(Guid operationId)
 		{
-			_logger.LogDebug("Loading output datasets for operations {@OperationIds}", operationIds);
+			_logger.LogDebug("Loading output datasets for operation {OperationId}", operationId);
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 
 			var datasets = new List<Dataset>();
 
-			// TODO: This is a very inefficient way of doing this, but it keeps the order of datasets the same as the order of operationIds.
-			foreach (var operationId in operationIds)
-			{
-				var dataset = (await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
-						.Match(path => path.Pattern<Operation>("o"))
-						.Where((Operation o) => o.Id == operationId)
-						.Return(() => new { OutputSerialized = Return.As<string>("o.OutputSerialized") })
-						.ResultsAsync)
-					.Select(o =>
-						JsonConvert.DeserializeObject<IList<Dataset>>(o.OutputSerialized.StartsWith("{")
-							? $"[{o.OutputSerialized}]"
-							: o.OutputSerialized))
-					.SingleOrDefault();
-				datasets.AddAll(dataset);
-			}
+			var dataset = (await _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
+					.Match(path => path.Pattern<Operation>("o"))
+					.Where((Operation o) => o.Id == operationId)
+					.Return(() => new { OutputSerialized = Return.As<string>("o.OutputSerialized") })
+					.ResultsAsync)
+				.Select(o =>
+					JsonConvert.DeserializeObject<IList<Dataset>>(o.OutputSerialized.StartsWith("{")
+						? $"[{o.OutputSerialized}]"
+						: o.OutputSerialized))
+				.SingleOrDefault();
+			datasets.AddAll(dataset);
 
-			_logger.LogInformation("Loaded {DatasetCount} output datasets for operations {@OperationIds}",
-				datasets.Count, operationIds);
+
+			_logger.LogInformation("Loaded {DatasetCount} output datasets for operations {OperationId}",
+				datasets.Count, operationId);
 
 			return datasets;
 		}
