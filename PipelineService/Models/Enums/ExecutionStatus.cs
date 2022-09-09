@@ -2,8 +2,8 @@ namespace PipelineService.Models.Enums;
 
 public enum ExecutionStatus
 {
-	ToBeExecuted,
-	InExecution,
-	Succeeded,
-	Failed
+	ToBeExecuted = 0,
+	InExecution = 1,
+	Succeeded = 2,
+	Failed = 3
 }

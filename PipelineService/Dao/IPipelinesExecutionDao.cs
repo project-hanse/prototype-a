@@ -21,9 +21,10 @@ namespace PipelineService.Dao
 		/// </summary>
 		/// <exception cref="NotFoundException">If no item with the execution id is found</exception>
 		/// <param name="executionId">The execution's id</param>
+		/// <param name="reload">Reloads the entities from the database; WARNING: very expensive since it hammers the database for each operation record if they are included.</param>
 		/// <param name="includeOperationRecords">Indicates whether the nested operation execution records should be loaded.</param>
 		/// <returns></returns>
-		Task<PipelineExecutionRecord> Get(Guid executionId, bool includeOperationRecords = true);
+		Task<PipelineExecutionRecord> Get(Guid executionId, bool includeOperationRecords = true, bool reload = false);
 
 		/// <summary>
 		/// Updates a given execution record in the store.
