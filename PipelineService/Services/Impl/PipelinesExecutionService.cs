@@ -222,6 +222,18 @@ namespace PipelineService.Services.Impl
 
 				var pollingTimeout = _configuration.GetValue("PipelineExecutionService:SyncPollingTimeout", 2);
 
+				if (i % 10 == 0)
+				{
+					_logger.LogInformation(
+						"Waiting for pipeline execution (pipelineId: {PipelineId} executionId: {ExecutionId}) to complete (sync), polling timeout: {PollingTimeout}",
+						pipelineId, executionId, pollingTimeout);
+				}
+				else
+				{
+					_logger.LogDebug(
+						"Waiting for pipeline execution (pipelineId: {PipelineId} executionId: {ExecutionId}) to complete (sync), polling timeout: {PollingTimeout}",
+						pipelineId, executionId, pollingTimeout);
+				}
 				await Task.Delay(pollingTimeout * 1000);
 			}
 		}
@@ -338,7 +350,7 @@ namespace PipelineService.Services.Impl
 					OperationId = response.OperationId,
 					OperationName = operationExecutionRecord?.OperationIdentifier,
 					Successful = response.Successful,
-					Cached = 	response.Cached,
+					Cached = response.Cached,
 					CompletedAt = response.StopTime,
 					ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
 					ErrorDescription = response.ErrorDescription,
