@@ -1,0 +1,298 @@
+# Deployment on a VM without Let's Encrypt SSL certificates
+
+version: '3.3'
+
+services:
+  # NGINX Reverse Proxy
+  edge-nginx:
+    image: nginx:latest
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - ./volumes/edge-server/logs:/var/log/nginx
+      - ./volumes/edge-server/etc/apache2:/etc/apache2
+      - ./EdgeServer/templates:/etc/nginx/templates
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=0.0.0.0
+    depends_on:
+      - dev-frontend
+      - pipeline-service
+      - pipeline-database
+      - dataset-service
+      - edge-message-broker
+
+  # Edge Message Broker
+  edge-message-broker:
+    image: eclipse-mosquitto
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
+
+  # Development Frontend
+#  dev-frontend:
+#    image: ghcr.io/project-hanse/prototype-a/dev-frontend:main
+#    restart: unless-stopped
+#    networks:
+#      - default
+#    depends_on:
+#      - pipeline-service
+  dev-frontend:
+    build:
+      context: ./DevFrontend
+      dockerfile: ./Dockerfile
+      args:
+        - "NG_CONFIG=production"
+    restart: unless-stopped
+    networks:
+      - default
+    depends_on:
+      - pipeline-service
+
+  # Pipeline Service
+  pipeline-service:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-service:main
+    restart: unless-stopped
+    environment:
+      Logging__LogLevel__Default: Information
+      ScheduledCandidateProcessing: "true"
+      EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+      EDGE_EVENT_BUS__MQTT_PORT: 1883
+      EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+    depends_on:
+      - pipeline-database
+      - mysql
+      - rabbitmq
+    volumes:
+      - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
+      - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
+
+  # Learning Store
+  learning-service:
+    image: ghcr.io/project-hanse/prototype-a/learning-service:main
+    restart: unless-stopped
+    environment:
+      S3_HOST: localstack
+      S3_PORT: 4566
+      PIPELINE_SERVICE_HOST: pipeline-service
+      PIPELINE_SERVICE_PORT: 80
+      DATASET_SERVICE_HOST: dataset-service
+      DATASET_SERVICE_PORT: 5002
+      MLFLOW_TRACKING_URI: "http://mlflow-server:5005"
+      MLFLOW_REGISTRY_URI: "http://mlflow-server:5005"
+    depends_on:
+      - localstack
+      - dataset-service
+      - pipeline-service
+      - mlflow-server
+
+  # File Service
+  file-service:
+    image: ghcr.io/project-hanse/prototype-a/file-service:main
+    restart: unless-stopped
+    environment:
+      Logging__LogLevel__Default: Information
+      S3Configuration__Host: minio
+      S3Configuration__Port: 9000
+      S3Configuration__AccessKey: minio
+      S3Configuration__SecretKey: OsKwEnsJz0AtiX05
+    depends_on:
+      - minio
+
+  # Dataset Store
+  dataset-service:
+    image: ghcr.io/project-hanse/prototype-a/dataset-service:main
+    restart: unless-stopped
+    networks:
+      - default
+    environment:
+      S3_HOST: minio
+      S3_PORT: 9000
+      S3_ACCESS_KEY_ID: minio
+      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
+    depends_on:
+      - localstack
+      - minio
+
+  # Operation Worker
+  operation-worker:
+    image: ghcr.io/project-hanse/prototype-a/operation-worker:main
+    restart: unless-stopped
+    networks:
+      - default
+    environment:
+      MESSAGE_BROKER_HOST: rabbitmq
+      DATASET_HOST: dataset-service
+      DATASET_PORT: 5002
+      S3_HOST: minio
+      S3_PORT: 9000
+      S3_ACCESS_KEY_ID: minio
+      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
+    depends_on:
+      - minio
+      - rabbitmq
+      - dataset-service
+    deploy:
+      mode: replicated
+      replicas: 4
+    volumes:
+      - ./volumes/operation-worker/data:/var/lib/operation-worker/data
+
+  # Pipeline Simulation (dec_log)
+  pipeline-simulation:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-simulation-mcts:main
+    restart: unless-stopped
+    depends_on:
+      - pipeline-service
+      - learning-service
+    environment:
+      BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
+      BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
+      PIPELINES_DIR: '/simulation/pipelines'
+      SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
+      MAX_ACTIONS_PER_PIPELINE: '23'
+      MCTS_ITERATION_LIMIT: '7'
+      REWARD_FUNCTION_TYPE: 'desc_log'
+      TARGET_ACTION_COUNT: '13'
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - ./volumes/pipeline-simulation:/simulation/pipelines
+
+  # Pipeline Simulation (poly_peak)
+  pipeline-simulation-poly-peak:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-simulation-mcts:main
+    restart: unless-stopped
+    depends_on:
+      - pipeline-service
+      - learning-service
+    environment:
+      BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
+      BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
+      PIPELINES_DIR: '/simulation/pipelines'
+      SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
+      MAX_ACTIONS_PER_PIPELINE: '23'
+      MCTS_ITERATION_LIMIT: '7'
+      REWARD_FUNCTION_TYPE: 'poly_peak'
+      TARGET_ACTION_COUNT: '13'
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - ./volumes/pipeline-simulation:/simulation/pipelines
+
+  # MLFlow Server
+  mlflow-server:
+    image: ghcr.io/project-hanse/prototype-a/hanse-mlflow-server:main
+    restart: unless-stopped
+    depends_on:
+      - localstack
+      - mysql
+    networks:
+      - default
+    environment:
+      AWS_REGION: eu-west-3
+      AWS_DEFAULT_REGION: eu-west-3
+      AWS_ACCESS_KEY_ID: localstack
+      AWS_SECRET_ACCESS_KEY: localstack
+      MLFLOW_S3_ENDPOINT_URL: http://localstack:4566
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: mlflowdb
+      MYSQL_USER: mlflowuser
+      MYSQL_PASSWORD: hdfcLhDASas3vKhy
+
+  # Adminer
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    depends_on:
+      - mysql
+
+  # MinIO
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: OsKwEnsJz0AtiX05
+      MINIO_SITE_REGION: eu-west-3
+      MINIO_SITE_NAME: minio-local-1
+    command: server --console-address ":9001" /data1
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./volumes/minio:/data1
+
+  # Neo4j Pipeline Database
+  pipeline-database:
+    image: ghcr.io/project-hanse/prototype-a/hanse-neo4j:main
+    restart: unless-stopped
+    environment:
+      - NEO4J_AUTH=neo4j/test
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:7474/", "||", "exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - ./volumes/neo4j/data:/data
+      - ./volumes/neo4j/logs:/logs
+
+  # S3 Bucket
+  localstack:
+    image: localstack/localstack:1.0.2
+    restart: unless-stopped
+    environment:
+      - SERVICES=s3
+      - EAGER_SERVICE_LOADING=1
+      - DEFAULT_REGION=eu-west-2
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:4566/health", "||", "exit 1" ]
+      interval: 10s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - ./volumes/localstack:/var/lib/localstack
+
+  # MySQL Database
+  mysql:
+    image: ghcr.io/project-hanse/prototype-a/hanse-mysql-database:main
+    restart: unless-stopped
+    networks:
+      - default
+    environment:
+      - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 25s
+      retries: 10
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+
+  # RabbitMQ
+  rabbitmq:
+    image: ghcr.io/project-hanse/prototype-a/hanse-rabbitmq-server:main
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 5s
+      timeout: 15s
+      retries: 1
+    volumes:
+      - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
+#      - ./volumes/rabbitmq/log/:/var/log/rabbitmq
