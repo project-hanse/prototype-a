@@ -34,19 +34,8 @@ services:
       - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
 
   # Development Frontend
-#  dev-frontend:
-#    image: ghcr.io/project-hanse/prototype-a/dev-frontend:main
-#    restart: unless-stopped
-#    networks:
-#      - default
-#    depends_on:
-#      - pipeline-service
   dev-frontend:
-    build:
-      context: ./DevFrontend
-      dockerfile: ./Dockerfile
-      args:
-        - "NG_CONFIG=production"
+    image: ghcr.io/project-hanse/prototype-a/dev-frontend:main
     restart: unless-stopped
     networks:
       - default
