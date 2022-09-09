@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
 using Neo4jClient.DataAnnotations;
-using Newtonsoft.Json;
 using PipelineService.Exceptions;
 using PipelineService.Models;
 using PipelineService.Models.Enums;
@@ -120,9 +118,10 @@ namespace PipelineService.Dao.Impl
 			return executionRecord;
 		}
 
-		public async Task<PipelineExecutionRecord> Get(Guid executionId, bool includeOperationRecords = true)
+		public async Task<PipelineExecutionRecord> Get(Guid executionId, bool includeOperationRecords = true,
+			bool reload = false)
 		{
-			var query = _context.PipelineExecutionRecords.AsTracking();
+			var query = _context.PipelineExecutionRecords.Where(p => p.Id == executionId);
 
 			if (includeOperationRecords)
 			{
@@ -130,12 +129,30 @@ namespace PipelineService.Dao.Impl
 				query = query.Include(p => p.OperationExecutionRecords);
 			}
 
-			var record = await query
-				.SingleOrDefaultAsync(p => p.Id == executionId);
+			var record = await query.SingleOrDefaultAsync();
 
 			if (record == null)
 			{
 				throw new NotFoundException($"Execution {executionId} not found");
+			}
+
+			// resolves an issue where data was not up-to-date when multiple threads use different instances of the db context
+			// Specific case: synchronous execution of a pipeline that checks the execution status while "executed" messages are processed in another thread
+			// TODO: either check if caching can resolve this issue, or get rid of synchronous execution completely
+			if (reload)
+			{
+				_logger.LogDebug("Reloading execution records for execution {ExecutionId}", executionId);
+				await _context.Entry(record).ReloadAsync();
+
+				if (record.OperationExecutionRecords != null)
+				{
+					_logger.LogInformation("Reloading {OperationCount} operation records for execution {ExecutionId}",
+						record.OperationExecutionRecords.Count, executionId);
+					foreach (var operationExecutionRecord in record.OperationExecutionRecords)
+					{
+						await _context.Entry(operationExecutionRecord).ReloadAsync();
+					}
+				}
 			}
 
 			_logger.LogDebug("Loaded execution by id {ExecutionId}", executionId);

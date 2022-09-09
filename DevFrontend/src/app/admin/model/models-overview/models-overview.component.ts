@@ -3,6 +3,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {Observable, Subscription} from 'rxjs';
 import {environment} from '../../../../environments/environment';
 import {ModelDto} from '../_model/model-dto';
+import {LearningService} from '../_service/learning.service';
 import {ModelService} from '../_service/model.service';
 
 @Component({
@@ -18,8 +19,7 @@ export class ModelsOverviewComponent implements OnInit, OnDestroy {
 
 	private readonly subscriptions: Subscription = new Subscription();
 
-	constructor(private modelsService: ModelService,
-							private snackBar: MatSnackBar) {
+	constructor(private modelsService: ModelService, private learningService: LearningService, private snackBar: MatSnackBar) {
 	}
 
 	ngOnInit(): void {
@@ -46,6 +46,7 @@ export class ModelsOverviewComponent implements OnInit, OnDestroy {
 			panelClass: ['snackbar-success']
 		});
 	}
+
 	trainModel(model: ModelDto): void {
 		this.training++;
 		this.subscriptions.add(
@@ -71,4 +72,16 @@ export class ModelsOverviewComponent implements OnInit, OnDestroy {
 		);
 	}
 
+	trainModelAllBackground(): void {
+		this.training++;
+		this.subscriptions.add(
+			this.learningService.trainAllModelsBackground().subscribe(() => {
+				this.snackBar.open('Training all models in background...', 'Close', {
+					duration: 2500,
+					panelClass: ['snackbar-success']
+				});
+				this.training--;
+			})
+		);
+	}
 }

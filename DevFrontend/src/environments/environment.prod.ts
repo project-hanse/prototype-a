@@ -1,13 +1,13 @@
 export const environment = {
 	production: true,
-	pipelineApi: 'https://hanse.allteams.at/api/pipeline',
-	datasetApi: 'https://hanse.allteams.at/api/dataset',
-	filesApi: 'https://hanse.allteams.at/api/file', // TODO: change to /api/file/ and update edge server config
-	learningApi: 'https://hanse.allteams.at/api/learning',
-	mlflow: 'https://hanse.allteams.at/mlflow/#',
-	adminer: 'https://hanse.allteams.at/adminer/#',
-	rabbitMq: 'https://hanse.allteams.at/rabbitmq/#/',
-	messageBrokerHost: 'hanse.allteams.at',
+	pipelineApi: '/api/pipeline',
+	datasetApi: '/api/dataset',
+	filesApi: '/api/file', // TODO: change to /api/file/ and update edge server config
+	learningApi: '/api/learning',
+	mlflow: '/mlflow/#',
+	adminer: '/adminer/#',
+	rabbitMq: '/rabbitmq/#/',
+	messageBrokerHost: '',
 	messageBrokerPath: '/mqtt',
-	messageBrokerPort: 443
+	messageBrokerPort: 443,
 };

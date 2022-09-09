@@ -204,9 +204,10 @@ namespace PipelineService.Services.Impl
 			var executionId = await ExecutePipeline(pipelineId);
 
 			var i = 0;
+			var startTimestamp = DateTime.UtcNow;
 			while (true)
 			{
-				var executionRecord = await _pipelinesExecutionDao.Get(executionId);
+				var executionRecord = await _pipelinesExecutionDao.Get(executionId, true, true);
 				if (executionRecord.IsCompleted)
 				{
 					_logger.LogInformation("Pipeline with id {PipelineId} has been executed (sync)", pipelineId);
@@ -220,7 +221,20 @@ namespace PipelineService.Services.Impl
 					return executionRecord;
 				}
 
-				var pollingTimeout = _configuration.GetValue("PipelineExecutionService:SyncPollingTimeout", 2);
+				var pollingTimeout = _configuration.GetValue("PipelineExecutionService:SyncPollingTimeout", 4);
+
+				if (i % 10 == 0)
+				{
+					_logger.LogInformation(
+						"Waiting for sync pipeline execution (pipelineId: {PipelineId} executionId: {ExecutionId}) to complete (sync) since {PollingTimeout}s",
+						pipelineId, executionId, (DateTime.UtcNow - startTimestamp).TotalSeconds);
+				}
+				else
+				{
+					_logger.LogDebug(
+						"Waiting for sync pipeline execution (pipelineId: {PipelineId} executionId: {ExecutionId}) to complete (sync) since {PollingTimeout}s",
+						pipelineId, executionId, (DateTime.UtcNow - startTimestamp).TotalSeconds);
+				}
 
 				await Task.Delay(pollingTimeout * 1000);
 			}
@@ -338,7 +352,7 @@ namespace PipelineService.Services.Impl
 					OperationId = response.OperationId,
 					OperationName = operationExecutionRecord?.OperationIdentifier,
 					Successful = response.Successful,
-					Cached = 	response.Cached,
+					Cached = response.Cached,
 					CompletedAt = response.StopTime,
 					ExecutionTime = (response.StopTime - response.StartTime).Milliseconds,
 					ErrorDescription = response.ErrorDescription,

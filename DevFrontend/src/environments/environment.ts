@@ -13,7 +13,7 @@ export const environment = {
 	rabbitMq: 'http://localhost:15672',
 	messageBrokerHost: 'localhost',
 	messageBrokerPath: '',
-	messageBrokerPort: 9002
+	messageBrokerPort: 9002,
 };
 
 /*

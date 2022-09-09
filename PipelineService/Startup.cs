@@ -90,7 +90,7 @@ namespace PipelineService
 				options.UseMySql(
 					defaultMySqlConnectionString,
 					new MySqlServerVersion(new Version(Configuration.GetValue("MySqlServerVersion", "8.0.29"))));
-			});
+			}, ServiceLifetime.Transient);
 
 			// Registering singleton services
 			services.AddSingleton<EventBusService>();
