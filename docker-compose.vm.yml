@@ -150,7 +150,7 @@ services:
       TARGET_ACTION_COUNT: '13'
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -172,7 +172,7 @@ services:
       TARGET_ACTION_COUNT: '13'
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
