@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,42 +18,42 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// <summary>
 	/// A string representation of the error if the candidate was not imported successfully.
 	/// </summary>
-	public string Error { get; set; }
+	public string ErrorMessage { get; set; }
 
 	/// <summary>
 	/// The time the candidate was created on.
 	/// </summary>
-	public DateTime CandidateCreatedOn { get; set; }
+	public DateTime? CandidateCreatedOn { get; set; }
 
 	/// <summary>
 	/// The time the candidate simulation was started.
 	/// </summary>
-	public DateTime SimulationStartTime { get; set; }
+	public DateTime? SimulationStartTime { get; set; }
 
 	/// <summary>
 	/// The time the candidate simulation was ended.
 	/// </summary>
-	public DateTime SimulationEndTime { get; set; }
+	public DateTime? SimulationEndTime { get; set; }
 
 	/// <summary>
 	/// The time the processing of the candidate started.
 	/// </summary>
-	public DateTime ProcessingStartTime { get; set; }
+	public DateTime? ProcessingStartTime { get; set; }
 
 	/// <summary>
 	/// The time the import of the candidate started.
 	/// </summary>
-	public DateTime ImportStartTime { get; set; }
+	public DateTime? ImportStartTime { get; set; }
 
 	/// <summary>
 	/// The time the import of the candidate finished.
 	/// </summary>
-	public DateTime ImportEndTime { get; set; }
+	public DateTime? ImportEndTime { get; set; }
 
 	/// <summary>
 	/// The time the processing of the candidate ended.
 	/// </summary>
-	public DateTime ProcessingEndTime { get; set; }
+	public DateTime? ProcessingEndTime { get; set; }
 
 	/// <summary>
 	/// The number of actions in a pipeline candidate that are processed.
@@ -80,22 +79,34 @@ public record CandidateProcessingMetric : BasePersistentModel
 	public Guid PipelineId { get; set; }
 
 	/// <summary>
+	/// Stores the processing duration persistently to the database one a candidate has been processed.
+	/// This can then be used to compute average processing times in the database.@
+	/// </summary>
+	public double? ProcessingDurationP { get; set; }
+
+	/// <summary>
 	/// The time it took to import the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public double ProcessingDuration => Math.Max((ProcessingEndTime - ProcessingStartTime).TotalMilliseconds, 0);
+	public double ProcessingDuration => ProcessingEndTime.HasValue && ProcessingStartTime.HasValue
+		? Math.Max((ProcessingEndTime.Value - ProcessingStartTime.Value).TotalMilliseconds, 0)
+		: 0;
 
 	/// <summary>
 	/// The time it took to process the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public double ImportDuration => Math.Max((ImportEndTime - ImportStartTime).TotalMilliseconds, 0);
+	public double ImportDuration => ImportStartTime.HasValue && ImportEndTime.HasValue
+		? Math.Max((ImportEndTime.Value - ImportStartTime.Value).TotalMilliseconds, 0)
+		: 0;
 
 	/// <summary>
 	/// The time it took to simulate the pipeline candidate.
 	/// </summary>
 	[NotMapped]
-	public double SimulationDuration => Math.Max((SimulationEndTime - SimulationStartTime).TotalMilliseconds, 0);
+	public double SimulationDuration => SimulationStartTime.HasValue && SimulationEndTime.HasValue
+		? Math.Max((SimulationEndTime.Value - SimulationStartTime.Value).TotalMilliseconds, 0)
+		: 0;
 
 	/// <summary>
 	/// Indicated whether the pipeline candidate was imported successfully.
@@ -123,4 +134,12 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// The number of operations that were randomized per attempt.
 	/// </summary>
 	public IDictionary<int, int> OperationsRandomizedCount { get; set; } = new Dictionary<int, int>();
+
+	/// <summary>
+	/// Indicates if the candidate processing was completed.
+	/// </summary>
+	/// <remarks>
+	/// Enables completion of candidate processing after application reboot.
+	/// </remarks>
+	public bool ProcessingCompleted { get; set; } = false;
 }

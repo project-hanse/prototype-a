@@ -28,5 +28,9 @@ namespace PipelineService.Services
 		Task<int> ProcessPipelineCandidates(int numberOfCandidates);
 
 		Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates);
+
+		Task ProcessPipelineAsCandidate(Guid metricId, Guid pipelineId);
+
+		Task ProcessIncompleteCandidatesInBackground();
 	}
 }

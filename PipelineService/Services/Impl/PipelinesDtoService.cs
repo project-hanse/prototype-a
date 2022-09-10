@@ -6,10 +6,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Hangfire;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Dao;
+using PipelineService.Exceptions;
 using PipelineService.Extensions;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
@@ -335,6 +337,54 @@ namespace PipelineService.Services.Impl
 			return await ProcessPipelineCandidates(candidates);
 		}
 
+		public async Task ProcessIncompleteCandidatesInBackground()
+		{
+			_logger.LogDebug("Checking if incomplete candidates exist and enqueueing them for processing...");
+
+			var incompleteMetricsIds = await _databaseContext.CandidateProcessingMetrics
+				.Where(m => !m.ProcessingCompleted)
+				.Select(m =>
+					new
+					{
+						MetricId = m.Id,
+						PipelineId = m.PipelineId
+					})
+				.ToListAsync();
+
+			if (incompleteMetricsIds.Count == 0)
+			{
+				_logger.LogInformation("No incomplete pipeline candidates to process");
+			}
+			else
+			{
+				var averageProcessingTime = await _databaseContext.CandidateProcessingMetrics
+					.Where(m => m.ProcessingCompleted && m.ProcessingDurationP != null)
+					.AverageAsync(m => m.ProcessingDurationP);
+
+				if (!averageProcessingTime.HasValue || averageProcessingTime < 5000)
+				{
+					averageProcessingTime = 5000;
+					_logger.LogDebug("Average processing time is less than 5 seconds, setting it to 5 seconds");
+				}
+
+				_logger.LogDebug("Found {NumberOfIncompleteCandidates} incomplete pipeline candidates",
+					incompleteMetricsIds.Count);
+				var i = 0;
+				foreach (var incompleteCandidate in incompleteMetricsIds)
+				{
+					i++;
+					_logger.LogDebug("Enqueueing candidate {CandidateId} for processing in {ScheduledInSeconds}",
+						incompleteCandidate.PipelineId, i * averageProcessingTime.Value / 1000);
+					BackgroundJob.Schedule<IPipelinesDtoService>(s =>
+							s.ProcessPipelineAsCandidate(incompleteCandidate.MetricId, incompleteCandidate.PipelineId),
+						TimeSpan.FromMilliseconds(i * averageProcessingTime.Value));
+				}
+
+				_logger.LogInformation("Enqueued {NumberOfIncompleteCandidates} incomplete pipeline candidates for processing",
+					incompleteMetricsIds.Count);
+			}
+		}
+
 		private async Task<int> ProcessPipelineCandidates(ICollection<PipelineCandidate> candidates)
 		{
 			_logger.LogDebug("Processing {NumberOfCandidates} pipeline candidates", candidates.Count);
@@ -362,6 +412,20 @@ namespace PipelineService.Services.Impl
 			return processed;
 		}
 
+		public async Task ProcessPipelineAsCandidate(Guid metricId, Guid pipelineId)
+		{
+			_logger.LogDebug("Processing pipeline {PipelineId} as candidate", pipelineId);
+			var metric = await _databaseContext.CandidateProcessingMetrics.SingleOrDefaultAsync(m => m.Id == metricId);
+			if (metric == null)
+			{
+				_logger.LogWarning("Candidate processing metric with id {MetricId} not found", metricId);
+				return;
+			}
+
+			await RandomizeAndExecute(pipelineId, metric);
+		}
+
+
 		private async Task ProcessPipelineCandidate(PipelineCandidate candidate)
 		{
 			_logger.LogDebug("Processing pipeline candidate with id {PipelineCandidateId}", candidate.PipelineId);
@@ -378,6 +442,11 @@ namespace PipelineService.Services.Impl
 				RewardFunctionType = candidate.RewardFunctionType,
 				ExecutionAttempts = 1
 			};
+
+			_databaseContext.CandidateProcessingMetrics.Add(metric);
+
+			_logger.LogInformation("Starting processing of pipeline candidate {PipelineCandidateId}...",
+				candidate.PipelineId);
 			if (candidate.Aborted.HasValue && candidate.Aborted.Value)
 			{
 				metric.Aborted = candidate.Aborted.Value;
@@ -391,17 +460,42 @@ namespace PipelineService.Services.Impl
 				return;
 			}
 
+			_logger.LogDebug("Creating pipeline from candidate {PipelineCandidateId}", candidate.PipelineId);
+
+			metric.ImportStartTime = DateTime.UtcNow;
+			var pipelineId = await ImportPipelineCandidate(candidate);
+			metric.ImportSuccess = true;
+			metric.ImportEndTime = DateTime.UtcNow;
+			_logger.LogInformation("Imported pipeline candidate with id {PipelineCandidateId} in {CandidateImportDuration}",
+				pipelineId, metric.ImportDuration);
+
+			await _databaseContext.SaveChangesAsync();
+
+			await RandomizeAndExecute(pipelineId, metric);
+		}
+
+		/// <summary>
+		/// Starts a loop that tries to randomize the configurations of a pipelines operations and then executes the pipeline.
+		/// This loop is aborted once the pipeline has been executed successfully or the maximum number of retries has been reached.
+		/// </summary>
+		/// <param name="pipelineId">The pipeline that will be randomized.</param>
+		/// <param name="metric">An entity to store metrics about this process.</param>
+		private async Task RandomizeAndExecute(Guid pipelineId, CandidateProcessingMetric metric)
+		{
 			try
 			{
-				metric.ImportStartTime = DateTime.UtcNow;
-				var pipelineId = await ImportPipelineCandidate(candidate);
-				metric.ImportSuccess = true;
-				metric.ImportEndTime = DateTime.UtcNow;
+				_logger.LogInformation(
+					"Starting randomization and execution loop for pipeline candidate {PipelineCandidateId}...",
+					pipelineId);
+				var pipelineInfo = await _pipelinesDao.GetInfoDto(pipelineId);
+				if (pipelineInfo == null)
+				{
+					_logger.LogInformation("Pipeline candidate {PipelineCandidateId} does not exist - aborting processing",
+						pipelineId);
+					throw new NotFoundException("Pipeline does not exist");
+				}
 
 				metric.OperationCount = await _pipelinesDao.GetOperationCount(pipelineId);
-				_logger.LogInformation("Imported pipeline candidate with id {PipelineCandidateId} in {CandidateImportDuration}",
-					candidate.PipelineId, metric.ImportDuration);
-
 				var executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
 				var maxVariationAttempts = _configuration.GetValue("PipelineCandidates:MaxVariantAttempts", 20);
 				metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, 0);
@@ -412,7 +506,7 @@ namespace PipelineService.Services.Impl
 					metric.ExecutionAttempts++;
 					_logger.LogInformation(
 						"Initial execution failed, trying variants of the pipeline candidate {PipelineCandidateId} ({VariantAttempts}/{MaxVariantAttempts})...",
-						candidate.PipelineId, metric.ExecutionAttempts, maxVariationAttempts);
+						pipelineId, metric.ExecutionAttempts, maxVariationAttempts);
 
 					IList<Guid> operationsToRandomize;
 					if (metric.ExecutionAttempts % 2 == 0)
@@ -481,36 +575,38 @@ namespace PipelineService.Services.Impl
 					metric.ProcessingEndTime = executionRecord.OperationExecutionRecords
 						.Where(o => o.Status == ExecutionStatus.Failed)
 						.Max(o => o.ExecutionCompletedAt);
-					metric.Error = failedOperationRecord != default
+					metric.ErrorMessage = failedOperationRecord != default
 						? $"Operation {failedOperationRecord.OperationId} (name: {failedOperationRecord.OperationIdentifier}) failed"
 						: $"{executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.Failed)} operations failed";
 				}
 
-				await _pipelineCandidateService.ArchivePipelineCandidate(candidate.PipelineId);
+				await _pipelineCandidateService.ArchivePipelineCandidate(pipelineId);
 			}
 			catch (Exception e)
 			{
 				metric.Success = false;
-				metric.Error = e.Message;
+				metric.ErrorMessage = $"{e.GetType().Name} - {e.Message}";
 				_logger.LogInformation("Failed to process pipeline candidate with id {PipelineCandidateId} - {Error}",
-					candidate.PipelineId, e.Message);
+					pipelineId, e.Message);
 			}
 			finally
 			{
 				metric.ProcessingEndTime = DateTime.UtcNow;
+				metric.ProcessingCompleted = true;
+				metric.ProcessingDurationP = metric.ProcessingDuration;
 
 				_logger.LogInformation("Finished processing pipeline candidate with id {PipelineCandidateId} in {Duration}",
-					candidate.PipelineId, metric.ProcessingDuration);
+					pipelineId, metric.ProcessingDuration);
 
 				if (!metric.Success)
 				{
 					_logger.LogInformation(
 						"Pipeline {PipelineCandidateId} could not be processed (Error: {Error}) - deleting pipeline",
-						candidate.PipelineId, metric.Error);
-					await _pipelinesDao.DeletePipeline(candidate.PipelineId);
+						pipelineId, metric.ErrorMessage);
+					await _pipelinesDao.DeletePipeline(pipelineId);
 				}
 
-				_databaseContext.CandidateProcessingMetrics.Add(metric);
+				_databaseContext.CandidateProcessingMetrics.Update(metric);
 				await _databaseContext.SaveChangesAsync();
 			}
 		}
