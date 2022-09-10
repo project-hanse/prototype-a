@@ -52,6 +52,7 @@ services:
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+      PipelineCandidates__MaxVariantAttempts: 50
     depends_on:
       - pipeline-database
       - mysql
