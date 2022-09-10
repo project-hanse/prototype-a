@@ -79,6 +79,12 @@ public record CandidateProcessingMetric : BasePersistentModel
 	public Guid PipelineId { get; set; }
 
 	/// <summary>
+	/// Stores the processing duration persistently to the database one a candidate has been processed.
+	/// This can then be used to compute average processing times in the database.@
+	/// </summary>
+	public double? ProcessingDurationP { get; set; }
+
+	/// <summary>
 	/// The time it took to import the pipeline candidate.
 	/// </summary>
 	[NotMapped]

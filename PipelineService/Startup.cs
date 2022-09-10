@@ -185,6 +185,7 @@ namespace PipelineService
 					"candidate_processing",
 					s => s.ProcessPipelineCandidates(
 						Configuration.GetValue("CandidateProcessing:CandidatesPerBatch", 30)), Cron.Hourly);
+				BackgroundJob.Enqueue<IPipelinesDtoService>(s => s.ProcessIncompleteCandidatesInBackground());
 			}
 		}
 	}

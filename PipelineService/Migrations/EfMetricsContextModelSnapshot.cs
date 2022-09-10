@@ -70,6 +70,9 @@ namespace PipelineService.Migrations
                     b.Property<bool>("ProcessingCompleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<double?>("ProcessingDurationP")
+                        .HasColumnType("double");
+
                     b.Property<DateTime?>("ProcessingEndTime")
                         .HasColumnType("datetime(6)");
 
