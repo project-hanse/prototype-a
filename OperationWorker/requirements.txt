@@ -12,5 +12,5 @@ scikit-learn==1.1.2
 prophet==1.1.1
 pika==1.3.0
 
-botocore~=1.27.68
+botocore~=1.27.70
 setuptools~=65.3.0
