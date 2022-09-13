@@ -57,6 +57,9 @@ services:
       - pipeline-database
       - mysql
       - rabbitmq
+    deploy:
+      mode: replicated
+      replicas: 2
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
       - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
@@ -104,6 +107,9 @@ services:
       S3_PORT: 9000
       S3_ACCESS_KEY_ID: minio
       S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
+    deploy:
+      mode: replicated
+      replicas: 2
     depends_on:
       - localstack
       - minio

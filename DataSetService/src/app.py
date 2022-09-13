@@ -1,6 +1,10 @@
 import io
 import json
 import os
+import signal
+import sys
+import threading
+import uuid
 
 import pandas as pd
 from flask import Flask, render_template, request, redirect, abort
@@ -13,6 +17,7 @@ from src.helper.response_helper import format_response
 from src.services.dataset_store_s3 import DatasetStoreS3
 from src.services.file_store_s3 import FileStoreS3
 from src.services.init_service import InitService
+from src.services.rabbitmq_client_wrapper import RabbitMqClientWrapper
 
 # Configuration
 PORT: int = os.getenv("PORT", 5002)
@@ -21,6 +26,10 @@ S3_PORT: str = os.getenv("S3_PORT", "4566")
 S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
 S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
 S3_REGION: str = os.getenv("S3_REGION", "eu-west-3")
+MESSAGE_BROKER_HOST: str = os.getenv("MESSAGE_BROKER_HOST", "rabbitmq")
+MESSAGE_BROKER_PORT: int = os.getenv("MESSAGE_BROKER_PORT", 5672)
+MESSAGE_BROKER_TOPIC_DELETE = os.getenv("MESSAGE_BROKER_TOPIC_DELETE", "dataset/delete")
+CLIENT_ID: str = os.getenv("MESSAGE_BROKER_CLIENT_ID", ("dataset-service-" + str(uuid.uuid4())))
 
 # Creating service instances
 app = Flask(__name__, template_folder='templates')
@@ -30,6 +39,16 @@ bootstrap = Bootstrap(app)
 file_store = FileStoreS3()
 init_service = InitService(file_store)
 dataset_store = DatasetStoreS3()
+event_bus_wrapper = RabbitMqClientWrapper(dataset_store)
+
+
+# Setup signal handling
+def signal_handler(sig, frame):
+	event_bus_wrapper.stop()
+	sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 # Setting up endpoints
@@ -175,6 +194,11 @@ file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
 								 s3_region=S3_REGION)
 
 init_service.init_default_files_s3_in_background()
+event_bus_wrapper.setup(CLIENT_ID, MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT, MESSAGE_BROKER_TOPIC_DELETE)
+
+# start new thread for event bus
+event_bus_thread = threading.Thread(target=event_bus_wrapper.start)
+event_bus_thread.start()
 
 if __name__ == '__main__':
 	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True, allow_unsafe_werkzeug=True)

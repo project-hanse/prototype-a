@@ -5,26 +5,25 @@ from typing import Optional
 from pika import spec, ConnectionParameters, PlainCredentials
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 
-from src.models.operation_execution_message import OperationExecutionMessage
-from src.services.operation_execution_service import OperationExecutionService
+from src.helper.log_helper import LogHelper
+from src.models.dataset_delete_event import DatasetDeleteEvent
+from src.services.dataset_store_s3 import DatasetStoreS3
 
 
 class RabbitMqClientWrapper:
 
-	def __init__(self, logging, execution_service: OperationExecutionService) -> None:
+	def __init__(self, dataset_store: DatasetStoreS3) -> None:
 		self.channel: Optional[BlockingChannel] = None
 		self.connection: Optional[BlockingConnection] = None
-		self.topic_name_pub = None
 		self.topic_name_sub = None
-		self.execution_service = execution_service
-		self.logging = logging
+		self.dataset_store = dataset_store
+		self.logging = LogHelper.get_logger('RabbitMqClientWrapper')
 
-	def setup(self, client_id: str, host: str, port: int, topic_name_sub: str, topic_name_pub: str,
+	def setup(self, client_id: str, host: str, port: int, topic_name_sub: str,
 						username: str = None, password: str = None):
 		self.logging.info('Connecting to broker at %s:%s' % (host, str(port)))
 
 		self.topic_name_sub = topic_name_sub
-		self.topic_name_pub = topic_name_pub
 
 		if username is not None and password is not None:
 			credentials = PlainCredentials(username, password)
@@ -45,7 +44,6 @@ class RabbitMqClientWrapper:
 				retry_count += 1
 
 		self.channel = self.connection.channel()
-		self.channel.queue_declare(queue=topic_name_pub, durable=True)
 		self.channel.queue_declare(queue=topic_name_sub, durable=True)
 		self.channel.basic_qos(prefetch_count=1)
 		self.channel.basic_consume(queue=topic_name_sub, on_message_callback=self.on_message_callback, auto_ack=False)
@@ -70,8 +68,8 @@ class RabbitMqClientWrapper:
 			return
 
 		try:
-			request = OperationExecutionMessage(payload_deserialized)
-			response = self.execution_service.handle_execution_request(request)
+			request = DatasetDeleteEvent(payload_deserialized)
+			self.dataset_store.delete_dataset(request.get_dataset())
 		except Exception as e:
 			self.logging.error("Error during handling of request %s" % str(e))
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
@@ -83,13 +81,10 @@ class RabbitMqClientWrapper:
 			self.logging.error("Channel is closed - cannot acknowledge message")
 			return
 
-		payload_serialized = response.to_json()
-
-		self.logging.debug("Publishing to topic %s with payload %s" % (self.topic_name_pub, payload_serialized))
-		ch.basic_publish(exchange='', routing_key=self.topic_name_pub, body=payload_serialized)
-
 	def start(self):
+		self.logging.info('Starting consuming on topic %s' % self.topic_name_sub)
 		self.channel.start_consuming()
 
 	def stop(self):
+		self.logging.info('Stopping consuming on topic %s' % self.topic_name_sub)
 		self.channel.stop_consuming()
