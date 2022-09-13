@@ -34,7 +34,9 @@ class RabbitMqClientWrapper:
 		retry_count = 0
 		while retry_count < 5:
 			try:
-				self.connection = BlockingConnection(ConnectionParameters(host=host, port=port, credentials=credentials))
+				self.connection = BlockingConnection(ConnectionParameters(host=host, port=port,
+																																	credentials=credentials,
+																																	client_properties={'connection_name': client_id}))
 				retry_count = 5
 			except Exception as e:
 				self.logging.warn("Failed to connect to broker at %s:%s - %s" % (host, str(port), str(e)))
