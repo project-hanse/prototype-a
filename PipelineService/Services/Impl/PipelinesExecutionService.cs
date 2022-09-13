@@ -22,6 +22,9 @@ namespace PipelineService.Services.Impl
 		private string OperationExecuteTopic => _operationExecuteTopic ??=
 			_configuration.GetValue("QueueNames:OperationExecute", "operation/execute");
 
+		private string DatasetDeletionTopic => _operationExecuteTopic ??=
+			_configuration.GetValue("QueueNames:DatasetDelete", "dataset/delete");
+
 		private readonly ILogger<PipelinesExecutionService> _logger;
 		private readonly IConfiguration _configuration;
 		private readonly IPipelinesDao _pipelinesDao;
@@ -80,10 +83,13 @@ namespace PipelineService.Services.Impl
 				return null;
 			}
 
+			var datasets = (await _pipelinesDao.GetOperations(pipelineId)).SelectMany(o => o.Outputs).ToList();
+
 			var deleted = await _pipelinesDao.DeletePipeline(pipelineId);
 			if (deleted)
 			{
 				_logger.LogInformation("Deleted pipeline {PipelineId}", pipelineId);
+				await DeleteDatasets(datasets);
 			}
 			else
 			{
@@ -91,6 +97,22 @@ namespace PipelineService.Services.Impl
 			}
 
 			return pipelineDto;
+		}
+
+		private async Task DeleteDatasets(List<Dataset> datasets)
+		{
+			_logger.LogDebug("Marking {DatasetCount} datasets for deletion", datasets.Count);
+
+			foreach (var dataset in datasets)
+			{
+				_logger.LogDebug("Marking dataset {DatasetKey} for deletion", dataset.Key);
+				await _eventBusService.PublishMessage(DatasetDeletionTopic, new DatasetDeleteEvent
+				{
+					Dataset = dataset
+				});
+			}
+
+			_logger.LogInformation("Marked {DatasetCount} datasets for deletion", datasets.Count);
 		}
 
 		public async Task<PipelineInfoDto> UpdatePipeline(PipelineInfoDto pipelineDto)

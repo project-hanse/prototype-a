@@ -64,6 +64,7 @@ pipeline_service --> dataset_store
 'adminer --> mysql_db
 
 dataset_store --> blob_store_minio
+dataset_store <--> message_broker_internal
 'TODO: Default files should be seeded from file service PH-213'
 ' dataset_store --> blob_store
 
