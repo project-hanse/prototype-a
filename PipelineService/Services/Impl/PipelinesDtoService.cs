@@ -8,6 +8,7 @@ using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Dao;
@@ -393,7 +394,7 @@ namespace PipelineService.Services.Impl
 			{
 				try
 				{
-					await ProcessPipelineCandidate(candidate);
+					await ProcessPipelineCandidateInBackground(candidate);
 					processed++;
 				}
 				catch (Exception e)
@@ -426,7 +427,7 @@ namespace PipelineService.Services.Impl
 		}
 
 
-		private async Task ProcessPipelineCandidate(PipelineCandidate candidate)
+		private async Task ProcessPipelineCandidateInBackground(PipelineCandidate candidate)
 		{
 			_logger.LogDebug("Processing pipeline candidate with id {PipelineCandidateId}", candidate.PipelineId);
 			var metric = new CandidateProcessingMetric
@@ -471,7 +472,7 @@ namespace PipelineService.Services.Impl
 
 			await _databaseContext.SaveChangesAsync();
 
-			await RandomizeAndExecute(pipelineId, metric);
+			BackgroundJob.Enqueue<IPipelinesDtoService>(s => s.ProcessPipelineAsCandidate(metric.Id, pipelineId));
 		}
 
 		/// <summary>
