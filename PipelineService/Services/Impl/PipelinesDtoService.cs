@@ -537,6 +537,11 @@ namespace PipelineService.Services.Impl
 
 					metric.OperationsRandomizedCount.Add(metric.ExecutionAttempts, operationsToRandomize.Count);
 
+					_logger.LogInformation(
+						"Saving metrics before executing pipeline {PipelineId} {TimesExecuted}/{TimesToExecute} times...",
+						metric.PipelineId, metric.ExecutionAttempts, maxVariationAttempts);
+					await _databaseContext.SaveChangesAsync();
+
 					executionRecord = await _pipelineExecutionService.ExecutePipelineSync(pipelineId);
 					if (executionRecord.OperationExecutionRecords.Count(o => o.IsSuccessful) < previousSuccessfullyOperations)
 					{
