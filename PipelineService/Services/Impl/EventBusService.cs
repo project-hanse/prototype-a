@@ -21,6 +21,7 @@ namespace PipelineService.Services.Impl
 		protected override int Port => _configuration.GetValue("EVENT_BUS:PORT", 5672);
 
 		private static readonly Guid ClientGuid = Guid.NewGuid();
+
 		protected override string ClientId =>
 			_configuration.GetValue("EVENT_BUS:CLIENT_ID", $"pipeline-service-{ClientGuid}");
 
@@ -47,7 +48,6 @@ namespace PipelineService.Services.Impl
 			{
 				properties.Expiration = (ttl.Value * 1000).ToString();
 			}
-
 
 			channel.BasicPublish(exchange: string.Empty,
 				routingKey: topic,

@@ -9,6 +9,7 @@ from src.constants.metadata_constants import *
 from src.helper.log_helper import LogHelper
 from src.helper.s3_helper import assert_bucket_exists
 from src.helper.type_helper import get_str_from_type, get_metadata_key
+from src.models.dataset import Dataset
 
 
 class DatasetStoreS3:
@@ -103,6 +104,19 @@ class DatasetStoreS3:
 		else:
 			self.log.info("Dataset with key %s found in cache" % str(key))
 			return self.dataset_cache[key]
+
+	def delete_dataset(self, dataset: Dataset) -> bool:
+		self.log.debug("Deleting dataset with key %s" % str(dataset.key))
+		if dataset.key in self.dataset_cache:
+			self.log.debug("Dataset with key %s found in cache - removing from cache" % str(dataset.key))
+			del self.dataset_cache[dataset.key]
+		try:
+			self.s3_client.delete_object(Bucket=DATASET_BUCKET_NAME, Key=dataset.key)
+		except Exception as e:
+			self.log.error("Failed to delete dataset with key %s: %s" % (str(dataset.key), str(e)))
+			return False
+		self.log.info("Dataset with key %s deleted" % str(dataset.key))
+		return True
 
 	def get_metadata_by_key(self, key, version: str = METADATA_VERSION_COMPACT):
 		self.log.debug("Loading metadata by key %s" % str(key))

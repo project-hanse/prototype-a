@@ -307,7 +307,7 @@ namespace PipelineService.Dao.Impl
 
 		public async Task<IList<Operation>> GetOperations(Guid pipelineId)
 		{
-			_logger.LogDebug("loading all operations for pipeline {PipelineId}", pipelineId);
+			_logger.LogDebug("Loading all operations for pipeline {PipelineId}", pipelineId);
 
 			if (!_graphClient.IsConnected) await _graphClient.ConnectAsync();
 

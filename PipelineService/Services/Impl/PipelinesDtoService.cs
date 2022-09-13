@@ -603,7 +603,7 @@ namespace PipelineService.Services.Impl
 					_logger.LogInformation(
 						"Pipeline {PipelineCandidateId} could not be processed (Error: {Error}) - deleting pipeline",
 						pipelineId, metric.ErrorMessage);
-					await _pipelinesDao.DeletePipeline(pipelineId);
+					await _pipelineExecutionService.DeletePipeline(pipelineId);
 				}
 
 				_databaseContext.CandidateProcessingMetrics.Update(metric);
