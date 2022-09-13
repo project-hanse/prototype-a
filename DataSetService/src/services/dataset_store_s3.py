@@ -3,6 +3,7 @@ import pickle
 import boto3
 import pandas as pd
 from botocore.config import Config
+from expiringdict import ExpiringDict
 
 from src.constants.bucket_names import DATASET_BUCKET_NAME, METADATA_BUCKET_NAME
 from src.constants.metadata_constants import *
@@ -24,8 +25,8 @@ class DatasetStoreS3:
 
 	def setup(self, s3_endpoint: str, s3_access_key_id: str, s3_access_key_secret: str, s3_region: str):
 		self.log.info("Setting up S3 dataset store (s3_endpoint: %s)" % s3_endpoint)
-		self.dataset_cache = {}
-		self.metadata_cache = {}
+		self.dataset_cache = ExpiringDict(max_len=1000, max_age_seconds=60 * 60 * 2)
+		self.metadata_cache = ExpiringDict(max_len=1000, max_age_seconds=60 * 60 * 2)
 		try:
 			self.s3_region = s3_region
 			self.s3_client = boto3.client(service_name='s3',
@@ -103,7 +104,7 @@ class DatasetStoreS3:
 			return data
 		else:
 			self.log.info("Dataset with key %s found in cache" % str(key))
-			return self.dataset_cache[key]
+			return self.dataset_cache.get(key)
 
 	def delete_dataset(self, dataset: Dataset) -> bool:
 		self.log.debug("Deleting dataset with key %s" % str(dataset.key))
@@ -138,7 +139,7 @@ class DatasetStoreS3:
 			return metadata
 		else:
 			self.log.info("Metadata with key %s found in cache" % str(metadata_key))
-			return self.metadata_cache[metadata_key]
+			return self.metadata_cache.get(metadata_key)
 
 	def extend_metadata_by_key(self, key: str, metadata: dict, version: str = METADATA_VERSION_COMPACT) -> bool:
 		self.log.info("Storing metadata for key %s" % str(key))
