@@ -72,13 +72,18 @@ class RabbitMqClientWrapper:
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
 			return
 
+		request = None
 		try:
 			request = OperationExecutionMessage(payload_deserialized)
+			self.logging.info("Operation %s start" % request.get_operation_id())
 			response = self.execution_service.handle_execution_request(request)
+			self.logging.info("Operation %s complete" % request.get_operation_id())
 		except Exception as e:
+			if request is not None:
+				self.logging.info("Operation %s failed" % request.get_operation_id())
 			self.logging.error(
 				"Error during handling of request [%s] %s - dropping message (delivery_tag: %s)" % (
-				str(type(e)), str(e), str(method.delivery_tag)))
+					str(type(e)), str(e), str(method.delivery_tag)))
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
 			return
 
