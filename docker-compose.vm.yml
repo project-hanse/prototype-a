@@ -17,6 +17,9 @@ services:
       - "80:80"
     environment:
       - NGINX_HOST=0.0.0.0
+    logging:
+      options:
+        max-size: 500m
     depends_on:
       - dev-frontend
       - pipeline-service
@@ -30,6 +33,9 @@ services:
     restart: unless-stopped
     networks:
       - default
+    logging:
+      options:
+        max-size: 500m
     volumes:
       - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
 
@@ -39,6 +45,9 @@ services:
     restart: unless-stopped
     networks:
       - default
+    logging:
+      options:
+        max-size: 500m
     depends_on:
       - pipeline-service
 
@@ -60,6 +69,9 @@ services:
     deploy:
       mode: replicated
       replicas: 4
+    logging:
+      options:
+        max-size: 500m
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
       - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
@@ -100,6 +112,9 @@ services:
       S3Configuration__Port: 9000
       S3Configuration__AccessKey: minio
       S3Configuration__SecretKey: OsKwEnsJz0AtiX05
+    logging:
+      options:
+        max-size: 500m
     depends_on:
       - minio
 
@@ -127,9 +142,6 @@ services:
   operation-worker:
     image: ghcr.io/project-hanse/prototype-a/operation-worker:main
     restart: unless-stopped
-    logging:
-      options:
-        max-size: 500m
     networks:
       - default
     environment:
@@ -147,6 +159,9 @@ services:
     deploy:
       mode: replicated
       replicas: 4
+    logging:
+      options:
+        max-size: 500m
     volumes:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
@@ -166,9 +181,6 @@ services:
       MCTS_ITERATION_LIMIT: '7'
       REWARD_FUNCTION_TYPE: 'desc_log'
       TARGET_ACTION_COUNT: '13'
-    logging:
-      options:
-        max-size: 500m
     deploy:
       mode: replicated
       replicas: 2
@@ -223,6 +235,9 @@ services:
       MYSQL_DATABASE: mlflowdb
       MYSQL_USER: mlflowuser
       MYSQL_PASSWORD: hdfcLhDASas3vKhy
+    logging:
+      options:
+        max-size: 500m
 
   # Adminer
   adminer:
@@ -246,6 +261,9 @@ services:
       MINIO_SITE_REGION: eu-west-3
       MINIO_SITE_NAME: minio-local-1
     command: server --console-address ":9001" /data1
+    logging:
+      options:
+        max-size: 500m
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -263,6 +281,9 @@ services:
       interval: 10s
       timeout: 2s
       retries: 10
+    logging:
+      options:
+        max-size: 500m
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
@@ -280,6 +301,9 @@ services:
       interval: 5s
       timeout: 25s
       retries: 10
+    logging:
+      options:
+        max-size: 500m
     volumes:
       - ./volumes/mysql:/var/lib/mysql
 
@@ -292,6 +316,9 @@ services:
       interval: 5s
       timeout: 15s
       retries: 1
+    logging:
+      options:
+        max-size: 500m
     volumes:
       - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
 #      - ./volumes/rabbitmq/log/:/var/log/rabbitmq
