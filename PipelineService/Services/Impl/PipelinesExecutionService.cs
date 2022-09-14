@@ -96,6 +96,8 @@ namespace PipelineService.Services.Impl
 				_logger.LogInformation("Failed to delete pipeline {PipelineId}", pipelineId);
 			}
 
+			await _pipelinesExecutionDao.DeleteExecutionRecords(pipelineId);
+
 			return pipelineDto;
 		}
 

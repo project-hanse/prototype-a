@@ -216,5 +216,22 @@ namespace PipelineService.Dao.Impl
 
 			await _context.SaveChangesAsync();
 		}
+
+		public async Task<int> DeleteExecutionRecords(Guid pipelineId)
+		{
+			_logger.LogDebug("Deleting pipeline execution records for pipeline {PipelineId}", pipelineId);
+
+			var executionRecords = await _context.PipelineExecutionRecords
+				.Where(r => r.PipelineId == pipelineId)
+				.ToListAsync();
+
+			_context.PipelineExecutionRecords.RemoveRange(executionRecords);
+			await _context.SaveChangesAsync();
+
+			_logger.LogInformation("Deleted {ExecutionCount} pipeline execution records for pipeline {PipelineId}",
+				executionRecords.Count, pipelineId);
+
+			return executionRecords.Count;
+		}
 	}
 }
