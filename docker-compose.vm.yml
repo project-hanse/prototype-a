@@ -84,7 +84,7 @@ services:
       MLFLOW_REGISTRY_URI: "http://mlflow-server:5005"
     logging:
       options:
-        max-size: 1g
+        max-size: 500m
     depends_on:
       - minio
       - dataset-service
@@ -120,7 +120,7 @@ services:
       replicas: 2
     logging:
       options:
-        max-size: 1g
+        max-size: 500m
     depends_on:
       - minio
 
@@ -130,7 +130,7 @@ services:
     restart: unless-stopped
     logging:
       options:
-        max-size: 1g
+        max-size: 500m
     networks:
       - default
     environment:
@@ -169,13 +169,13 @@ services:
       TARGET_ACTION_COUNT: '13'
     logging:
       options:
-        max-size: 1g
+        max-size: 500m
     deploy:
       mode: replicated
       replicas: 2
     logging:
       options:
-        max-size: 1g
+        max-size: 500m
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -197,7 +197,7 @@ services:
       TARGET_ACTION_COUNT: '13'
     logging:
       options:
-        max-size: 1g
+        max-size: 500m
     deploy:
       mode: replicated
       replicas: 2

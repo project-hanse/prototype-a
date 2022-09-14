@@ -44,7 +44,9 @@ class RabbitMqClientWrapper:
 				retry_count += 1
 
 		self.channel = self.connection.channel()
-		self.channel.queue_declare(queue=topic_name_sub, durable=True)
+		self.channel.exchange_declare(exchange='direct_messages', exchange_type='direct', durable=True, auto_delete=False)
+		self.channel.queue_declare(queue=topic_name_sub, durable=True, auto_delete=False)
+		self.channel.queue_bind(exchange='direct_messages', queue=topic_name_sub, routing_key=topic_name_sub)
 		self.channel.basic_qos(prefetch_count=1)
 		self.channel.basic_consume(queue=topic_name_sub, on_message_callback=self.on_message_callback, auto_ack=False)
 

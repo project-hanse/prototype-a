@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using PipelineService.Models.Constants;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -49,7 +50,8 @@ namespace PipelineService.Services.Impl
 				properties.Expiration = (ttl.Value * 1000).ToString();
 			}
 
-			channel.BasicPublish(exchange: string.Empty,
+			channel.BasicPublish(
+				exchange: EventBus.DirectMessagesExchangeName,
 				routingKey: topic,
 				mandatory: true,
 				basicProperties: properties,
