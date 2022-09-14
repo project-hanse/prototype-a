@@ -77,8 +77,9 @@ class RabbitMqClientWrapper:
 			response = self.execution_service.handle_execution_request(request)
 		except Exception as e:
 			self.logging.error(
-				"Error during handling of request [%s] %s - re-queueing %s" % (str(type(e)), str(e), str(method.delivery_tag)))
-			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
+				"Error during handling of request [%s] %s - dropping message (delivery_tag: %s)" % (
+				str(type(e)), str(e), str(method.delivery_tag)))
+			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
 			return
 
 		if ch.is_open:
