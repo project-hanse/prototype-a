@@ -239,7 +239,8 @@ namespace PipelineService.Services.Impl
 				}
 
 				i++;
-				if (i > 2000)
+				if ((DateTime.UtcNow - startTimestamp).TotalMinutes >
+				    _configuration.GetValue("PipelineExecutionService:MaxExecutionTimeSync", 2))
 				{
 					_logger.LogWarning("Aborting waiting for pipeline execution to complete, because it took too long");
 					return executionRecord;
