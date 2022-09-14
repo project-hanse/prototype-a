@@ -8,7 +8,6 @@ using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using PipelineService.Dao;
@@ -316,15 +315,27 @@ namespace PipelineService.Services.Impl
 			return pipeline.Id;
 		}
 
-		public async Task<int> ProcessPipelineCandidates(int numberOfCandidates)
+		public async Task<int> AutoEnqueuePipelineCandidates()
 		{
+			var lookBack = _configuration.GetValue("PipelineCandidates:AutoEnqueueLookBackHours", 6.0);
+			var candidatesProcessedInLastNHours = await _databaseContext.CandidateProcessingMetrics
+				.Where(m => m.ProcessingCompleted &&
+				            m.ProcessingEndTime != null &&
+				            m.ProcessingEndTime > DateTime.UtcNow.AddHours(lookBack * -1))
+				.Select(m => m.ProcessingEndTime)
+				.CountAsync();
+
+			var n = Math.Max((int)Math.Ceiling(candidatesProcessedInLastNHours / lookBack), 2);
+
 			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination()
 			{
 				Page = 1,
-				PageSize = numberOfCandidates
+				PageSize = n
 			});
 
-			return await ProcessPipelineCandidates(candidates);
+			_logger.LogInformation("Enqueuing {CandidateCount} pipeline candidates for processing...", candidates.Count);
+
+			return await ProcessPipelineCandidatesInBackground(candidates);
 		}
 
 		public async Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates)
@@ -335,7 +346,7 @@ namespace PipelineService.Services.Impl
 				candidates.Add(await _pipelineCandidateService.GetCandidateById(candidateId));
 			}
 
-			return await ProcessPipelineCandidates(candidates);
+			return await ProcessPipelineCandidatesInBackground(candidates);
 		}
 
 		public async Task ProcessIncompleteCandidatesInBackground()
@@ -386,7 +397,7 @@ namespace PipelineService.Services.Impl
 			}
 		}
 
-		private async Task<int> ProcessPipelineCandidates(ICollection<PipelineCandidate> candidates)
+		private async Task<int> ProcessPipelineCandidatesInBackground(ICollection<PipelineCandidate> candidates)
 		{
 			_logger.LogDebug("Processing {NumberOfCandidates} pipeline candidates", candidates.Count);
 			var processed = 0;

@@ -215,6 +215,12 @@ namespace PipelineService.Controllers
 			return Ok(pipelineId);
 		}
 
+		[HttpGet("candidate/process/auto")]
+		public async Task<int> AutoEnqueuePipelineCandidates()
+		{
+			return await _pipelinesDtoService.AutoEnqueuePipelineCandidates();
+		}
+
 		[HttpPost("candidate/process")]
 		public async Task<IActionResult> ProcessPipelineCandidate(IList<Guid> pipelineCandidateIds)
 		{

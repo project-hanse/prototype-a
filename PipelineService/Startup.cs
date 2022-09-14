@@ -181,10 +181,8 @@ namespace PipelineService
 			if (Configuration.GetValue("ScheduledCandidateProcessing", false))
 			{
 				// schedule recurring jobs
-				RecurringJob.AddOrUpdate<IPipelinesDtoService>(
-					"candidate_processing",
-					s => s.ProcessPipelineCandidates(
-						Configuration.GetValue("CandidateProcessing:CandidatesPerBatch", 30)), Cron.Hourly);
+				RecurringJob.AddOrUpdate<IPipelinesDtoService>("candidate_processing",
+					s => s.AutoEnqueuePipelineCandidates(), Cron.Hourly);
 				BackgroundJob.Enqueue<IPipelinesDtoService>(s => s.ProcessIncompleteCandidatesInBackground());
 			}
 		}

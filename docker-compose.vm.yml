@@ -53,7 +53,6 @@ services:
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
       PipelineCandidates__MaxVariantAttempts: 30
-      CandidateProcessing__CandidatesPerBatch: 15
     depends_on:
       - pipeline-database
       - mysql
