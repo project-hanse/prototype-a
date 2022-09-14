@@ -78,6 +78,9 @@ services:
       DATASET_SERVICE_PORT: 5002
       MLFLOW_TRACKING_URI: "http://mlflow-server:5005"
       MLFLOW_REGISTRY_URI: "http://mlflow-server:5005"
+    logging:
+      options:
+        max-size: 1g
     depends_on:
       - localstack
       - dataset-service
@@ -111,6 +114,9 @@ services:
     deploy:
       mode: replicated
       replicas: 2
+    logging:
+      options:
+        max-size: 1g
     depends_on:
       - localstack
       - minio
@@ -119,6 +125,9 @@ services:
   operation-worker:
     image: ghcr.io/project-hanse/prototype-a/operation-worker:main
     restart: unless-stopped
+    logging:
+      options:
+        max-size: 1g
     networks:
       - default
     environment:
@@ -155,9 +164,15 @@ services:
       MCTS_ITERATION_LIMIT: '7'
       REWARD_FUNCTION_TYPE: 'desc_log'
       TARGET_ACTION_COUNT: '13'
+    logging:
+      options:
+        max-size: 1g
     deploy:
       mode: replicated
       replicas: 2
+    logging:
+      options:
+        max-size: 1g
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -177,6 +192,9 @@ services:
       MCTS_ITERATION_LIMIT: '7'
       REWARD_FUNCTION_TYPE: 'poly_peak'
       TARGET_ACTION_COUNT: '13'
+    logging:
+      options:
+        max-size: 1g
     deploy:
       mode: replicated
       replicas: 2
