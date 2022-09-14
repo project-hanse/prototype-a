@@ -56,5 +56,7 @@ namespace PipelineService.Dao
 		/// <param name="operationHash"></param>
 		/// <param name="predecessorsHash"></param>
 		Task StoreExecutionHash(Guid executionId, Guid operationId, string operationHash, string predecessorsHash);
+
+		Task<int> DeleteExecutionRecords(Guid pipelineId);
 	}
 }

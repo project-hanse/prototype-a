@@ -45,8 +45,11 @@ class RabbitMqClientWrapper:
 				retry_count += 1
 
 		self.channel = self.connection.channel()
-		self.channel.queue_declare(queue=topic_name_pub, durable=True)
-		self.channel.queue_declare(queue=topic_name_sub, durable=True)
+		self.channel.exchange_declare(exchange='direct_messages', exchange_type='direct', durable=True, auto_delete=False)
+		self.channel.queue_declare(queue=topic_name_pub, durable=True, auto_delete=False)
+		self.channel.queue_declare(queue=topic_name_sub, durable=True, auto_delete=False)
+		self.channel.queue_bind(queue=topic_name_pub, exchange='direct_messages', routing_key=topic_name_pub)
+		self.channel.queue_bind(queue=topic_name_sub, exchange='direct_messages', routing_key=topic_name_sub)
 		self.channel.basic_qos(prefetch_count=1)
 		self.channel.basic_consume(queue=topic_name_sub, on_message_callback=self.on_message_callback, auto_ack=False)
 
@@ -73,7 +76,8 @@ class RabbitMqClientWrapper:
 			request = OperationExecutionMessage(payload_deserialized)
 			response = self.execution_service.handle_execution_request(request)
 		except Exception as e:
-			self.logging.error("Error during handling of request %s" % str(e))
+			self.logging.error(
+				"Error during handling of request [%s] %s - re-queueing %s" % (str(type(e)), str(e), str(method.delivery_tag)))
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 			return
 

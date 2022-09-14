@@ -24,7 +24,7 @@ S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "")
 S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "")
 
 logging.basicConfig(
-	level=logging.DEBUG,
+	level=os.getenv("LOG_LEVEL", logging.INFO),
 	format="%(asctime)s [%(levelname)s] %(message)s",
 	handlers=[
 		logging.StreamHandler()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using PipelineService.Models.Constants;
 using PipelineService.Models.MqttMessages;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -57,7 +58,8 @@ namespace PipelineService.Services.Impl
 				}
 				catch (BrokerUnreachableException e)
 				{
-					_logger.LogDebug("Failed to connect to message broker {Hostname}:{Port} - {Reason}", Hostname, Port, e.Message);
+					_logger.LogDebug("Failed to connect to message broker {Hostname}:{Port} - {Reason}", Hostname, Port,
+						e.Message);
 					_logger.LogWarning("Retrying to connect to message broker {Hostname}:{Port}", Hostname, Port);
 					await Task.Delay(5000);
 					retryCounter++;
@@ -80,6 +82,13 @@ namespace PipelineService.Services.Impl
 
 			channel = _connection.CreateModel();
 
+			channel.ExchangeDeclare(
+				exchange: EventBus.DirectMessagesExchangeName,
+				type: ExchangeType.Direct,
+				durable: true,
+				autoDelete: false,
+				arguments: null);
+
 			channel.QueueDeclare(
 				queue: queueName,
 				durable: true,
@@ -87,6 +96,8 @@ namespace PipelineService.Services.Impl
 				autoDelete: false,
 				arguments: null
 			);
+
+			channel.QueueBind(queueName, EventBus.DirectMessagesExchangeName, queueName);
 
 			// only deliver one message at a time to the consumer (worker) instead of round-robin
 			channel.BasicQos(0, 1, false);

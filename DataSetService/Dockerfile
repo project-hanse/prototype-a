@@ -19,4 +19,6 @@ COPY src ./src
 
 RUN chmod +x ./*.sh
 
+RUN pip install .
+
 CMD ./wait-for-it.sh && ./entrypoint.sh
