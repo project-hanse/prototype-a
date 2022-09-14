@@ -400,12 +400,18 @@ namespace PipelineService.Services.Impl
 		private async Task<int> ProcessPipelineCandidatesInBackground(ICollection<PipelineCandidate> candidates)
 		{
 			_logger.LogDebug("Processing {NumberOfCandidates} pipeline candidates", candidates.Count);
+			var lookBack = _configuration.GetValue("PipelineCandidates:AutoEnqueueLookBackHours", 6.0);
+			var averageProcessingSeconds = (await _databaseContext.CandidateProcessingMetrics
+				.Where(m => m.ProcessingEndTime != null && m.ProcessingEndTime.Value > DateTime.UtcNow.AddDays(lookBack * -1))
+				.AverageAsync(m => m.ProcessingDurationP) ?? 1000 * 30) / 1000;
+
 			var processed = 0;
 			foreach (var candidate in candidates)
 			{
 				try
 				{
-					await ProcessPipelineCandidateInBackground(candidate);
+					await ProcessPipelineCandidateInBackground(candidate,
+						Math.Max(averageProcessingSeconds / 2 * processed, 2.0));
 					processed++;
 				}
 				catch (Exception e)
@@ -438,7 +444,7 @@ namespace PipelineService.Services.Impl
 		}
 
 
-		private async Task ProcessPipelineCandidateInBackground(PipelineCandidate candidate)
+		private async Task ProcessPipelineCandidateInBackground(PipelineCandidate candidate, double delaySeconds = 1)
 		{
 			_logger.LogDebug("Processing pipeline candidate with id {PipelineCandidateId}", candidate.PipelineId);
 			var metric = new CandidateProcessingMetric
@@ -483,7 +489,8 @@ namespace PipelineService.Services.Impl
 
 			await _databaseContext.SaveChangesAsync();
 
-			BackgroundJob.Enqueue<IPipelinesDtoService>(s => s.ProcessPipelineAsCandidate(metric.Id, pipelineId));
+			BackgroundJob.Schedule<IPipelinesDtoService>(s => s.ProcessPipelineAsCandidate(metric.Id, pipelineId),
+				TimeSpan.FromSeconds(delaySeconds));
 		}
 
 		/// <summary>
