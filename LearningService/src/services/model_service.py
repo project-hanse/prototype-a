@@ -122,7 +122,7 @@ class ModelService:
 					signature = None
 				mlflow.sklearn.log_model(
 					sk_model=model,
-					artifact_path=mlflow.get_artifact_uri().replace('s3://', ''),
+					artifact_path="model",
 					registered_model_name=model_name,
 					signature=signature
 				)

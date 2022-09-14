@@ -14,10 +14,13 @@ from src.services.pipeline_client import PipelineClient
 from src.services.trainer_registry import TrainerRegistry
 
 PORT: int = os.getenv("PORT", 5006)
-S3_HOST: str = os.getenv("S3_HOST", "localstack")
-S3_PORT: str = os.getenv("S3_PORT", "4566")
-S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "localstack")
-S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "localstack")
+S3_REGION: str = os.getenv("AWS_REGION", "eu-west-3")
+S3_DEFAULT_REGION: str = os.getenv("AWS_DEFAULT_REGION", "eu-west-3")
+S3_SIGNATURE_VERSION: str = os.getenv("AWS_S3_SIGNATURE_VERSION", "s3v4")
+S3_HOST: str = os.getenv("S3_HOST", "minio")
+S3_PORT: str = os.getenv("S3_PORT", "9000")
+S3_ACCESS_KEY_SECRET: str = os.getenv("S3_ACCESS_KEY_SECRET", "minio")
+S3_ACCESS_KEY_ID: str = os.getenv("S3_ACCESS_KEY_ID", "minio")
 MLFLOW_TRACKING_URI: str = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow-server:5005")
 MLFLOW_REGISTRY_URI: str = os.getenv("MLFLOW_REGISTRY_URI", "http://mlflow-server:5005")
 PIPELINE_SERVICE_HOST: str = os.getenv("PIPELINE_SERVICE_HOST", "pipeline-service")
@@ -26,6 +29,9 @@ DATASET_SERVICE_HOST: str = os.getenv("DATASET_SERVICE_HOST", "dataset-service")
 DATASET_SERVICE_PORT: int = os.getenv("DATASET_SERVICE_PORT", 5002)
 
 # Configure mlflow
+os.environ["AWS_REGION"] = S3_REGION
+os.environ["AWS_DEFAULT_REGION"] = S3_DEFAULT_REGION
+os.environ["AWS_S3_SIGNATURE_VERSION"] = S3_SIGNATURE_VERSION
 os.environ["AWS_ACCESS_KEY_ID"] = S3_ACCESS_KEY_ID
 os.environ["AWS_SECRET_ACCESS_KEY"] = S3_ACCESS_KEY_SECRET
 os.environ["MLFLOW_S3_ENDPOINT_URL"] = f"http://{S3_HOST}:{S3_PORT}"

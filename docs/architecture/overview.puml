@@ -30,7 +30,6 @@ rectangle "Services" {
 
 rectangle "Persistent Storage" {
     database "Graph Database" << Neo4j >> as graph_db
-    node "S3 BLOB Store" << Localstack >> as blob_store
     node "S3 BLOB Store" << MinIO >> as blob_store_minio
     'database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
     database "SQL Database" << MySQL >> as mysql_db
@@ -71,7 +70,7 @@ dataset_store <--> message_broker_internal
 file_service --> blob_store_minio
 
 mlflow_server --> mysql_db
-mlflow_server --> blob_store
+mlflow_server --> blob_store_minio
 
 worker --> dataset_store
 worker --> blob_store_minio
