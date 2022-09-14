@@ -492,6 +492,7 @@ namespace PipelineService.Services.Impl
 				await _pipelinesExecutionDao.GetLastCompletedExecutionForOperation(operation.PipelineId, operationId);
 
 			if (lastExecutionRecord != null &&
+			    lastExecutionRecord.IsSuccessful &&
 			    lastExecutionRecord.OperationHash == operation.OperationHash &&
 			    lastExecutionRecord.PredecessorsHash == operation.PredecessorsHash)
 			{
@@ -504,7 +505,7 @@ namespace PipelineService.Services.Impl
 					PipelineId = operation.PipelineId,
 					ExecutionId = executionId,
 					OperationId = operationId,
-					Successful = lastExecutionRecord.IsSuccessful,
+					Successful = true,
 					StartTime = startTime,
 					StopTime = DateTime.UtcNow,
 					Cached = true
