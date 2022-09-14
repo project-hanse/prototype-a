@@ -24,8 +24,7 @@ namespace PipelineService.Services
 		/// <summary>
 		/// Loads a number of pipeline candidates, tries to import them, and checks if they are executable.
 		/// </summary>
-		/// <para name="numberOfCandidates">The number of candidates that will be processed.</para>
-		Task<int> ProcessPipelineCandidates(int numberOfCandidates);
+		Task<int> AutoEnqueuePipelineCandidates();
 
 		Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates);
 
