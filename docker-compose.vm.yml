@@ -5,7 +5,7 @@ version: '3.3'
 services:
   # NGINX Reverse Proxy
   edge-nginx:
-    image: nginx:latest
+    image: nginx:alpine
     restart: unless-stopped
     networks:
       - default
@@ -131,7 +131,7 @@ services:
       S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 4
     logging:
       options:
         max-size: 250m
@@ -158,7 +158,7 @@ services:
       - dataset-service
     deploy:
       mode: replicated
-      replicas: 4
+      replicas: 6
     logging:
       options:
         max-size: 250m
