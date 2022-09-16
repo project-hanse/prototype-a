@@ -14,8 +14,8 @@ from src.models.dataset import Dataset
 
 
 class DatasetStoreS3:
-	dataset_cache: dict = None
-	metadata_cache: dict = None
+	dataset_cache: ExpiringDict = None
+	metadata_cache: ExpiringDict = None
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -25,8 +25,9 @@ class DatasetStoreS3:
 
 	def setup(self, s3_endpoint: str, s3_access_key_id: str, s3_access_key_secret: str, s3_region: str):
 		self.log.info("Setting up S3 dataset store (s3_endpoint: %s)" % s3_endpoint)
-		self.dataset_cache = ExpiringDict(max_len=1000, max_age_seconds=60 * 60 * 2)
-		self.metadata_cache = ExpiringDict(max_len=1000, max_age_seconds=60 * 60 * 2)
+		self.dataset_cache = ExpiringDict(max_len=500, max_age_seconds=60 * 60)
+		self.metadata_cache = ExpiringDict(max_len=500, max_age_seconds=60 * 60)
+
 		try:
 			self.s3_region = s3_region
 			self.s3_client = boto3.client(service_name='s3',
@@ -51,11 +52,14 @@ class DatasetStoreS3:
 		return count
 
 	def _compute_and_store_metadata(self, key: str, data):
-		self.log.info("Computing and storing metadata for key %s" % str(key))
+		self.log.info("Computing metadata for key %s..." % str(key))
 		metadata_compact = self.compute_metadata_compact(key, data)
 		metadata_full = self.compute_metadata_full(key, data)
+		self.log.info("Storing compact metadata for key %s..." % str(key))
 		self.store_metadata_by_key(key, metadata_compact, METADATA_VERSION_COMPACT)
+		self.log.info("Storing full metadata for key %s..." % str(key))
 		self.store_metadata_by_key(key, metadata_full, METADATA_VERSION_FULL)
+		self.log.info("Computed and stored metadata for key %s" % str(key))
 
 	def store_metadata_by_key(self, key: str, metadata: dict, version: str = METADATA_VERSION_COMPACT):
 		self.log.debug("Storing metadata for key %s" % str(key))
@@ -117,6 +121,25 @@ class DatasetStoreS3:
 			self.log.error("Failed to delete dataset with key %s: %s" % (str(dataset.key), str(e)))
 			return False
 		self.log.info("Dataset with key %s deleted" % str(dataset.key))
+		return True
+
+	def delete_metadata(self, dataset: Dataset) -> bool:
+		self.log.debug("Deleting metadata for dataset with key %s" % str(dataset.key))
+		if get_metadata_key(dataset.key, METADATA_VERSION_FULL) in self.metadata_cache:
+			self.log.debug("Metadata for dataset with key %s found in cache - removing from cache" % str(dataset.key))
+			del self.metadata_cache[get_metadata_key(dataset.key, METADATA_VERSION_FULL)]
+		if get_metadata_key(dataset.key, METADATA_VERSION_COMPACT) in self.metadata_cache:
+			self.log.debug("Metadata for dataset with key %s found in cache - removing from cache" % str(dataset.key))
+			del self.metadata_cache[get_metadata_key(dataset.key, METADATA_VERSION_COMPACT)]
+		try:
+			self.s3_client.delete_object(Bucket=METADATA_BUCKET_NAME,
+																	 Key=get_metadata_key(dataset.key, METADATA_VERSION_COMPACT))
+			self.s3_client.delete_object(Bucket=METADATA_BUCKET_NAME,
+																	 Key=get_metadata_key(dataset.key, METADATA_VERSION_FULL))
+		except Exception as e:
+			self.log.error("Failed to delete metadata for dataset with key %s: %s" % (str(dataset.key), str(e)))
+			return False
+		self.log.info("Metadata for dataset with key %s deleted" % str(dataset.key))
 		return True
 
 	def get_metadata_by_key(self, key, version: str = METADATA_VERSION_COMPACT):
