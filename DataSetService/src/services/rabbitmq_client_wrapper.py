@@ -72,6 +72,7 @@ class RabbitMqClientWrapper:
 		try:
 			request = DatasetDeleteEvent(payload_deserialized)
 			self.dataset_store.delete_dataset(request.get_dataset())
+			self.dataset_store.delete_metadata(request.get_dataset())
 		except Exception as e:
 			self.logging.error("Error during handling of request %s" % str(e))
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)

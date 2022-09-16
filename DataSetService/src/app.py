@@ -202,4 +202,6 @@ event_bus_thread.start()
 
 if __name__ == '__main__':
 	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True, allow_unsafe_werkzeug=True)
-# TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec
+	# TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec
+	event_bus_thread.join()
+	dataset_store.shutdown()

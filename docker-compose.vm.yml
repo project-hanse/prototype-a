@@ -5,7 +5,7 @@ version: '3.3'
 services:
   # NGINX Reverse Proxy
   edge-nginx:
-    image: nginx:latest
+    image: nginx:alpine
     restart: unless-stopped
     networks:
       - default
@@ -19,7 +19,7 @@ services:
       - NGINX_HOST=0.0.0.0
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     depends_on:
       - dev-frontend
       - pipeline-service
@@ -35,7 +35,7 @@ services:
       - default
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     volumes:
       - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
 
@@ -47,7 +47,7 @@ services:
       - default
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     depends_on:
       - pipeline-service
 
@@ -71,7 +71,7 @@ services:
       replicas: 4
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
       - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
@@ -95,7 +95,7 @@ services:
       MLFLOW_REGISTRY_URI: "http://mlflow-server:5005"
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     depends_on:
       - minio
       - dataset-service
@@ -114,7 +114,7 @@ services:
       S3Configuration__SecretKey: OsKwEnsJz0AtiX05
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     depends_on:
       - minio
 
@@ -131,10 +131,10 @@ services:
       S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 4
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     depends_on:
       - minio
 
@@ -158,10 +158,10 @@ services:
       - dataset-service
     deploy:
       mode: replicated
-      replicas: 4
+      replicas: 6
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     volumes:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
@@ -186,7 +186,7 @@ services:
       replicas: 2
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -208,7 +208,7 @@ services:
       TARGET_ACTION_COUNT: '13'
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     deploy:
       mode: replicated
       replicas: 2
@@ -237,7 +237,7 @@ services:
       MYSQL_PASSWORD: hdfcLhDASas3vKhy
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
 
   # Adminer
   adminer:
@@ -263,7 +263,7 @@ services:
     command: server --console-address ":9001" /data1
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -283,7 +283,7 @@ services:
       retries: 10
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
@@ -303,7 +303,7 @@ services:
       retries: 10
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     volumes:
       - ./volumes/mysql:/var/lib/mysql
 
@@ -318,7 +318,7 @@ services:
       retries: 1
     logging:
       options:
-        max-size: 500m
+        max-size: 250m
     volumes:
       - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
 #      - ./volumes/rabbitmq/log/:/var/log/rabbitmq

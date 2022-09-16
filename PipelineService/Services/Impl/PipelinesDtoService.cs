@@ -317,7 +317,31 @@ namespace PipelineService.Services.Impl
 
 		public async Task<int> AutoEnqueuePipelineCandidates()
 		{
-			var lookBack = _configuration.GetValue("PipelineCandidates:AutoEnqueueLookBackHours", 6.0);
+			var toBeEnqueued = Math.Max(await AverageCandidatesProcessedPerHour(), 2);
+			var enqueued = await ProcessIncompleteCandidatesInBackground();
+
+			_logger.LogDebug("Enqueued {Enqueued} incomplete pipeline candidates...", enqueued);
+			if (toBeEnqueued >= enqueued)
+			{
+				_logger.LogInformation("Enqueued enough candidates ({Enqueued}) from incomplete candidates, skipping new candidates", enqueued);
+				return enqueued;
+			}
+
+			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination
+			{
+				Page = 1,
+				PageSize = Math.Max(toBeEnqueued - enqueued, 1)
+			});
+
+			_logger.LogInformation("Enqueuing {CandidateCount} additional pipeline candidates for processing...",
+				candidates.Count);
+
+			return await ProcessPipelineCandidatesInBackground(candidates);
+		}
+
+		private async Task<int> AverageCandidatesProcessedPerHour()
+		{
+			var lookBack = _configuration.GetValue("PipelineCandidates:LookBackHoursForAverages", 6.0);
 			var candidatesProcessedInLastNHours = await _databaseContext.CandidateProcessingMetrics
 				.Where(m => m.ProcessingCompleted &&
 				            m.ProcessingEndTime != null &&
@@ -325,17 +349,30 @@ namespace PipelineService.Services.Impl
 				.Select(m => m.ProcessingEndTime)
 				.CountAsync();
 
-			var n = Math.Max((int)Math.Ceiling(candidatesProcessedInLastNHours / lookBack), 2);
+			var avgCandidatesProcessedPerHour = candidatesProcessedInLastNHours / lookBack;
 
-			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination()
-			{
-				Page = 1,
-				PageSize = n
-			});
+			_logger.LogInformation(
+				"Average candidate processing count in last {LookBackHours} hours: {AvgCandidatesProcessedPerHour}",
+				avgCandidatesProcessedPerHour, lookBack);
 
-			_logger.LogInformation("Enqueuing {CandidateCount} pipeline candidates for processing...", candidates.Count);
+			return (int)Math.Ceiling(avgCandidatesProcessedPerHour);
+		}
 
-			return await ProcessPipelineCandidatesInBackground(candidates);
+		private async Task<double?> AverageProcessingTimePerCandidate()
+		{
+			var lookBack = _configuration.GetValue("PipelineCandidates:LookBackHoursForAverages", 6.0);
+			var averageProcessingTime = await _databaseContext.CandidateProcessingMetrics
+				.Where(m => m.ProcessingCompleted &&
+				            m.ProcessingDurationP != null &&
+				            m.ProcessingEndTime != null &&
+				            m.ProcessingEndTime > DateTime.UtcNow.AddHours(lookBack * -1))
+				.AverageAsync(m => m.ProcessingDurationP);
+
+			_logger.LogInformation(
+				"Average processing time for pipeline candidate in the last {LookBackHours} hours: {AverageCandidateProcessingTime}",
+				lookBack, averageProcessingTime);
+
+			return averageProcessingTime;
 		}
 
 		public async Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates)
@@ -349,12 +386,14 @@ namespace PipelineService.Services.Impl
 			return await ProcessPipelineCandidatesInBackground(candidates);
 		}
 
-		public async Task ProcessIncompleteCandidatesInBackground()
+		public async Task<int> ProcessIncompleteCandidatesInBackground()
 		{
 			_logger.LogDebug("Checking if incomplete candidates exist and enqueueing them for processing...");
 
 			var incompleteMetricsIds = await _databaseContext.CandidateProcessingMetrics
 				.Where(m => !m.ProcessingCompleted)
+				.OrderBy(m => m.CreatedOn)
+				.Take(Math.Max(await AverageCandidatesProcessedPerHour(), 4))
 				.Select(m =>
 					new
 					{
@@ -366,41 +405,39 @@ namespace PipelineService.Services.Impl
 			if (incompleteMetricsIds.Count == 0)
 			{
 				_logger.LogInformation("No incomplete pipeline candidates to process");
+				return 0;
 			}
-			else
+
+			var averageProcessingTime = await AverageProcessingTimePerCandidate();
+
+			if (!averageProcessingTime.HasValue || averageProcessingTime < 5000)
 			{
-				var averageProcessingTime = await _databaseContext.CandidateProcessingMetrics
-					.Where(m => m.ProcessingCompleted && m.ProcessingDurationP != null)
-					.AverageAsync(m => m.ProcessingDurationP);
-
-				if (!averageProcessingTime.HasValue || averageProcessingTime < 5000)
-				{
-					averageProcessingTime = 5000;
-					_logger.LogDebug("Average processing time is less than 5 seconds, setting it to 5 seconds");
-				}
-
-				_logger.LogDebug("Found {NumberOfIncompleteCandidates} incomplete pipeline candidates",
-					incompleteMetricsIds.Count);
-				var i = 0;
-				foreach (var incompleteCandidate in incompleteMetricsIds)
-				{
-					i++;
-					_logger.LogDebug("Enqueueing candidate {CandidateId} for processing in {ScheduledInSeconds}",
-						incompleteCandidate.PipelineId, i * averageProcessingTime.Value / 1000);
-					BackgroundJob.Schedule<IPipelinesDtoService>(s =>
-							s.ProcessPipelineAsCandidate(incompleteCandidate.MetricId, incompleteCandidate.PipelineId),
-						TimeSpan.FromMilliseconds(i * averageProcessingTime.Value));
-				}
-
-				_logger.LogInformation("Enqueued {NumberOfIncompleteCandidates} incomplete pipeline candidates for processing",
-					incompleteMetricsIds.Count);
+				averageProcessingTime = 5000;
+				_logger.LogDebug("Average processing time is less than 5 seconds, setting it to 5 seconds");
 			}
+
+			_logger.LogDebug("Found {NumberOfIncompleteCandidates} incomplete pipeline candidates",
+				incompleteMetricsIds.Count);
+			var i = 0;
+			foreach (var incompleteCandidate in incompleteMetricsIds)
+			{
+				i++;
+				_logger.LogDebug("Enqueueing candidate {CandidateId} for processing in {ScheduledInSeconds}",
+					incompleteCandidate.PipelineId, i * averageProcessingTime.Value / 1000);
+				BackgroundJob.Schedule<IPipelinesDtoService>(s =>
+						s.ProcessPipelineAsCandidate(incompleteCandidate.MetricId, incompleteCandidate.PipelineId),
+					TimeSpan.FromMilliseconds(i * averageProcessingTime.Value));
+			}
+
+			_logger.LogInformation("Enqueued {NumberOfIncompleteCandidates} incomplete pipeline candidates for processing",
+				incompleteMetricsIds.Count);
+			return i;
 		}
 
 		private async Task<int> ProcessPipelineCandidatesInBackground(ICollection<PipelineCandidate> candidates)
 		{
 			_logger.LogDebug("Processing {NumberOfCandidates} pipeline candidates", candidates.Count);
-			var lookBack = _configuration.GetValue("PipelineCandidates:AutoEnqueueLookBackHours", 6.0);
+			var lookBack = _configuration.GetValue("PipelineCandidates:LookBackHoursForAverages", 6.0);
 			var averageProcessingSeconds = (await _databaseContext.CandidateProcessingMetrics
 				.Where(m => m.ProcessingEndTime != null && m.ProcessingEndTime.Value > DateTime.UtcNow.AddDays(lookBack * -1))
 				.AverageAsync(m => m.ProcessingDurationP) ?? 1000 * 30) / 1000;

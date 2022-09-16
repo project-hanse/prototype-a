@@ -138,16 +138,21 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpGet("execute/{pipelineId:Guid}")]
-		public async Task<IActionResult> ExecutePipeline(Guid pipelineId)
+		public async Task<IActionResult> ExecutePipeline(Guid pipelineId,
+			[FromQuery]
+			bool allowResultCaching = true,
+			[FromQuery]
+			ExecutionStrategy strategy = ExecutionStrategy.Eager)
 		{
 			_logger.LogInformation("Executing pipeline {PipelineId}", pipelineId);
 
-			var execution = await _pipelineExecutionService.ExecutePipeline(pipelineId, false, ExecutionStrategy.Eager);
+			var executionId = await _pipelineExecutionService
+				.ExecutePipeline(pipelineId, false, strategy, allowResultCaching);
 
 			_logger.LogDebug("Execution of pipeline ({PipelineId}) with execution id {ExecutionId} started",
-				pipelineId, execution);
+				pipelineId, executionId);
 
-			return Ok(execution);
+			return Ok(executionId);
 		}
 
 		[HttpPost("execute")]

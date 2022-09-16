@@ -43,7 +43,7 @@ class DatasetServiceClient:
 
 	def store_dataframe_by_key(self, key: str, resulting_dataset: pd.DataFrame):
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/key/' + key
-		self.logging.info('Storing dataframe to %s' % address)
+		self.logging.debug('Storing dataframe to %s' % address)
 		response = requests.post(address, data=self.serialize_dataframe(resulting_dataset))
 		if response.status_code < 300:
 			self.logging.info('Store responded with status code (%i) %s' % (response.status_code, str(response.reason)))

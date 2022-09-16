@@ -89,7 +89,7 @@ public class LearningServiceClient : ILearningServiceClient
 			}
 
 			BackgroundJob.Schedule<IPipelineExecutionService>(
-				s => s.ExecutePipeline(pipelineInfoDto.Id, true, ExecutionStrategy.Lazy),
+				s => s.ExecutePipeline(pipelineInfoDto.Id, true, ExecutionStrategy.Lazy, true),
 				TimeSpan.FromMinutes(delay));
 			_logger.LogInformation("Enqueued pipeline {PipelineId} in {Delay} minutes ({Progress}/{Total})",
 				pipelineInfoDto.Id, delay, progress, pipelines.Count);

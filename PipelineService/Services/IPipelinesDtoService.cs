@@ -30,6 +30,6 @@ namespace PipelineService.Services
 
 		Task ProcessPipelineAsCandidate(Guid metricId, Guid pipelineId);
 
-		Task ProcessIncompleteCandidatesInBackground();
+		Task<int> ProcessIncompleteCandidatesInBackground();
 	}
 }

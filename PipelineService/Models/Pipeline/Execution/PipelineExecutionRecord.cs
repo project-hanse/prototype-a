@@ -19,6 +19,10 @@ namespace PipelineService.Models.Pipeline.Execution
 		/// </summary>
 		public DateTime? CompletedOn { get; set; }
 
+		public ExecutionStrategy Strategy { get; set; }
+
+		public bool AllowCachingResults { get; set; }
+
 		/// <summary>
 		/// The status the pipeline execution was it at the time of completion (fail or success).
 		/// </summary>
