@@ -186,7 +186,7 @@ namespace PipelineService.Services.Impl
 		}
 
 		public async Task<Guid> ExecutePipeline(Guid pipelineId, bool skipIfExecuted = false,
-			ExecutionStrategy strategy = ExecutionStrategy.Lazy)
+			ExecutionStrategy strategy = ExecutionStrategy.Lazy, bool allowResultCaching = true)
 		{
 			_logger.LogInformation("Executing pipeline with id {PipelineId}", pipelineId);
 			PipelineExecutionRecord execution;
@@ -207,6 +207,9 @@ namespace PipelineService.Services.Impl
 			await _pipelinesDao.UpdatePipeline(pipeline);
 
 			execution = await _pipelinesExecutionDao.Create(pipelineId, strategy);
+			execution.Strategy = strategy;
+			execution.AllowCachingResults = allowResultCaching;
+			await _pipelinesExecutionDao.Update(execution);
 
 			await EnqueueNextOperations(execution, pipelineId);
 
@@ -477,6 +480,7 @@ namespace PipelineService.Services.Impl
 		{
 			var startTime = DateTime.UtcNow;
 			var operation = await _pipelinesDao.GetOperation(operationId);
+			var execution = await _pipelinesExecutionDao.Get(executionId);
 			var predecessorHashes = await _pipelinesDao.GetPredecessorHashes(operationId);
 			var predHashCombined = HashHelper.ComputeHash(predecessorHashes);
 			if (predHashCombined != operation.PredecessorsHash)
@@ -492,7 +496,8 @@ namespace PipelineService.Services.Impl
 			var lastExecutionRecord =
 				await _pipelinesExecutionDao.GetLastCompletedExecutionForOperation(operation.PipelineId, operationId);
 
-			if (lastExecutionRecord != null &&
+			if (execution.AllowCachingResults &&
+			    lastExecutionRecord != null &&
 			    lastExecutionRecord.IsSuccessful &&
 			    lastExecutionRecord.OperationHash == operation.OperationHash &&
 			    lastExecutionRecord.PredecessorsHash == operation.PredecessorsHash)
