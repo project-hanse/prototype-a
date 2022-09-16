@@ -321,7 +321,7 @@ namespace PipelineService.Services.Impl
 			var enqueued = await ProcessIncompleteCandidatesInBackground();
 
 			_logger.LogDebug("Enqueued {Enqueued} incomplete pipeline candidates...", enqueued);
-			if (toBeEnqueued >= enqueued)
+			if (enqueued >= toBeEnqueued)
 			{
 				_logger.LogInformation("Enqueued enough candidates ({Enqueued}) from incomplete candidates, skipping new candidates", enqueued);
 				return enqueued;
