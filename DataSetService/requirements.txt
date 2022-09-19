@@ -11,5 +11,5 @@ jsonpickle==2.2.0
 expiringdict==1.2.2
 pika==1.3.0
 
-botocore~=1.27.71
+botocore~=1.27.75
 setuptools~=65.3.0
