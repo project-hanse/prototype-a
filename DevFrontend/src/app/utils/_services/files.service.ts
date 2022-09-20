@@ -34,9 +34,9 @@ export class FilesService extends BaseHttpService {
 	}
 
 	public getPlotUrl(dataset: Dataset): string {
-		const url = new URL(this.getFilesUrl('plot'));
+		/*const url = new URL(t);
 		url.searchParams.set('store', dataset.store);
-		url.searchParams.set('key', dataset.key);
-		return url.href;
+		url.searchParams.set('key', dataset.key);*/
+		return this.getFilesUrl('plot') + '?store=' + dataset.store + '&key=' + dataset.key;
 	}
 }
