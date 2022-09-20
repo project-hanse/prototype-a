@@ -1,4 +1,6 @@
 import pickle
+from concurrent.futures import ThreadPoolExecutor
+from time import sleep
 
 import boto3
 import pandas as pd
@@ -16,12 +18,15 @@ from src.models.dataset import Dataset
 class DatasetStoreS3:
 	dataset_cache: ExpiringDict = None
 	metadata_cache: ExpiringDict = None
+	scheduled_metadata_computations = {}
 
 	def __init__(self) -> None:
 		super().__init__()
 		self.s3_client = None
 		self.s3_region = None
 		self.log = LogHelper.get_logger('S3Store')
+		self.background_worker_count = 5
+		self.pool: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=self.background_worker_count)
 
 	def setup(self, s3_endpoint: str, s3_access_key_id: str, s3_access_key_secret: str, s3_region: str):
 		self.log.info("Setting up S3 dataset store (s3_endpoint: %s)" % s3_endpoint)
@@ -41,6 +46,13 @@ class DatasetStoreS3:
 		except Exception as e:
 			self.log.error("Failed to setup connection to S3 service %s" % str(e))
 
+	def stop(self):
+		# get number of pending tasks
+		pending_tasks = self.pool._work_queue.qsize()
+		self.log.info("Stopping S3 dataset store (waiting for %i background tasks to complete)...", pending_tasks)
+		self.pool.shutdown(wait=True)
+		self.log.info("Stopped S3 dataset store")
+
 	def get_dataset_count(self):
 		"""
 		Returns the number of datasets in the store
@@ -59,7 +71,16 @@ class DatasetStoreS3:
 		self.store_metadata_by_key(key, metadata_compact, METADATA_VERSION_COMPACT)
 		self.log.info("Storing full metadata for key %s..." % str(key))
 		self.store_metadata_by_key(key, metadata_full, METADATA_VERSION_FULL)
+		del self.scheduled_metadata_computations[key]
 		self.log.info("Computed and stored metadata for key %s" % str(key))
+
+		pending_tasks = self.pool._work_queue.qsize()
+		if pending_tasks > self.background_worker_count:
+			self.log.warning("There are %i background tasks pending, this may slow down the system" % pending_tasks)
+		elif pending_tasks == 0:
+			self.log.info("There are no more background tasks pending")
+		else:
+			self.log.debug("There are %i background tasks pending" % pending_tasks)
 
 	def store_metadata_by_key(self, key: str, metadata: dict, version: str = METADATA_VERSION_COMPACT):
 		self.log.debug("Storing metadata for key %s" % str(key))
@@ -80,7 +101,9 @@ class DatasetStoreS3:
 		if response['ResponseMetadata']['HTTPStatusCode'] == 200:
 			self.dataset_cache[key] = data
 			self.log.info("Successfully stored %s with key %s" % (get_str_from_type(data_type), key))
-			self._compute_and_store_metadata(key, data)
+			future = self.pool.submit(self._compute_and_store_metadata, key, data)
+			self.scheduled_metadata_computations[key] = future
+			self.log.info("Created background task to compute and store metadata for key %s" % str(key))
 			return True
 		self.log.error("Failed to store %s with key %s" % (get_str_from_type(data_type), key))
 		return False
@@ -123,8 +146,13 @@ class DatasetStoreS3:
 		self.log.info("Dataset with key %s deleted" % str(dataset.key))
 		return True
 
-	def delete_metadata(self, dataset: Dataset) -> bool:
+	def delete_metadata(self, dataset: Dataset) -> None:
 		self.log.debug("Deleting metadata for dataset with key %s" % str(dataset.key))
+		if dataset.key in self.scheduled_metadata_computations:
+			self.log.info("Aborting scheduled computation of metadata for dataset with key %s" % str(dataset.key))
+			self.scheduled_metadata_computations[dataset.key].cancel()
+			del self.scheduled_metadata_computations[dataset.key]
+
 		if get_metadata_key(dataset.key, METADATA_VERSION_FULL) in self.metadata_cache:
 			self.log.debug("Metadata for dataset with key %s found in cache - removing from cache" % str(dataset.key))
 			del self.metadata_cache[get_metadata_key(dataset.key, METADATA_VERSION_FULL)]
@@ -134,13 +162,15 @@ class DatasetStoreS3:
 		try:
 			self.s3_client.delete_object(Bucket=METADATA_BUCKET_NAME,
 																	 Key=get_metadata_key(dataset.key, METADATA_VERSION_COMPACT))
+		except Exception as e:
+			self.log.warning("Failed to delete compact metadata for dataset with key %s: %s" % (str(dataset.key), str(e)))
+		try:
 			self.s3_client.delete_object(Bucket=METADATA_BUCKET_NAME,
 																	 Key=get_metadata_key(dataset.key, METADATA_VERSION_FULL))
 		except Exception as e:
-			self.log.error("Failed to delete metadata for dataset with key %s: %s" % (str(dataset.key), str(e)))
-			return False
+			self.log.warning("Failed to delete full metadata for dataset with key %s: %s" % (str(dataset.key), str(e)))
+
 		self.log.info("Metadata for dataset with key %s deleted" % str(dataset.key))
-		return True
 
 	def get_metadata_by_key(self, key, version: str = METADATA_VERSION_COMPACT):
 		self.log.debug("Loading metadata by key %s" % str(key))

@@ -40,8 +40,8 @@ export class PipelineService extends BaseHttpService {
 		return super.get('create/defaults');
 	}
 
-	public executePipeline(id: string): Observable<string> {
-		return super.get('execute/' + id);
+	public executePipeline(id: string, allowResultCaching: boolean): Observable<string> {
+		return super.get('execute/' + id + '?allowResultCaching=' + allowResultCaching);
 	}
 
 	public getPipelineForVisualization(pipelineId: string): Observable<VisualizationPipelineDto> {
@@ -91,5 +91,9 @@ export class PipelineService extends BaseHttpService {
 
 	public processCandidates(candidateIds: string[]): Observable<number> {
 		return this.httpClient.post<number>(this.getPipelinesUrl('candidate', 'process'), candidateIds);
+	}
+
+	public autoEnqueueCandidates(): Observable<number> {
+		return this.httpClient.get<number>(this.getPipelinesUrl('candidate', 'process', 'auto'));
 	}
 }

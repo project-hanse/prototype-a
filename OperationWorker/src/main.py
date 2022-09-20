@@ -38,6 +38,7 @@ def sigterm_handler(_signo, _stack_frame):
 	logging.debug("Got signal %s" % str(_signo))
 	global client_wrapper
 	if client_wrapper is not None:
+		client_wrapper.stop()
 		client_wrapper.cleanup()
 
 
@@ -72,6 +73,7 @@ if __name__ == '__main__':
 	logging.info('Shutting down')
 
 	try:
+		client_wrapper.stop()
 		client_wrapper.cleanup()
 	except Exception as e:
 		logging.exception('Error during shutdown', e)

@@ -6,7 +6,7 @@ flask-cors==3.0.10
 pandas==1.4.4
 openpyxl==3.0.10
 chardet==5.0.0
-boto3==1.24.73
+boto3==1.24.76
 jsonpickle==2.2.0
 mlflow==1.28.0
 sklearn==0.0

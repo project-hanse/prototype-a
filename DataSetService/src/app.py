@@ -2,7 +2,6 @@ import io
 import json
 import os
 import signal
-import sys
 import threading
 import uuid
 
@@ -13,6 +12,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 
 from src.constants.metadata_constants import *
+from src.helper.log_helper import LogHelper
 from src.helper.response_helper import format_response
 from src.services.dataset_store_s3 import DatasetStoreS3
 from src.services.file_store_s3 import FileStoreS3
@@ -40,12 +40,25 @@ file_store = FileStoreS3()
 init_service = InitService(file_store)
 dataset_store = DatasetStoreS3()
 event_bus_wrapper = RabbitMqClientWrapper(dataset_store)
+log = LogHelper.get_logger(__name__)
+
+# Setup Threads
+event_bus_thread = threading.Thread(target=event_bus_wrapper.start)
+flask_app_thread = threading.Thread(target=socketio.run,
+																		args=(app,),
+																		kwargs={"host": '0.0.0.0',
+																						"port": PORT,
+																						"use_reloader": False,
+																						"debug": True,
+																						"allow_unsafe_werkzeug": True})
 
 
 # Setup signal handling
 def signal_handler(sig, frame):
-	event_bus_wrapper.stop()
-	sys.exit(0)
+	if event_bus_thread.is_alive():
+		event_bus_wrapper.stop()
+	dataset_store.stop()
+	os.kill(os.getpid(), signal.SIGTERM)
 
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -148,6 +161,7 @@ def dataset_by_id(dataset_id: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=json
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/<dataset_id>')
 	return redirect('/api/dataframe/key/%s?format=json' % dataset_id, 301)
 
 
@@ -156,6 +170,7 @@ def dataset_as_html_by_id(dataset_id: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=html
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/html/<dataset_id>')
 	return redirect('/api/dataframe/key/%s?format=html' % dataset_id, 301)
 
 
@@ -164,6 +179,7 @@ def dataset_as_csv_by_id(dataset_id: str):
 	"""
 	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/csv/<dataset_id>')
 	return redirect('/api/dataframe/key/%s?format=csv' % dataset_id, 301)
 
 
@@ -172,6 +188,7 @@ def describe_dataset_by_key(key: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=json
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/key/describe/<key>')
 	return redirect('/api/metadata/key/%s?format=json' % key, 301)
 
 
@@ -180,6 +197,7 @@ def describe_dataframe_by_key_html(key: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=html
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/key/describe/html/<key>')
 	return redirect('/api/metadata/key/%s?format=html' % key, 301)
 
 
@@ -196,12 +214,16 @@ file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
 init_service.init_default_files_s3_in_background()
 event_bus_wrapper.setup(CLIENT_ID, MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT, MESSAGE_BROKER_TOPIC_DELETE)
 
-# start new thread for event bus
-event_bus_thread = threading.Thread(target=event_bus_wrapper.start)
-event_bus_thread.start()
-
 if __name__ == '__main__':
-	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True, allow_unsafe_werkzeug=True)
+	log.info("Starting event bus thread in background")
+	event_bus_thread.start()
+	log.info("Starting Flask app")
+	flask_app_thread.start()
 	# TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec
+
+	log.info("Shutting down...")
+	log.info("Waiting for flask process to finish")
+	flask_app_thread.join()
+	log.info("Waiting for event bus thread to finish...")
 	event_bus_thread.join()
-	dataset_store.shutdown()
+	log.info("Shutting down complete.")
