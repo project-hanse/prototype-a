@@ -167,4 +167,15 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 			)
 		);
 	}
+
+	autoEnqueue(): void {
+		this.processing = true;
+		this.subscriptions.add(
+			this.pipelineService.autoEnqueueCandidates().subscribe(count => {
+				this.matSnackBar.open(`${count} candidates enqueued`, 'Close', {duration: 5000});
+				this.processing = false;
+				this.reload.next({});
+			})
+		);
+	}
 }

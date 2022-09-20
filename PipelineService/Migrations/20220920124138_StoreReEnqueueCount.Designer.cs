@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PipelineService.Models;
 
@@ -10,9 +11,10 @@ using PipelineService.Models;
 namespace PipelineService.Migrations
 {
     [DbContext(typeof(EfDatabaseContext))]
-    partial class EfMetricsContextModelSnapshot : ModelSnapshot
+    [Migration("20220920124138_StoreReEnqueueCount")]
+    partial class StoreReEnqueueCount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

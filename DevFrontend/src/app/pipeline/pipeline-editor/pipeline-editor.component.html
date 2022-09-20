@@ -2,9 +2,14 @@
 	<div *ngIf="getPipeline(id) | async as pipeline; else notFound" class="grid-container">
 
 		<mat-toolbar>
-			<button mat-raised-button (click)="executePipeline(id)" color="accent">
+			<button mat-raised-button (click)="executePipeline(id, true)" color="accent">
 				<mat-icon>play_arrow</mat-icon>
 				<span>Execute</span>
+			</button>
+			<button mat-stroked-button (click)="executePipeline(id, false)" color="primary"
+							matTooltip="Forbids result caching">
+				<mat-icon>play_circle_outline</mat-icon>
+				<span>Execute (no cache)</span>
 			</button>
 			<span style="margin: 0 auto"></span>
 			<ph-pipeline-export [pipelineId]="pipeline.id"></ph-pipeline-export>

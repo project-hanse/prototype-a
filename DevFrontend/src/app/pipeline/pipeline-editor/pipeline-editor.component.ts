@@ -35,9 +35,9 @@ export class PipelineEditorComponent implements OnInit, OnDestroy {
 		return this.$pipeline;
 	}
 
-	public executePipeline(id: string): void {
+	public executePipeline(id: string, allowResultCaching: boolean): void {
 		this.subscriptions.add(
-			this.pipelineService.executePipeline(id)
+			this.pipelineService.executePipeline(id, allowResultCaching)
 				.subscribe(
 					executionId => console.log('Started execution' + executionId)
 				)

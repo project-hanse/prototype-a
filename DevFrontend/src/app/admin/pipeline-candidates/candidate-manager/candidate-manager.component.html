@@ -14,6 +14,11 @@
 			<mat-icon>import_export</mat-icon>
 			<span>Process Candidates</span>
 		</button>
+		<button mat-stroked-button color="primary"
+						(click)="autoEnqueue()">
+			<mat-icon>schedule_send</mat-icon>
+			<span>Auto Enqueue</span>
+		</button>
 		<a mat-button [href]="getMetricsUrl()" target="_blank">
 			<mat-icon>analytics</mat-icon>
 			<span>Processing Metrics</span>

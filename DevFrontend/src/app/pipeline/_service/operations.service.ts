@@ -35,7 +35,7 @@ export class OperationsService extends BaseHttpService {
 	}
 
 	public getPreviewHtml(outputKey: string): Observable<string> {
-		return this.httpClient.get(`${environment.datasetApi}/api/metadata/key/${outputKey}?format=html`, {responseType: 'text'});
+		return this.httpClient.get(`${environment.datasetApi}/api/dataframe/key/${outputKey}?format=html`, {responseType: 'text'});
 	}
 
 	public getConfig(pipelineId: string, operationId: string): Observable<Map<string, string>> {

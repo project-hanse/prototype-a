@@ -37,5 +37,6 @@ namespace PipelineService.Models.Pipeline.Execution
 		public bool IsSuccessful => OperationExecutionRecords.All(o => o.Status == ExecutionStatus.Succeeded);
 
 		public bool WaitingForOperations => OperationExecutionRecords.Any(o => o.Status == ExecutionStatus.InExecution);
+		public int ReEnqueueCount { get; set; } = 0;
 	}
 }
