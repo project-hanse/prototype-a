@@ -3,7 +3,7 @@
 		<ng-container *ngIf="getOutputDatasets(operationId) | async as outputs">
 			<ng-container *ngFor="let output of outputs">
 				<!-- Plot Preview -->
-				<mat-card *ngIf="isPlot(output)">
+				<mat-card *ngIf="isPlot(output); else datasetCard">
 					<mat-card-header>
 						<mat-card-subtitle>
 							<a target="_blank" [href]="getPlotUrl(output)" [matTooltip]="output.key">
@@ -16,23 +16,32 @@
 					</mat-card-content>
 				</mat-card>
 
-				<!-- Dataframe Preview -->
-				<mat-card *ngIf="isDataframe(output)">
-					<mat-card-header>
-						<mat-card-title>
-							Operation Result Description
-						</mat-card-title>
-						<mat-card-subtitle>
-							<a target="_blank" [href]="getDatasetLink(output.key)" [matTooltip]="output.key">
-								Full Dataset
-							</a>
-						</mat-card-subtitle>
-					</mat-card-header>
-					<ng-container>
-						<mat-card-content *ngIf="getPreviewHtml(output.key) | async as html_text"
-															[innerHTML]="html_text"></mat-card-content>
-					</ng-container>
-				</mat-card>
+				<!-- Generic Preview -->
+				<ng-template #datasetCard>
+					<mat-card>
+						<mat-card-header>
+							<mat-card-subtitle>
+								<a target="_blank" [href]="getDatasetLink(output)" [matTooltip]="output.key">
+									Full {{getDatasetName(output)}}
+								</a>
+								&nbsp;
+								<a target="_blank" [href]="getMetadataLink(output)">
+									Metadata
+								</a>
+							</mat-card-subtitle>
+						</mat-card-header>
+						<ng-container>
+							<mat-card-content *ngIf="getPreviewHtml(output) | async as html_text; else noPreview"
+																class="html-preview-container"
+																[innerHTML]="html_text"></mat-card-content>
+							<ng-template #noPreview>
+								<mat-card-content>
+									No preview available
+								</mat-card-content>
+							</ng-template>
+						</ng-container>
+					</mat-card>
+				</ng-template>
 			</ng-container>
 		</ng-container>
 	</ng-container>

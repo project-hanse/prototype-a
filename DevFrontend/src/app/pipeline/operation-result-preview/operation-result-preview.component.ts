@@ -34,15 +34,49 @@ export class OperationResultPreviewComponent implements OnInit {
 		return this.$datasetOutputs[operationId];
 	}
 
-	getPreviewHtml(datasetKey: string): Observable<string> {
-		if (!this.$previewHtml[datasetKey]) {
-			this.$previewHtml[datasetKey] = this.operationsService.getPreviewHtml(datasetKey);
+	getPreviewHtml(dataset: Dataset): Observable<string> {
+		if (!this.$previewHtml[dataset.key]) {
+			this.$previewHtml[dataset.key] = this.operationsService.getPreviewHtml(dataset.key);
 		}
-		return this.$previewHtml[datasetKey];
+		return this.$previewHtml[dataset.key];
 	}
 
-	getDatasetLink(hash: string): string {
-		return `${environment.datasetApi}/api/dataframe/key/${hash}?format=html`;
+	getDatasetName(dataset: Dataset): string {
+		switch (dataset.type) {
+			case DatasetType.PdDataFrame:
+				return 'Dataframe';
+			case DatasetType.StaticPlot:
+				return 'Plot';
+			case DatasetType.PdSeries:
+				return 'Series';
+			case DatasetType.Prophet:
+				return 'Prophet';
+			case DatasetType.SklearnModel:
+				return 'Model';
+			case DatasetType.SklearnEncoder:
+				return 'Encoder';
+			default:
+				return 'Dataset';
+		}
+	}
+
+	getDatasetLink(dataset: Dataset): string {
+		switch (dataset.type) {
+			case DatasetType.PdDataFrame:
+				return `${environment.datasetApi}/api/dataframe/key/${dataset.key}?format=html`;
+			case DatasetType.StaticPlot:
+				return `${environment.filesApi}/api/v1/files/plotUrl?store=${dataset.store}&key=${dataset.key}`;
+			case DatasetType.PdSeries:
+				return `${environment.datasetApi}/api/series/key/${dataset.key}?format=html`;
+			case DatasetType.Prophet:
+				return `${environment.datasetApi}/api/string/key/${dataset.key}`;
+			case DatasetType.SklearnModel:
+				return `${environment.datasetApi}/api/string/key/${dataset.key}`;
+			case DatasetType.SklearnEncoder:
+				return `${environment.datasetApi}/api/string/key/${dataset.key}`;
+			default:
+				return '';
+		}
 	}
 
 	isDataframe(output: Dataset): boolean {
@@ -56,5 +90,14 @@ export class OperationResultPreviewComponent implements OnInit {
 	getPlotUrl(dataset: Dataset): string {
 		return this.filesService.getPlotUrl(dataset);
 		// return `${environment.filesApi}/api/v1/files/plotUrl?store=${dataset.store}&key=${dataset.key}`;
+	}
+
+	getMetadataLink(output: Dataset): string {
+		switch (output.type) {
+			case DatasetType.StaticPlot:
+				return this.getPlotUrl(output);
+			default:
+				return `${environment.datasetApi}/api/metadata/key/${output.key}`;
+		}
 	}
 }
