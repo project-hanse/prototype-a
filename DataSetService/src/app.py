@@ -13,6 +13,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO
 
 from src.constants.metadata_constants import *
+from src.helper.log_helper import LogHelper
 from src.helper.response_helper import format_response
 from src.services.dataset_store_s3 import DatasetStoreS3
 from src.services.file_store_s3 import FileStoreS3
@@ -40,6 +41,7 @@ file_store = FileStoreS3()
 init_service = InitService(file_store)
 dataset_store = DatasetStoreS3()
 event_bus_wrapper = RabbitMqClientWrapper(dataset_store)
+log = LogHelper.get_logger(__name__)
 
 
 # Setup signal handling
@@ -148,6 +150,7 @@ def dataset_by_id(dataset_id: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=json
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/<dataset_id>')
 	return redirect('/api/dataframe/key/%s?format=json' % dataset_id, 301)
 
 
@@ -156,6 +159,7 @@ def dataset_as_html_by_id(dataset_id: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=html
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/html/<dataset_id>')
 	return redirect('/api/dataframe/key/%s?format=html' % dataset_id, 301)
 
 
@@ -164,6 +168,7 @@ def dataset_as_csv_by_id(dataset_id: str):
 	"""
 	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/csv/<dataset_id>')
 	return redirect('/api/dataframe/key/%s?format=csv' % dataset_id, 301)
 
 
@@ -172,6 +177,7 @@ def describe_dataset_by_key(key: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=json
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/key/describe/<key>')
 	return redirect('/api/metadata/key/%s?format=json' % key, 301)
 
 
@@ -180,6 +186,7 @@ def describe_dataframe_by_key_html(key: str):
 	"""
 	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=html
 	"""
+	log.warning('Legacy endpoint used: GET /api/dataframe/key/describe/html/<key>')
 	return redirect('/api/metadata/key/%s?format=html' % key, 301)
 
 
