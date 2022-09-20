@@ -18,6 +18,7 @@ from src.models.dataset import Dataset
 class DatasetStoreS3:
 	dataset_cache: ExpiringDict = None
 	metadata_cache: ExpiringDict = None
+	scheduled_metadata_computations = {}
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -71,6 +72,7 @@ class DatasetStoreS3:
 		self.store_metadata_by_key(key, metadata_compact, METADATA_VERSION_COMPACT)
 		self.log.info("Storing full metadata for key %s..." % str(key))
 		self.store_metadata_by_key(key, metadata_full, METADATA_VERSION_FULL)
+		del self.scheduled_metadata_computations[key]
 		self.log.info("Computed and stored metadata for key %s" % str(key))
 
 		pending_tasks = self.pool._work_queue.qsize()
@@ -100,7 +102,8 @@ class DatasetStoreS3:
 		if response['ResponseMetadata']['HTTPStatusCode'] == 200:
 			self.dataset_cache[key] = data
 			self.log.info("Successfully stored %s with key %s" % (get_str_from_type(data_type), key))
-			self.pool.submit(self._compute_and_store_metadata, key, data)
+			future = self.pool.submit(self._compute_and_store_metadata, key, data)
+			self.scheduled_metadata_computations[key] = future
 			self.log.info("Created background task to compute and store metadata for key %s" % str(key))
 			return True
 		self.log.error("Failed to store %s with key %s" % (get_str_from_type(data_type), key))
@@ -144,16 +147,13 @@ class DatasetStoreS3:
 		self.log.info("Dataset with key %s deleted" % str(dataset.key))
 		return True
 
-	def delete_metadata(self, dataset: Dataset, background: bool = True) -> None:
-		# TODO: check if creation of metadata is in progress or scheduled as background task
-		if background:
-			self.log.debug("Deleting metadata for dataset with key %s in background" % str(dataset.key))
-			self.pool.submit(self._delete_metadata, dataset)
-		else:
-			self._delete_metadata(dataset)
-
-	def _delete_metadata(self, dataset):
+	def delete_metadata(self, dataset: Dataset) -> None:
 		self.log.debug("Deleting metadata for dataset with key %s" % str(dataset.key))
+		if dataset.key in self.scheduled_metadata_computations:
+			self.log.info("Aborting scheduled computation of metadata for dataset with key %s" % str(dataset.key))
+			self.scheduled_metadata_computations[dataset.key].cancel()
+			del self.scheduled_metadata_computations[dataset.key]
+
 		if get_metadata_key(dataset.key, METADATA_VERSION_FULL) in self.metadata_cache:
 			self.log.debug("Metadata for dataset with key %s found in cache - removing from cache" % str(dataset.key))
 			del self.metadata_cache[get_metadata_key(dataset.key, METADATA_VERSION_FULL)]
@@ -163,10 +163,14 @@ class DatasetStoreS3:
 		try:
 			self.s3_client.delete_object(Bucket=METADATA_BUCKET_NAME,
 																	 Key=get_metadata_key(dataset.key, METADATA_VERSION_COMPACT))
+		except Exception as e:
+			self.log.warning("Failed to delete compact metadata for dataset with key %s: %s" % (str(dataset.key), str(e)))
+		try:
 			self.s3_client.delete_object(Bucket=METADATA_BUCKET_NAME,
 																	 Key=get_metadata_key(dataset.key, METADATA_VERSION_FULL))
 		except Exception as e:
-			self.log.error("Failed to delete metadata for dataset with key %s: %s" % (str(dataset.key), str(e)))
+			self.log.warning("Failed to delete full metadata for dataset with key %s: %s" % (str(dataset.key), str(e)))
+
 		self.log.info("Metadata for dataset with key %s deleted" % str(dataset.key))
 
 	def get_metadata_by_key(self, key, version: str = METADATA_VERSION_COMPACT):
