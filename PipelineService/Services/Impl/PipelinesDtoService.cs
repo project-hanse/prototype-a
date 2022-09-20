@@ -512,6 +512,7 @@ namespace PipelineService.Services.Impl
 				metric.ProcessingEndTime = DateTime.UtcNow;
 				_databaseContext.CandidateProcessingMetrics.Add(metric);
 				await _databaseContext.SaveChangesAsync();
+				await _pipelineCandidateService.ArchivePipelineCandidate(candidate.PipelineId);
 				return;
 			}
 
@@ -519,6 +520,7 @@ namespace PipelineService.Services.Impl
 
 			metric.ImportStartTime = DateTime.UtcNow;
 			var pipelineId = await ImportPipelineCandidate(candidate);
+			await _pipelineCandidateService.ArchivePipelineCandidate(pipelineId);
 			metric.ImportSuccess = true;
 			metric.ImportEndTime = DateTime.UtcNow;
 			_logger.LogInformation("Imported pipeline candidate with id {PipelineCandidateId} in {CandidateImportDuration}",
@@ -640,8 +642,6 @@ namespace PipelineService.Services.Impl
 						? $"Operation {failedOperationRecord.OperationId} (name: {failedOperationRecord.OperationIdentifier}) failed"
 						: $"{executionRecord.OperationExecutionRecords.Count(o => o.Status == ExecutionStatus.Failed)} operations failed";
 				}
-
-				await _pipelineCandidateService.ArchivePipelineCandidate(pipelineId);
 			}
 			catch (Exception e)
 			{
@@ -666,6 +666,7 @@ namespace PipelineService.Services.Impl
 						pipelineId, metric.ErrorMessage);
 					await _pipelineExecutionService.DeletePipeline(pipelineId);
 				}
+				await _pipelineCandidateService.ArchivePipelineCandidate(pipelineId);
 
 				_databaseContext.CandidateProcessingMetrics.Update(metric);
 				await _databaseContext.SaveChangesAsync();

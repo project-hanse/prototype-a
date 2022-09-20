@@ -242,14 +242,29 @@ namespace PipelineService.Services.Impl
 				}
 
 				i++;
+				if (_configuration.GetValue("PipelineExecutionService:RetryExecutionAtHalfTime", true) &&
+				    (DateTime.UtcNow - startTimestamp).TotalMinutes >
+				    _configuration.GetValue("PipelineExecutionService:MaxExecutionTimeSync", 2.0) / 2
+				    && executionRecord.ReEnqueueCount < 3)
+				{
+					_logger.LogInformation(
+						"Half of the max execution time has been reached in sync execution of pipeline with id {PipelineId}, triggering execution again",
+						pipelineId);
+
+					executionRecord.ReEnqueueCount++;
+
+					await EnqueueNextOperations(executionRecord, pipelineId);
+					await _pipelinesExecutionDao.Update(executionRecord);
+				}
+
 				if ((DateTime.UtcNow - startTimestamp).TotalMinutes >
-				    _configuration.GetValue("PipelineExecutionService:MaxExecutionTimeSync", 2))
+				    _configuration.GetValue("PipelineExecutionService:MaxExecutionTimeSync", 2.0))
 				{
 					_logger.LogWarning("Aborting waiting for pipeline execution to complete, because it took too long");
 					return executionRecord;
 				}
 
-				var pollingTimeout = _configuration.GetValue("PipelineExecutionService:SyncPollingTimeout", 4);
+				var pollingTimeout = _configuration.GetValue("PipelineExecutionService:SyncPollingTimeout", 8);
 
 				if (i % 10 == 0)
 				{

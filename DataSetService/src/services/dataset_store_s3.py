@@ -65,7 +65,6 @@ class DatasetStoreS3:
 
 	def _compute_and_store_metadata(self, key: str, data):
 		self.log.info("Computing metadata for key %s..." % str(key))
-		sleep(5)
 		metadata_compact = self.compute_metadata_compact(key, data)
 		metadata_full = self.compute_metadata_full(key, data)
 		self.log.info("Storing compact metadata for key %s..." % str(key))

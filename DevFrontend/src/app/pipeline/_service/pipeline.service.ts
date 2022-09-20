@@ -92,4 +92,8 @@ export class PipelineService extends BaseHttpService {
 	public processCandidates(candidateIds: string[]): Observable<number> {
 		return this.httpClient.post<number>(this.getPipelinesUrl('candidate', 'process'), candidateIds);
 	}
+
+	public autoEnqueueCandidates(): Observable<number> {
+		return this.httpClient.get<number>(this.getPipelinesUrl('candidate', 'process', 'auto'));
+	}
 }
