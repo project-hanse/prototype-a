@@ -56,7 +56,7 @@ class RabbitMqClientWrapper:
 		self.logging.debug('Connected to broker at %s:%s' % (host, str(port)))
 
 	def cleanup(self):
-		if self.connection is not None:
+		if self.connection is not None and self.connection.is_open:
 			self.logging.debug('Disconnecting from broker')
 			self.connection.close()
 
@@ -99,7 +99,17 @@ class RabbitMqClientWrapper:
 		ch.basic_publish(exchange='', routing_key=self.topic_name_pub, body=payload_serialized)
 
 	def start(self):
-		self.channel.start_consuming()
+		try:
+			self.channel.start_consuming()
+		except KeyboardInterrupt as i:
+			self.cleanup()
+			self.logging.info("Keyboard interrupt received - shutting down")
+		except Exception as e:
+			self.logging.error("Error during consuming messages - %s" % str(e))
 
 	def stop(self):
-		self.channel.stop_consuming()
+		try:
+			if self.channel.is_open:
+				self.channel.stop_consuming()
+		except Exception as e:
+			self.logging.warn("Error during stopping of consumer %s" % str(e))

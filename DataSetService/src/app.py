@@ -2,7 +2,6 @@ import io
 import json
 import os
 import signal
-import sys
 import threading
 import uuid
 
@@ -43,11 +42,23 @@ dataset_store = DatasetStoreS3()
 event_bus_wrapper = RabbitMqClientWrapper(dataset_store)
 log = LogHelper.get_logger(__name__)
 
+# Setup Threads
+event_bus_thread = threading.Thread(target=event_bus_wrapper.start)
+flask_app_thread = threading.Thread(target=socketio.run,
+																		args=(app,),
+																		kwargs={"host": '0.0.0.0',
+																						"port": PORT,
+																						"use_reloader": False,
+																						"debug": True,
+																						"allow_unsafe_werkzeug": True})
+
 
 # Setup signal handling
 def signal_handler(sig, frame):
-	event_bus_wrapper.stop()
-	sys.exit(0)
+	if event_bus_thread.is_alive():
+		event_bus_wrapper.stop()
+	dataset_store.stop()
+	os.kill(os.getpid(), signal.SIGTERM)
 
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -203,12 +214,16 @@ file_store.setup(s3_endpoint=("http://%s:%s" % (S3_HOST, S3_PORT)),
 init_service.init_default_files_s3_in_background()
 event_bus_wrapper.setup(CLIENT_ID, MESSAGE_BROKER_HOST, MESSAGE_BROKER_PORT, MESSAGE_BROKER_TOPIC_DELETE)
 
-# start new thread for event bus
-event_bus_thread = threading.Thread(target=event_bus_wrapper.start)
-event_bus_thread.start()
-
 if __name__ == '__main__':
-	socketio.run(app, host='0.0.0.0', port=PORT, use_reloader=False, debug=True, allow_unsafe_werkzeug=True)
+	log.info("Starting event bus thread in background")
+	event_bus_thread.start()
+	log.info("Starting Flask app")
+	flask_app_thread.start()
 	# TODO: generate OpenAPI spec https://github.com/marshmallow-code/apispec
+
+	log.info("Shutting down...")
+	log.info("Waiting for flask process to finish")
+	flask_app_thread.join()
+	log.info("Waiting for event bus thread to finish...")
 	event_bus_thread.join()
-	dataset_store.shutdown()
+	log.info("Shutting down complete.")

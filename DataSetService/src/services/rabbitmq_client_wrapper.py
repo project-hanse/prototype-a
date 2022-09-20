@@ -86,8 +86,14 @@ class RabbitMqClientWrapper:
 
 	def start(self):
 		self.logging.info('Starting consuming on topic %s' % self.topic_name_sub)
-		self.channel.start_consuming()
+		try:
+			self.channel.start_consuming()
+		except Exception as e:
+			self.logging.warning('Error while consuming on topic %s - %s' % (self.topic_name_sub, str(e)))
 
 	def stop(self):
 		self.logging.info('Stopping consuming on topic %s' % self.topic_name_sub)
-		self.channel.stop_consuming()
+		try:
+			self.channel.stop_consuming()
+		except Exception as e:
+			self.logging.warning('Error while stopping consuming on topic %s - %s' % (self.topic_name_sub, str(e)))
