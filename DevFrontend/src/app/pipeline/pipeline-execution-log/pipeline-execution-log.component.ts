@@ -1,8 +1,7 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {MqttClient} from 'mqtt';
 import * as mqtt from 'mqtt/dist/mqtt.min';
-import {Observable, Subject} from 'rxjs';
-import {scan} from 'rxjs/operators';
+import {Observable, scan, Subject} from 'rxjs';
 import * as uuid from 'uuid';
 import {environment} from '../../../environments/environment';
 import {FilesService} from '../../utils/_services/files.service';
@@ -17,8 +16,6 @@ import {PipelineService} from '../_service/pipeline.service';
 	styleUrls: ['./pipeline-execution-log.component.scss']
 })
 export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
-
-
 	constructor(private filesService: FilesService, private pipelineService: PipelineService) {
 	}
 
@@ -38,16 +35,35 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(): void {
-		this.client?.end();
+		for (const key of this.pipelineNotificationSubjects.keys()) {
+			this.client?.unsubscribe(`${PipelineExecutionLogComponent.executedTopicPrefix}${key}`);
+		}
+		this.client?.end(true);
 	}
 
 	private setupMqttClient(): void {
-		const brokerUrl = `ws://${environment.messageBrokerHost}:${environment.messageBrokerPort}/${environment.messageBrokerPath}`;
-		this.client = mqtt.connect(brokerUrl, {
+		this.client = mqtt.connect(null, {
 			clientId: 'frontend-' + uuid.v4(),
+			servers: [
+				{
+					host: environment.messageBrokerHost,
+					port: environment.messageBrokerPort,
+					path: environment.messageBrokerPath,
+					protocol: 'wss',
+				},
+				{
+					host: environment.messageBrokerHost,
+					port: environment.messageBrokerPort,
+					path: environment.messageBrokerPath,
+					protocol: 'ws',
+				}
+			]
 		});
 		this.client.on('connect', (c) => {
 			console.log('connected', c);
+		});
+		this.client.on('disconnect', (c) => {
+			console.log('disconnected', c);
 		});
 		this.client.on('error', (e) => {
 			console.error('error', e);
