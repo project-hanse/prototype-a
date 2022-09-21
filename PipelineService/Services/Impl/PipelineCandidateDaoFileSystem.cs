@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -46,22 +47,35 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 		var pipelineCandidates = new List<PipelineCandidate>();
 		foreach (var file in files)
 		{
+			string path = null;
 			try
 			{
+				path = Path.Combine(PipelineCandidatesPath, file);
 				var candidate = JsonConvert.DeserializeObject<PipelineCandidate>(
-					await File.ReadAllTextAsync(Path.Combine(PipelineCandidatesPath, file)));
+					await File.ReadAllTextAsync(path));
 				if (candidate == null)
 				{
-					throw new Exception("Failed to deserialize pipeline candidate");
+					throw new SerializationException("Failed to deserialize pipeline candidate");
 				}
 
 				candidate.SourceFileName = file;
 				pipelineCandidates.Add(candidate);
 			}
+			catch (SerializationException e)
+			{
+				_logger.LogInformation(
+					"Failed to deserialize pipeline candidate from file {CandidateFile}", file);
+				if (path != null)
+				{
+					_logger.LogInformation("Deleting file {CandidateFile}", file);
+					File.Delete(path);
+				}
+			}
 			catch (Exception e)
 			{
-				_logger.LogInformation("Failed to load pipeline candidate from file {CandidateFile} - {ErrorMessage}",
-					file, e.Message);
+				_logger.LogWarning(
+					"Failed to load pipeline candidate from file {CandidateFile} - [{ErrorType}] {ErrorMessage}",
+					file, e.GetType().Name, e.Message);
 				continue;
 			}
 		}
@@ -73,24 +87,27 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 
 	public async Task<bool> DeletePipelineCandidate(Guid pipelineCandidateId)
 	{
-		_logger.LogDebug("Deleting pipeline candidate from file system...");
+		_logger.LogDebug("Deleting pipeline candidate ({CandidateId}) from file system...", pipelineCandidateId);
 		var candidates = await GetPipelineCandidates();
 		var candidate = candidates.FirstOrDefault(c => c.PipelineId == pipelineCandidateId);
 		if (candidate == null)
 		{
-			_logger.LogInformation("Failed to delete pipeline candidate from file system - candidate not found");
+			_logger.LogInformation(
+				"Failed to delete pipeline candidate ({CandidateId}) from file system - candidate not found",
+				pipelineCandidateId);
 			return false;
 		}
 
 		var path = Path.Combine(PipelineCandidatesPath, candidate.SourceFileName);
 		if (!File.Exists(path))
 		{
-			_logger.LogInformation("Failed to delete pipeline candidate from file system - file not found");
+			_logger.LogInformation("Failed to delete pipeline candidate ({CandidateId}) from file system - file not found",
+				pipelineCandidateId);
 			return false;
 		}
 
 		File.Delete(path);
-		_logger.LogInformation("Deleted pipeline candidate from file system");
+		_logger.LogInformation("Deleted pipeline candidate ({CandidateId}) from file system", pipelineCandidateId);
 		return true;
 	}
 
@@ -101,14 +118,17 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 		var candidate = candidates.FirstOrDefault(c => c.PipelineId == pipelineCandidateId);
 		if (candidate == null)
 		{
-			_logger.LogInformation("Failed to archive pipeline candidate from file system - candidate not found");
+			_logger.LogInformation(
+				"Failed to archive pipeline candidate ({CandidateId}) from file system - candidate not found",
+				pipelineCandidateId);
 			return false;
 		}
 
 		var path = Path.Combine(PipelineCandidatesPath, candidate.SourceFileName);
 		if (!File.Exists(path))
 		{
-			_logger.LogInformation("Failed to archive pipeline candidate from file system - file not found");
+			_logger.LogInformation("Failed to archive pipeline candidate ({CandidateId}) from file system - file not found",
+				pipelineCandidateId);
 			return false;
 		}
 
@@ -119,7 +139,7 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 		}
 
 		File.Move(path, Path.Combine(PipelineCandidatesArchivePath, Path.GetFileName(path)));
-		_logger.LogInformation("Archived pipeline candidate in file system");
+		_logger.LogInformation("Archived pipeline candidate ({CandidateId}) in file system", pipelineCandidateId);
 		return true;
 	}
 }

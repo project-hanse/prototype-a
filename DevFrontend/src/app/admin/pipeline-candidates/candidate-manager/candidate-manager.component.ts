@@ -59,7 +59,6 @@ export class CandidateManagerComponent implements OnInit, AfterViewInit, OnDestr
 				.pipe(
 					switchMap(() => {
 						this.isLoadingResults = true;
-						console.log('switchMap', this.sort, this.paginator.page);
 						return this.pipelineService.getPipelineCandidates({
 								sort: this.sort.active,
 								order: this.sort.direction,

@@ -221,15 +221,15 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpGet("candidate/process/auto")]
-		public async Task<int> AutoEnqueuePipelineCandidates()
+		public async Task<int> AutoEnqueuePipelineCandidates([FromQuery] bool checkForIncomplete = true)
 		{
-			return await _pipelinesDtoService.AutoEnqueuePipelineCandidates();
+			return await _pipelinesDtoService.AutoSchedulePipelineCandidates(checkForIncomplete);
 		}
 
 		[HttpPost("candidate/process")]
 		public async Task<IActionResult> ProcessPipelineCandidate(IList<Guid> pipelineCandidateIds)
 		{
-			return Ok(await _pipelinesDtoService.ProcessPipelineCandidates(pipelineCandidateIds));
+			return Ok(await _pipelinesDtoService.SchedulePipelineCandidatesProcessing(pipelineCandidateIds));
 		}
 
 
