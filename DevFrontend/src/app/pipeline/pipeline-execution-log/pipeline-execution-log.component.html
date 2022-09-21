@@ -1,4 +1,4 @@
-<mat-card *ngIf="executionEvents(pipelineId) | async as events">
+<mat-card *ngIf="$eventStream | async as events">
 	<mat-card-header *ngIf="getPipelineInfoDto(pipelineId) | async as pipelineInfoDto">
 		<mat-card-subtitle>
 			<span>Last Start: {{pipelineInfoDto.lastRunStart ?? '-' | date: 'medium'}}&nbsp;</span>

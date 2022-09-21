@@ -22,14 +22,36 @@ namespace PipelineService.Services
 		public Task<Guid> ImportPipelineCandidate(PipelineCandidate pipelineCandidate, string username = null);
 
 		/// <summary>
-		/// Loads a number of pipeline candidates, tries to import them, and checks if they are executable.
+		/// Automatically selects pipeline candidates that should be processed next and schedules their execution.
 		/// </summary>
-		Task<int> AutoEnqueuePipelineCandidates();
+		/// <param name="includeIncomplete">Set to true if incomplete candidate executions should be rescheduled.</param>
+		/// <returns>The number of candidates scheduled.</returns>
+		Task<int> AutoSchedulePipelineCandidates(bool includeIncomplete = true);
 
-		Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates);
+		/// <summary>
+		/// Schedules all pipeline candidates that have not been completed yet.
+		/// </summary>
+		/// <returns>The number of candidates scheduled.</returns>
+		Task<int> ScheduleIncompleteCandidatesProcessing();
 
+		/// <summary>
+		/// Schedules the processing of a set of pipeline candidates.
+		/// </summary>
+		/// <param name="candidateIds">The pipeline candidates that should be schedules for processing.</param>
+		/// <returns>The number of candidates scheduled.</returns>
+		Task<int> SchedulePipelineCandidatesProcessing(IList<Guid> candidateIds);
+
+		/// <summary>
+		/// Processes a pipeline candidate.
+		/// "Processing as a candidate" means that the pipeline is executed. If the execution fails, the pipeline's
+		/// operation configurations will be randomized and the pipeline will be executed again.
+		/// </summary>
+		/// <remarks>
+		/// WARNING: This method executes the pipeline synchronously - it will block the current thread until the executions are complete.
+		/// </remarks>
+		/// <param name="metricId">The metric record processing metrics will be recorded in.</param>
+		/// <param name="pipelineId">The pipeline that should be processed as a candidate.</param>
+		/// <returns></returns>
 		Task ProcessPipelineAsCandidate(Guid metricId, Guid pipelineId);
-
-		Task<int> ProcessIncompleteCandidatesInBackground();
 	}
 }

@@ -182,8 +182,9 @@ namespace PipelineService
 			{
 				// schedule recurring jobs
 				RecurringJob.AddOrUpdate<IPipelinesDtoService>("candidate_processing",
-					s => s.AutoEnqueuePipelineCandidates(), Cron.Hourly);
-				BackgroundJob.Enqueue<IPipelinesDtoService>(s => s.ProcessIncompleteCandidatesInBackground());
+					s => s.AutoSchedulePipelineCandidates(false), Cron.Hourly);
+				BackgroundJob.Schedule<IPipelinesDtoService>(s => s.ScheduleIncompleteCandidatesProcessing(),
+					TimeSpan.FromSeconds(30));
 			}
 		}
 	}

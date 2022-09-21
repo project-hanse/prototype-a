@@ -315,30 +315,6 @@ namespace PipelineService.Services.Impl
 			return pipeline.Id;
 		}
 
-		public async Task<int> AutoEnqueuePipelineCandidates()
-		{
-			var toBeEnqueued = Math.Max(await AverageCandidatesProcessedPerHour(), 2);
-			var enqueued = await ProcessIncompleteCandidatesInBackground();
-
-			_logger.LogDebug("Enqueued {Enqueued} incomplete pipeline candidates...", enqueued);
-			if (enqueued >= toBeEnqueued)
-			{
-				_logger.LogInformation("Enqueued enough candidates ({Enqueued}) from incomplete candidates, skipping new candidates", enqueued);
-				return enqueued;
-			}
-
-			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination
-			{
-				Page = 1,
-				PageSize = Math.Max(toBeEnqueued - enqueued, 1)
-			});
-
-			_logger.LogInformation("Enqueuing {CandidateCount} additional pipeline candidates for processing...",
-				candidates.Count);
-
-			return await ProcessPipelineCandidatesInBackground(candidates);
-		}
-
 		private async Task<int> AverageCandidatesProcessedPerHour()
 		{
 			var lookBack = _configuration.GetValue("PipelineCandidates:LookBackHoursForAverages", 6.0);
@@ -358,7 +334,7 @@ namespace PipelineService.Services.Impl
 			return (int)Math.Ceiling(avgCandidatesProcessedPerHour);
 		}
 
-		private async Task<double?> AverageProcessingTimePerCandidate()
+		private async Task<double> AverageProcessingSecondsPerCandidate()
 		{
 			var lookBack = _configuration.GetValue("PipelineCandidates:LookBackHoursForAverages", 6.0);
 			var averageProcessingTime = await _databaseContext.CandidateProcessingMetrics
@@ -368,25 +344,101 @@ namespace PipelineService.Services.Impl
 				            m.ProcessingEndTime > DateTime.UtcNow.AddHours(lookBack * -1))
 				.AverageAsync(m => m.ProcessingDurationP);
 
+			if (!averageProcessingTime.HasValue)
+			{
+				_logger.LogInformation(
+					"No candidate processing metrics found in last {LookBackHours} hours - falling back to 30 seconds", lookBack);
+				averageProcessingTime = 30;
+			}
+			else
+			{
+				averageProcessingTime = Math.Ceiling(averageProcessingTime.Value / 1000);
+			}
+
 			_logger.LogInformation(
-				"Average processing time for pipeline candidate in the last {LookBackHours} hours: {AverageCandidateProcessingTime}",
+				"Average processing seconds for pipeline candidate in the last {LookBackHours} hours: {AverageCandidateProcessingTime}",
 				lookBack, averageProcessingTime);
 
-			return averageProcessingTime;
+			return averageProcessingTime.Value;
 		}
 
-		public async Task<int> ProcessPipelineCandidates(IList<Guid> numberOfCandidates)
+		/// <summary>
+		/// Computes the number of seconds between pipeline candidate processing.
+		/// </summary>
+		private async Task<int> GetSchedulingInterval()
+		{
+			var interval = 60 * 60 / await AverageCandidatesProcessedPerHour();
+			switch (interval)
+			{
+				case < 5:
+					interval = 5;
+					_logger.LogDebug("Average processing time is less than 5 seconds, setting it to 5 seconds");
+					break;
+				case > 60 * 15:
+					interval = 60 * 10;
+					_logger.LogDebug("Average processing time is more than 15 minutes, setting it to 15 minutes");
+					break;
+			}
+
+			_logger.LogInformation("Pipeline candidate processing interval set to {Interval} seconds", interval);
+			return interval;
+		}
+
+		public async Task<int> AutoSchedulePipelineCandidates(bool includeIncomplete = true)
+		{
+			var toBeEnqueued = Math.Max(await AverageCandidatesProcessedPerHour(), 4);
+			var enqueued = 0;
+			if (includeIncomplete)
+			{
+				enqueued = await ScheduleIncompleteCandidatesProcessing();
+			}
+
+			_logger.LogDebug("Enqueued {Enqueued} incomplete pipeline candidates...", enqueued);
+			if (enqueued >= toBeEnqueued)
+			{
+				_logger.LogInformation(
+					"Enqueued enough candidates ({Enqueued}) from incomplete candidates, skipping new candidates", enqueued);
+
+				await ScheduleModelTraining(enqueued);
+
+				return enqueued;
+			}
+
+			var candidates = await _pipelineCandidateService.GetPipelineCandidates(new Pagination
+			{
+				Page = 1,
+				PageSize = Math.Max(toBeEnqueued - enqueued, 4),
+				Sort = nameof(PipelineCandidate.StartedAt),
+				Order = "desc"
+			});
+
+			_logger.LogInformation("Enqueuing {CandidateCount} additional pipeline candidates for processing...",
+				candidates.Count);
+
+			return await ImportAndScheduleCandidatesAndTraining(candidates);
+		}
+
+		private async Task ScheduleModelTraining(int pipelinesScheduled)
+		{
+			var eta = pipelinesScheduled * await AverageProcessingSecondsPerCandidate();
+			_logger.LogInformation(
+				"Estimated time to complete {PipelinesScheduled} pipelines: {Eta} seconds - scheduling model training then",
+				pipelinesScheduled, eta);
+			BackgroundJob.Schedule<ILearningServiceClient>(s => s.TriggerModelTraining(), TimeSpan.FromSeconds(eta));
+		}
+
+		public async Task<int> SchedulePipelineCandidatesProcessing(IList<Guid> candidateIds)
 		{
 			var candidates = new List<PipelineCandidate>();
-			foreach (var candidateId in numberOfCandidates)
+			foreach (var candidateId in candidateIds)
 			{
 				candidates.Add(await _pipelineCandidateService.GetCandidateById(candidateId));
 			}
 
-			return await ProcessPipelineCandidatesInBackground(candidates);
+			return await ImportAndScheduleCandidatesAndTraining(candidates);
 		}
 
-		public async Task<int> ProcessIncompleteCandidatesInBackground()
+		public async Task<int> ScheduleIncompleteCandidatesProcessing()
 		{
 			_logger.LogDebug("Checking if incomplete candidates exist and enqueueing them for processing...");
 
@@ -408,13 +460,7 @@ namespace PipelineService.Services.Impl
 				return 0;
 			}
 
-			var averageProcessingTime = await AverageProcessingTimePerCandidate();
-
-			if (!averageProcessingTime.HasValue || averageProcessingTime < 5000)
-			{
-				averageProcessingTime = 5000;
-				_logger.LogDebug("Average processing time is less than 5 seconds, setting it to 5 seconds");
-			}
+			var scheduleInterval = await AverageCandidatesProcessedPerHour();
 
 			_logger.LogDebug("Found {NumberOfIncompleteCandidates} incomplete pipeline candidates",
 				incompleteMetricsIds.Count);
@@ -422,11 +468,12 @@ namespace PipelineService.Services.Impl
 			foreach (var incompleteCandidate in incompleteMetricsIds)
 			{
 				i++;
-				_logger.LogDebug("Enqueueing candidate {CandidateId} for processing in {ScheduledInSeconds}",
-					incompleteCandidate.PipelineId, i * averageProcessingTime.Value / 1000);
+				_logger.LogInformation("Re-Enqueueing candidate {CandidateId} for processing in {ScheduledInSeconds}",
+					incompleteCandidate.PipelineId, i * scheduleInterval);
+
 				BackgroundJob.Schedule<IPipelinesDtoService>(s =>
 						s.ProcessPipelineAsCandidate(incompleteCandidate.MetricId, incompleteCandidate.PipelineId),
-					TimeSpan.FromMilliseconds(i * averageProcessingTime.Value));
+					TimeSpan.FromSeconds(i * scheduleInterval));
 			}
 
 			_logger.LogInformation("Enqueued {NumberOfIncompleteCandidates} incomplete pipeline candidates for processing",
@@ -434,56 +481,30 @@ namespace PipelineService.Services.Impl
 			return i;
 		}
 
-		private async Task<int> ProcessPipelineCandidatesInBackground(ICollection<PipelineCandidate> candidates)
+		private async Task<int> ImportAndScheduleCandidatesAndTraining(ICollection<PipelineCandidate> candidates)
 		{
-			_logger.LogDebug("Processing {NumberOfCandidates} pipeline candidates", candidates.Count);
-			var lookBack = _configuration.GetValue("PipelineCandidates:LookBackHoursForAverages", 6.0);
-			var averageProcessingSeconds = (await _databaseContext.CandidateProcessingMetrics
-				.Where(m => m.ProcessingEndTime != null && m.ProcessingEndTime.Value > DateTime.UtcNow.AddDays(lookBack * -1))
-				.AverageAsync(m => m.ProcessingDurationP) ?? 1000 * 30) / 1000;
-
-			var processed = 0;
+			_logger.LogDebug("Importing and scheduling {NumberOfCandidates} pipeline candidates", candidates.Count);
+			var secondsBetweenCandidates = await GetSchedulingInterval();
+			var scheduled = 0;
 			foreach (var candidate in candidates)
 			{
-				try
-				{
-					await ProcessPipelineCandidateInBackground(candidate,
-						Math.Max(averageProcessingSeconds / 2 * processed, 2.0));
-					processed++;
-				}
-				catch (Exception e)
-				{
-					_logger.LogWarning(e, "Failed to process pipeline candidate {CandidateId} - {Error}",
-						candidate?.PipelineId ?? default, e.Message);
-					if (candidate != null)
-					{
-						await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
-					}
-				}
+				await ImportAndScheduleCandidateProcessing(candidate, secondsBetweenCandidates * scheduled);
+				scheduled++;
 			}
 
-			_logger.LogInformation("Processed {Processed} pipeline candidates", processed);
-			BackgroundJob.Enqueue<ILearningServiceClient>(s => s.TriggerModelTraining());
-			return processed;
+			_logger.LogInformation("Imported and scheduled {Processed} new pipeline candidates", scheduled);
+			await ScheduleModelTraining(scheduled);
+			return scheduled;
 		}
 
-		public async Task ProcessPipelineAsCandidate(Guid metricId, Guid pipelineId)
+		/// <summary>
+		/// Imports and schedules a pipeline candidate for processing.
+		/// Creates a new processing metric and enqueues the candidate for processing.
+		/// </summary>
+		private async Task ImportAndScheduleCandidateProcessing(PipelineCandidate candidate, double delaySeconds = 1)
 		{
-			_logger.LogDebug("Processing pipeline {PipelineId} as candidate", pipelineId);
-			var metric = await _databaseContext.CandidateProcessingMetrics.SingleOrDefaultAsync(m => m.Id == metricId);
-			if (metric == null)
-			{
-				_logger.LogWarning("Candidate processing metric with id {MetricId} not found", metricId);
-				return;
-			}
-
-			await RandomizeAndExecute(pipelineId, metric);
-		}
-
-
-		private async Task ProcessPipelineCandidateInBackground(PipelineCandidate candidate, double delaySeconds = 1)
-		{
-			_logger.LogDebug("Processing pipeline candidate with id {PipelineCandidateId}", candidate.PipelineId);
+			_logger.LogDebug("Preparing processing of pipeline candidate with id {PipelineCandidateId}",
+				candidate.PipelineId);
 			var metric = new CandidateProcessingMetric
 			{
 				CandidateCreatedOn = candidate.CompletedAt,
@@ -504,32 +525,65 @@ namespace PipelineService.Services.Impl
 				candidate.PipelineId);
 			if (candidate.Aborted.HasValue && candidate.Aborted.Value)
 			{
-				metric.Aborted = candidate.Aborted.Value;
-				metric.Success = false;
 				_logger.LogInformation("Pipeline candidate {PipelineCandidateId} was aborted - deleting candidate",
 					candidate.PipelineId);
+
 				await _pipelineCandidateService.DeletePipelineCandidate(candidate.PipelineId);
+
+				metric.Aborted = candidate.Aborted.Value;
+				metric.Success = false;
+				metric.ErrorMessage = "Pipeline candidate was aborted";
 				metric.ProcessingEndTime = DateTime.UtcNow;
-				_databaseContext.CandidateProcessingMetrics.Add(metric);
 				await _databaseContext.SaveChangesAsync();
-				await _pipelineCandidateService.ArchivePipelineCandidate(candidate.PipelineId);
 				return;
 			}
 
 			_logger.LogDebug("Creating pipeline from candidate {PipelineCandidateId}", candidate.PipelineId);
 
 			metric.ImportStartTime = DateTime.UtcNow;
+
 			var pipelineId = await ImportPipelineCandidate(candidate);
-			await _pipelineCandidateService.ArchivePipelineCandidate(pipelineId);
-			metric.ImportSuccess = true;
 			metric.ImportEndTime = DateTime.UtcNow;
+			if (pipelineId == Guid.Empty)
+			{
+				_logger.LogInformation("Pipeline candidate {PipelineCandidateId} could not be imported - deleting candidate",
+					candidate.PipelineId);
+				await _pipelineCandidateService.DeletePipelineCandidate(pipelineId);
+				metric.ImportSuccess = false;
+				metric.Success = false;
+				metric.ErrorMessage = "Failed to import pipeline candidate";
+				metric.ProcessingEndTime = DateTime.UtcNow;
+				await _databaseContext.SaveChangesAsync();
+				return;
+			}
+
 			_logger.LogInformation("Imported pipeline candidate with id {PipelineCandidateId} in {CandidateImportDuration}",
 				pipelineId, metric.ImportDuration);
 
+			metric.ImportSuccess = true;
+
+			await _pipelineCandidateService.ArchivePipelineCandidate(pipelineId);
+
 			await _databaseContext.SaveChangesAsync();
 
+			_logger.LogInformation("Enqueueing candidate {CandidateId} for processing in {ScheduledInSeconds}",
+				pipelineId, delaySeconds);
 			BackgroundJob.Schedule<IPipelinesDtoService>(s => s.ProcessPipelineAsCandidate(metric.Id, pipelineId),
 				TimeSpan.FromSeconds(delaySeconds));
+		}
+
+		public async Task ProcessPipelineAsCandidate(Guid metricId, Guid pipelineId)
+		{
+			_logger.LogDebug("Processing pipeline {PipelineId} as candidate", pipelineId);
+			var metric = await _databaseContext.CandidateProcessingMetrics
+				.SingleOrDefaultAsync(m => m.Id == metricId && m.PipelineId == pipelineId);
+			if (metric == null)
+			{
+				_logger.LogWarning("Candidate processing metric with id {MetricId} not found", metricId);
+				return;
+			}
+
+			await RandomizeAndExecute(pipelineId, metric);
 		}
 
 		/// <summary>
@@ -666,6 +720,8 @@ namespace PipelineService.Services.Impl
 						pipelineId, metric.ErrorMessage);
 					await _pipelineExecutionService.DeletePipeline(pipelineId);
 				}
+
+				_logger.LogInformation("Double checking if candidate ({CandidateId}) has already been archived...", pipelineId);
 				await _pipelineCandidateService.ArchivePipelineCandidate(pipelineId);
 
 				_databaseContext.CandidateProcessingMetrics.Update(metric);
