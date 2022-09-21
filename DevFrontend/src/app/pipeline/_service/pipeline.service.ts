@@ -94,6 +94,6 @@ export class PipelineService extends BaseHttpService {
 	}
 
 	public autoEnqueueCandidates(): Observable<number> {
-		return this.httpClient.get<number>(this.getPipelinesUrl('candidate', 'process', 'auto'));
+		return this.httpClient.get<number>(this.getPipelinesUrl('candidate', 'process', 'auto'), {params: {checkForIncomplete: false}});
 	}
 }
