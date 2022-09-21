@@ -1,7 +1,8 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {MqttService} from 'ngx-mqtt';
-import {Observable} from 'rxjs';
-import {map, scan} from 'rxjs/operators';
+import {MqttClient} from 'mqtt';
+import * as mqtt from 'mqtt/dist/mqtt.min';
+import {Observable, scan, Subject} from 'rxjs';
+import * as uuid from 'uuid';
 import {environment} from '../../../environments/environment';
 import {FilesService} from '../../utils/_services/files.service';
 import {Dataset, DatasetType} from '../_model/dataset';
@@ -15,58 +16,98 @@ import {PipelineService} from '../_service/pipeline.service';
 	styleUrls: ['./pipeline-execution-log.component.scss']
 })
 export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
+	constructor(private filesService: FilesService, private pipelineService: PipelineService) {
+	}
+
+	private static executedTopicPrefix: string = 'pipeline/event/';
 
 	@Input() pipelineId: string;
-	private readonly mqttService: MqttService;
-	private $executionEvents: Observable<any>;
+	private client?: MqttClient;
+	private readonly pipelineNotificationSubjects = new Map<string, Subject<FrontendExecutionNotification>>();
+	$eventStream?: Observable<FrontendExecutionNotification[]>;
 	private $pipelineInfoDto?: Observable<PipelineInfoDto>;
 
-	constructor(private filesService: FilesService, private pipelineService: PipelineService) {
-		this.mqttService = new MqttService({
-			connectOnCreate: false,
-			hostname: environment.messageBrokerHost,
-			path: environment.messageBrokerPath,
-			port: environment.messageBrokerPort,
-			protocol: environment.production ? 'wss' : 'ws',
-			clientId: 'some-dev-frontend'
-		});
-		this.mqttService.onConnect.subscribe(e => {
-			console.log('Connecting ', e);
-		});
-		this.mqttService.onClose.subscribe(e => {
-			console.log('Closing ', e);
-		});
-	}
-
 	ngOnInit(): void {
-		this.mqttService.connect();
+		this.setupMqttClient();
+		if (this.pipelineId) {
+			this.$eventStream = this.getEventsForLastExecution(this.subscribeToPipelineEvents(this.pipelineId));
+		}
 	}
 
-	public executionEvents(pipelineId: string): Observable<FrontendExecutionNotification[]> {
-		if (!this.$executionEvents) {
-			this.$executionEvents = this.mqttService
-				.observe('pipeline/event/' + pipelineId)
-				.pipe(
-					map(m => {
-						const stringBuf = m.payload.toString();
-						const obj = JSON.parse(stringBuf);
-						console.log(obj);
-						return obj;
-					}),
-					scan((acc, val) => {
-						if (acc.length === 0) {
-							acc.push(val);
-							return acc;
-						}
-						if (acc[0].ExecutionId === val.ExecutionId) {
-							acc.push(val);
-							return acc;
-						}
-						return [val];
-					}, [])
-				);
+	ngOnDestroy(): void {
+		for (const key of this.pipelineNotificationSubjects.keys()) {
+			this.client?.unsubscribe(`${PipelineExecutionLogComponent.executedTopicPrefix}${key}`);
 		}
-		return this.$executionEvents;
+		this.client?.end(true);
+	}
+
+	private setupMqttClient(): void {
+		this.client = mqtt.connect(null, {
+			clientId: 'frontend-' + uuid.v4(),
+			servers: [
+				{
+					host: environment.messageBrokerHost,
+					port: environment.messageBrokerPort,
+					path: environment.messageBrokerPath,
+					protocol: 'wss',
+				},
+				{
+					host: environment.messageBrokerHost,
+					port: environment.messageBrokerPort,
+					path: environment.messageBrokerPath,
+					protocol: 'ws',
+				}
+			]
+		});
+		this.client.on('connect', (c) => {
+			console.log('connected', c);
+		});
+		this.client.on('disconnect', (c) => {
+			console.log('disconnected', c);
+		});
+		this.client.on('error', (e) => {
+			console.error('error', e);
+		});
+		this.client.on('message', (topic, buffer) => {
+			try {
+				const message = JSON.parse(buffer.toString());
+				const pipelineId = topic.replace(PipelineExecutionLogComponent.executedTopicPrefix, '');
+				if (this.pipelineNotificationSubjects.has(pipelineId)) {
+					this.pipelineNotificationSubjects.get(pipelineId).next(message);
+				}
+			} catch (e) {
+				console.error(`Failed to decode message from topic '${topic}'`, e);
+			}
+		});
+	}
+
+	private subscribeToPipelineEvents(pipelineId: string): Observable<FrontendExecutionNotification> {
+		if (this.pipelineNotificationSubjects.has(pipelineId)) {
+			return this.pipelineNotificationSubjects.get(pipelineId);
+		} else {
+			this.client.subscribe(`${PipelineExecutionLogComponent.executedTopicPrefix}${pipelineId}`, {qos: 1}, (err, granted) => {
+				console.log('subscribed', err, granted);
+			});
+			const subject = new Subject<FrontendExecutionNotification>();
+			this.pipelineNotificationSubjects.set(pipelineId, subject);
+			return subject;
+		}
+	}
+
+	private getEventsForLastExecution(stream: Observable<FrontendExecutionNotification>): Observable<FrontendExecutionNotification[]> {
+		return stream.pipe(
+			scan((acc, val) => {
+				if (acc.length === 0) {
+					acc.push(val);
+					return acc;
+				}
+				// @ts-ignore
+				if (acc[0].ExecutionId === val.ExecutionId) {
+					acc.push(val);
+					return acc;
+				}
+				return [val];
+			}, []));
 	}
 
 	public getPipelineInfoDto(pipelineId: string): Observable<PipelineInfoDto> {
@@ -74,10 +115,6 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 			this.$pipelineInfoDto = this.pipelineService.getPipelineDto(pipelineId);
 		}
 		return this.$pipelineInfoDto;
-	}
-
-	ngOnDestroy(): void {
-		this.mqttService.disconnect();
 	}
 
 	public getLast(events: FrontendExecutionNotification[]): FrontendExecutionNotification | null {
