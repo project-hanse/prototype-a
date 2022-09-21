@@ -62,7 +62,7 @@ class RabbitMqClientWrapper:
 
 	def on_message_callback(self, ch: BlockingChannel, method: spec.Basic.Deliver, properties: spec.BasicProperties,
 													body: bytes):
-		self.logging.debug("Received message on channel number %s" % str(ch.channel_number))
+		self.logging.debug("Received message on channel number '%s' routing_key '%s'" % (str(ch.channel_number), str(method.routing_key)))
 
 		try:
 			message = body.decode('utf-8')
@@ -82,8 +82,8 @@ class RabbitMqClientWrapper:
 			if request is not None:
 				self.logging.info("Operation %s failed" % request.get_operation_id())
 			self.logging.error(
-				"Error during handling of request [%s] %s - dropping message (delivery_tag: %s)" % (
-					str(type(e)), str(e), str(method.delivery_tag)))
+				"Error during handling of request [%s] %s - dropping message (delivery_tag: %s, routing_key: %s, exchange: %s)" % (
+					str(type(e)), str(e), str(method.delivery_tag), str(method.routing_key), str(method.exchange)))
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
 			return
 
