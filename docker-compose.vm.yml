@@ -51,8 +51,21 @@ services:
     depends_on:
       - pipeline-service
 
-  # Pipeline Service
+  # Pipeline Service Load Balancer
   pipeline-service:
+    image: nginx:alpine
+    domainname: dataset-service
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - ./load-balancer-configs/env-vm/pipeline-service:/etc/nginx
+    depends_on:
+      - pipeline-service-1
+      - pipeline-service-2
+
+  # Pipeline Service 1
+  pipeline-service-1:
     image: ghcr.io/project-hanse/prototype-a/pipeline-service:main
     restart: unless-stopped
     environment:
@@ -66,12 +79,31 @@ services:
       - pipeline-database
       - mysql
       - rabbitmq
-    deploy:
-      mode: replicated
-      replicas: 1
     logging:
       options:
-        max-size: 250m
+        max-size: 150m
+    volumes:
+      - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
+      - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
+
+  # Pipeline Service 2
+  pipeline-service-2:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-service:main
+    restart: unless-stopped
+    environment:
+      Logging__LogLevel__Default: Information
+      ScheduledCandidateProcessing: "true"
+      EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+      EDGE_EVENT_BUS__MQTT_PORT: 1883
+      EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-2
+      PipelineCandidates__MaxVariantAttempts: 30
+    depends_on:
+      - pipeline-database
+      - mysql
+      - rabbitmq
+    logging:
+      options:
+        max-size: 150m
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
       - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
@@ -130,6 +162,7 @@ services:
     depends_on:
       - dataset-service-1
       - dataset-service-2
+      - dataset-service-3
 
   # Dataset Store 1
   dataset-service-1:
@@ -211,10 +244,10 @@ services:
       - dataset-service
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 4
     logging:
       options:
-        max-size: 250m
+        max-size: 150m
     volumes:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
@@ -230,8 +263,8 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
-      MAX_ACTIONS_PER_PIPELINE: '23'
-      MCTS_ITERATION_LIMIT: '7'
+      MAX_ACTIONS_PER_PIPELINE: '25'
+      MCTS_ITERATION_LIMIT: '10'
       REWARD_FUNCTION_TYPE: 'desc_log'
       TARGET_ACTION_COUNT: '13'
     deploy:
@@ -239,7 +272,7 @@ services:
       replicas: 1
     logging:
       options:
-        max-size: 250m
+        max-size: 150m
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -255,13 +288,13 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
-      MAX_ACTIONS_PER_PIPELINE: '23'
-      MCTS_ITERATION_LIMIT: '7'
+      MAX_ACTIONS_PER_PIPELINE: '25'
+      MCTS_ITERATION_LIMIT: '10'
       REWARD_FUNCTION_TYPE: 'poly_peak'
       TARGET_ACTION_COUNT: '13'
     logging:
       options:
-        max-size: 250m
+        max-size: 150m
     deploy:
       mode: replicated
       replicas: 1

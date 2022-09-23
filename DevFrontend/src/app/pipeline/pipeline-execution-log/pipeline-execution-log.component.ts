@@ -44,17 +44,16 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	private setupMqttClient(): void {
 		this.client = mqtt.connect(null, {
 			clientId: 'frontend-' + uuid.v4(),
+			path: environment.messageBrokerPath,
 			servers: [
 				{
 					host: environment.messageBrokerHost,
 					port: environment.messageBrokerPort,
-					path: environment.messageBrokerPath,
 					protocol: 'wss',
 				},
 				{
 					host: environment.messageBrokerHost,
 					port: environment.messageBrokerPort,
-					path: environment.messageBrokerPath,
 					protocol: 'ws',
 				}
 			]

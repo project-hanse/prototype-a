@@ -297,7 +297,7 @@ namespace PipelineService.Services.Impl
 				_logger.LogInformation("Execution of operation {OperationId} failed with error {ExecutionErrorDescription}",
 					response.OperationId, response.ErrorDescription);
 
-				await MarkOperationAsFailed(response.ExecutionId, response.OperationId);
+				await MarkOperationAsFailed(response.ExecutionId, response.OperationId, response.ErrorDescription);
 			}
 			else
 			{
@@ -583,7 +583,7 @@ namespace PipelineService.Services.Impl
 			return execution.OperationExecutionRecords.Any(o => o.Status == ExecutionStatus.InExecution);
 		}
 
-		private async Task MarkOperationAsFailed(Guid responseExecutionId, Guid responseOperationId)
+		private async Task MarkOperationAsFailed(Guid responseExecutionId, Guid responseOperationId, string errorMsg)
 		{
 			PipelineExecutionRecord execution;
 			try
@@ -609,6 +609,7 @@ namespace PipelineService.Services.Impl
 
 			operation.ExecutionCompletedAt = DateTime.UtcNow;
 			operation.Status = ExecutionStatus.Failed;
+			operation.ErrorMessage = errorMsg;
 
 			_logger.LogDebug("Moving all enqueued operations to failed state");
 			// Optimization: Only move enqueued execution operations records to failed state if they depend on the failed execution (see implementations before 2021/11/09).
@@ -621,6 +622,8 @@ namespace PipelineService.Services.Impl
 
 				executionRecord.ExecutionCompletedAt = DateTime.UtcNow;
 				executionRecord.Status = ExecutionStatus.Failed;
+				executionRecord.ErrorMessage =
+					$"Preceding operation (operationId: {operation.OperationId}, operationIdentifier: {operation.OperationIdentifier}, metricId: {operation.Id}) failed";
 			}
 
 			CheckIfCompleted(execution);

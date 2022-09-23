@@ -421,6 +421,12 @@ namespace PipelineService.Services.Impl
 		private async Task ScheduleModelTraining(int pipelinesScheduled)
 		{
 			var eta = pipelinesScheduled * await AverageProcessingSecondsPerCandidate();
+			if (eta > 60 * 55)
+			{
+				_logger.LogInformation("Estimated time to train models is in {Eta} minutes, setting to maximum of 55 minutes",
+					eta / 60);
+				eta = 60 * 55;
+			}
 			_logger.LogInformation(
 				"Estimated time to complete {PipelinesScheduled} pipelines: {Eta} seconds - scheduling model training then",
 				pipelinesScheduled, eta);
