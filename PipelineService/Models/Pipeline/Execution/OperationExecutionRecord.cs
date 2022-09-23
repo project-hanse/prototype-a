@@ -42,5 +42,7 @@ namespace PipelineService.Models.Pipeline.Execution
 		/// Indicates if the resulting datasets have been newly computed or a cached result already existed.
 		/// </summary>
 		public bool Cached { get; set; }
+
+		public string ErrorMessage { get; set; }
 	}
 }
