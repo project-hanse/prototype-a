@@ -201,6 +201,12 @@ namespace PipelineService.Services.Impl
 			}
 
 			var pipeline = await _pipelinesDao.GetInfoDto(pipelineId);
+			if (pipeline == null)
+			{
+				_logger.LogInformation("Cannot execute pipeline with id {PipelineId} - pipeline not found", pipelineId);
+				return Guid.Empty;
+			}
+
 			pipeline.LastRunStart = DateTime.UtcNow;
 			pipeline.LastRunSuccess = null;
 			pipeline.LastRunFailure = null;
