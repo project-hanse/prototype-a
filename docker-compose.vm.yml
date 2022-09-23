@@ -211,10 +211,10 @@ services:
       - dataset-service
     deploy:
       mode: replicated
-      replicas: 3
+      replicas: 4
     logging:
       options:
-        max-size: 250m
+        max-size: 150m
     volumes:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
@@ -230,8 +230,8 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
-      MAX_ACTIONS_PER_PIPELINE: '23'
-      MCTS_ITERATION_LIMIT: '7'
+      MAX_ACTIONS_PER_PIPELINE: '25'
+      MCTS_ITERATION_LIMIT: '10'
       REWARD_FUNCTION_TYPE: 'desc_log'
       TARGET_ACTION_COUNT: '13'
     deploy:
@@ -239,7 +239,7 @@ services:
       replicas: 1
     logging:
       options:
-        max-size: 250m
+        max-size: 150m
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -255,13 +255,13 @@ services:
       BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
       PIPELINES_DIR: '/simulation/pipelines'
       SLEEP_TIME_AFTER_NEW_ACTIONS: '2.0'
-      MAX_ACTIONS_PER_PIPELINE: '23'
-      MCTS_ITERATION_LIMIT: '7'
+      MAX_ACTIONS_PER_PIPELINE: '25'
+      MCTS_ITERATION_LIMIT: '10'
       REWARD_FUNCTION_TYPE: 'poly_peak'
       TARGET_ACTION_COUNT: '13'
     logging:
       options:
-        max-size: 250m
+        max-size: 150m
     deploy:
       mode: replicated
       replicas: 1
