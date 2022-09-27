@@ -12,4 +12,4 @@ expiringdict==1.2.2
 pika==1.3.0
 
 botocore~=1.27.76
-setuptools~=65.3.0
+setuptools~=65.4.0
