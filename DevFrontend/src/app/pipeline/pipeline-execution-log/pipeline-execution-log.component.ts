@@ -55,6 +55,14 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 					host: environment.messageBrokerHost,
 					port: environment.messageBrokerPort,
 					protocol: 'ws',
+				},
+				{
+					host: environment.messageBrokerHost,
+					protocol: 'wss',
+				},
+				{
+					host: environment.messageBrokerHost,
+					protocol: 'ws',
 				}
 			]
 		});
