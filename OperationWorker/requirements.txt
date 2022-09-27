@@ -13,4 +13,4 @@ prophet==1.1.1
 pika==1.3.0
 
 botocore~=1.27.75
-setuptools~=65.3.0
+setuptools~=65.4.0
