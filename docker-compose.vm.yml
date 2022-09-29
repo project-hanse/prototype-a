@@ -269,7 +269,7 @@ services:
       TARGET_ACTION_COUNT: '13'
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
     logging:
       options:
         max-size: 150m
@@ -297,7 +297,7 @@ services:
         max-size: 150m
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 2
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
