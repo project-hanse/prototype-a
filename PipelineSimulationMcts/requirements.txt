@@ -3,5 +3,5 @@ requests-cache==0.9.6
 openml==0.12.2
 numpy==1.23.3
 requests==2.28.1
-setuptools~=65.4.0
+setuptools~=65.4.1
 cachetools==5.2.0
