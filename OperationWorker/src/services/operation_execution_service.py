@@ -56,7 +56,7 @@ class OperationExecutionService:
 				try:
 					self.store_dataset(output, result)
 				except Exception as e:
-					self.logger.info("Failed to store dataset %s: %s" % (output.get_name(), str(e)))
+					self.logger.info("Failed to store dataset %s: %s" % (output.get_key(), str(e)))
 					response.set_successful(False)
 					response.set_error_description(str(e))
 
