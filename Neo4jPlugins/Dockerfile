@@ -9,6 +9,9 @@ RUN mvn -B --no-transfer-progress clean package
 FROM neo4j:4.4.11
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
+# install curl
+RUN apt-get update && apt-get install -y curl
+
 ENV NEO4J_apoc_export_file_enabled=true
 ENV NEO4JLABS_PLUGINS=\[\"apoc\"\]
 
