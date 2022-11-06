@@ -76,9 +76,12 @@ services:
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
       PipelineCandidates__MaxVariantAttempts: 30
     depends_on:
-      - pipeline-database
-      - mysql
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      pipeline-database:
+        condition: service_started
     logging:
       options:
         max-size: 150m
@@ -98,9 +101,12 @@ services:
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-2
       PipelineCandidates__MaxVariantAttempts: 30
     depends_on:
-      - pipeline-database
-      - mysql
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      pipeline-database:
+        condition: service_started
     logging:
       options:
         max-size: 150m
@@ -398,10 +404,10 @@ services:
     image: ghcr.io/project-hanse/prototype-a/hanse-rabbitmq-server:main
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
-      interval: 5s
-      timeout: 15s
-      retries: 1
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 1s
+      timeout: 3s
+      retries: 30
     logging:
       options:
         max-size: 250m

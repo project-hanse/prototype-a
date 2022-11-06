@@ -363,12 +363,15 @@ namespace PipelineService.Dao.Impl
 				.Call("{WITH pipeline " +
 				      "MATCH (predecessor:Operation)-[:HAS_SUCCESSOR]->(target:Operation) " +
 				      "WHERE predecessor.PipelineId = pipeline.Id " +
-				      "RETURN predecessor AS predecessor, target AS target } ")
+				      "RETURN predecessor AS predecessor, target AS target, apoc.node.degree(predecessor, \"<HAS_SUCCESSOR\") AS predecessorInDegree } ")
 				.Return(() => new
 				{
 					predecessor = Return.As<Operation>("predecessor"),
 					target = Return.As<Operation>("target"),
+					predecessorInDegree = Return.As<int>("predecessorInDegree")
 				});
+
+			_logger.LogDebug("Exporting with query {ExportQuery}", query.Query.QueryText);
 
 			var results = (await query.ResultsAsync)
 				.Select(tuple => new OperationTuples
@@ -378,6 +381,7 @@ namespace PipelineService.Dao.Impl
 					PredecessorOperationConfiguration = tuple.predecessor.OperationConfiguration,
 					PredecessorOperationInputs = tuple.predecessor.Inputs,
 					PredecessorOperationOutput = tuple.predecessor.Outputs,
+					PredecessorInDegree = tuple.predecessorInDegree,
 					TargetOperationIdentifier =
 						OperationHelper.GetGlobalUniqueOperationIdentifier(tuple.target.OperationId,
 							tuple.target.OperationIdentifier),
