@@ -10,6 +10,7 @@ namespace PipelineService.Models.Dtos
 		public IDictionary<string, string> PredecessorOperationConfiguration { get; set; }
 		public IList<Dataset> PredecessorOperationInputs { get; set; }
 		public IList<Dataset> PredecessorOperationOutput { get; set; }
+		public int PredecessorInDegree { get; set; }
 		public string TargetOperationIdentifier { get; set; }
 		public IList<Dataset> TargetInputs { get; set; }
 	}
