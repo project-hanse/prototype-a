@@ -85,6 +85,15 @@ services:
     logging:
       options:
         max-size: 150m
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 3G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
       - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
@@ -110,6 +119,14 @@ services:
     logging:
       options:
         max-size: 150m
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 3G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
       - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
@@ -134,6 +151,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     depends_on:
       - minio
       - dataset-service
@@ -153,6 +178,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     depends_on:
       - minio
 
@@ -184,6 +217,13 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     logging:
       options:
         max-size: 250m
@@ -204,6 +244,13 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     logging:
       options:
         max-size: 250m
@@ -224,6 +271,13 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     logging:
       options:
         max-size: 250m
@@ -251,6 +305,13 @@ services:
     deploy:
       mode: replicated
       replicas: 4
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     logging:
       options:
         max-size: 150m
@@ -276,6 +337,13 @@ services:
     deploy:
       mode: replicated
       replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     logging:
       options:
         max-size: 150m
@@ -304,6 +372,13 @@ services:
     deploy:
       mode: replicated
       replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     volumes:
       - ./volumes/pipeline-simulation:/simulation/pipelines
 
@@ -327,6 +402,14 @@ services:
       MYSQL_DATABASE: mlflowdb
       MYSQL_USER: mlflowuser
       MYSQL_PASSWORD: hdfcLhDASas3vKhy
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     logging:
       options:
         max-size: 250m
@@ -356,6 +439,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -376,6 +467,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '0.25'
+          memory: 1G
     volumes:
       - ./volumes/neo4j/data:/data
       - ./volumes/neo4j/logs:/logs
@@ -396,6 +495,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     volumes:
       - ./volumes/mysql:/var/lib/mysql
 
@@ -411,6 +518,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     volumes:
       - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
 #      - ./volumes/rabbitmq/log/:/var/log/rabbitmq

@@ -315,6 +315,9 @@ namespace PipelineService.Services.Impl
 			return pipeline.Id;
 		}
 
+		/// <summary>
+		/// Computes the average number of pipeline candidates processed per hour (over the last 6 hours).
+		/// </summary>
 		private async Task<int> AverageCandidatesProcessedPerHour()
 		{
 			var lookBack = _configuration.GetValue("PipelineCandidates:LookBackHoursForAverages", 6.0);
@@ -387,6 +390,8 @@ namespace PipelineService.Services.Impl
 		public async Task<int> AutoSchedulePipelineCandidates(bool includeIncomplete = true)
 		{
 			var toBeEnqueued = Math.Max(await AverageCandidatesProcessedPerHour(), 4);
+			toBeEnqueued = CapToMaxAutoEnqueueValue(toBeEnqueued);
+
 			var enqueued = 0;
 			if (includeIncomplete)
 			{
@@ -418,6 +423,15 @@ namespace PipelineService.Services.Impl
 			return await ImportAndScheduleCandidatesAndTraining(candidates);
 		}
 
+		private int CapToMaxAutoEnqueueValue(int toBeEnqueued)
+		{
+			var maxAutoEnqueued = _configuration.GetValue<int?>("PipelineCandidates:MaxAutoEnqueued", 25);
+			if (!maxAutoEnqueued.HasValue) return toBeEnqueued;
+
+			_logger.LogInformation("Limiting auto-enqueued pipeline candidates to {MaxAutoEnqueued}", maxAutoEnqueued);
+			return Math.Min(toBeEnqueued, maxAutoEnqueued.Value);
+		}
+
 		private async Task ScheduleModelTraining(int pipelinesScheduled)
 		{
 			var eta = pipelinesScheduled * await AverageProcessingSecondsPerCandidate();
@@ -427,6 +441,7 @@ namespace PipelineService.Services.Impl
 					eta / 60);
 				eta = 60 * 55;
 			}
+
 			_logger.LogInformation(
 				"Estimated time to complete {PipelinesScheduled} pipelines: {Eta} seconds - scheduling model training then",
 				pipelinesScheduled, eta);
@@ -451,7 +466,7 @@ namespace PipelineService.Services.Impl
 			var incompleteMetricsIds = await _databaseContext.CandidateProcessingMetrics
 				.Where(m => !m.ProcessingCompleted)
 				.OrderBy(m => m.CreatedOn)
-				.Take(Math.Max(await AverageCandidatesProcessedPerHour(), 4))
+				.Take(Math.Max(CapToMaxAutoEnqueueValue(await AverageCandidatesProcessedPerHour()), 4))
 				.Select(m =>
 					new
 					{
