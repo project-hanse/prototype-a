@@ -20,6 +20,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     depends_on:
       - dev-frontend
       - pipeline-service
@@ -36,6 +44,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.125'
+          memory: 64M
     volumes:
       - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
 
@@ -48,6 +64,14 @@ services:
     logging:
       options:
         max-size: 250m
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.125'
+          memory: 64M
     depends_on:
       - pipeline-service
 
@@ -58,6 +82,14 @@ services:
     restart: unless-stopped
     networks:
       - default
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.125'
+          memory: 64M
     volumes:
       - ./load-balancer-configs/env-vm/pipeline-service:/etc/nginx
     depends_on:
@@ -155,7 +187,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 4G
+          memory: 3G
         reservations:
           cpus: '0.5'
           memory: 512M
@@ -196,6 +228,14 @@ services:
     restart: unless-stopped
     networks:
       - default
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.125'
+          memory: 64M
     volumes:
       - ./load-balancer-configs/env-vm/dataset-service:/etc/nginx
     depends_on:
@@ -418,6 +458,14 @@ services:
   adminer:
     image: adminer
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.125'
+          memory: 64M
     depends_on:
       - mysql
 
