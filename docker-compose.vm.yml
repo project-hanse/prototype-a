@@ -469,6 +469,20 @@ services:
     depends_on:
       - mysql
 
+  # MinIO Configuration
+  minio-config:
+    build:
+      context: ./MinIOConfig
+      dockerfile: Dockerfile
+    restart: on-failure
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_HOSTNAME: http://minio:9000
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: OsKwEnsJz0AtiX05
+
   # MinIO
   minio:
     image: minio/minio:latest
