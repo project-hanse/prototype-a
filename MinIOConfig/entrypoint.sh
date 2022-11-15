@@ -20,6 +20,48 @@ echo ""
 
 echo "Starting configuration of Object Storage..."
 
+# Config follows: https://min.io/docs/minio/container/administration/object-management/transition-objects-to-azure.html
+# Setup users for lifecycle management
+wget -O - https://min.io/docs/minio/linux/examples/LifecycleManagementAdmin.json | mc admin policy add $MINIO_NAME LifecycleAdminPolicy /dev/stdin
+mc admin user add $MINIO_NAME alphaLifecycleAdmin LongRandomSecretKey
+mc admin policy set $MINIO_NAME LifecycleAdminPolicy user=alphaLifecycleAdmin
 
+# Add remote storage
+mc admin tier add azure $MINIO_NAME AZURE_TIER \
+	--endpoint https://hansestoragecoldvm.blob.core.windows.net/vmcoldstore \
+	--bucket vmcoldstorebucket \
+	--prefix cold \
+	--account-name hansestoragecoldvm \
+	--account-key v1GeH+czMOfjBHS2JMSm3tI6plSEUSE0M2MRYto7pS9upBHBUQ8eL6hIfTxZu6hoicJ36Qu8Bhnu+AStSxJGcw== \
+	--region germanywestcentral
+
+# Create transition rules for local buckets (specify when to move data to azure)
+mc ilm rm "$MINIO_NAME/datasets" --all --force
+mc ilm rm "$MINIO_NAME/plots" --all --force
+mc ilm rm "$MINIO_NAME/metadata" --all --force
+mc ilm rm "$MINIO_NAME/mlflow-artifacts" --all --force
+
+mc ilm add "$MINIO_NAME/datasets" \
+	--tier AZURE_TIER \
+	--transition-days 1 \
+	--prefix "datasets/"
+
+mc ilm add "$MINIO_NAME/plots" \
+	--tier AZURE_TIER \
+	--transition-days 1 \
+	--prefix "plots/"
+
+mc ilm add "$MINIO_NAME/metadata" \
+	--tier AZURE_TIER \
+	--transition-days 1 \
+	--prefix "metadata/"
+
+mc ilm add "$MINIO_NAME/mlflow-artifacts" \
+	--tier AZURE_TIER \
+	--transition-days 1 \
+	--prefix "mlflow-artifacts/"
+
+# Verify transition rule
+mc ilm ls "$MINIO_NAME/datasets" --transition
 
 echo "Done configuring Object Storage."
