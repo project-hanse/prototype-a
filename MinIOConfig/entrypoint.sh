@@ -57,10 +57,6 @@ mc ilm add "$MINIO_NAME/mlflow-artifacts" \
 	--tier COLDTIER \
 	--transition-days 1
 
-mc ilm add \
-	--noncurrentversion-transition-days 7 \
-	--noncurrent-version-transition-tier COLDTIER
-
 # Verify transition rule
 mc ilm ls "$MINIO_NAME/datasets" --transition
 
