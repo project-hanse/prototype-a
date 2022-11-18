@@ -28,7 +28,7 @@
     "ngx-file-drop": "^14.0.1",
     "node-polyfill-webpack-plugin": "^2.0.1",
     "rxjs": "~7.5.7",
-    "tslib": "^2.4.0",
+    "tslib": "^2.4.1",
     "uuid": "^9.0.0",
     "vis": "^4.21.0-EOL",
     "zone.js": "~0.12.0"
