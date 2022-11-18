@@ -43,27 +43,23 @@ mc ilm rm "$MINIO_NAME/mlflow-artifacts" --all --force
 
 mc ilm add "$MINIO_NAME/datasets" \
 	--tier COLDTIER \
-	--transition-days 1 \
-	--noncurrentversion-transition-days 1 \
-	--noncurrent-version-transition-tier "COLDTIER"
+	--transition-days 1
 
 mc ilm add "$MINIO_NAME/plots" \
 	--tier COLDTIER \
-	--transition-days 1 \
-	--noncurrentversion-transition-days 1 \
-	--noncurrent-version-transition-tier "COLDTIER"
+	--transition-days 1
 
 mc ilm add "$MINIO_NAME/metadata" \
 	--tier COLDTIER \
-	--transition-days 1 \
-	--noncurrentversion-transition-days 1 \
-	--noncurrent-version-transition-tier "COLDTIER"
+	--transition-days 1
 
 mc ilm add "$MINIO_NAME/mlflow-artifacts" \
 	--tier COLDTIER \
-	--transition-days 1 \
-	--noncurrentversion-transition-days 1 \
-	--noncurrent-version-transition-tier "COLDTIER"
+	--transition-days 1
+
+mc ilm add \
+	--noncurrentversion-transition-days 7 \
+	--noncurrent-version-transition-tier COLDTIER
 
 # Verify transition rule
 mc ilm ls "$MINIO_NAME/datasets" --transition
