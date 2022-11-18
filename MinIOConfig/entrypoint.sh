@@ -27,7 +27,7 @@ mc admin user add $MINIO_NAME alphaLifecycleAdmin LongRandomSecretKey
 mc admin policy set $MINIO_NAME LifecycleAdminPolicy user=alphaLifecycleAdmin
 
 # Add remote storage
-mc admin tier add azure $MINIO_NAME AZURE_TIER_1 \
+mc admin tier add azure $MINIO_NAME COLDTIER \
 	--endpoint https://hansestoragecoldvm.blob.core.windows.net/vmcoldstorebucket1 \
 	--bucket vmcoldstorebucket1 \
 	--prefix cold \
@@ -42,24 +42,28 @@ mc ilm rm "$MINIO_NAME/metadata" --all --force
 mc ilm rm "$MINIO_NAME/mlflow-artifacts" --all --force
 
 mc ilm add "$MINIO_NAME/datasets" \
-	--tier AZURE_TIER_1 \
+	--tier COLDTIER \
 	--transition-days 1 \
-	--prefix "datasets/"
+	--noncurrentversion-transition-days 1 \
+	--noncurrent-version-transition-tier "COLDTIER"
 
 mc ilm add "$MINIO_NAME/plots" \
-	--tier AZURE_TIER_1 \
+	--tier COLDTIER \
 	--transition-days 1 \
-	--prefix "plots/"
+	--noncurrentversion-transition-days 1 \
+	--noncurrent-version-transition-tier "COLDTIER"
 
 mc ilm add "$MINIO_NAME/metadata" \
-	--tier AZURE_TIER_1 \
+	--tier COLDTIER \
 	--transition-days 1 \
-	--prefix "metadata/"
+	--noncurrentversion-transition-days 1 \
+	--noncurrent-version-transition-tier "COLDTIER"
 
 mc ilm add "$MINIO_NAME/mlflow-artifacts" \
-	--tier AZURE_TIER_1 \
+	--tier COLDTIER \
 	--transition-days 1 \
-	--prefix "mlflow-artifacts/"
+	--noncurrentversion-transition-days 1 \
+	--noncurrent-version-transition-tier "COLDTIER"
 
 # Verify transition rule
 mc ilm ls "$MINIO_NAME/datasets" --transition
