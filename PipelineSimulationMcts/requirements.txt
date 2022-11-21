@@ -1,7 +1,7 @@
 monte-carlo-tree-search==2.0.3
 requests-cache==0.9.7
 openml==0.12.2
-numpy==1.23.4
+numpy==1.23.5
 requests==2.28.1
 setuptools~=65.5.1
 cachetools==5.2.0
