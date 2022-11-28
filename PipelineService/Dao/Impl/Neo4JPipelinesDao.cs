@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Neo4jClient;
 using Neo4jClient.Cypher;
@@ -11,7 +12,9 @@ using PipelineService.Extensions;
 using PipelineService.Helper;
 using PipelineService.Models;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline;
+using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Dao.Impl
 {
@@ -19,11 +22,13 @@ namespace PipelineService.Dao.Impl
 	{
 		private readonly ILogger<Neo4JPipelinesDao> _logger;
 		private readonly IGraphClient _graphClient;
+		private readonly IConfiguration _configuration;
 
-		public Neo4JPipelinesDao(ILogger<Neo4JPipelinesDao> logger, IGraphClient graphClient)
+		public Neo4JPipelinesDao(ILogger<Neo4JPipelinesDao> logger, IGraphClient graphClient, IConfiguration configuration)
 		{
 			_logger = logger;
 			_graphClient = graphClient;
+			_configuration = configuration;
 		}
 
 		public async Task Setup()
@@ -592,6 +597,63 @@ namespace PipelineService.Dao.Impl
 				result.Count, operationId);
 
 			return result;
+		}
+
+		public async Task<IList<object>> GetOperationsTopologicalSort(Guid pipelineId, ExecutionStrategy strategy)
+		{
+			_logger.LogDebug("Loading operations in topological sort order for pipeline {PipelineId}", pipelineId);
+
+			// TODO merge with PipelinesExecutionDao.Create(...)
+			var partitionRequest = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
+				.Match($"(n:{nameof(Operation)})")
+				.Where("n.PipelineId=$pipeline_id").WithParam("pipeline_id", pipelineId)
+				.AndWhere(strategy == ExecutionStrategy.Lazy ? "NOT (n)-[:HAS_SUCCESSOR]->()" : "NOT ()-[:HAS_SUCCESSOR]->(n)")
+				.With("collect(n) AS nodesList")
+				.Call(
+					$"hanse.partition.{(strategy == ExecutionStrategy.Lazy ? "lazy" : "eager")}(nodesList, 'HAS_SUCCESSOR', $max_depth)")
+				.WithParam("max_depth",
+					_configuration.GetValue("MaxSearchDepthPartitioning", 100))
+				.Yield("maxLevel, visitedStamp")
+				.Return(() => new
+				{
+					MaxLevel = Return.As<int>("maxLevel"),
+					VisitedStamp = Return.As<string>("visitedStamp")
+				});
+
+			var partitionResult = (await partitionRequest.ResultsAsync).FirstOrDefault();
+
+			if (partitionResult == null)
+			{
+				throw new NullReferenceException(
+					"Pipeline database returned unexpected result for graph partitioning \nHint: procedure hanse.partition.lazy(...) should be present in db");
+			}
+
+			_logger.LogDebug("Partitioned graph of pipeline {PipelineId} into {PartitionCount} partitions",
+				pipelineId, partitionResult.MaxLevel);
+
+			var executionRecordsRequest = _graphClient.WithAnnotations<PipelineGraphContext>().Cypher
+				.Match($"(n:{nameof(Operation)})")
+				.Where("n._visited=$visited_stamp").WithParam("visited_stamp", partitionResult.VisitedStamp)
+				.Return(() => new
+				{
+					ResultDatasets = Return.As<string>($"n.{nameof(Operation.OutputSerialized)}"),
+					OperationId = Return.As<Guid>($"n.{nameof(Operation.Id)}"),
+					PipelineId = Return.As<Guid>($"n.{nameof(Operation.PipelineId)}"),
+					Level = Return.As<int>("n._level"),
+					OperationIdentifier = Return.As<string>($"n.{nameof(Operation.OperationIdentifier)}"),
+					HashAtEnqueuing = Return.As<string>($"n.{nameof(Operation.OperationHash)}")
+				})
+				.OrderBy("n._level");
+
+			return (await executionRecordsRequest.ResultsAsync)
+				.Select(r => new
+				{
+					r.OperationId,
+					r.PipelineId,
+					r.Level,
+					r.OperationIdentifier,
+					OperationHash = r.HashAtEnqueuing,
+				}).Cast<object>().ToList();
 		}
 	}
 }

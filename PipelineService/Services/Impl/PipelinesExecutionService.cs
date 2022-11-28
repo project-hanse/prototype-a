@@ -375,6 +375,11 @@ namespace PipelineService.Services.Impl
 			return response;
 		}
 
+		public async Task<IList<object>> GetTopologicalSort(Guid pipelineId, ExecutionStrategy strategy)
+		{
+			return await _pipelinesDao.GetOperationsTopologicalSort(pipelineId, strategy);
+		}
+
 		private static void SetPipelineIdForAllOperations(Guid pipelineId, IList<Operation> templateRoot)
 		{
 			foreach (var operation in templateRoot)

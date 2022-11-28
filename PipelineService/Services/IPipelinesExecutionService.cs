@@ -104,5 +104,7 @@ namespace PipelineService.Services
 		/// <param name="request">The model containing information about the user and the pipeline.</param>
 		/// <returns>The response with information about the new pipeline.</returns>
 		Task<CreateFromTemplateResponse> CreatePipelineFromTemplate(CreateFromTemplateRequest request);
+
+		Task<IList<object>> GetTopologicalSort(Guid pipelineId, ExecutionStrategy strategy);
 	}
 }
