@@ -27,7 +27,7 @@
     "mqtt": "^4.3.7",
     "ngx-file-drop": "^14.0.2",
     "node-polyfill-webpack-plugin": "^2.0.1",
-    "rxjs": "~7.5.7",
+    "rxjs": "~7.6.0",
     "tslib": "^2.4.1",
     "uuid": "^9.0.0",
     "vis": "^4.21.0-EOL",
