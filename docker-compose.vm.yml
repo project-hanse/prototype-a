@@ -106,7 +106,7 @@ services:
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
-      PipelineCandidates__MaxAutoEnqueued: 35
+      PipelineCandidates__MaxAutoEnqueued: 30
       PipelineCandidates__MaxVariantAttempts: 30
     depends_on:
       mysql:
@@ -141,7 +141,7 @@ services:
       EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-2
-      PipelineCandidates__MaxAutoEnqueued: 35
+      PipelineCandidates__MaxAutoEnqueued: 30
       PipelineCandidates__MaxVariantAttempts: 30
     depends_on:
       mysql:
