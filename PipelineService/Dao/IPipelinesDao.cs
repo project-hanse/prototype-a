@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PipelineService.Models.Dtos;
+using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline;
 
 namespace PipelineService.Dao
@@ -95,5 +96,13 @@ namespace PipelineService.Dao
 		/// <param name="operationId"></param>
 		/// <returns></returns>
 		Task<IList<string>> GetPredecessorHashes(Guid operationId);
+
+		/// <summary>
+		/// TODO: this should not use <c>OperationExecutionRecord</c> objects, but a dedicated DTO.
+		/// </summary>
+		/// <param name="pipelineId"></param>
+		/// <param name="strategy"></param>
+		/// <returns></returns>
+		Task<IList<object>> GetOperationsTopologicalSort(Guid pipelineId, ExecutionStrategy strategy);
 	}
 }

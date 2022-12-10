@@ -126,6 +126,7 @@ namespace PipelineService.Controllers
 		}
 
 		[HttpGet("vis/{pipelineId:Guid}")]
+		[HttpGet("{pipelineId:Guid}/vis")]
 		public async Task<IActionResult> GetPipelineForVisualization(Guid pipelineId)
 		{
 			var pipelineVisDto = await _pipelineExecutionService.GetPipelineForVisualization(pipelineId);
@@ -135,6 +136,20 @@ namespace PipelineService.Controllers
 			}
 
 			return Ok(pipelineVisDto);
+		}
+
+		[HttpGet("{pipelineId:Guid}/sort/topological")]
+		public async Task<IActionResult> GetTopologicalSort(Guid pipelineId,
+			[FromQuery]
+			ExecutionStrategy strategy = ExecutionStrategy.Eager)
+		{
+			var topSort = await _pipelineExecutionService.GetTopologicalSort(pipelineId, strategy);
+			if (topSort == null)
+			{
+				return NotFound();
+			}
+
+			return Ok(topSort);
 		}
 
 		[HttpGet("execute/{pipelineId:Guid}")]
