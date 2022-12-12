@@ -7,7 +7,7 @@ pandas==1.5.1
 openpyxl==3.0.10
 chardet==5.0.0
 boto3==1.26.24
-jsonpickle==2.2.0
+jsonpickle==3.0.0
 mlflow==1.30.0
 sklearn==0.0
 scikit-learn==1.1.3
