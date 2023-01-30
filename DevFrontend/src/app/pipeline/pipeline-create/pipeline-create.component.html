@@ -1,5 +1,5 @@
 <mat-form-field appearance="fill" style="width: 100%">
-	<mat-label>Select an template</mat-label>
+	<mat-label>Select a template</mat-label>
 	<mat-select [(value)]="selectedTemplate">
 		<ng-container *ngIf="$templates | async as templates">
 			<mat-option *ngFor="let template of templates" [value]="template">{{template.name}}</mat-option>

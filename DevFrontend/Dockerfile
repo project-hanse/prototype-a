@@ -1,5 +1,5 @@
 # Build
-FROM node:18-alpine as build-step
+FROM node:18.13-alpine as build-step
 
 ARG NG_CONFIG=production
 
@@ -18,7 +18,7 @@ RUN ng build --output-path=./dist/out --configuration ${NG_CONFIG}
 
 # Deployment
 
-FROM nginx:1.23.2-alpine as run-step
+FROM nginx:1.23.3-alpine as run-step
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
 # Replacing default config with Angular specific

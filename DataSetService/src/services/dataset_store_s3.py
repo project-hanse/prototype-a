@@ -178,7 +178,7 @@ class DatasetStoreS3:
 		if metadata_key not in self.metadata_cache:
 			self.log.debug("Metadata with key %s not found in cache - loading from S3..." % str(metadata_key))
 			try:
-				response = self.s3_client.get_object(Bucket=METADATA_BUCKET_NAME, Key=metadata_key)
+				response = self.s3_client.get_object(Bucket=METADATA_BUCKET_NAME, Key=metadata_key, retries=2)
 			except Exception as e:
 				self.log.info("Failed to load metadata with key %s: %s" % (str(metadata_key), str(e)))
 				return None

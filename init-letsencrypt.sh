@@ -6,7 +6,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(hanse.allteams.at)
+domains=(hanse.struempf.dev)
 docker_compose_file="docker-compose.prod.yml"
 rsa_key_size=4096
 data_path="./volumes/edge-server/certbot"

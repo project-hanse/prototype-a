@@ -15,14 +15,14 @@ class ModelService:
 	def __init__(self, mlflow_client: MlflowClient, model_registry: TrainerRegistry):
 		self._registered_models_cache = None
 		self.model_registry = model_registry
-		self.mlflow_client = mlflow_client
+		self.mlflow_client: MlflowClient = mlflow_client
 		self.train_split = 0.2
 		self.cv_folds = 3
 		self._model_cache = {}
 		self.logger = LogHelper.get_logger(__name__)
 
 	def get_models(self) -> [RegisteredModel]:
-		models = self.mlflow_client.list_registered_models()
+		models = self.mlflow_client.search_registered_models()
 		self.logger.info("Found %d models" % len(models))
 		return list(models)
 
@@ -65,7 +65,7 @@ class ModelService:
 
 	def get_all_models(self) -> [tuple]:
 		if self._registered_models_cache is None:
-			self._registered_models_cache = self.mlflow_client.list_registered_models()
+			self._registered_models_cache = self.mlflow_client.search_registered_models()
 		models = []
 		for registered_model in self._registered_models_cache:
 			models.append((registered_model.name, self.get_model(registered_model.name)))

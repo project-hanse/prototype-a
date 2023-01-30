@@ -16,7 +16,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - NGINX_HOST=hanse.allteams.at
+      - NGINX_HOST=hanse.struempf.dev
     depends_on:
       - dev-frontend
       - pipeline-service

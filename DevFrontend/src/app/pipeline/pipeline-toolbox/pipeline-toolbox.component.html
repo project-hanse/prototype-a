@@ -1,10 +1,10 @@
 <mat-card>
-	<div class="mat-card-header">
+	<mat-card-header class="mat-card-header">
 		<ph-pipeline-title *ngIf="pipelineInfoDto" [pipeline]="pipelineInfoDto"></ph-pipeline-title>
 		<mat-icon [matTooltip]="'Select a node to add a new operation.\n Use cmd + click to select multiple nodes.'">
 			help
 		</mat-icon>
-	</div>
+	</mat-card-header>
 	<mat-card-content>
 		<mat-tab-group>
 			<mat-tab label="Operations">
@@ -46,15 +46,17 @@
 							<div mat-subheader>{{operationsGroup.sectionTitle ?? 'Operations'}}</div>
 							<ng-container *ngFor="let operation of operationsGroup.operations">
 								<button mat-list-item (click)="onAddNode(operation)" [matTooltip]="operation.description">
-									<mat-icon mat-list-icon>add_circle_outline</mat-icon>
-									<span mat-line>{{operation.operationName}}</span>
-									<span style="opacity: 0.5" mat-line>{{operation.operationFullName}}</span>
-									<a *ngIf="operation.framework === 'pandas'"
-										 target="_blank"
-										 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
-									<a *ngIf="operation.sourceUrl && operation.framework !== 'pandas'"
-										 target="_blank"
-										 [href]="operation.sourceUrl">Docs</a>
+									<mat-icon matListItemIcon>add_circle_outline</mat-icon>
+									<div matListItemTitle>{{operation.operationName}}</div>
+									<div matListItemLine>
+										<span>{{operation.operationFullName}} </span>
+										<a *ngIf="operation.framework === 'pandas'"
+											 target="_blank"
+											 [href]="'https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.' +operation.operationName +'.html'">Docs</a>
+										<a *ngIf="operation.sourceUrl && operation.framework !== 'pandas'"
+											 target="_blank"
+											 [href]="operation.sourceUrl">Docs</a>
+									</div>
 								</button>
 							</ng-container>
 						</mat-action-list>
@@ -76,11 +78,11 @@
 				<mat-action-list *ngIf="getUserFiles() | async as userFiles" class="scrollable-content-wrapper">
 					<ng-container *ngFor="let userFile of userFiles">
 						<button mat-list-item *ngIf="showFile(userFile)" (click)="addFile(userFile)">
-							<mat-icon mat-list-icon>note</mat-icon>
-							<div mat-line>
+							<mat-icon matListItemIcon>note</mat-icon>
+							<div matListItemTitle>
 								<span>{{userFile.fileName}}</span>
 							</div>
-							<div mat-line>
+							<div matListItemLine>
 								<span>{{userFile.lastModified | date: 'MMM dd, YYYY, HH:mm'}}</span>
 							</div>
 						</button>

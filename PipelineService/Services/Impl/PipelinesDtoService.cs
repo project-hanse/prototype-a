@@ -370,7 +370,7 @@ namespace PipelineService.Services.Impl
 		/// </summary>
 		private async Task<int> GetSchedulingInterval()
 		{
-			var interval = 60 * 60 / await AverageCandidatesProcessedPerHour();
+			var interval = 60 * 60 / (await AverageCandidatesProcessedPerHour() + 1);
 			switch (interval)
 			{
 				case < 5:
