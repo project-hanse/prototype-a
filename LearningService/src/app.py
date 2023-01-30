@@ -9,9 +9,9 @@ from flask_socketio import SocketIO
 from mlflow.tracking import MlflowClient
 
 from src.services.dataset_client import DatasetClient
+from src.services.model_registry import ModelRegistry
 from src.services.model_service import ModelService
 from src.services.pipeline_client import PipelineClient
-from src.services.trainer_registry import TrainerRegistry
 
 PORT: int = os.getenv("PORT", 5006)
 S3_REGION: str = os.getenv("AWS_REGION", "eu-west-3")
@@ -46,7 +46,7 @@ bootstrap = Bootstrap(app)
 mlflow_client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI, registry_uri=MLFLOW_REGISTRY_URI)
 pipeline_service_client = PipelineClient(host=PIPELINE_SERVICE_HOST, port=PIPELINE_SERVICE_PORT)
 dataset_client = DatasetClient(host=DATASET_SERVICE_HOST, port=DATASET_SERVICE_PORT)
-trainer_registry = TrainerRegistry(pipeline_service_client, dataset_client)
+trainer_registry = ModelRegistry(pipeline_service_client, dataset_client)
 model_service = ModelService(mlflow_client, trainer_registry)
 
 

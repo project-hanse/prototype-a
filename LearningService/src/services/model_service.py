@@ -1,18 +1,13 @@
-import random
-import time
-
 import mlflow
 from mlflow.protos.model_registry_pb2 import RegisteredModel
 from mlflow.tracking import MlflowClient
-from sklearn.model_selection import train_test_split, cross_val_score
 
 from src.helper.log_helper import LogHelper
-from src.helper.mlflow_helper import infer_signature_custom
-from src.services.trainer_registry import TrainerRegistry
+from src.services.model_registry import ModelRegistry
 
 
 class ModelService:
-	def __init__(self, mlflow_client: MlflowClient, model_registry: TrainerRegistry):
+	def __init__(self, mlflow_client: MlflowClient, model_registry: ModelRegistry):
 		self._registered_models_cache = None
 		self.model_registry = model_registry
 		self.mlflow_client: MlflowClient = mlflow_client
@@ -71,70 +66,13 @@ class ModelService:
 			models.append((registered_model.name, self.get_model(registered_model.name)))
 		return models
 
-	def train_model(self, model_name: str, cache_data: bool = True):
+	def train_model(self, model_name: str, cache_data: bool = True) -> dict:
 		self.logger.info("Training model %s" % model_name)
-		trainer = self.model_registry.get_trainer_by_model_name(model_name)
-		load_data_start = time.time()
-		feat, lab = trainer.get_data(cache=cache_data)
-		load_data_end = time.time()
-		X_train, X_test, y_train, y_test = train_test_split(feat, lab, test_size=self.train_split)
-		search_cv = trainer.get_model_pipeline()
-		expr_name = model_name + "-experiment"
-		mlflow.set_experiment(expr_name)
-		mlflow.sklearn.autolog(disable=False)
-		ret = {}
-		with mlflow.start_run():
-			try:
-				self.logger.info("Training model %s" % model_name)
-				mlflow.log_metric("load_data_time", load_data_end - load_data_start)
-				start_time = time.time()
-				search_cv.fit(X_train, y_train)
-				end_time = time.time()
-				model = search_cv.best_estimator_
-				accuracy = model.score(X_test, y_test)
-				cvs = cross_val_score(model, X_train, y_train, scoring='accuracy', cv=self.cv_folds, n_jobs=-1)
-				self.logger.info("Trained model %s with test accuracy %f and cross-validation accuracy %f" % (
-					model_name, accuracy, cvs.mean()))
-				mlflow.log_metric("training_timestamp", int(round(time.time() * 1000)))
-				mlflow.log_param("training_timestamp", int(round(time.time() * 1000)))
-				mlflow.log_metric("training_time", end_time - start_time)
-				mlflow.log_param("model_name", model_name)
-				mlflow.log_param("best_params", search_cv.best_params_)
-				mlflow.log_metric("accuracy", accuracy)
-				mlflow.log_metric("cv_accuracy", cvs.mean())
-				mlflow.log_metric("cv_accuracy_std", cvs.std())
-				mlflow.log_metric("cv_min", cvs.min())
-				mlflow.log_metric("cv_max", cvs.max())
-				mlflow.log_metric("train_size", len(X_train))
-				mlflow.log_metric("test_size", len(X_test))
-				ret["modelName"] = model_name
-				ret["accuracy"] = accuracy
-				ret["cvAccuracy"] = cvs.mean()
-				ret["trainSize"] = len(X_train)
-				ret["testSize"] = len(X_test)
-				ret["timeDataLoading"] = load_data_end - load_data_start
-				ret["timeFittingModel"] = end_time - start_time
-				if len(X_test) > 10:
-					model_input = random.sample(X_test, 10)
-					mode_output = model.predict(model_input)
-					signature = infer_signature_custom(model_input, mode_output)
-				else:
-					signature = None
-				mlflow.sklearn.log_model(
-					sk_model=model,
-					artifact_path="model",
-					registered_model_name=model_name,
-					signature=signature
-				)
-			except Exception as e:
-				self.logger.error("Model training failed: %s" % e)
-			finally:
-				mlflow.log_param("model_name", model_name)
-				mlflow.log_param("cross_validation_folds", self.cv_folds)
-				mlflow.end_run()
-				mlflow.sklearn.autolog(disable=True)
-				self._model_cache.clear()
-				self._registered_models_cache = None
+		model = self.model_registry.get_model_by_name(model_name)
+		model.load(cache_data)
+		ret = model.train(model_name)
+		self._model_cache.clear()
+		self._registered_models_cache = None
 		return ret
 
 	def predict(self, data, model_name: str = None):
@@ -158,6 +96,6 @@ class ModelService:
 	def train_all_model(self):
 		self.logger.info("Training all models")
 		rets = []
-		for name in self.model_registry.get_all_trainer_names():
+		for name in self.model_registry.get_all_model_names():
 			rets.append(self.train_model(name, cache_data=True))
 		return rets
