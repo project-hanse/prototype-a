@@ -119,11 +119,11 @@
 	<!--<mat-list *ngIf="getPipelines() | async as pipelines">
 		<div mat-subheader>My Pipelines</div>
 		<mat-list-item *ngFor="let pipeline of pipelines">
-			<mat-icon mat-list-icon>account_tree</mat-icon>
-			<div mat-line>
+			<mat-icon matListItemIcon>account_tree</mat-icon>
+			<div matListItemTitle>
 				<a [routerLink]="[pipeline.id]">{{pipeline.name}}</a>
 			</div>
-			<div mat-line> {{pipeline.createdOn | date: 'medium'}} </div>
+			<div matListItemLine> {{pipeline.createdOn | date: 'medium'}} </div>
 			<ph-pipeline-export style="opacity: 0.66" [pipelineId]="pipeline.id" [compact]="true"></ph-pipeline-export>
 		</mat-list-item>
 
@@ -135,12 +135,16 @@
 
 <div class="import-cards">
 	<mat-card>
-		<ph-pipeline-create></ph-pipeline-create>
+		<mat-card-content>
+			<ph-pipeline-create></ph-pipeline-create>
+		</mat-card-content>
 	</mat-card>
 	<mat-card>
-		<ph-files-upload [uploadText]="'Drop an pipeline file here.'"
-										 [uploadFunction]="uploadFunction"
-										 (uploaded)="onPipelineImported($event)"></ph-files-upload>
+		<mat-card-content>
+			<ph-files-upload [uploadText]="'Drop a pipeline file here.'"
+											 [uploadFunction]="uploadFunction"
+											 (uploaded)="onPipelineImported($event)"></ph-files-upload>
+		</mat-card-content>
 	</mat-card>
 </div>
 
