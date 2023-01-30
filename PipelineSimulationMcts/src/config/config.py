@@ -7,8 +7,8 @@ open_ml_task_offset_max = 5000
 max_dataset_inputs_per_operation = 4
 # default to score operation
 terminal_operation_ids = ['067c7cd4-87f6-43e2-a733-26e5c51ef875']
-base_url_pipeline_service = "https://hanse.allteams.at/api/pipeline"
-base_url_learning_service = "https://hanse.allteams.at/api/learning"
+base_url_pipeline_service = "https://hanse.struempf.dev/api/pipeline"
+base_url_learning_service = "https://hanse.struempf.dev/api/learning"
 api_user = 'api_user'
 api_secret = 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
 pipelines_dir = 'pipelines'
