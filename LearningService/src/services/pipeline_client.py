@@ -55,7 +55,7 @@ class PipelineClient:
 		self.logger.info("Loaded %i pipelines" % len(pipeline_dtos))
 		return pipeline_dtos
 
-	def get_pipeline_structure(self, pipeline_id: str) -> str | None:
+	def get_pipeline_structure(self, pipeline_id: str) -> str:
 		"""
 		Loads a json string containing the structure of a pipeline.
 		"""
@@ -68,7 +68,7 @@ class PipelineClient:
 			return None
 		return response.text
 
-	def get_pipeline_sorted(self, pipeline_id: str) -> str | None:
+	def get_pipeline_sorted(self, pipeline_id: str) -> str:
 		"""
 		Loads a json string containing a topological ordering of a pipeline.
 		"""
