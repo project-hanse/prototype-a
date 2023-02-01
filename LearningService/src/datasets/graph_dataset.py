@@ -92,9 +92,11 @@ class GraphDataset(Dataset):
 			groups_array.append(value)
 		return groups_array
 
-	def _build_node_label_map(self, nodes: []) -> ({}, int):
+	def _build_node_encodings_label(self, nodes: []) -> ({}, int):
 		"""
-		Builds a dictionary with operation identifiers as keys and an array of labels for each node as values.
+		Generates encodings (used as labels of the model) for all nodes passed and stores them in a dictionary.
+
+		The  dictionary has operation identifiers as keys and an array of labels for each node as values.
 	 	returns: a label map and the number of dimensions used to encode the node features.
 		"""
 		self.logger.debug("Building node label map...")
@@ -112,40 +114,50 @@ class GraphDataset(Dataset):
 			label_map[k] = np.array(v)
 		return label_map, len(encoded_labels[0])
 
-	def _build_node_feature_map(self, nodes: []) -> ({}, int):
+	def _build_node_encodings_features(self, nodes: []) -> int:
 		"""
-		Builds a dictionary with operation identifiers as keys and an array of features for each node as values.
-		:return a feature map and the number of dimensions used to encode the node features
+		Generates encodings (used as inputs of the model) for all nodes and stores them in the feature_encoder.
 		"""
 		self.feature_encoder = DictVectorizer(sparse=False)
-		ids = []
 		features = []
-
 		for node in nodes:
-			ids.append(node['operationId'])
-			features.append({
-				'opId': node['operationIdentifier'],
-				'opName': node['operationName'],
-			})
+			features.append(self._node_to_feature_dict(node))
 		encoded_features = self.feature_encoder.fit_transform(features)
-		feature_map = {}
-		for k, v in zip(ids, encoded_features):
-			feature_map[k] = np.array(v)
-		# TODO: optionally encode input types, check if this makes more sense on edges
-		return feature_map, len(encoded_features[0])
+		return len(encoded_features[0])
+
+	def _node_to_feature_dict(self, node):
+		"""
+		Converts a node to a dictionary of features.
+		"""
+		return {
+			'opTempId': node['operationTemplateId'],
+			'opName': node['operationName'],
+			'opGlobId': node['operationIdentifier'],
+		}
+
+	def _encode_node_to_feature(self, node):
+		"""
+		Encodes a node to a feature vector.
+		"""
+		return self.feature_encoder.transform([self._node_to_feature_dict(node)])
 
 	def decode_labels(self, l):
 		return self.label_encoder.inverse_transform(l)
 
 	def read(self) -> list[Graph]:
 		self.logger.debug("Reading pipelines from %s and converting to graphs...", self.path)
+
+		# encoding features and labels for all nodes
 		all_nodes = []
 		for filepath in glob.iglob(os.path.join(self.path, self.pipelines_subdir, '*.json'), recursive=False):
 			with open(filepath) as pipeline_file:
 				pipeline = json.loads(pipeline_file.read())
 				all_nodes.extend(pipeline['nodes'])
-		node_feature_map, dims_feat = self._build_node_feature_map(all_nodes)
-		node_label_map, dims_lab = self._build_node_label_map(all_nodes)
+
+		dims_feat = self._build_node_encodings_features(all_nodes)
+		node_encodings_labels, dims_lab = self._build_node_encodings_label(all_nodes)
+
+		# converting pipelines to graphs
 		counter_pipelines = 0
 		output = []
 		for filepath in glob.iglob(os.path.join(self.path, self.pipelines_subdir, '*.json'), recursive=False):
@@ -172,6 +184,7 @@ class GraphDataset(Dataset):
 
 			self.logger.debug("Processing pipeline %s...", pipeline_id)
 			counter_pipelines += 1
+
 			with open(os.path.join(self.path, self.top_sort_subdir, pipeline_id + ".json")) as pipeline_sort:
 				top_sort = json.loads(pipeline_sort.read())
 
@@ -194,7 +207,7 @@ class GraphDataset(Dataset):
 
 				for node in current_group:
 					node_id_index_mapping[node['operationId']] = len(node_id_index_mapping)
-					x[node_id_index_mapping[node['operationId']]] = node_feature_map[node['operationId']]
+					x[node_id_index_mapping[node['operationId']]] = self._encode_node_to_feature(node)
 
 				for edge in pipeline['edges']:
 					if edge['from'] in node_id_index_mapping and edge['to'] in node_id_index_mapping:
@@ -203,7 +216,7 @@ class GraphDataset(Dataset):
 				# generate a graph for each node in the next group
 				for node in next_group:
 					# labels
-					y = node_label_map[node['operationId']]
+					y = node_encodings_labels[node['operationId']]
 					output.append(Graph(x=x, a=a, e=None, y=y))
 			self.logger.info("Converted pipeline %s to %i graph(s)", pipeline_id, len(output) - prev_output_count)
 
