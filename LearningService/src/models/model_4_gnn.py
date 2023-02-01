@@ -1,3 +1,6 @@
+import time
+
+import mlflow
 import numpy as np
 from keras import Model, Sequential
 from keras.callbacks import EarlyStopping
@@ -83,18 +86,50 @@ class Model4GraphNeuralNetwork(ModelBase):
 		loader_val = BatchLoader(data_val, batch_size=self.batch_size)
 		loader_test = BatchLoader(data_test, batch_size=self.batch_size)
 
-		# Model definition
-		model = self.get_model_definition(32, self.dataset.n_labels)
-		model.compile(optimizer='adam', loss='categorical_crossentropy', weighted_metrics=['accuracy'])
+		expr_name = model_name + "-experiment"
+		mlflow.set_experiment(expr_name)
+		mlflow.sklearn.autolog(disable=False)
 
-		model.fit(loader_train,
-							steps_per_epoch=loader_train.steps_per_epoch,
-							validation_data=loader_val,
-							validation_steps=loader_val.steps_per_epoch,
-							epochs=self.max_epochs,
-							callbacks=[EarlyStopping(patience=self.patience, restore_best_weights=True)])
+		with mlflow.start_run():
+			try:
+				model = self.get_model_definition(32, self.dataset.n_labels)
+				model.compile(optimizer='adam', loss='categorical_crossentropy', weighted_metrics=['accuracy'])
 
-		metrics = model.evaluate(loader_test.load(), steps=loader_test.steps_per_epoch)
-		ret['loss'] = metrics[0]
-		ret['accuracy'] = metrics[1]
+				start_time = time.time()
+				model.fit(loader_train,
+									steps_per_epoch=loader_train.steps_per_epoch,
+									validation_data=loader_val,
+									validation_steps=loader_val.steps_per_epoch,
+									epochs=self.max_epochs,
+									callbacks=[EarlyStopping(patience=self.patience, restore_best_weights=True)])
+				end_time = time.time()
+
+				metrics_test = model.evaluate(loader_test.load(), steps=loader_test.steps_per_epoch)
+				metrics_val = model.evaluate(loader_val.load(), steps=loader_val.steps_per_epoch)
+				ret['loss'] = metrics_test[0]
+				ret['accuracy'] = metrics_test[1]
+				ret['accuracyTest'] = metrics_test[1]
+				ret['accuracyVal'] = metrics_val[1]
+				self.logger.debug("Model training (model: %s) finished with loss: %f, accuracy: %f",
+													model_name, metrics_test[0], metrics_test[1])
+
+				mlflow.log_metric("training_timestamp", int(round(time.time() * 1000)))
+				mlflow.log_metric("training_time", end_time - start_time)
+				mlflow.log_metric("loss", metrics_test[0])
+				mlflow.log_metric("loss_test", metrics_test[0])
+				mlflow.log_metric("loss_val", metrics_val[0])
+				mlflow.log_metric("accuracy", metrics_test[1])
+				mlflow.log_metric("accuracy_test", metrics_test[1])
+				mlflow.log_metric("accuracy_val", metrics_val[1])
+				mlflow.log_metric("train_size", len(data_train))
+				mlflow.log_metric("test_size", len(data_test))
+				mlflow.log_metric("training_time", end_time - start_time)
+				ret["timeFittingModel"] = end_time - start_time
+
+			except Exception as e:
+				self.logger.error("Model training failed: %s" % e)
+			finally:
+				mlflow.log_param("model_name", model_name)
+				mlflow.end_run()
+				mlflow.sklearn.autolog(disable=True)
 		return ret
