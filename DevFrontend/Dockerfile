@@ -1,5 +1,5 @@
 # Build
-FROM node:19.5-alpine as build-step
+FROM node:19.6-alpine as build-step
 
 ARG NG_CONFIG=production
 
