@@ -1,4 +1,4 @@
-monte-carlo-tree-search==2.0.3
+monte-carlo-tree-search==2.0.4
 requests-cache==0.9.8
 openml==0.13.0
 numpy==1.24.1
