@@ -1,4 +1,4 @@
-FROM ghcr.io/mlflow/mlflow:v2.2.1
+FROM ghcr.io/mlflow/mlflow:v2.2.2
 
 RUN apt-get update && apt-get install -y build-essential curl awscli
 
