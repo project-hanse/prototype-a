@@ -4,7 +4,7 @@ flask_bootstrap==3.3.7.1
 Flask-Jsonpify==1.5.0
 flask-cors==3.0.10
 pandas==1.5.3
-openpyxl==3.1.1
+openpyxl==3.1.2
 chardet==5.1.0
 boto3==1.26.59
 jsonpickle==3.0.1
