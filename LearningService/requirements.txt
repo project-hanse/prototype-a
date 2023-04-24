@@ -11,4 +11,4 @@ jsonpickle==3.0.1
 mlflow==2.2.2
 scikit-learn==1.2.1
 requests==2.28.2
-setuptools==67.0.0
+setuptools==67.7.1
