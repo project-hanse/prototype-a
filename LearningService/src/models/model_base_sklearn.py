@@ -61,7 +61,6 @@ class SkLearnModelBase(ModelBase):
 				self.logger.info("Trained model %s with test accuracy %f and cross-validation accuracy %f" % (
 					model_name, accuracy, cvs.mean()))
 				mlflow.log_metric("training_timestamp", int(round(time.time() * 1000)))
-				mlflow.log_param("training_timestamp", int(round(time.time() * 1000)))
 				mlflow.log_metric("training_time", end_time - start_time)
 				mlflow.log_param("model_name", model_name)
 				mlflow.log_param("best_params", search_cv.best_params_)
