@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="7.0.0" />
+        <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="8.0.0" />
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.7" />
         <PackageReference Include="Hangfire.MySqlStorage" Version="2.0.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.14">
