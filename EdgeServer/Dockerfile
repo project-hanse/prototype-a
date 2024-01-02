@@ -1,3 +1,3 @@
-FROM nginx:1.23.3
+FROM nginx:1.25.3
 
 COPY ./templates-ssl /etc/nginx/templates
