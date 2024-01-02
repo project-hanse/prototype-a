@@ -6,7 +6,7 @@ COPY . .
 
 RUN mvn -B --no-transfer-progress clean package
 
-FROM neo4j:4.4.16
+FROM neo4j:5.15.0
 MAINTAINER "Konstantin Strümpf <k.struempf@icloud.com>"
 
 # install curl
