@@ -19,92 +19,92 @@ updates:
     directory: "/PipelineService"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Pipeline Service (Unit Tests)
   - package-ecosystem: "nuget" # See documentation for possible values
     directory: "/PipelineService.UnitTests" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # File Service
   - package-ecosystem: "nuget" # See documentation for possible values
     directory: "/FileService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "docker"
     directory: "/FileService"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Operation Worker
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/OperationWorker" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "docker" # See documentation for possible values
     directory: "/OperationWorker" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Dataset Service
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/DataSetService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "docker" # See documentation for possible values
     directory: "/DataSetService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Learning Service
   - package-ecosystem: "pip"
     directory: "/LearningService"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "docker"
     directory: "/LearningService"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Pipeline Simulation (MCTS)
   - package-ecosystem: "pip"
     directory: "/PipelineSimulationMcts"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "docker"
     directory: "/PipelineSimulationMcts"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Dev Frontend
   - package-ecosystem: "npm"
     directory: "/DevFrontend"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "docker"
     directory: "/DevFrontend"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Neo4j Plugins
   - package-ecosystem: "maven"
@@ -117,39 +117,39 @@ updates:
     directory: "/Neo4jPlugins"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # MySqlDatabase
   - package-ecosystem: "docker"
     directory: "/MySqlDatabase"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # MLflow
   - package-ecosystem: "docker"
     directory: "/MLflowServer"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   - package-ecosystem: "pip"
     directory: "/MLflowServer"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # Edge Server
   - package-ecosystem: "docker"
     directory: "/EdgeServer"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
   # RabbitMQ
   - package-ecosystem: "docker"
     directory: "/RabbitMQ"
     target-branch: "dev"
     schedule:
-      interval: "weekly"
+      interval: "daily"
 
