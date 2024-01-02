@@ -14,7 +14,6 @@ using PipelineService.Models;
 using PipelineService.Models.Dtos;
 using PipelineService.Models.Enums;
 using PipelineService.Models.Pipeline;
-using PipelineService.Models.Pipeline.Execution;
 
 namespace PipelineService.Dao.Impl
 {
@@ -637,10 +636,12 @@ namespace PipelineService.Dao.Impl
 				.Return(() => new
 				{
 					ResultDatasets = Return.As<string>($"n.{nameof(Operation.OutputSerialized)}"),
-					OperationId = Return.As<Guid>($"n.{nameof(Operation.Id)}"),
+					NodeId = Return.As<Guid>($"n.{nameof(Operation.Id)}"),
 					PipelineId = Return.As<Guid>($"n.{nameof(Operation.PipelineId)}"),
 					Level = Return.As<int>("n._level"),
+					OperationId = Return.As<Guid>($"n.{nameof(Operation.OperationId)}"),
 					OperationIdentifier = Return.As<string>($"n.{nameof(Operation.OperationIdentifier)}"),
+					OperationName = Return.As<string>($"n.{nameof(Operation.OperationIdentifier)}"),
 					HashAtEnqueuing = Return.As<string>($"n.{nameof(Operation.OperationHash)}")
 				})
 				.OrderBy("n._level");
@@ -648,10 +649,14 @@ namespace PipelineService.Dao.Impl
 			return (await executionRecordsRequest.ResultsAsync)
 				.Select(r => new
 				{
-					r.OperationId,
+					r.NodeId,
+					OperationId = r.NodeId,
 					r.PipelineId,
 					r.Level,
-					r.OperationIdentifier,
+					OperationIdentifier =
+						OperationHelper.GetGlobalUniqueOperationIdentifier(r.OperationId, r.OperationIdentifier),
+					r.OperationName,
+					OperationTemplateId = r.OperationId,
 					OperationHash = r.HashAtEnqueuing,
 				}).Cast<object>().ToList();
 		}
