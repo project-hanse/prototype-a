@@ -33,7 +33,7 @@ services:
       EDGE_EVENT_BUS__MQTT_PORT: 1883
       EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
     ports:
-      - "5000:80"
+      - "5001:80"
     volumes:
       - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
       - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
