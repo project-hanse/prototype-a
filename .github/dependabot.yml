@@ -80,15 +80,15 @@ updates:
     schedule:
       interval: "weekly"
 
-  # Pipeline Simulation (MCTS)
+  # Pipeline Creation Agent (MCTS)
   - package-ecosystem: "pip"
-    directory: "/PipelineSimulationMcts"
+    directory: "/PipelineCreationAgentMcts"
     target-branch: "dev"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "docker"
-    directory: "/PipelineSimulationMcts"
+    directory: "/PipelineCreationAgentMcts"
     target-branch: "dev"
     schedule:
       interval: "weekly"

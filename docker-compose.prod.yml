@@ -68,8 +68,8 @@ services:
       pipeline-database:
         condition: service_started
     volumes:
-      - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
-      - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
+      - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
+      - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
 
   # Learning Store
   learning-service:
@@ -143,8 +143,8 @@ services:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
   # Pipeline Simulation (dec_log)
-  pipeline-simulation:
-    image: ghcr.io/project-hanse/prototype-a/pipeline-simulation-mcts:main
+  pipeline-creation-agent:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-creation-agent-mcts:main
     restart: unless-stopped
     depends_on:
       - pipeline-service
@@ -162,11 +162,11 @@ services:
       mode: replicated
       replicas: 1
     volumes:
-      - ./volumes/pipeline-simulation:/simulation/pipelines
+      - ./volumes/pipeline-creation-agent:/simulation/pipelines
 
   # Pipeline Simulation (poly_peak)
-  pipeline-simulation-poly-peak:
-    image: ghcr.io/project-hanse/prototype-a/pipeline-simulation-mcts:main
+  pipeline-creation-agent-poly-peak:
+    image: ghcr.io/project-hanse/prototype-a/pipeline-creation-agent-mcts:main
     restart: unless-stopped
     depends_on:
       - pipeline-service
@@ -184,7 +184,7 @@ services:
       mode: replicated
       replicas: 1
     volumes:
-      - ./volumes/pipeline-simulation:/simulation/pipelines
+      - ./volumes/pipeline-creation-agent:/simulation/pipelines
 
   # MLFlow Server
   mlflow-server:

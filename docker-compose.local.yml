@@ -35,8 +35,8 @@ services:
     ports:
       - "5001:80"
     volumes:
-      - ./volumes/pipeline-simulation:/app/Resources/PipelineCandidates
-      - ./volumes/pipeline-simulation-archive:/app/Resources/PipelineCandidatesArchive
+      - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
+      - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
 
   # Learning Store
   learning-service:
@@ -107,7 +107,7 @@ services:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
   # Pipeline Simulation
-  pipeline-simulation:
+  pipeline-creation-agent:
     build:
       context: ./PipelineSimulationMcts
       dockerfile: ./Dockerfile
@@ -125,7 +125,7 @@ services:
       MCTS_ITERATION_LIMIT: '7'
       REWARD_FUNCTION_TYPE: 'desc_log'
     volumes:
-      - ./volumes/pipeline-simulation:/simulation/pipelines
+      - ./volumes/pipeline-creation-agent:/simulation/pipelines
 
   # Dataset Store
   dataset-service:
