@@ -478,8 +478,7 @@ services:
       dockerfile: Dockerfile
     restart: on-failure
     depends_on:
-      minio:
-        condition: service_healthy
+      - minio
     environment:
       MINIO_HOSTNAME: http://minio:9000
       MINIO_ACCESS_KEY: minio
