@@ -55,14 +55,12 @@ if __name__ == '__main__':
 
 	offset = random.randint(0, get_config('open_ml_task_offset_max'))
 	logger.info("Loading possible tasks from OpenML...")
-	task_options: pd.DataFrame = openml.tasks.list_tasks(
-		task_type=openml.tasks.TaskType.SUPERVISED_CLASSIFICATION,
-		offset=offset, size=offset + 1000, output_format='dataframe')
+	task_options = [31, 10101, 9914, 145804, 146065, 146064, 125923, 3913, 3, 3917]
 	logger.info("Loaded %d tasks from OpenML" % len(task_options))
 	searcher = MCTS(iterationLimit=get_config('mcts_iteration_limit'), rolloutPolicy=model3_policy)
 	batch_number = random.randint(0, 10000)
 	for i in range(get_config('pipelines_per_batch')):
-		task_id = task_options.sample(1).iloc[0]['tid']
+		task_id = random.choice(task_options)
 		logger.info('Simulating pipeline %s for task %i' % (i, task_id))
 		task, currentState = get_initial_state(task_id)
 		pipeline = {
