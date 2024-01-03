@@ -42,27 +42,33 @@ export class PipelineExecutionLogComponent implements OnInit, OnDestroy {
 	}
 
 	private setupMqttClient(): void {
+		let host = environment.messageBrokerHost?.trim() || '';
+		// if host is empty string derive from current host
+		if (host === '') {
+			host = window.location.hostname;
+			console.log('Using derived host for message broker connection', host);
+		}
 		this.client = mqtt.connect(null, {
 			clientId: 'frontend-' + uuid.v4(),
 			path: environment.messageBrokerPath,
 			servers: [
 				{
-					host: environment.messageBrokerHost,
+					host,
 					port: environment.messageBrokerPort,
 					protocol: 'wss',
 				},
 				{
-					host: environment.messageBrokerHost,
+					host,
 					port: environment.messageBrokerPort,
 					protocol: 'ws',
 				},
 				{
-					host: environment.messageBrokerHost,
+					host,
 					port: environment.messageBrokerPortAlternative,
 					protocol: 'wss',
 				},
 				{
-					host: environment.messageBrokerHost,
+					host,
 					port: environment.messageBrokerPortAlternative,
 					protocol: 'ws',
 				}
