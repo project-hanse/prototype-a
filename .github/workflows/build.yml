@@ -184,6 +184,7 @@ jobs:
         with:
           context: ./DevFrontend
           builder: ${{ steps.buildx.outputs.name }}
+          args: NG_CONFIG=production
           pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
