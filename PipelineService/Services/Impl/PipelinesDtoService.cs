@@ -203,7 +203,7 @@ namespace PipelineService.Services.Impl
 			}
 
 			var client = _httpClientFactory.CreateClient();
-			client.BaseAddress = new Uri("https://old.openml.org");
+			client.BaseAddress = new Uri("https://openml.org");
 			var openMlResponse = await client.GetAsync($"api/v1/json/task/{pipelineCandidate.TaskId}");
 			var task = JsonConvert.DeserializeObject<OpenMlTaskResponse>(await openMlResponse.Content.ReadAsStringAsync());
 

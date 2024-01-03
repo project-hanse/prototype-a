@@ -106,10 +106,10 @@ services:
     volumes:
       - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
-  # Pipeline Simulation
+  # Pipeline Creation Agent (MCTS)
   pipeline-creation-agent:
     build:
-      context: ./PipelineSimulationMcts
+      context: ./PipelineCreationAgentMcts
       dockerfile: ./Dockerfile
     restart: unless-stopped
     depends_on:
