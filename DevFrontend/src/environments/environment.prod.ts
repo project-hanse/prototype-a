@@ -10,5 +10,6 @@ export const environment = {
 	messageBrokerHost: '',
 	messageBrokerPath: '/mqtt',
 	messageBrokerPort: 443,
-	messageBrokerPortAlternative: 8000,
+	messageBrokerPortAlternative1: 8000,
+	messageBrokerPortAlternative2: 6080,
 };
