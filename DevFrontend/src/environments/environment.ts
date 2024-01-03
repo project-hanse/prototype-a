@@ -14,7 +14,8 @@ export const environment = {
 	messageBrokerHost: 'localhost',
 	messageBrokerPath: '',
 	messageBrokerPort: 9002,
-	messageBrokerPortAlternative: 8000,
+	messageBrokerPortAlternative1: 8000,
+	messageBrokerPortAlternative2: 6080,
 };
 
 /*
