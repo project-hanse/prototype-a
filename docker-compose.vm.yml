@@ -14,7 +14,7 @@ services:
       - ./volumes/edge-server/etc/apache2:/etc/apache2
       - ./EdgeServer/templates:/etc/nginx/templates
     ports:
-      - "80:80"
+      - "6080:80"
     environment:
       - NGINX_HOST=0.0.0.0
     logging:
