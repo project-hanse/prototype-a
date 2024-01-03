@@ -1,4 +1,4 @@
-import {Node} from 'vis';
+import {Node} from 'vis-network';
 import {Dataset, DatasetView} from './dataset';
 
 export interface VisualizationOperationDto extends Node {

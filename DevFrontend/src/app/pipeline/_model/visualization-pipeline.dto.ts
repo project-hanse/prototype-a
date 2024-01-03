@@ -1,4 +1,4 @@
-import {Edge} from 'vis';
+import {Edge} from 'vis-network';
 import {VisualizationOperationDto} from './visualization-operation-dto';
 
 export interface VisualizationPipelineDto {

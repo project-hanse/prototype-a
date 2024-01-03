@@ -1,6 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {Subscription} from 'rxjs';
-import {Data, DataSet, Edge, IdType, Network, Node, Options} from 'vis-network';
+import {DataSet} from 'vis-data/peer/esm/vis-data';
+import {Data, Edge, IdType, Options} from 'vis-network';
+import {Network} from 'vis-network/peer/esm/vis-network';
 import {VisualizationOperationDto} from '../_model/visualization-operation-dto';
 import {VisualizationPipelineDto} from '../_model/visualization-pipeline.dto';
 import {PipelineService} from '../_service/pipeline.service';
@@ -54,9 +56,8 @@ export class PipelineGraphComponent implements OnInit {
 	}
 
 	private renderGraph(pipeline: VisualizationPipelineDto): Network {
-		const nodes = new DataSet<Node>(pipeline.nodes, {});
-		const edges = new DataSet<Edge>(pipeline.edges, {});
-
+		const nodes = new DataSet<VisualizationOperationDto>(pipeline.nodes);
+		const edges = new DataSet<Edge>(pipeline.edges);
 		const container = document.getElementById(this.networkElementId);
 		const data: Data = {
 			nodes,
