@@ -151,11 +151,6 @@ class OperationsSingleInputPandasWrappers:
 		else:
 			skipna = operation_config["skipna"]
 
-		if "level" not in operation_config:
-			level = None
-		else:
-			level = operation_config["level"]
-
 		if "numeric_only" not in operation_config:
 			numeric_only = None
 		else:
@@ -166,7 +161,7 @@ class OperationsSingleInputPandasWrappers:
 		else:
 			name = operation_config["name"]
 
-		return df.mean(axis=axis, skipna=skipna, level=level, numeric_only=numeric_only).to_frame(name=name)
+		return df.mean(axis=axis, skipna=skipna, numeric_only=numeric_only).to_frame(name=name)
 
 	@staticmethod
 	def pd_single_input_make_row_header(logger: logging, operation_name: str, operation_config: dict, df: pd.DataFrame):

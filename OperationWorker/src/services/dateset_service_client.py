@@ -1,6 +1,7 @@
 import base64
 import json
 import pickle
+from io import StringIO
 
 import numpy as np
 import pandas as pd
@@ -39,7 +40,7 @@ class DatasetServiceClient:
 		response = requests.get(address)
 		if response.status_code == 404:
 			raise NotFoundError("No dataset with key found")
-		return pd.read_json(response.text)
+		return pd.read_json(StringIO(response.text))
 
 	def store_dataframe_by_key(self, key: str, resulting_dataset: pd.DataFrame):
 		address = 'http://' + self.host + ':' + str(self.port) + '/api/dataframe/key/' + key

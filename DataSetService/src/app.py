@@ -6,7 +6,7 @@ import threading
 import uuid
 
 import pandas as pd
-from flask import Flask, render_template, request, redirect, abort
+from flask import Flask, render_template, request, abort
 from flask_bootstrap import Bootstrap
 from flask_cors import CORS
 from flask_socketio import SocketIO
@@ -149,56 +149,6 @@ def metadata_by_key(key: str):
 				return 'OK'
 			return 'Dataset does not exist', 404
 		return 'No metadata provided', 400
-
-
-########################
-### Legacy endpoints ###
-########################
-
-
-@app.route('/api/dataframe/<dataset_id>', methods=['GET'])
-def dataset_by_id(dataset_id: str):
-	"""
-	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=json
-	"""
-	log.warning('Legacy endpoint used: GET /api/dataframe/<dataset_id>')
-	return redirect('/api/dataframe/key/%s?format=json' % dataset_id, 301)
-
-
-@app.route('/api/dataframe/html/<dataset_id>', methods=['GET'])
-def dataset_as_html_by_id(dataset_id: str):
-	"""
-	Legacy endpoint. Replaced by GET /api/dataframe/key/<key>?format=html
-	"""
-	log.warning('Legacy endpoint used: GET /api/dataframe/html/<dataset_id>')
-	return redirect('/api/dataframe/key/%s?format=html' % dataset_id, 301)
-
-
-@app.route('/api/dataframe/csv/<dataset_id>', methods=['GET'])
-def dataset_as_csv_by_id(dataset_id: str):
-	"""
-	Legacy endpoint. Will be replaced by GET /api/dataframe/key/<key>?format=csv
-	"""
-	log.warning('Legacy endpoint used: GET /api/dataframe/csv/<dataset_id>')
-	return redirect('/api/dataframe/key/%s?format=csv' % dataset_id, 301)
-
-
-@app.route('/api/dataframe/key/describe/<key>', methods=['GET'])
-def describe_dataset_by_key(key: str):
-	"""
-	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=json
-	"""
-	log.warning('Legacy endpoint used: GET /api/dataframe/key/describe/<key>')
-	return redirect('/api/metadata/key/%s?format=json' % key, 301)
-
-
-@app.route('/api/dataframe/key/describe/html/<key>', methods=['GET'])
-def describe_dataframe_by_key_html(key: str):
-	"""
-	Legacy endpoint. Replaced by GET /api/metadata/key/<key>?format=html
-	"""
-	log.warning('Legacy endpoint used: GET /api/dataframe/key/describe/html/<key>')
-	return redirect('/api/metadata/key/%s?format=html' % key, 301)
 
 
 # Initializing services

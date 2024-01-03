@@ -51,7 +51,9 @@ class OperationExecutionService:
 				self.logger.warning("Fixing backwards compatibility: results is not a list")
 				results = [results]
 
-			self.logger.info("Storing %d resulting dataset(s)" % len(results))
+			store_start = datetime.datetime.now(datetime.timezone.utc)
+			self.logger.info("Storing %d resulting dataset(s) (start_time: %s UTC, size: %.2f kB)..." % (
+				len(results), str(store_start), len(str(results)) / 1024))
 			for output, result in zip(request.get_outputs(), results):
 				try:
 					self.store_dataset(output, result)
@@ -59,6 +61,9 @@ class OperationExecutionService:
 					self.logger.info("Failed to store dataset %s: %s" % (output.get_key(), str(e)))
 					response.set_successful(False)
 					response.set_error_description(str(e))
+				finally:
+					store_duration = datetime.datetime.now(datetime.timezone.utc) - store_start
+					self.logger.info("Storing %d resulting dataset(s) took %s" % (len(results), str(store_duration)))
 
 		except Exception as e:
 			self.logger.info("Failed to execute operation %s: %s" % (request._worker_operation_identifier, str(e)))
@@ -80,7 +85,7 @@ class OperationExecutionService:
 		response.set_start_time(datetime.datetime.now(datetime.timezone.utc))
 
 	def execute_operation(self, operation_name: str, operation_id: str, operation_config: dict, data: []):
-		self.logger.info("Executing operation %s (%s)" % (operation_name, operation_id))
+		self.logger.info("Executing operation %s (%s)..." % (operation_name, operation_id))
 		operation_callable = self.operation_service.get_operation_by_id(operation_id)
 		try:
 			return operation_callable(self.logger, operation_name, operation_config, data)

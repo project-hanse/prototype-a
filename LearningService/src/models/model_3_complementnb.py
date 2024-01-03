@@ -5,22 +5,23 @@ from sklearn.model_selection._search import BaseSearchCV, RandomizedSearchCV
 from sklearn.naive_bayes import ComplementNB
 from sklearn.pipeline import Pipeline
 
+from src.models.model_base_sklearn import SkLearnModelBase
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
-from src.trainers.model_base import TrainerModelBase
 from src.transformers.dataset_types_to_category import DatasetTypesToCategory
 from src.transformers.feature_selector import FeatureSelector
 
 
-class TrainerModel2ComplementNB(TrainerModelBase):
-	feature_names = ['feat_pred_id', 'feat_pred_input_count']
+class Model3ComplementNB(SkLearnModelBase):
+	feature_names = ['input_0_dataset_type', 'input_0_model_type', 'input_1_dataset_type', 'input_1_model_type',
+									 'input_2_dataset_type', 'input_2_model_type', 'input_3_dataset_type', 'input_3_model_type',
+									 'feat_pred_id', 'feat_pred_count', 'feat_pred_input_count']
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
 
 	def get_model_pipeline(self) -> BaseSearchCV:
-		self.logger.debug("Creating model 2 pipeline for %s", __name__)
-		# need k greater than just number of features since DictVectorizer will create a feature for each key
+		self.logger.debug("Creating model pipeline for %s", __name__)
 		params = {
 			'feature_selector__mark_missing_features': [True, False],
 			'selector__percentile': np.linspace(start=10, stop=100, num=100),
@@ -36,19 +37,7 @@ class TrainerModel2ComplementNB(TrainerModelBase):
 			("selector", SelectPercentile()),
 			("classifier", ComplementNB())
 		])
-		return RandomizedSearchCV(ppl, params, cv=cv, refit=True, n_jobs=-1, n_iter=30)
-
-	def _tuples_preprocessing(self, data: []) -> ([{}], [{}]):
-		feat = []
-		lab = []
-		for element in data:
-			lab.append(element['targetOperationIdentifier'])
-			feat.append({
-				'feat_pred_id': element['predecessorOperationIdentifier'],
-				'feat_pred_input_count': len(element['targetInputs'])
-			})
-
-		return feat, lab
+		return RandomizedSearchCV(ppl, params, cv=cv, refit=True, n_jobs=-1, n_iter=50)
 
 	def get_data(self, cache=True) -> (list, list):
 		feat, lab = self._load_data(cache)

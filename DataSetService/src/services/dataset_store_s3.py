@@ -1,6 +1,5 @@
 import pickle
 from concurrent.futures import ThreadPoolExecutor
-from time import sleep
 
 import boto3
 import pandas as pd
@@ -198,8 +197,8 @@ class DatasetStoreS3:
 		self.log.info("Storing metadata for key %s" % str(key))
 		existing_metadata = self.get_metadata_by_key(key, version)
 		if existing_metadata is None:
-			self.log.info("No metadata found for this key (%s)" % str(key))
-			return False
+			self.log.info("No existing metadata found for key %s - creating new metadata" % str(key))
+			existing_metadata = {}
 		existing_metadata.update(metadata)
 		self.store_metadata_by_key(key, existing_metadata, version)
 		# also update the full version

@@ -1,3 +1,4 @@
+import datetime
 import json
 from time import sleep
 from typing import Optional
@@ -62,7 +63,8 @@ class RabbitMqClientWrapper:
 
 	def on_message_callback(self, ch: BlockingChannel, method: spec.Basic.Deliver, properties: spec.BasicProperties,
 													body: bytes):
-		self.logging.debug("Received message on channel number '%s' routing_key '%s'" % (str(ch.channel_number), str(method.routing_key)))
+		self.logging.info(
+			"Received message on channel number '%s' routing_key '%s'" % (str(ch.channel_number), str(method.routing_key)))
 
 		try:
 			message = body.decode('utf-8')
@@ -73,11 +75,12 @@ class RabbitMqClientWrapper:
 			return
 
 		request = None
+		operation_start_time = datetime.datetime.now(datetime.timezone.utc)
 		try:
+			self.logging.info("Constructing operation execution message")
 			request = OperationExecutionMessage(payload_deserialized)
-			self.logging.info("Operation %s start" % request.get_operation_id())
+			self.logging.info("Operation %s start at %s" % (request.get_operation_id(), str(operation_start_time)))
 			response = self.execution_service.handle_execution_request(request)
-			self.logging.info("Operation %s complete" % request.get_operation_id())
 		except Exception as e:
 			if request is not None:
 				self.logging.info("Operation %s failed" % request.get_operation_id())
@@ -86,6 +89,10 @@ class RabbitMqClientWrapper:
 					str(type(e)), str(e), str(method.delivery_tag), str(method.routing_key), str(method.exchange)))
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
 			return
+		finally:
+			operation_end_time = datetime.datetime.now(datetime.timezone.utc)
+			operation_duration = operation_end_time - operation_start_time
+			self.logging.info("Operation %s complete in %s" % (request.get_operation_id(), str(operation_duration)))
 
 		if ch.is_open:
 			ch.basic_ack(delivery_tag=method.delivery_tag)

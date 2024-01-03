@@ -13,7 +13,7 @@ updates:
     directory: "/PipelineService" # Location of package manifests
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
 
   - package-ecosystem: "docker"
     directory: "/PipelineService"
@@ -111,7 +111,7 @@ updates:
     directory: "/Neo4jPlugins"
     target-branch: "dev"
     schedule:
-      interval: "daily"
+      interval: "weekly"
 
   - package-ecosystem: "docker"
     directory: "/Neo4jPlugins"

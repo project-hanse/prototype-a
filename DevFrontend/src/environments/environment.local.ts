@@ -1,6 +1,6 @@
 export const environment = {
 	production: false,
-	pipelineApi: 'http://localhost:5000',
+	pipelineApi: 'http://localhost:5001',
 	filesApi: 'http://localhost:5004',
 	datasetApi: 'http://localhost:5002',
 	learningApi: 'http://localhost:5006',
