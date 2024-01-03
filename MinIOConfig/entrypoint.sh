@@ -27,13 +27,16 @@ mc admin user add $MINIO_NAME alphaLifecycleAdmin LongRandomSecretKey
 mc admin policy set $MINIO_NAME LifecycleAdminPolicy user=alphaLifecycleAdmin
 
 # Add remote storage
-mc admin tier add azure $MINIO_NAME COLDTIER \
-	--endpoint https://hansestoragecoldvm.blob.core.windows.net/vmcoldstorebucket1 \
-	--bucket vmcoldstorebucket1 \
-	--prefix cold \
-	--account-name hansestoragecoldvm \
-	--account-key v1GeH+czMOfjBHS2JMSm3tI6plSEUSE0M2MRYto7pS9upBHBUQ8eL6hIfTxZu6hoicJ36Qu8Bhnu+AStSxJGcw== \
-	--region germanywestcentral
+#mc admin tier add azure $MINIO_NAME COLDTIER \
+#	--endpoint https://hansestoragecoldvm.blob.core.windows.net/vmcoldstorebucket1 \
+#	--bucket vmcoldstorebucket1 \
+#	--prefix cold \
+#	--account-name hansestoragecoldvm \
+#	--account-key v1GeH+czMOfjBHS2JMSm3tI6plSEUSE0M2MRYto7pS9upBHBUQ8eL6hIfTxZu6hoicJ36Qu8Bhnu+AStSxJGcw== \
+#	--region germanywestcentral
+
+# Remove remote storage
+mc admin tier remove azure $MINIO_NAME COLDTIER
 
 # Create transition rules for local buckets (specify when to move data to azure)
 mc ilm rm "$MINIO_NAME/datasets" --all --force
@@ -41,23 +44,23 @@ mc ilm rm "$MINIO_NAME/plots" --all --force
 mc ilm rm "$MINIO_NAME/metadata" --all --force
 mc ilm rm "$MINIO_NAME/mlflow-artifacts" --all --force
 
-mc ilm add "$MINIO_NAME/datasets" \
-	--tier COLDTIER \
-	--transition-days 1
-
-mc ilm add "$MINIO_NAME/plots" \
-	--tier COLDTIER \
-	--transition-days 1
-
-mc ilm add "$MINIO_NAME/metadata" \
-	--tier COLDTIER \
-	--transition-days 1
-
-mc ilm add "$MINIO_NAME/mlflow-artifacts" \
-	--tier COLDTIER \
-	--transition-days 1
+#mc ilm add "$MINIO_NAME/datasets" \
+#	--tier COLDTIER \
+#	--transition-days 1
+#
+#mc ilm add "$MINIO_NAME/plots" \
+#	--tier COLDTIER \
+#	--transition-days 1
+#
+#mc ilm add "$MINIO_NAME/metadata" \
+#	--tier COLDTIER \
+#	--transition-days 1
+#
+#mc ilm add "$MINIO_NAME/mlflow-artifacts" \
+#	--tier COLDTIER \
+#	--transition-days 1
 
 # Verify transition rule
-mc ilm ls "$MINIO_NAME/datasets" --transition
+#mc ilm ls "$MINIO_NAME/datasets" --transition
 
 echo "Done configuring Object Storage."
