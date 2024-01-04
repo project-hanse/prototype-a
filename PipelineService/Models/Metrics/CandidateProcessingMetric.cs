@@ -142,4 +142,11 @@ public record CandidateProcessingMetric : BasePersistentModel
 	/// Enables completion of candidate processing after application reboot.
 	/// </remarks>
 	public bool ProcessingCompleted { get; set; } = false;
+
+	public float SleepTimeAfterNewActions { get; set; } = 1.0f;
+	public int MaxActionsPerPipeline { get; set; } = 25;
+	public int MctsIterationLimit { get; set; } = 15;
+	public int TargetActionCount { get; set; } = 13;
+	public string ExpertPolicyModelName { get; set; } = "composite";
+	public float ExpertPolicyProbability { get; set; } = 0.75f;
 }

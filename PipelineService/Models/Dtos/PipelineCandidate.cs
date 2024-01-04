@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using PipelineService.Models.Pipeline;
@@ -56,11 +55,30 @@ public class PipelineCandidate
 	[JsonProperty("reward_function_type")]
 	public string RewardFunctionType { get; set; }
 
+	[JsonProperty("sleep_time_after_new_actions")]
+	public float SleepTimeAfterNewActions { get; set; } = 1.0f;
+
+	[JsonProperty("max_actions_per_pipeline")]
+	public int MaxActionsPerPipeline { get; set; } = 25;
+
+	[JsonProperty("mcts_iteration_limit")]
+	public int MctsIterationLimit { get; set; }	= 15;
+
+	[JsonProperty("target_action_count")]
+	public int TargetActionCount { get; set; } = 13;
+
+	[JsonProperty("expert_policy_model_name")]
+	public string ExpertPolicyModelName { get; set; } = "composite";
+
+	[JsonProperty("expert_policy_probability")]
+	public float ExpertPolicyProbability { get; set; } = 0.75f;
+
 	public string SourceFileName { get; set; }
 
 	public double SimulationDuration => Math.Max((CompletedAt - StartedAt).TotalMilliseconds, 0);
 
 	private int? _actionsCount;
+
 	public int ActionsCount
 	{
 		get => _actionsCount ?? (_actionsCount = Actions?.Count ?? 0).Value;

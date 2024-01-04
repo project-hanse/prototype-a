@@ -87,7 +87,8 @@ if __name__ == '__main__':
 			'max_actions_per_pipeline': get_config('max_actions_per_pipeline'),
 			'mcts_iteration_limit': get_config('mcts_iteration_limit'),
 			'target_action_count': get_config('target_action_count'),
-			'expert_policy_probability': get_config('expert_policy_probability'),
+			'expert_policy_model_name': get_config('expert_policy_model_name'),
+			'expert_policy_probability': get_config('expert_policy_probability')
 		}
 		while not currentState.is_terminal():
 			action = searcher.search(initialState=currentState)

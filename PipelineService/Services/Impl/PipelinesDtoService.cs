@@ -536,8 +536,14 @@ namespace PipelineService.Services.Impl
 				BatchNumber = candidate.BatchNumber,
 				SimulationStartTime = candidate.StartedAt,
 				SimulationEndTime = candidate.CompletedAt,
+				ExecutionAttempts = 1,
 				RewardFunctionType = candidate.RewardFunctionType,
-				ExecutionAttempts = 1
+				SleepTimeAfterNewActions = candidate.SleepTimeAfterNewActions,
+				MaxActionsPerPipeline = candidate.MaxActionsPerPipeline,
+				MctsIterationLimit = candidate.MctsIterationLimit,
+				TargetActionCount = candidate.TargetActionCount,
+				ExpertPolicyModelName = candidate.ExpertPolicyModelName,
+				ExpertPolicyProbability = candidate.ExpertPolicyProbability
 			};
 
 			_databaseContext.CandidateProcessingMetrics.Add(metric);

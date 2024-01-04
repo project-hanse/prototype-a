@@ -98,7 +98,9 @@ services:
 
     # Pipeline Service 1
     pipeline-service-1:
-        image: ghcr.io/project-hanse/prototype-a/pipeline-service:main
+        build:
+            context: ./PipelineService
+            dockerfile: ./Dockerfile
         restart: unless-stopped
         environment:
             Logging__LogLevel__Default: Information
@@ -133,7 +135,9 @@ services:
 
     # Pipeline Service 2
     pipeline-service-2:
-        image: ghcr.io/project-hanse/prototype-a/pipeline-service:main
+        build:
+            context: ./PipelineService
+            dockerfile: ./Dockerfile
         restart: unless-stopped
         environment:
             Logging__LogLevel__Default: Information

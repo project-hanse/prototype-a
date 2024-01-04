@@ -109,8 +109,8 @@ services:
     # Pipeline Creation Agent (MCTS)
     pipeline-creation-agent-m2nb-dl:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -122,8 +122,8 @@ services:
 
     pipeline-creation-agent-m3nb-pp:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -135,8 +135,8 @@ services:
 
     pipeline-creation-agent-m3rf-pp:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
