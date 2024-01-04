@@ -1,6 +1,6 @@
 services:
     # Pipeline Creation Agent
-    pipeline-creation-agent:
+    pipeline-creation-agent-template:
         build:
             context: ./PipelineCreationAgentMcts
             dockerfile: ./Dockerfile

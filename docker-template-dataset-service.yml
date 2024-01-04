@@ -1,0 +1,26 @@
+services:
+    dataset-service-template:
+        build:
+            context: ./DataSetService
+            dockerfile: ./Dockerfile
+        restart: unless-stopped
+        networks:
+            - default
+        environment:
+            S3_HOST: minio
+            S3_PORT: 9000
+            S3_ACCESS_KEY_ID: minio
+            S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
+        deploy:
+            mode: replicated
+            replicas: 1
+            resources:
+                limits:
+                    cpus: '1.0'
+                    memory: 3G
+                reservations:
+                    cpus: '0.15'
+                    memory: 512M
+        logging:
+            options:
+                max-size: 250m

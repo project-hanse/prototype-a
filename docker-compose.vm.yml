@@ -247,82 +247,25 @@ services:
 
     # Dataset Store 1
     dataset-service-1:
-        image: ghcr.io/project-hanse/prototype-a/dataset-service:main
-        restart: unless-stopped
-        networks:
-            - default
-        environment:
-            S3_HOST: minio
-            S3_PORT: 9000
-            S3_ACCESS_KEY_ID: minio
-            S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-        deploy:
-            mode: replicated
-            replicas: 1
-            resources:
-                limits:
-                    cpus: '1.0'
-                    memory: 3G
-                reservations:
-                    cpus: '0.5'
-                    memory: 512M
-        logging:
-            options:
-                max-size: 250m
+        extends:
+            file: docker-template-dataset-service.yml
+            service: dataset-service-template
         depends_on:
             - minio
 
     # Dataset Store 2
     dataset-service-2:
-        image: ghcr.io/project-hanse/prototype-a/dataset-service:main
-        restart: unless-stopped
-        networks:
-            - default
-        environment:
-            S3_HOST: minio
-            S3_PORT: 9000
-            S3_ACCESS_KEY_ID: minio
-            S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-        deploy:
-            mode: replicated
-            replicas: 1
-            resources:
-                limits:
-                    cpus: '1.0'
-                    memory: 3G
-                reservations:
-                    cpus: '0.5'
-                    memory: 512M
-        logging:
-            options:
-                max-size: 250m
+        extends:
+            file: docker-template-dataset-service.yml
+            service: dataset-service-template
         depends_on:
             - minio
 
     # Dataset Store 3
     dataset-service-3:
-        image: ghcr.io/project-hanse/prototype-a/dataset-service:main
-        restart: unless-stopped
-        networks:
-            - default
-        environment:
-            S3_HOST: minio
-            S3_PORT: 9000
-            S3_ACCESS_KEY_ID: minio
-            S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-        deploy:
-            mode: replicated
-            replicas: 1
-            resources:
-                limits:
-                    cpus: '1.0'
-                    memory: 3G
-                reservations:
-                    cpus: '0.5'
-                    memory: 512M
-        logging:
-            options:
-                max-size: 250m
+        extends:
+            file: docker-template-dataset-service.yml
+            service: dataset-service-template
         depends_on:
             - minio
 
@@ -365,8 +308,8 @@ services:
     # Pipeline Creation Agents (MCTS)
     pipeline-creation-agent-m1nb-dl:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -378,8 +321,8 @@ services:
 
     pipeline-creation-agent-m1nb-pp:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -391,8 +334,8 @@ services:
 
     pipeline-creation-agent-m2nb-dl:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -404,8 +347,8 @@ services:
 
     pipeline-creation-agent-m2nb-pp:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -417,8 +360,8 @@ services:
 
     pipeline-creation-agent-m3nb-dl:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -430,8 +373,8 @@ services:
 
     pipeline-creation-agent-m3nb-pp:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -443,8 +386,8 @@ services:
 
     pipeline-creation-agent-m3rf-dl:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
@@ -456,8 +399,8 @@ services:
 
     pipeline-creation-agent-m3rf-pp:
         extends:
-            file: docker-creation-agent-template.yml
-            service: pipeline-creation-agent
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
         depends_on:
             - pipeline-service
             - learning-service
