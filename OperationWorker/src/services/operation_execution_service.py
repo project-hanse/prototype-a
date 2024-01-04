@@ -5,6 +5,7 @@ import os
 
 import pandas as pd
 
+from src.exceptions.AggregateException import AggregateException
 from src.helper.operations_helper import OperationsHelper
 from src.models.dataset import Dataset
 from src.models.dataset_type import DatasetType
@@ -66,9 +67,17 @@ class OperationExecutionService:
 					self.logger.info("Storing %d resulting dataset(s) took %s" % (len(results), str(store_duration)))
 
 		except Exception as e:
-			self.logger.info("Failed to execute operation %s: %s" % (request._worker_operation_identifier, str(e)))
+			error_description = ""
+			if isinstance(e, AggregateException):
+				for inner_exception in e.exceptions:
+					self.logger.info(
+						"Failed to execute operation %s: %s" % (request._worker_operation_identifier, str(inner_exception)))
+					error_description += "\t- " + str(inner_exception) + "\n"
+			else:
+				self.logger.info("Failed to execute operation %s: %s" % (request._worker_operation_identifier, str(e)))
+				error_description += "\t- " + str(e) + "\n"
 			response.set_successful(False)
-			response.set_error_description(str(e))
+			response.set_error_description(error_description)
 
 		response.set_stop_time(datetime.datetime.now(datetime.timezone.utc))
 
@@ -85,6 +94,7 @@ class OperationExecutionService:
 		response.set_start_time(datetime.datetime.now(datetime.timezone.utc))
 
 	def execute_operation(self, operation_name: str, operation_id: str, operation_config: dict, data: []):
+		exceptions = []
 		self.logger.info("Executing operation %s (%s)..." % (operation_name, operation_id))
 		operation_callable = self.operation_service.get_operation_by_id(operation_id)
 		try:
@@ -92,16 +102,19 @@ class OperationExecutionService:
 		except Exception as e:
 			self.logger.warning(
 				"Failed to call operation method, trying backwards compatible signatures\n Error: %s" % str(e))
+			exceptions.append(e)
 			try:
 				return operation_callable(self.logger, operation_name, operation_config, data[0], data[1])
 			except Exception as e:
 				self.logger.warning(
 					"Failed to call operation method, trying backwards compatible signatures\n Error: %s" % str(e))
+				exceptions.append(e)
 				try:
 					return operation_callable(self.logger, operation_name, operation_config, data[0])
 				except Exception as e:
 					self.logger.error("Failed to call operation method Error: %s" % str(e))
-					raise e
+					exceptions.append(e)
+					raise AggregateException("Failed to call operation method Error: %s" % str(e), exceptions)
 
 	def execute_plotting_operation(self, df: pd.DataFrame, operation_name: str, operation_id: str,
 																 operation_config: dict, output: Dataset) -> None:
