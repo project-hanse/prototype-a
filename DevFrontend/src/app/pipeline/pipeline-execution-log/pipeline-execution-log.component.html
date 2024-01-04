@@ -1,13 +1,13 @@
 <mat-card *ngIf="$eventStream | async as events">
 	<mat-card-header *ngIf="getPipelineInfoDto(pipelineId) | async as pipelineInfoDto">
 		<mat-card-subtitle>
-			<span>Last Start: {{pipelineInfoDto.lastRunStart ?? '-' | date: 'medium'}}&nbsp;</span>
+			<span>Last Start: {{ pipelineInfoDto.lastRunStart ?? '-' | date: 'medium' }}&nbsp;</span>
 			<span *ngIf="pipelineInfoDto.lastRunFailure" style="color: red">
-				Failed: {{pipelineInfoDto.lastRunFailure | date: 'medium'}}
+				Failed: {{ pipelineInfoDto.lastRunFailure | date: 'medium' }}
 				&nbsp;
 			</span>
 			<span *ngIf="pipelineInfoDto.lastRunSuccess" style="color: green">
-				Success: {{pipelineInfoDto.lastRunSuccess | date: 'medium'}}
+				Success: {{ pipelineInfoDto.lastRunSuccess | date: 'medium' }}
 			</span>
 		</mat-card-subtitle>
 	</mat-card-header>
@@ -20,25 +20,21 @@
 		</mat-progress-bar>
 
 		<mat-list style="max-height: 250px; overflow-y: auto; padding: 0.5em 0;">
-			<mat-list-item *ngFor="let e of sort(events)">
-
-				<mat-icon matListItemIcon>{{e.Successful ? 'check' : 'error'}}</mat-icon>
-				<div matListItemTitle>{{e.OperationName}} </div>
-				<div matListItemLine>
-					<ng-container *ngFor="let dataset of e.ResultDatasets">
-						<!-- TODO to not call a function here -> extremely inefficient -->
-						<span>
-							<a *ngIf="e.Successful" target="_blank" [href]="getHtmlLinkToDataset(dataset)">
-								Result Type {{dataset.Type}}
-							</a>
-							&nbsp;
-						</span>
-					</ng-container>
-					<span *ngIf="e.ErrorDescription" style="color: red">{{e.ErrorDescription}}</span>
-					&nbsp;
-					<span [matTooltip]="e.CompletedAt | date: 'medium'">{{e.ExecutionTime}} ms</span>
+			<mat-list-item *ngFor="let e of sort(events)" [lines]="e.Successful ? 1 : 3">
+				<mat-icon matListItemIcon>{{ e.Successful ? 'check' : 'error' }}</mat-icon>
+				<div matListItemTitle>
+					<span>{{ e.OperationName }}</span>
+					<span style="opacity: 0.66">&nbsp;({{ e.ExecutionTime }} ms | {{ e.CompletedAt | date: 'medium' }})</span>
 				</div>
-
+				<span *ngFor="let dataset of e.ResultDatasets">
+					<!-- TODO to not call a function here -> extremely inefficient -->
+					<a *ngIf="e.Successful" target="_blank"
+						 [href]="getHtmlLinkToDataset(dataset)">Result Type {{ dataset.Type }}</a>
+					&nbsp;
+				</span>
+				<span *ngIf="e.ErrorDescription" style="color: red" [matTooltip]="e.ErrorDescription">
+					{{ e.ErrorDescription }}
+				</span>
 			</mat-list-item>
 		</mat-list>
 
