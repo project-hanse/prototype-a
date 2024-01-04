@@ -1,0 +1,31 @@
+services:
+    # Pipeline Creation Agent
+    pipeline-creation-agent:
+
+        build:
+            context: ./PipelineCreationAgentMcts
+            dockerfile: ./Dockerfile
+        restart: unless-stopped
+        environment:
+            BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
+            BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
+            PIPELINES_DIR: '/simulation/pipelines'
+            SLEEP_TIME_AFTER_NEW_ACTIONS: '1.0'
+            MAX_ACTIONS_PER_PIPELINE: '25'
+            MCTS_ITERATION_LIMIT: '15'
+            TARGET_ACTION_COUNT: '13'
+        deploy:
+            mode: replicated
+            replicas: 1
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 1G
+                reservations:
+                    cpus: '0.05'
+                    memory: 64M
+        logging:
+            options:
+                max-size: 150m
+        volumes:
+            - ./volumes/pipeline-creation-agent:/simulation/pipelines
