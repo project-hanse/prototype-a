@@ -9,7 +9,7 @@ services:
             BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
             BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
             PIPELINES_DIR: '/simulation/pipelines'
-            SLEEP_TIME_AFTER_NEW_ACTIONS: '1.5'
+            SLEEP_TIME_AFTER_NEW_ACTIONS: '0.5'
             MAX_ACTIONS_PER_PIPELINE: '25'
             MCTS_ITERATION_LIMIT: '15'
             TARGET_ACTION_COUNT: '13'
@@ -18,7 +18,7 @@ services:
             replicas: 1
             resources:
                 limits:
-                    cpus: '0.25'
+                    cpus: '0.35'
                     memory: 512M
                 reservations:
                     cpus: '0.05'
