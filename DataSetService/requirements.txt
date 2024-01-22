@@ -1,4 +1,4 @@
-Flask==2.3.3
+Flask==3.0.1
 flask-socketio==5.3.6
 flask_bootstrap==3.3.7.1
 Flask-Jsonpify==1.5.0
