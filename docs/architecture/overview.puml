@@ -1,79 +1,90 @@
 @startuml
 'https://plantuml.com/deployment-diagram
 
+' Style '
+' skinparam linetype polyline
+' skinparam linetype ortho
+top to bottom direction
+
 title "Architecture Overview"
 
 'Definitions'
 
-rectangle "Frontend" {
+rectangle "User Interface" {
     component "Development Frontend" << Angular Frontend >> as development_frontend
 }
 
 rectangle "Edge Gateway" {
     component "Reverse Proxy" << NGINX >> as reverse_proxy
-}
-
-rectangle "Event Bus" {
-    component "Internal Message Broker" << RabbitMQ >> as message_broker_internal
     component "Edge Message Broker" << MQTT Broker >> as message_broker_edge
 }
 
-rectangle "Services" {
-    component "Pipeline Service" << .NET REST API >> as pipeline_service
-    collections  "Operation Worker" <<Python Worker>> as worker
-    component "Learning Service" << Python REST API >> as learning_service
+rectangle "Core Services" {
+		rectangle "Operation Scheduler" as operation_scheduler #line.dashed {
+			component "Pipeline Service" << .NET REST API >> as pipeline_service
+    }
+
+    rectangle "Suggestion Engine" as suggestions_engine #line.dashed {
+        component "Learning Service" << Python REST API >> as learning_service
+        component "MLflow Server" << MLflow >> as mlflow_server
+    }
+
+    rectangle "Operation Runtime" as operation_runtime #line.dashed {
+    	collections  "Operation Worker" <<Python Worker>> as worker
+    }
+
     component "File Service" << .NET REST API >> as file_service
-    ' component "Database Admin" << Adminer >> as adminer
-    component "Dataset Store" << Python REST API >> as dataset_store
-    component "MLflow Server" << MLflow >> as mlflow_server
+		component "Dataset Store" << Python REST API >> as dataset_store
 }
 
-rectangle "Persistent Storage" {
+rectangle "Shared Resources" {
     database "Graph Database" << Neo4j >> as graph_db
     node "S3 BLOB Store" << MinIO >> as blob_store_minio
     'database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
     database "SQL Database" << MySQL >> as mysql_db
+    component "Internal Message Broker" << RabbitMQ >> as message_broker_internal
 }
+
 
 'Interaction'
 
-development_frontend <---> reverse_proxy
-development_frontend --> reverse_proxy
+development_frontend -[#green,thickness=2]-> reverse_proxy : HTTP
+development_frontend <-[dashed,thickness=2]-> reverse_proxy : MQTT
 
-reverse_proxy --> pipeline_service
-reverse_proxy --> learning_service
-reverse_proxy --> file_service
-reverse_proxy <--> message_broker_edge
+reverse_proxy -[#green,thickness=2]-> pipeline_service : HTTP
+reverse_proxy -[#green,thickness=2]-> learning_service : HTTP
+reverse_proxy -[#green,thickness=2]-> file_service : HTTP
+reverse_proxy <-[dashed,thickness=2]r-> message_broker_edge : MQTT
 'TODO: This connection should no longer exist'
-reverse_proxy --> dataset_store
+reverse_proxy -[#green,thickness=2]-> dataset_store : HTTP
 ' reverse_proxy --> mlflow_server
 'reverse_proxy --> adminer
 ' reverse_proxy --> message_broker_internal
 
-learning_service --> mlflow_server
-learning_service --> dataset_store
-learning_service <--> pipeline_service
+pipeline_service -[#pink,thickness=2]-> graph_db : BOLT
+pipeline_service <-[dashed,thickness=2]-> message_broker_internal : AMQP
+message_broker_edge <-[dashed,thickness=2]--> pipeline_service : MQTT
+pipeline_service -[#blue,thickness=2]-> mysql_db : SQL
+pipeline_service -[#green,thickness=2]-> dataset_store : HTTP
 
-pipeline_service --> graph_db
-pipeline_service <---> message_broker_internal
-pipeline_service <---> message_broker_edge
-pipeline_service --> mysql_db
-pipeline_service --> dataset_store
+learning_service -[#green,thickness=2]-> mlflow_server : HTTP
+learning_service -[#green,thickness=2]-> dataset_store : HTTP
+learning_service -[#green,thickness=2]-> pipeline_service : HTTP
 
 'adminer --> mysql_db
 
-dataset_store --> blob_store_minio
-dataset_store <--> message_broker_internal
+dataset_store -[#orange,thickness=2]-> blob_store_minio : S3
+dataset_store <-[dashed,thickness=2]--> message_broker_internal : AMQP
 'TODO: Default files should be seeded from file service PH-213'
 ' dataset_store --> blob_store
 
-file_service --> blob_store_minio
+file_service -[#orange,thickness=2]-> blob_store_minio : S3
 
-mlflow_server --> mysql_db
-mlflow_server --> blob_store_minio
+mlflow_server -[#blue,thickness=2]-> mysql_db : SQL
+mlflow_server -[#orange,thickness=2]-> blob_store_minio : S3
 
-worker --> dataset_store
-worker --> blob_store_minio
-worker <--> message_broker_internal
+worker -[#green,thickness=2]-> dataset_store : HTTP
+worker -[#orange,thickness=2]-> blob_store_minio : S3
+worker <-[dashed,thickness=2]-> message_broker_internal : AMQP
 
 @enduml
