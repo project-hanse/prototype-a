@@ -1,9 +1,12 @@
 from src.helper.log_helper import LogHelper
-from src.models.model_1_complementnb import Model1ComplementNB
-from src.models.model_2_complementnb import Model2ComplementNB
-from src.models.model_3_complementnb import Model3ComplementNB
-from src.models.model_3_randomforest import Model3RandomForest
-from src.models.model_4_gnn import Model4GraphNeuralNetwork
+from src.models._archive.model_1_complementnb import Model1ComplementNB
+from src.models._archive.model_2_complementnb import Model2ComplementNB
+from src.models._archive.model_3_complementnb import Model3ComplementNB
+from src.models._archive.model_3_randomforest import Model3RandomForest
+from src.models._archive.model_4_gnn import Model4GraphNeuralNetwork
+from src.models.model_1_naivebayes import Model1NaiveBayes
+from src.models.model_2_naivebayes import Model2NaiveBayes
+from src.models.model_3_naivebayes import Model3NaiveBayes
 from src.models.model_base import ModelBase
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
@@ -15,6 +18,10 @@ class ModelRegistry:
 		self.pipeline_client = pipeline_client
 		self.logger = LogHelper.get_logger(__name__)
 		self.models = {
+			"model-1-naive-bayes": Model1NaiveBayes(self.pipeline_client, self.dataset_client),
+			"model-2-naive-bayes": Model2NaiveBayes(self.pipeline_client, self.dataset_client),
+			"model-3-naive-bayes": Model3NaiveBayes(self.pipeline_client, self.dataset_client),
+			# Legacy models
 			"model-1-complementnb": Model1ComplementNB(self.pipeline_client, self.dataset_client),
 			"model-2-complementnb": Model2ComplementNB(self.pipeline_client, self.dataset_client),
 			"model-3-complementnb": Model3ComplementNB(self.pipeline_client, self.dataset_client),
