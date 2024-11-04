@@ -1,4 +1,4 @@
-# Model 1 - Multi-layer Perceptron (Context Window of Size 1 - Only Dataset Nodes)
+# Model 4
 
 import numpy as np
 from sklearn.feature_extraction import DictVectorizer
@@ -15,15 +15,15 @@ from src.transformers.dataset_types_to_category import DatasetTypesToCategory
 from src.transformers.feature_selector import FeatureSelector
 
 
-class Model1MLP(SkLearnModelBase):
+class Model4MLP(SkLearnModelBase):
 	feature_names = None
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
-		self.feature_names = self.feat_model_1
+		self.feature_names = self.feat_model_4
 
 	def get_model_pipeline(self) -> BaseSearchCV:
-		self.logger.debug("Creating model 1 pipeline for %s", __name__)
+		self.logger.debug("Creating model 3 pipeline for %s", __name__)
 		params_clf = {
 			'feature_selector__mark_missing_features': [True, False],
 			'selector__percentile': np.linspace(start=10, stop=100, num=100),

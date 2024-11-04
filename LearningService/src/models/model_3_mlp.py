@@ -11,14 +11,16 @@ from sklearn.pipeline import Pipeline
 from src.models.model_base_sklearn import SkLearnModelBase
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
+from src.transformers.dataset_types_to_category import DatasetTypesToCategory
 from src.transformers.feature_selector import FeatureSelector
 
 
 class Model3MLP(SkLearnModelBase):
-	feature_names = ['input_0_dataset_type', 'operation_0_type', 'input_1_dataset_type', 'operation_1_type']
+	feature_names = None
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
+		self.feature_names = self.feat_model_3
 
 	def get_model_pipeline(self) -> BaseSearchCV:
 		self.logger.debug("Creating model 3 pipeline for %s", __name__)
@@ -33,6 +35,7 @@ class Model3MLP(SkLearnModelBase):
 		}
 		cv = 2
 		ppl = Pipeline([
+			('datatype_to_category', DatasetTypesToCategory('dataset_type')),
 			('feature_selector', FeatureSelector(self.feature_names)),
 			("encoder", DictVectorizer(sparse=False)),
 			("selector", SelectPercentile()),

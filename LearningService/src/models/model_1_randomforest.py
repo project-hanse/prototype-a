@@ -16,10 +16,11 @@ from src.transformers.feature_selector import FeatureSelector
 
 
 class Model1RandomForest(SkLearnModelBase):
-	feature_names = ['input_0_dataset_type']
+	feature_names = None
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
+		self.feature_names = self.feat_model_1
 
 	def get_model_pipeline(self) -> BaseSearchCV:
 		self.logger.debug("Creating model 1 pipeline for %s", __name__)

@@ -14,6 +14,12 @@ from src.services.pipeline_client import PipelineClient
 
 
 class SkLearnModelBase(ModelBase):
+	feat_model_1 = ['input_0_dataset_type', 'input_1_dataset_type', 'input_2_dataset_type', 'input_3_dataset_type']
+	feat_model_2 = ['feat_pred_id']
+	feat_model_3 = feat_model_1 + feat_model_2
+	# None means all features
+	feat_model_4 = None
+
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__()
 		self.train_split = 0.2
@@ -131,6 +137,10 @@ class SkLearnModelBase(ModelBase):
 			tuples_with_metadata.append(op_tuple)
 		self.logger.info("Got %d tuples with metadata for %d input datasets" % (len(tuples), loaded_input_metadata_cnt))
 		feat, lab = self._tuples_preprocessing(tuples_with_metadata)
+		feature_names = set()
+		for f in feat:
+			feature_names.update(f.keys())
+		self.logger.info("All feature names: %s", feature_names)
 		return feat, lab
 
 	# Preprocess tuples

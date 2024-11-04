@@ -12,6 +12,9 @@ from src.models.model_2_randomforest import Model2RandomForest
 from src.models.model_3_mlp import Model3MLP
 from src.models.model_3_naivebayes import Model3NaiveBayes
 from src.models.model_3_randomforest import Model3RandomForest
+from src.models.model_4_mlp import Model4MLP
+from src.models.model_4_naivebayes import Model4NaiveBayes
+from src.models.model_4_randomforest import Model4RandomForest
 from src.models.model_base import ModelBase
 from src.services.dataset_client import DatasetClient
 from src.services.pipeline_client import PipelineClient
@@ -26,12 +29,15 @@ class ModelRegistry:
 			"model-1-naive-bayes": Model1NaiveBayes(self.pipeline_client, self.dataset_client),
 			"model-2-naive-bayes": Model2NaiveBayes(self.pipeline_client, self.dataset_client),
 			"model-3-naive-bayes": Model3NaiveBayes(self.pipeline_client, self.dataset_client),
+			"model-4-naive-bayes": Model4NaiveBayes(self.pipeline_client, self.dataset_client),
 			"model-1-random-forest": Model1RandomForest(self.pipeline_client, self.dataset_client),
 			"model-2-random-forest": Model2RandomForest(self.pipeline_client, self.dataset_client),
 			"model-3-random-forest": Model3RandomForest(self.pipeline_client, self.dataset_client),
+			"model-4-random-forest": Model4RandomForest(self.pipeline_client, self.dataset_client),
 			"model-1-multi-layer-perceptron": Model1MLP(self.pipeline_client, self.dataset_client),
 			"model-2-multi-layer-perceptron": Model2MLP(self.pipeline_client, self.dataset_client),
 			"model-3-multi-layer-perceptron": Model3MLP(self.pipeline_client, self.dataset_client),
+			"model-4-multi-layer-perceptron": Model4MLP(self.pipeline_client, self.dataset_client),
 
 			# Legacy models
 			"model-1-complementnb": Model1ComplementNB(self.pipeline_client, self.dataset_client),
