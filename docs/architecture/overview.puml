@@ -33,6 +33,7 @@ rectangle "Core Services" {
     	collections  "Operation Worker" <<Python Worker>> as worker
     }
 
+		collections "Pipeline Simulation Agent" << Python Worker >> as pipeline_creation_agent
     component "File Service" << .NET REST API >> as file_service
 		component "Dataset Store" << Python REST API >> as dataset_store
 }
@@ -42,7 +43,7 @@ rectangle "Shared Resources" {
     node "S3 BLOB Store" << MinIO >> as blob_store_minio
     'database #line.dashed "Dataset Database" << MongoDB >> as dataset_db
     database "SQL Database" << MySQL >> as mysql_db
-    component "Internal Message Broker" << RabbitMQ >> as message_broker_internal
+    component "Internal Event Bus" << RabbitMQ >> as message_broker_internal
 }
 
 
@@ -70,6 +71,9 @@ pipeline_service -[#green,thickness=2]-> dataset_store : HTTP
 learning_service -[#green,thickness=2]-> mlflow_server : HTTP
 learning_service -[#green,thickness=2]-> dataset_store : HTTP
 learning_service -[#green,thickness=2]-> pipeline_service : HTTP
+
+pipeline_creation_agent -[#green,thickness=2]-> pipeline_service : HTTP
+pipeline_creation_agent -[#green,thickness=2]l-> learning_service : HTTP
 
 'adminer --> mysql_db
 

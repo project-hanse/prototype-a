@@ -1,4 +1,4 @@
-# Model 3 - Random Forest (Context Window of Size 2 - Combined Approach)
+# Model 4
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -15,12 +15,12 @@ from src.transformers.dataset_types_to_category import DatasetTypesToCategory
 from src.transformers.feature_selector import FeatureSelector
 
 
-class Model3RandomForest(SkLearnModelBase):
+class Model4RandomForest(SkLearnModelBase):
 	feature_names = None
 
 	def __init__(self, pipeline_client: PipelineClient, dataset_client: DatasetClient):
 		super().__init__(pipeline_client, dataset_client)
-		self.feature_names = self.feat_model_3
+		self.feature_names = self.feat_model_4
 
 	def get_model_pipeline(self) -> BaseSearchCV:
 		self.logger.debug("Creating model 3 pipeline for %s", __name__)
