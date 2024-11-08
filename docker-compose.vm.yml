@@ -309,59 +309,7 @@ services:
         volumes:
             - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
-    # Pipeline Creation Agents (MCTS)
-    pipeline-creation-agent-m1nb-dl:
-        extends:
-            file: docker-template-creation-agent.yml
-            service: pipeline-creation-agent-template
-        depends_on:
-            - pipeline-service
-            - learning-service
-            - rabbitmq
-        environment:
-            REWARD_FUNCTION_TYPE: 'desc_log'
-            EXPERT_POLICY_MODEL_NAME: 'model-1-complementnb'
-            EXPERT_POLICY_PROBABILITY: '0.75'
-
-    pipeline-creation-agent-m1nb-pp:
-        extends:
-            file: docker-template-creation-agent.yml
-            service: pipeline-creation-agent-template
-        depends_on:
-            - pipeline-service
-            - learning-service
-            - rabbitmq
-        environment:
-            REWARD_FUNCTION_TYPE: 'poly_peak'
-            EXPERT_POLICY_MODEL_NAME: 'model-1-complementnb'
-            EXPERT_POLICY_PROBABILITY: '0.75'
-
-    pipeline-creation-agent-m2nb-dl:
-        extends:
-            file: docker-template-creation-agent.yml
-            service: pipeline-creation-agent-template
-        depends_on:
-            - pipeline-service
-            - learning-service
-            - rabbitmq
-        environment:
-            REWARD_FUNCTION_TYPE: 'desc_log'
-            EXPERT_POLICY_MODEL_NAME: 'model-2-complementnb'
-            EXPERT_POLICY_PROBABILITY: '0.75'
-
-    pipeline-creation-agent-m2nb-pp:
-        extends:
-            file: docker-template-creation-agent.yml
-            service: pipeline-creation-agent-template
-        depends_on:
-            - pipeline-service
-            - learning-service
-            - rabbitmq
-        environment:
-            REWARD_FUNCTION_TYPE: 'poly_peak'
-            EXPERT_POLICY_MODEL_NAME: 'model-2-complementnb'
-            EXPERT_POLICY_PROBABILITY: '0.75'
-
+    # Pipeline Creation Agent (MCTS)
     pipeline-creation-agent-m3nb-dl:
         extends:
             file: docker-template-creation-agent.yml
@@ -372,7 +320,7 @@ services:
             - rabbitmq
         environment:
             REWARD_FUNCTION_TYPE: 'desc_log'
-            EXPERT_POLICY_MODEL_NAME: 'model-3-complementnb'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-naive-bayes'
             EXPERT_POLICY_PROBABILITY: '0.75'
 
     pipeline-creation-agent-m3nb-pp:
@@ -385,7 +333,7 @@ services:
             - rabbitmq
         environment:
             REWARD_FUNCTION_TYPE: 'poly_peak'
-            EXPERT_POLICY_MODEL_NAME: 'model-3-complementnb'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-naive-bayes'
             EXPERT_POLICY_PROBABILITY: '0.75'
 
     pipeline-creation-agent-m3rf-dl:
@@ -398,7 +346,7 @@ services:
             - rabbitmq
         environment:
             REWARD_FUNCTION_TYPE: 'desc_log'
-            EXPERT_POLICY_MODEL_NAME: 'model-3-randomforest'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-random-forest'
             EXPERT_POLICY_PROBABILITY: '0.75'
 
     pipeline-creation-agent-m3rf-pp:
@@ -411,7 +359,7 @@ services:
             - rabbitmq
         environment:
             REWARD_FUNCTION_TYPE: 'poly_peak'
-            EXPERT_POLICY_MODEL_NAME: 'model-3-randomforest'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-random-forest'
             EXPERT_POLICY_PROBABILITY: '0.75'
 
     # MLFlow Server
