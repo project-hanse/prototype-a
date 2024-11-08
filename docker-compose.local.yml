@@ -14,8 +14,31 @@ services:
         depends_on:
             - pipeline-service
 
-    # Pipeline Service
+    # Pipeline Service Load Balancer
     pipeline-service:
+        image: nginx:alpine
+        domainname: dataset-service
+        restart: unless-stopped
+        networks:
+            - default
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 256M
+                reservations:
+                    cpus: '0.125'
+                    memory: 64M
+        ports:
+            - "5001:80"
+        volumes:
+            - ./load-balancer-configs/env-vm/pipeline-service:/etc/nginx
+        depends_on:
+            - pipeline-service-1
+            - pipeline-service-2
+
+    # Pipeline Service 1
+    pipeline-service-1:
         build:
             context: ./PipelineService
             dockerfile: ./Dockerfile
@@ -32,8 +55,32 @@ services:
             EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
             EDGE_EVENT_BUS__MQTT_PORT: 1883
             EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
-        ports:
-            - "5001:80"
+            PipelineCandidates__MaxAutoEnqueued: 30
+            PipelineCandidates__MaxVariantAttempts: 15
+        volumes:
+            - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
+            - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
+
+    # Pipeline Service 2
+    pipeline-service-2:
+        build:
+            context: ./PipelineService
+            dockerfile: ./Dockerfile
+        depends_on:
+            mysql:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+            pipeline-database:
+                condition: service_started
+        restart: unless-stopped
+        environment:
+            Logging__LogLevel__Default: Debug
+            EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+            EDGE_EVENT_BUS__MQTT_PORT: 1883
+            EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-2
+            PipelineCandidates__MaxAutoEnqueued: 30
+            PipelineCandidates__MaxVariantAttempts: 15
         volumes:
             - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
             - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
