@@ -6,6 +6,7 @@ from typing import Optional
 from pika import spec, ConnectionParameters, PlainCredentials
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 
+from src.models.operation_executed_message import OperationExecutedMessage
 from src.models.operation_execution_message import OperationExecutionMessage
 from src.services.operation_execution_service import OperationExecutionService
 
@@ -86,8 +87,14 @@ class RabbitMqClientWrapper:
 			self.logging.error(
 				"Error during handling of request [%s] %s - dropping message (delivery_tag: %s, routing_key: %s, exchange: %s, operation_id: '%s')" % (
 					str(type(e)), str(e), str(method.delivery_tag), str(method.routing_key), str(method.exchange), op_id))
-			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-			return
+			response = OperationExecutedMessage()
+			if payload_deserialized is not None:
+				if "OperationId" in payload_deserialized:
+					response.operation_id = payload_deserialized["OperationId"]
+				if "ExecutionId" in payload_deserialized:
+					response.execution_id = payload_deserialized["ExecutionId"]
+			response.successful = False
+			response.error_message = str(e)
 		finally:
 			operation_end_time = datetime.datetime.now(datetime.timezone.utc)
 			operation_duration = operation_end_time - operation_start_time
