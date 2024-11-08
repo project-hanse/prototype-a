@@ -45,14 +45,15 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 
 		var files = Directory.GetFiles(PipelineCandidatesPath);
 		var pipelineCandidates = new List<PipelineCandidate>();
+		var raw = "";
 		foreach (var file in files)
 		{
 			string path = null;
 			try
 			{
 				path = Path.Combine(PipelineCandidatesPath, file);
-				var candidate = JsonConvert.DeserializeObject<PipelineCandidate>(
-					await File.ReadAllTextAsync(path));
+				raw = (await File.ReadAllTextAsync(path)).Trim();
+				var candidate = JsonConvert.DeserializeObject<PipelineCandidate>(raw);
 				if (candidate == null)
 				{
 					throw new SerializationException("Failed to deserialize pipeline candidate");
@@ -73,9 +74,16 @@ public class PipelineCandidateDaoFileSystem : IPipelineCandidateDao
 			}
 			catch (Exception e)
 			{
-				_logger.LogWarning(
-					"Failed to load pipeline candidate from file {CandidateFile} - [{ErrorType}] {ErrorMessage}",
-					file, e.GetType().Name, e.Message);
+				_logger.LogError(
+					"Failed to load pipeline candidate from file {CandidateFile} - [{ErrorType}] {ErrorMessage} \nRaw: '{Raw}'",
+					file, e.GetType().Name, e.Message, raw);
+
+				if (path != null)
+				{
+					_logger.LogInformation("Deleting corrupted file {CandidateFile}", file);
+					File.Delete(path);
+				}
+
 				continue;
 			}
 		}
