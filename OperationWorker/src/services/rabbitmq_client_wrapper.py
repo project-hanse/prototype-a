@@ -6,6 +6,7 @@ from typing import Optional
 from pika import spec, ConnectionParameters, PlainCredentials
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 
+from src.models.operation_executed_message import OperationExecutedMessage
 from src.models.operation_execution_message import OperationExecutionMessage
 from src.services.operation_execution_service import OperationExecutionService
 
@@ -74,25 +75,30 @@ class RabbitMqClientWrapper:
 			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
 			return
 
-		request = None
 		operation_start_time = datetime.datetime.now(datetime.timezone.utc)
+		op_id = "unknown"
 		try:
 			self.logging.info("Constructing operation execution message")
 			request = OperationExecutionMessage(payload_deserialized)
-			self.logging.info("Operation %s start at %s" % (request.get_operation_id(), str(operation_start_time)))
+			op_id = request.get_operation_id() if request is not None else "unknown"
+			self.logging.info("Operation %s start at %s" % (op_id, str(operation_start_time)))
 			response = self.execution_service.handle_execution_request(request)
 		except Exception as e:
-			if request is not None:
-				self.logging.info("Operation %s failed" % request.get_operation_id())
 			self.logging.error(
-				"Error during handling of request [%s] %s - dropping message (delivery_tag: %s, routing_key: %s, exchange: %s)" % (
-					str(type(e)), str(e), str(method.delivery_tag), str(method.routing_key), str(method.exchange)))
-			ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-			return
+				"Error during handling of request [%s] %s - dropping message (delivery_tag: %s, routing_key: %s, exchange: %s, operation_id: '%s')" % (
+					str(type(e)), str(e), str(method.delivery_tag), str(method.routing_key), str(method.exchange), op_id))
+			response = OperationExecutedMessage()
+			if payload_deserialized is not None:
+				if "OperationId" in payload_deserialized:
+					response.operation_id = payload_deserialized["OperationId"]
+				if "ExecutionId" in payload_deserialized:
+					response.execution_id = payload_deserialized["ExecutionId"]
+			response.successful = False
+			response.error_message = str(e)
 		finally:
 			operation_end_time = datetime.datetime.now(datetime.timezone.utc)
 			operation_duration = operation_end_time - operation_start_time
-			self.logging.info("Operation %s complete in %s" % (request.get_operation_id(), str(operation_duration)))
+			self.logging.info("Operation '%s' complete in %s" % (op_id, str(operation_duration)))
 
 		if ch.is_open:
 			ch.basic_ack(delivery_tag=method.delivery_tag)

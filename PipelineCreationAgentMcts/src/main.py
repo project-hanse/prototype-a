@@ -7,13 +7,12 @@ import uuid
 from datetime import timedelta
 
 import openml as openml
-import pandas as pd
 import requests_cache
 from mcts.searcher.mcts import MCTS
 from openml import OpenMLTask
 
 from src.config.config import get_config, init_config
-from src.helper.expert_policy import model3_policy
+from src.helper.expert_policy import model_policy
 from src.helper.helper_factory import HelperFactory
 from src.helper.log_helper import LogHelper
 from src.helper.serializer import TMCSerializer
@@ -39,15 +38,22 @@ def get_initial_state(task_id: int) -> (OpenMLTask, PipelineBuildingState):
 	raise Exception('Task type not supported')
 
 
-def save_pipeline(pipeline: pd.DataFrame):
+def save_pipeline(ppln):
 	os.makedirs(get_config('pipelines_dir'), exist_ok=True)
 	with open(os.path.join(get_config('pipelines_dir'), 'pipeline-%s.json' % math.floor(time.time())), 'w') as f:
-		logger.info('Saving pipeline %d (batch %d) to %s' % (pipeline['pipeline_number'], pipeline['batch_number'], f.name))
-		json.dump(pipeline, f, cls=TMCSerializer)
+		logger.info('Saving pipeline %d (batch %d) to %s' % (ppln['pipeline_number'], ppln['batch_number'], f.name))
+		json.dump(ppln, f, cls=TMCSerializer)
 
 
 if __name__ == '__main__':
 	init_config()
+	logger.info("\n**********")
+	logger.info(
+		"Starting pipeline creation agent (expert_policy_model: '%s', expert_policy_probability: %.2f, reward_function: '%s')..." % (
+			get_config('expert_policy_model_name'),
+			get_config('expert_policy_probability'),
+			get_config('reward_function_type')))
+
 	requests_cache.install_cache('mcts_cache',
 															 expire_after=timedelta(minutes=5),
 															 cache_control=False,
@@ -57,7 +63,7 @@ if __name__ == '__main__':
 	logger.info("Loading possible tasks from OpenML...")
 	task_options = [31, 10101, 9914, 145804, 146065, 146064, 125923, 3913, 3, 3917]
 	logger.info("Loaded %d tasks from OpenML" % len(task_options))
-	searcher = MCTS(iterationLimit=get_config('mcts_iteration_limit'), rolloutPolicy=model3_policy)
+	searcher = MCTS(iterationLimit=get_config('mcts_iteration_limit'), rolloutPolicy=model_policy)
 	batch_number = random.randint(0, 10000)
 	for i in range(get_config('pipelines_per_batch')):
 		task_id = random.choice(task_options)
@@ -77,6 +83,12 @@ if __name__ == '__main__':
 			'batch_number': batch_number,
 			'pipeline_number': i,
 			'reward_function_type': get_config('reward_function_type'),
+			'sleep_time_after_new_actions': get_config('sleep_time_after_new_actions'),
+			'max_actions_per_pipeline': get_config('max_actions_per_pipeline'),
+			'mcts_iteration_limit': get_config('mcts_iteration_limit'),
+			'target_action_count': get_config('target_action_count'),
+			'expert_policy_model_name': get_config('expert_policy_model_name'),
+			'expert_policy_probability': get_config('expert_policy_probability')
 		}
 		while not currentState.is_terminal():
 			action = searcher.search(initialState=currentState)

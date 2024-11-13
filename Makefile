@@ -35,8 +35,8 @@ prod-down:
 
 # VM Environment
 vm-start:
-	docker compose -f docker-compose.vm.yml pull && docker compose -f docker-compose.vm.yml up -d
+	git pull && docker compose -f docker-compose.vm.yml build && docker compose -f docker-compose.vm.yml pull && docker compose -f docker-compose.vm.yml up -d
 vm-stop:
 	docker compose -f docker-compose.vm.yml stop
 vm-down:
-	docker compose -f docker-compose.vm.yml down
+	docker compose -f docker-compose.vm.yml down --remove-orphans

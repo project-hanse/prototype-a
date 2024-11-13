@@ -204,6 +204,9 @@ class DatasetStoreS3:
 		# also update the full version
 		if version == METADATA_VERSION_COMPACT:
 			existing_metadata = self.get_metadata_by_key(key, METADATA_VERSION_FULL)
+			if existing_metadata is None:
+				self.log.info("No existing metadata found for key %s - creating new metadata" % str(key))
+				existing_metadata = {}
 			existing_metadata.update(metadata)
 			self.store_metadata_by_key(key, existing_metadata, METADATA_VERSION_FULL)
 		return True

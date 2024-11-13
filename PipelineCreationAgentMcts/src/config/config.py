@@ -14,7 +14,6 @@ api_secret = 'd49e3f0f-964e-4241-9693-31d2c80e5ecd'
 pipelines_dir = 'pipelines'
 reward_function_type = 'poly_peak'
 verbose_level = 0
-expert_policy_model_name = 'model-3-complementnb'
 max_actions_per_pipeline = 30
 partial_rewards_for_max_lookahead = 0.5
 variance_reward_factor = 0.3
@@ -23,7 +22,8 @@ max_actions_per_state = 50
 mcts_iteration_limit = 20
 sleep_time_after_new_actions = 0.0
 pipelines_per_batch = 25
-expert_policy_probability = 0.5
+expert_policy_model_name = 'model-3-complementnb'
+expert_policy_probability = 0.75
 cache_requests = True
 target_action_count = 5
 

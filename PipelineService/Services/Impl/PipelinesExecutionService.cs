@@ -300,7 +300,7 @@ namespace PipelineService.Services.Impl
 
 			if (!response.Successful)
 			{
-				_logger.LogInformation("Execution of operation {OperationId} failed with error {ExecutionErrorDescription}",
+				_logger.LogInformation("Execution of operation {OperationId} failed with error(s): \n{ExecutionErrorDescription}",
 					response.OperationId, response.ErrorDescription);
 
 				await MarkOperationAsFailed(response.ExecutionId, response.OperationId, response.ErrorDescription);

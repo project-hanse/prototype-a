@@ -12,7 +12,7 @@ class FeatureSelector(BaseEstimator, TransformerMixin):
 
 	def transform(self, X, y=None):
 		if self.feature_names is None or len(self.feature_names) == 0:
-			logger.warning("No feature_names provided.")
+			logger.debug("No feature_names provided - using all features")
 			return X
 		if type(X) is dict:
 			self._select_features(X, self.feature_names)
@@ -20,7 +20,7 @@ class FeatureSelector(BaseEstimator, TransformerMixin):
 			for feat in X:
 				self._select_features(feat, self.feature_names)
 		else:
-			logger.warning("X is not iterable.")
+			logger.warning("X is not iterable")
 			return X
 
 		return X

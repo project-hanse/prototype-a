@@ -3,592 +3,530 @@
 version: '3.3'
 
 services:
-  # NGINX Reverse Proxy
-  edge-nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    networks:
-      - default
-    volumes:
-      - ./volumes/edge-server/logs:/var/log/nginx
-      - ./volumes/edge-server/etc/apache2:/etc/apache2
-      - ./EdgeServer/templates:/etc/nginx/templates
-    ports:
-      - "6080:80"
-    environment:
-      - NGINX_HOST=0.0.0.0
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    depends_on:
-      - dev-frontend
-      - pipeline-service
-      - pipeline-database
-      - dataset-service
-      - edge-message-broker
+    # NGINX Reverse Proxy
+    edge-nginx:
+        image: nginx:alpine
+        restart: unless-stopped
+        networks:
+            - default
+        volumes:
+            - ./volumes/edge-server/logs:/var/log/nginx
+            - ./volumes/edge-server/etc/apache2:/etc/apache2
+            - ./EdgeServer/templates:/etc/nginx/templates
+        ports:
+            - "6080:80"
+        environment:
+            - NGINX_HOST=0.0.0.0
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '1'
+                    memory: 2G
+                reservations:
+                    cpus: '0.25'
+                    memory: 128M
+        depends_on:
+            - dev-frontend
+            - pipeline-service
+            - pipeline-database
+            - dataset-service
+            - edge-message-broker
 
-  # Edge Message Broker
-  edge-message-broker:
-    image: eclipse-mosquitto
-    restart: unless-stopped
-    networks:
-      - default
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-        reservations:
-          cpus: '0.125'
-          memory: 64M
-    volumes:
-      - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
+    # Edge Message Broker
+    edge-message-broker:
+        image: eclipse-mosquitto
+        restart: unless-stopped
+        networks:
+            - default
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 256M
+                reservations:
+                    cpus: '0.125'
+                    memory: 64M
+        volumes:
+            - ./volumes/edge-event-bus/mosquitto/config:/mosquitto/config
 
-  # Development Frontend
-  dev-frontend:
-    image: ghcr.io/project-hanse/prototype-a/dev-frontend:main
-    restart: unless-stopped
-    networks:
-      - default
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-        reservations:
-          cpus: '0.125'
-          memory: 64M
-    depends_on:
-      - pipeline-service
+    # Development Frontend
+    dev-frontend:
+        image: ghcr.io/project-hanse/prototype-a/dev-frontend:main
+        restart: unless-stopped
+        networks:
+            - default
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 256M
+                reservations:
+                    cpus: '0.125'
+                    memory: 64M
+        depends_on:
+            - pipeline-service
 
-  # Pipeline Service Load Balancer
-  pipeline-service:
-    image: nginx:alpine
-    domainname: dataset-service
-    restart: unless-stopped
-    networks:
-      - default
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-        reservations:
-          cpus: '0.125'
-          memory: 64M
-    volumes:
-      - ./load-balancer-configs/env-vm/pipeline-service:/etc/nginx
-    depends_on:
-      - pipeline-service-1
-      - pipeline-service-2
+    # Pipeline Service Load Balancer
+    pipeline-service:
+        image: nginx:alpine
+        domainname: dataset-service
+        restart: unless-stopped
+        networks:
+            - default
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 256M
+                reservations:
+                    cpus: '0.125'
+                    memory: 64M
+        volumes:
+            - ./load-balancer-configs/env-vm/pipeline-service:/etc/nginx
+        depends_on:
+            - pipeline-service-1
+            - pipeline-service-2
 
-  # Pipeline Service 1
-  pipeline-service-1:
-    image: ghcr.io/project-hanse/prototype-a/pipeline-service:main
-    restart: unless-stopped
-    environment:
-      Logging__LogLevel__Default: Information
-      ScheduledCandidateProcessing: "true"
-      EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
-      EDGE_EVENT_BUS__MQTT_PORT: 1883
-      EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
-      PipelineCandidates__MaxAutoEnqueued: 30
-      PipelineCandidates__MaxVariantAttempts: 30
-    depends_on:
-      mysql:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      pipeline-database:
-        condition: service_started
-    logging:
-      options:
-        max-size: 150m
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 3G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    volumes:
-      - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
-      - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
+    # Pipeline Service 1
+    pipeline-service-1:
+        build:
+            context: ./PipelineService
+            dockerfile: ./Dockerfile
+        restart: unless-stopped
+        environment:
+            Logging__LogLevel__Default: Information
+            ScheduledCandidateProcessing: "true"
+            EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+            EDGE_EVENT_BUS__MQTT_PORT: 1883
+            EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-1
+            PipelineCandidates__MaxAutoEnqueued: 30
+            PipelineCandidates__MaxVariantAttempts: 30
+        depends_on:
+            mysql:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+            pipeline-database:
+                condition: service_started
+        logging:
+            options:
+                max-size: 150m
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: '1.0'
+                    memory: 3G
+                reservations:
+                    cpus: '0.5'
+                    memory: 512M
+        volumes:
+            - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
+            - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
 
-  # Pipeline Service 2
-  pipeline-service-2:
-    image: ghcr.io/project-hanse/prototype-a/pipeline-service:main
-    restart: unless-stopped
-    environment:
-      Logging__LogLevel__Default: Information
-      ScheduledCandidateProcessing: "true"
-      EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
-      EDGE_EVENT_BUS__MQTT_PORT: 1883
-      EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-2
-      PipelineCandidates__MaxAutoEnqueued: 30
-      PipelineCandidates__MaxVariantAttempts: 30
-    depends_on:
-      mysql:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      pipeline-database:
-        condition: service_started
-    logging:
-      options:
-        max-size: 150m
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 3G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    volumes:
-      - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
-      - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
+    # Pipeline Service 2
+    pipeline-service-2:
+        build:
+            context: ./PipelineService
+            dockerfile: ./Dockerfile
+        restart: unless-stopped
+        environment:
+            Logging__LogLevel__Default: Information
+            ScheduledCandidateProcessing: "true"
+            EDGE_EVENT_BUS__MQTT_HOST: edge-message-broker
+            EDGE_EVENT_BUS__MQTT_PORT: 1883
+            EDGE_EVENT_BUS__MQTT_CLIENT_ID: pipeline-service-2
+            PipelineCandidates__MaxAutoEnqueued: 30
+            PipelineCandidates__MaxVariantAttempts: 30
+        depends_on:
+            mysql:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+            pipeline-database:
+                condition: service_started
+        logging:
+            options:
+                max-size: 150m
+        deploy:
+            resources:
+                limits:
+                    cpus: '1.0'
+                    memory: 3G
+                reservations:
+                    cpus: '0.5'
+                    memory: 512M
+        volumes:
+            - ./volumes/pipeline-creation-agent:/app/Resources/PipelineCandidates
+            - ./volumes/pipeline-creation-agent-archive:/app/Resources/PipelineCandidatesArchive
 
-  # Learning Store
-  learning-service:
-    image: ghcr.io/project-hanse/prototype-a/learning-service:main
-    restart: unless-stopped
-    environment:
-      AWS_REGION: eu-west-3
-      AWS_DEFAULT_REGION: eu-west-3
-      S3_HOST: minio
-      S3_PORT: 9000
-      S3_ACCESS_KEY_ID: minio
-      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-      PIPELINE_SERVICE_HOST: pipeline-service
-      PIPELINE_SERVICE_PORT: 80
-      DATASET_SERVICE_HOST: dataset-service
-      DATASET_SERVICE_PORT: 5002
-      MLFLOW_TRACKING_URI: "http://mlflow-server:5005"
-      MLFLOW_REGISTRY_URI: "http://mlflow-server:5005"
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 3G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    depends_on:
-      - minio
-      - dataset-service
-      - pipeline-service
-      - mlflow-server
+    # Learning Store
+    learning-service:
+        image: ghcr.io/project-hanse/prototype-a/learning-service:main
+        restart: unless-stopped
+        environment:
+            AWS_REGION: eu-west-3
+            AWS_DEFAULT_REGION: eu-west-3
+            S3_HOST: minio
+            S3_PORT: 9000
+            S3_ACCESS_KEY_ID: minio
+            S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
+            PIPELINE_SERVICE_HOST: pipeline-service
+            PIPELINE_SERVICE_PORT: 80
+            DATASET_SERVICE_HOST: dataset-service
+            DATASET_SERVICE_PORT: 5002
+            MLFLOW_TRACKING_URI: "http://mlflow-server:5005"
+            MLFLOW_REGISTRY_URI: "http://mlflow-server:5005"
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '1.0'
+                    memory: 3G
+                reservations:
+                    cpus: '0.5'
+                    memory: 512M
+        depends_on:
+            - minio
+            - dataset-service
+            - pipeline-service
+            - mlflow-server
 
-  # File Service
-  file-service:
-    image: ghcr.io/project-hanse/prototype-a/file-service:main
-    restart: unless-stopped
-    environment:
-      Logging__LogLevel__Default: Information
-      S3Configuration__Host: minio
-      S3Configuration__Port: 9000
-      S3Configuration__AccessKey: minio
-      S3Configuration__SecretKey: OsKwEnsJz0AtiX05
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    depends_on:
-      - minio
+    # File Service
+    file-service:
+        image: ghcr.io/project-hanse/prototype-a/file-service:main
+        restart: unless-stopped
+        environment:
+            Logging__LogLevel__Default: Information
+            S3Configuration__Host: minio
+            S3Configuration__Port: 9000
+            S3Configuration__AccessKey: minio
+            S3Configuration__SecretKey: OsKwEnsJz0AtiX05
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '1.0'
+                    memory: 2G
+                reservations:
+                    cpus: '0.5'
+                    memory: 512M
+        depends_on:
+            - minio
 
-  # Dataset Service Load Balancer
-  dataset-service:
-    image: nginx:alpine
-    domainname: dataset-service
-    restart: unless-stopped
-    networks:
-      - default
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-        reservations:
-          cpus: '0.125'
-          memory: 64M
-    volumes:
-      - ./load-balancer-configs/env-vm/dataset-service:/etc/nginx
-    depends_on:
-      - dataset-service-1
-      - dataset-service-2
-      - dataset-service-3
+    # Dataset Service Load Balancer
+    dataset-service:
+        image: nginx:alpine
+        domainname: dataset-service
+        restart: unless-stopped
+        networks:
+            - default
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 1G
+                reservations:
+                    cpus: '0.125'
+                    memory: 64M
+        volumes:
+            - ./load-balancer-configs/env-vm/dataset-service:/etc/nginx
+        depends_on:
+            - dataset-service-1
+            - dataset-service-2
+            - dataset-service-3
 
-  # Dataset Store 1
-  dataset-service-1:
-    image: ghcr.io/project-hanse/prototype-a/dataset-service:main
-    restart: unless-stopped
-    networks:
-      - default
-    environment:
-      S3_HOST: minio
-      S3_PORT: 9000
-      S3_ACCESS_KEY_ID: minio
-      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-    deploy:
-      mode: replicated
-      replicas: 1
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 3G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    logging:
-      options:
-        max-size: 250m
-    depends_on:
-      - minio
+    # Dataset Store 1
+    dataset-service-1:
+        extends:
+            file: docker-template-dataset-service.yml
+            service: dataset-service-template
+        depends_on:
+            - minio
 
-  # Dataset Store 2
-  dataset-service-2:
-    image: ghcr.io/project-hanse/prototype-a/dataset-service:main
-    restart: unless-stopped
-    networks:
-      - default
-    environment:
-      S3_HOST: minio
-      S3_PORT: 9000
-      S3_ACCESS_KEY_ID: minio
-      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-    deploy:
-      mode: replicated
-      replicas: 1
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 3G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    logging:
-      options:
-        max-size: 250m
-    depends_on:
-      - minio
+    # Dataset Store 2
+    dataset-service-2:
+        extends:
+            file: docker-template-dataset-service.yml
+            service: dataset-service-template
+        depends_on:
+            - minio
 
-  # Dataset Store 3
-  dataset-service-3:
-    image: ghcr.io/project-hanse/prototype-a/dataset-service:main
-    restart: unless-stopped
-    networks:
-      - default
-    environment:
-      S3_HOST: minio
-      S3_PORT: 9000
-      S3_ACCESS_KEY_ID: minio
-      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-    deploy:
-      mode: replicated
-      replicas: 1
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 3G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    logging:
-      options:
-        max-size: 250m
-    depends_on:
-      - minio
+    # Dataset Store 3
+    dataset-service-3:
+        extends:
+            file: docker-template-dataset-service.yml
+            service: dataset-service-template
+        depends_on:
+            - minio
 
-  # Operation Worker
-  operation-worker:
-    image: ghcr.io/project-hanse/prototype-a/operation-worker:main
-    restart: unless-stopped
-    networks:
-      - default
-    environment:
-      MESSAGE_BROKER_HOST: rabbitmq
-      DATASET_HOST: dataset-service
-      DATASET_PORT: 5002
-      S3_HOST: minio
-      S3_PORT: 9000
-      S3_ACCESS_KEY_ID: minio
-      S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
-    depends_on:
-      - minio
-      - rabbitmq
-      - dataset-service
-    deploy:
-      mode: replicated
-      replicas: 4
-      resources:
-        limits:
-          cpus: '1'
-          memory: 4G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    logging:
-      options:
-        max-size: 150m
-    volumes:
-      - ./volumes/operation-worker/data:/var/lib/operation-worker/data
+    # Operation Worker
+    operation-worker:
+        build:
+            context: ./OperationWorker
+            dockerfile: ./Dockerfile
+        restart: unless-stopped
+        networks:
+            - default
+        environment:
+            MESSAGE_BROKER_HOST: rabbitmq
+            DATASET_HOST: dataset-service
+            DATASET_PORT: 5002
+            S3_HOST: minio
+            S3_PORT: 9000
+            S3_ACCESS_KEY_ID: minio
+            S3_ACCESS_KEY_SECRET: OsKwEnsJz0AtiX05
+        depends_on:
+            - minio
+            - rabbitmq
+            - dataset-service
+        deploy:
+            mode: replicated
+            replicas: 4
+            resources:
+                limits:
+                    cpus: '1'
+                    memory: 4G
+                reservations:
+                    cpus: '0.1'
+                    memory: 128M
+        logging:
+            options:
+                max-size: 150m
+        volumes:
+            - ./volumes/operation-worker/data:/var/lib/operation-worker/data
 
-  # Pipeline Simulation (dec_log)
-  pipeline-creation-agent:
-    image: ghcr.io/project-hanse/prototype-a/pipeline-creation-agent-mcts:main
-    restart: unless-stopped
-    depends_on:
-      - pipeline-service
-      - learning-service
-    environment:
-      BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
-      BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
-      PIPELINES_DIR: '/simulation/pipelines'
-      SLEEP_TIME_AFTER_NEW_ACTIONS: '0.5'
-      MAX_ACTIONS_PER_PIPELINE: '25'
-      MCTS_ITERATION_LIMIT: '15'
-      REWARD_FUNCTION_TYPE: 'desc_log'
-      TARGET_ACTION_COUNT: '13'
-    deploy:
-      mode: replicated
-      replicas: 2
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    logging:
-      options:
-        max-size: 150m
-    volumes:
-      - ./volumes/pipeline-creation-agent:/simulation/pipelines
+    # Pipeline Creation Agent (MCTS)
+    pipeline-creation-agent-m3nb-dl:
+        extends:
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
+        depends_on:
+            - pipeline-service
+            - learning-service
+            - rabbitmq
+        environment:
+            REWARD_FUNCTION_TYPE: 'desc_log'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-naive-bayes'
+            EXPERT_POLICY_PROBABILITY: '0.75'
 
-  # Pipeline Simulation (poly_peak)
-  pipeline-creation-agent-poly-peak:
-    image: ghcr.io/project-hanse/prototype-a/pipeline-creation-agent-mcts:main
-    restart: unless-stopped
-    depends_on:
-      - pipeline-service
-      - learning-service
-    environment:
-      BASE_URL_PIPELINE_SERVICE: 'http://pipeline-service:80'
-      BASE_URL_LEARNING_SERVICE: 'http://learning-service:5006'
-      PIPELINES_DIR: '/simulation/pipelines'
-      SLEEP_TIME_AFTER_NEW_ACTIONS: '0.5'
-      MAX_ACTIONS_PER_PIPELINE: '25'
-      MCTS_ITERATION_LIMIT: '15'
-      REWARD_FUNCTION_TYPE: 'poly_peak'
-      TARGET_ACTION_COUNT: '13'
-    logging:
-      options:
-        max-size: 150m
-    deploy:
-      mode: replicated
-      replicas: 2
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    volumes:
-      - ./volumes/pipeline-creation-agent:/simulation/pipelines
+    pipeline-creation-agent-m3nb-pp:
+        extends:
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
+        depends_on:
+            - pipeline-service
+            - learning-service
+            - rabbitmq
+        environment:
+            REWARD_FUNCTION_TYPE: 'poly_peak'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-naive-bayes'
+            EXPERT_POLICY_PROBABILITY: '0.75'
 
-  # MLFlow Server
-  mlflow-server:
-    image: ghcr.io/project-hanse/prototype-a/hanse-mlflow-server:main
-    restart: unless-stopped
-    depends_on:
-      - minio
-      - mysql
-    networks:
-      - default
-    environment:
-      AWS_REGION: eu-west-3
-      AWS_DEFAULT_REGION: eu-west-3
-      AWS_ACCESS_KEY_ID: minio
-      AWS_SECRET_ACCESS_KEY: OsKwEnsJz0AtiX05
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      MYSQL_DATABASE: mlflowdb
-      MYSQL_USER: mlflowuser
-      MYSQL_PASSWORD: hdfcLhDASas3vKhy
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    logging:
-      options:
-        max-size: 250m
+    pipeline-creation-agent-m3rf-dl:
+        extends:
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
+        depends_on:
+            - pipeline-service
+            - learning-service
+            - rabbitmq
+        environment:
+            REWARD_FUNCTION_TYPE: 'desc_log'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-random-forest'
+            EXPERT_POLICY_PROBABILITY: '0.75'
 
-  # Adminer
-  adminer:
-    image: adminer
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-        reservations:
-          cpus: '0.125'
-          memory: 64M
-    depends_on:
-      - mysql
+    pipeline-creation-agent-m3rf-pp:
+        extends:
+            file: docker-template-creation-agent.yml
+            service: pipeline-creation-agent-template
+        depends_on:
+            - pipeline-service
+            - learning-service
+            - rabbitmq
+        environment:
+            REWARD_FUNCTION_TYPE: 'poly_peak'
+            EXPERT_POLICY_MODEL_NAME: 'model-3-random-forest'
+            EXPERT_POLICY_PROBABILITY: '0.75'
 
-  # MinIO Configuration
-  minio-config:
-    build:
-      context: ./MinIOConfig
-      dockerfile: Dockerfile
-    restart: on-failure
-    depends_on:
-      - minio
-    environment:
-      MINIO_HOSTNAME: http://minio:9000
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: OsKwEnsJz0AtiX05
+    # MLFlow Server
+    mlflow-server:
+        image: ghcr.io/project-hanse/prototype-a/hanse-mlflow-server:main
+        restart: unless-stopped
+        depends_on:
+            - minio
+            - mysql
+        networks:
+            - default
+        environment:
+            AWS_REGION: eu-west-3
+            AWS_DEFAULT_REGION: eu-west-3
+            AWS_ACCESS_KEY_ID: minio
+            AWS_SECRET_ACCESS_KEY: OsKwEnsJz0AtiX05
+            MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+            MYSQL_HOST: mysql
+            MYSQL_PORT: 3306
+            MYSQL_DATABASE: mlflowdb
+            MYSQL_USER: mlflowuser
+            MYSQL_PASSWORD: hdfcLhDASas3vKhy
+        deploy:
+            resources:
+                limits:
+                    cpus: '1'
+                    memory: 2G
+                reservations:
+                    cpus: '0.25'
+                    memory: 128M
+        logging:
+            options:
+                max-size: 250m
 
-  # MinIO
-  minio:
-    image: minio/minio:latest
-    restart: unless-stopped
-#    healthcheck:
-#      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-#      interval: 30s
-#      timeout: 20s
-#      retries: 3
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: OsKwEnsJz0AtiX05
-      MINIO_SITE_REGION: eu-west-3
-      MINIO_SITE_NAME: minio-local-1
-    command: server --console-address ":9001" /data1
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - ./volumes/minio:/data1
+    # Adminer
+    adminer:
+        image: adminer
+        restart: unless-stopped
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 256M
+                reservations:
+                    cpus: '0.125'
+                    memory: 64M
+        depends_on:
+            - mysql
 
-  # Neo4j Pipeline Database
-  pipeline-database:
-    image: ghcr.io/project-hanse/prototype-a/hanse-neo4j:main
-    restart: unless-stopped
-    environment:
-      - NEO4J_AUTH=neo4j/test
-    healthcheck:
-      test: [ "CMD", "curl", "--fail", "http://localhost:7474/", "||", "exit 1" ]
-      interval: 10s
-      timeout: 2s
-      retries: 10
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: 8G
-        reservations:
-          cpus: '0.25'
-          memory: 1G
-    volumes:
-      - ./volumes/neo4j/data:/data
-      - ./volumes/neo4j/logs:/logs
+    # MinIO Configuration
+    minio-config:
+        build:
+            context: ./MinIOConfig
+            dockerfile: Dockerfile
+        restart: on-failure
+        depends_on:
+            - minio
+        environment:
+            MINIO_HOSTNAME: http://minio:9000
+            MINIO_ACCESS_KEY: minio
+            MINIO_SECRET_KEY: OsKwEnsJz0AtiX05
 
-  # MySQL Database
-  mysql:
-    image: ghcr.io/project-hanse/prototype-a/hanse-mysql-database:main
-    restart: unless-stopped
-    networks:
-      - default
-    environment:
-      - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
-    healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      interval: 5s
-      timeout: 25s
-      retries: 10
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 4G
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    volumes:
-      - ./volumes/mysql:/var/lib/mysql
+    # MinIO
+    minio:
+        image: minio/minio:latest
+        restart: unless-stopped
+        #    healthcheck:
+        #      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+        #      interval: 30s
+        #      timeout: 20s
+        #      retries: 3
+        environment:
+            MINIO_ROOT_USER: minio
+            MINIO_ROOT_PASSWORD: OsKwEnsJz0AtiX05
+            MINIO_SITE_REGION: eu-west-3
+            MINIO_SITE_NAME: minio-local-1
+        command: server --console-address ":9001" /data1
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '1'
+                    memory: 2G
+                reservations:
+                    cpus: '0.25'
+                    memory: 256M
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - ./volumes/minio:/data1
 
-  # RabbitMQ
-  rabbitmq:
-    image: ghcr.io/project-hanse/prototype-a/hanse-rabbitmq-server:main
-    restart: unless-stopped
-    healthcheck:
-      test: rabbitmq-diagnostics check_port_connectivity
-      interval: 1s
-      timeout: 3s
-      retries: 30
-    logging:
-      options:
-        max-size: 250m
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.25'
-          memory: 128M
-    volumes:
-      - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
+    # Neo4j Pipeline Database
+    pipeline-database:
+        image: ghcr.io/project-hanse/prototype-a/hanse-neo4j:main
+        restart: unless-stopped
+        environment:
+            - NEO4J_AUTH=neo4j/test
+        healthcheck:
+            test: [ "CMD", "curl", "--fail", "http://localhost:7474/", "||", "exit 1" ]
+            interval: 10s
+            timeout: 2s
+            retries: 10
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '4'
+                    memory: 8G
+                reservations:
+                    cpus: '0.25'
+                    memory: 1G
+        volumes:
+            - ./volumes/neo4j/data:/data
+            - ./volumes/neo4j/logs:/logs
+
+    # MySQL Database
+    mysql:
+        image: ghcr.io/project-hanse/prototype-a/hanse-mysql-database:main
+        restart: unless-stopped
+        networks:
+            - default
+        environment:
+            - MYSQL_ROOT_PASSWORD=aNIdBLTOIC4XuHgk66
+        healthcheck:
+            test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+            interval: 5s
+            timeout: 25s
+            retries: 10
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '2'
+                    memory: 4G
+                reservations:
+                    cpus: '0.25'
+                    memory: 128M
+        volumes:
+            - ./volumes/mysql:/var/lib/mysql
+
+    # RabbitMQ
+    rabbitmq:
+        image: ghcr.io/project-hanse/prototype-a/hanse-rabbitmq-server:main
+        restart: unless-stopped
+        healthcheck:
+            test: rabbitmq-diagnostics check_port_connectivity
+            interval: 1s
+            timeout: 3s
+            retries: 30
+        logging:
+            options:
+                max-size: 250m
+        deploy:
+            resources:
+                limits:
+                    cpus: '1'
+                    memory: 2G
+                reservations:
+                    cpus: '0.25'
+                    memory: 128M
+        volumes:
+            - ./volumes/rabbitmq/data/:/var/lib/rabbitmq/
 #      - ./volumes/rabbitmq/log/:/var/log/rabbitmq
