@@ -45,7 +45,7 @@ class SkLearnModelBase(ModelBase):
 		self.feat, self.lab = self.get_data(cache=cache)
 		load_data_end = time.time()
 		self.load_duration = load_data_end - load_data_start
-		self.logger.info("Loading data for '%s' took %f seconds", (__name__, self.load_duration))
+		self.logger.info("Loading data for '%s' took %f seconds", __name__, self.load_duration)
 
 	def train(self, model_name: str) -> dict:
 		X_train, X_test, y_train, y_test = train_test_split(self.feat, self.lab, test_size=self.train_split)
